@@ -19,7 +19,7 @@ export default function ImportTab() {
   const [categories, setCategories] = useState([]);
   const [categoryId, setCategoryId] = useState('');
   const [examTitle, setExamTitle] = useState('');
-  const [collapsedCols, setCollapsedCols] = useState({});
+  const [collapsedCols, setCollapsedCols] = useState({ wait: true, imported: true, done: true });
   const [checkedWait, setCheckedWait] = useState(new Set());
   const [checkedImported, setCheckedImported] = useState(new Set());
   const [llmProvider, setLlmProvider] = useState('gemini');
