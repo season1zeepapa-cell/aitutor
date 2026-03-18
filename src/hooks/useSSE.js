@@ -80,7 +80,12 @@ export default function useSSE() {
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              const text = parsed.text || parsed.content || parsed.delta || '';
+              // SSE 에러 감지
+              if (parsed.error) {
+                setError(parsed.error);
+                continue;
+              }
+              const text = parsed.t || parsed.text || parsed.content || parsed.delta || '';
               if (text) {
                 accumulated += text;
                 setContent(accumulated);
@@ -115,7 +120,7 @@ export default function useSSE() {
           throw new Error(errData.error || `폴백 에러 (${fallbackRes.status})`);
         }
         const fallbackData = await fallbackRes.json();
-        const fallbackText = fallbackData.text || fallbackData.content || '';
+        const fallbackText = fallbackData.answer || fallbackData.text || fallbackData.content || '';
         if (fallbackText) {
           setContent(fallbackText);
           setError(null);
