@@ -16,7 +16,7 @@ export default function MemoPanel({ questionId }) {
   // 메모 로드
   useEffect(() => {
     if (!questionId) return;
-    apiGet(`/api/memos?question_id=${questionId}`)
+    apiGet(`/api/memos?action=list&question_id=${questionId}`)
       .then(data => setMemos(data.memos || []))
       .catch(err => console.error('[Memo] 로드 실패:', err));
   }, [questionId]);
@@ -35,6 +35,7 @@ export default function MemoPanel({ questionId }) {
     setLoading(true);
     try {
       const data = await apiPost('/api/memos', {
+        action: 'save',
         question_id: questionId,
         content: newText.trim() || '(첨부파일)',
       });
@@ -46,6 +47,7 @@ export default function MemoPanel({ questionId }) {
           try {
             const base64 = await fileToBase64(file);
             await apiPost('/api/memo-files', {
+              action: 'upload',
               memo_id: memo.id,
               filename: file.name,
               mime_type: file.type,
@@ -58,7 +60,7 @@ export default function MemoPanel({ questionId }) {
         }
         // 파일 목록 재조회
         try {
-          const filesData = await apiGet(`/api/memo-files?memo_id=${memo.id}`);
+          const filesData = await apiGet(`/api/memo-files?action=list&memo_id=${memo.id}`);
           memo.files = filesData.files || [];
         } catch {}
       }
@@ -100,6 +102,7 @@ export default function MemoPanel({ questionId }) {
     try {
       const base64 = await fileToBase64(file);
       const data = await apiPost('/api/memo-files', {
+        action: 'upload',
         memo_id: memoId,
         filename: file.name,
         mime_type: file.type,
@@ -135,7 +138,7 @@ export default function MemoPanel({ questionId }) {
   const downloadFile = async (fileId, filename) => {
     try {
       const token = getAuthToken();
-      const res = await fetch(`/api/memo-files?id=${fileId}`, {
+      const res = await fetch(`/api/memo-files?action=download&id=${fileId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const data = await res.json();
