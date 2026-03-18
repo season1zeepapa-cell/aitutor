@@ -18,7 +18,7 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
   // 저장된 해설 조회
   useEffect(() => {
     if (!questionId) return;
-    apiGet(`/api/explanations?question_id=${questionId}`)
+    apiGet(`/api/explanations?action=list&question_id=${questionId}`)
       .then(data => {
         const map = {};
         (data.explanations || []).forEach(e => {
@@ -56,6 +56,7 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
     if (result) {
       try {
         await apiPost('/api/explanations', {
+          action: 'save',
           question_id: questionId,
           provider,
           model: providerSettings.model || 'gemini-2.5-flash',
