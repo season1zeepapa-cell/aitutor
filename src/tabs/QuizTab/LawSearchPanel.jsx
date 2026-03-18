@@ -7,10 +7,19 @@ export default function LawSearchPanel() {
   const [results, setResults] = useState([]);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [useAiLaw, setUseAiLaw] = useState(false);
 
   // 법령 검색
   const searchLaw = async () => {
     if (!query.trim()) return;
+
+    // AI 법령정보 체크 시 → 클립보드 복사 + AI 법령정보 페이지 오픈
+    if (useAiLaw) {
+      navigator.clipboard.writeText(query.trim()).catch(() => {});
+      window.open('https://www.law.go.kr/LSW/ais/main.do', '_blank');
+      return;
+    }
+
     setLoading(true);
     setDetail(null);
     try {
@@ -49,6 +58,11 @@ export default function LawSearchPanel() {
           className="px-4 py-2.5 rounded-xl bg-warning text-white text-sm font-bold hover:bg-warning/90 transition-colors disabled:opacity-40 flex-shrink-0">
           {loading ? '...' : '검색'}
         </button>
+        <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0">
+          <input type="checkbox" checked={useAiLaw} onChange={e => setUseAiLaw(e.target.checked)}
+            className="w-4 h-4 rounded cursor-pointer" />
+          <span className="text-xs text-text-secondary font-medium whitespace-nowrap">AI 법령정보</span>
+        </label>
       </div>
 
       {/* 검색 결과 */}
