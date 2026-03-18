@@ -15,7 +15,7 @@ export default function useSSE() {
   const [error, setError] = useState(null);
   const abortRef = useRef(null);
 
-  const startStream = useCallback(async ({ provider, model, prompt, systemPrompt, temperature, maxTokens, thinkingBudget, thinkingLevel, reasoningEffort }) => {
+  const startStream = useCallback(async ({ provider, model, prompt, systemPrompt, temperature, maxTokens, thinkingBudget, thinkingLevel, reasoningEffort, imageBase64, mimeType }) => {
     const endpoint = ENDPOINTS[provider];
     if (!endpoint) throw new Error(`알 수 없는 프로바이더: ${provider}`);
 
@@ -33,6 +33,11 @@ export default function useSSE() {
       maxTokens: maxTokens || 2048,
       stream: true,
     };
+    // 이미지 포함
+    if (imageBase64) {
+      body.imageBase64 = imageBase64;
+      body.mimeType = mimeType || 'image/png';
+    }
     // Gemini 전용 옵션
     if (provider === 'gemini') {
       if (thinkingBudget !== undefined) body.thinkingBudget = thinkingBudget;

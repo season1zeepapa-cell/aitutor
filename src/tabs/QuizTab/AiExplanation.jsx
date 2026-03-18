@@ -12,15 +12,31 @@ const PROVIDERS = [
   { key: 'claude', label: 'Claude', color: '#d97706' },
 ];
 
-export default function AiExplanation({ questionId, questionBody, choices, answer, categoryName }) {
+export default function AiExplanation({ questionId, questionBody, choices, answer, categoryName, imageUrl }) {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState(null);
-  const [lastResult, setLastResult] = useState(''); // 마지막 생성 결과 (미저장)
-  const [savedExplanations, setSavedExplanations] = useState({}); // provider → {id, content, model}
-  const [showSaved, setShowSaved] = useState(null); // 열람 중인 저장 해설 provider
+  const [lastResult, setLastResult] = useState('');
+  const [savedExplanations, setSavedExplanations] = useState({});
+  const [showSaved, setShowSaved] = useState(null);
   const [traceEvents, setTraceEvents] = useState([]);
+  const [includeImage, setIncludeImage] = useState(false);
+  const [extraPrompt, setExtraPrompt] = useState('');
   const traceStart = useRef(null);
   const { content, isStreaming, error, startStream, stopStream, reset } = useSSE();
+
+  // 이미지를 base64로 변환
+  const fetchImageBase64 = async (src) => {
+    try {
+      const resp = await fetch(src);
+      const blob = await resp.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch { return null; }
+  };
 
   const addTrace = (entry) => {
     const ts = Date.now() - (traceStart.current || Date.now());
@@ -60,10 +76,24 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
     const choiceList = rawChoices.map(c => (typeof c === 'object' && c !== null) ? (c.text || c.label || '') : c);
     const choiceText = choiceList.map((c, i) => `${CIRCLE[i]} ${c}`).join('\n');
     const roleName = categoryName || '자격증 시험';
-    const prompt = `당신은 ${roleName} 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n**정답**: [번호 및 내용]\n\n**해설**: [상세한 해설]\n\n**핵심 키워드**: [관련 법령, 용어 등]\n\n---\n\n[문제]\n${questionBody}\n\n[선택지]\n${choiceText}\n\n[정답] ${CIRCLE[answer - 1]}\n\n각 선택지가 왜 맞고 틀린지 간결하게 설명해주세요.`;
+    let prompt = `당신은 ${roleName} 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n**정답**: [번호 및 내용]\n\n**해설**: [상세한 해설]\n\n**핵심 키워드**: [관련 법령, 용어 등]\n\n---\n\n[문제]\n${questionBody}\n\n[선택지]\n${choiceText}\n\n[정답] ${CIRCLE[answer - 1]}\n\n각 선택지가 왜 맞고 틀린지 간결하게 설명해주세요.`;
+    if (extraPrompt.trim()) {
+      prompt += `\n\n[추가 지시사항]\n${extraPrompt.trim()}`;
+    }
+
+    // 이미지 base64 변환 (이미지 포함 체크 시)
+    let imageBase64 = null;
+    let mimeType = null;
+    if (includeImage && imageUrl) {
+      addTrace({ type: 'start', label: '이미지 변환 중', status: 'running', detail: imageUrl });
+      imageBase64 = await fetchImageBase64(imageUrl);
+      mimeType = 'image/png';
+      addTrace({ type: 'start', label: imageBase64 ? '이미지 변환 완료' : '이미지 변환 실패', status: imageBase64 ? 'ok' : 'error',
+        detail: imageBase64 ? `base64 ${(imageBase64.length / 1024).toFixed(0)}KB` : '이미지를 불러올 수 없음' });
+    }
 
     addTrace({ type: 'prompt', label: 'LLM 프롬프트', status: 'ok',
-      detail: `${p.label} (${model}) | temp=${providerSettings.temperature ?? 0.3} | max=${providerSettings.maxTokens || 2048}`,
+      detail: `${p.label} (${model}) | temp=${providerSettings.temperature ?? 0.3} | max=${providerSettings.maxTokens || 2048} | 이미지: ${imageBase64 ? '✅' : '❌'}`,
       expandable: prompt });
 
     addTrace({ type: 'stream', label: 'SSE 스트리밍', status: 'running',
@@ -77,6 +107,7 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
       thinkingBudget: providerSettings.thinkingBudget,
       thinkingLevel: providerSettings.thinkingLevel,
       reasoningEffort: providerSettings.reasoningEffort,
+      imageBase64, mimeType,
     });
     const t1 = Date.now() - traceStart.current;
 
@@ -130,6 +161,21 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
 
   return (
     <div className="space-y-3">
+      {/* 옵션: 이미지 포함 + 추가 지시사항 */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {imageUrl && (
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" checked={includeImage} onChange={e => setIncludeImage(e.target.checked)}
+              className="w-4 h-4 rounded cursor-pointer" />
+            <span className="text-xs text-text-secondary font-medium">이미지 포함</span>
+          </label>
+        )}
+        <input value={extraPrompt} onChange={e => setExtraPrompt(e.target.value)}
+          placeholder="AI 추가 지시사항 입력 (예: 관련 법령 조문도 알려줘, 쉽게 설명해줘)"
+          className="flex-1 min-w-[180px] px-3 py-2 rounded-xl border border-border bg-input-bg text-text text-xs
+            placeholder:text-text-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+      </div>
+
       {/* 프로바이더 버튼 — 항상 새로 생성 */}
       <div className="flex gap-2">
         {PROVIDERS.map(p => {

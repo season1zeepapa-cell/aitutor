@@ -191,7 +191,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
           )}
 
           {/* AI 해설 + 메모 토글 */}
-          <AiSubPanels questionId={q.id} questionBody={q.body} choices={q.choices} answer={correctAnswer} categoryName={categoryName} />
+          <AiSubPanels questionId={q.id} questionBody={q.body} choices={q.choices} answer={correctAnswer} categoryName={categoryName} imageUrl={imageUrl} />
         </div>
       )}
     </div>
@@ -199,7 +199,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
 }
 
 // 하위 패널 — AI 해설 / 메모 탭 전환
-function AiSubPanels({ questionId, questionBody, choices, answer, categoryName }) {
+function AiSubPanels({ questionId, questionBody, choices, answer, categoryName, imageUrl }) {
   const [activePanel, setActivePanel] = useState(null);
 
   const panels = [
@@ -243,7 +243,7 @@ function AiSubPanels({ questionId, questionBody, choices, answer, categoryName }
       {/* 패널 내용 */}
       {activePanel === 'ai' && (
         <div className="fade-in">
-          <AiExplanation questionId={questionId} questionBody={questionBody} choices={choices} answer={answer} categoryName={categoryName} />
+          <AiExplanation questionId={questionId} questionBody={questionBody} choices={choices} answer={answer} categoryName={categoryName} imageUrl={imageUrl} />
         </div>
       )}
       {activePanel === 'memo' && (
