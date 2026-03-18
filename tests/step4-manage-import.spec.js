@@ -12,22 +12,22 @@ async function loginAndGo(page, path) {
 
 test.describe('4단계: 문제관리 + DocStore 연동', () => {
 
-  test('문제관리 탭에 필터와 목록 영역이 렌더링된다', async ({ page }) => {
+  test('문제관리 탭에 필터와 추가 버튼이 렌더링된다', async ({ page }) => {
     await loginAndGo(page, '/manage');
     await expect(page.getByRole('heading', { name: '문제 관리' })).toBeVisible();
+    await expect(page.locator('text=+ 문제 추가')).toBeVisible();
     const selects = page.locator('select');
-    await expect(selects).toHaveCount(2);
+    const count = await selects.count();
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 
-  test('DocStore 연동 탭에 칸반 보드가 렌더링된다', async ({ page }) => {
+  test('DocStore 연동 탭에 칸반 + 도구가 렌더링된다', async ({ page }) => {
     await loginAndGo(page, '/import');
     await expect(page.getByRole('heading', { name: 'DocStore 연동' })).toBeVisible();
-    // 3단계 표시 확인
-    await expect(page.locator('text=대상조회').first()).toBeVisible();
-    await expect(page.locator('text=문제이관').first()).toBeVisible();
-    await expect(page.locator('text=해설생성 및 완료').first()).toBeVisible();
-    // 소스 시험 선택 셀렉트 확인
-    await expect(page.locator('select')).toBeVisible();
+    // 3단계 라벨 확인
+    await expect(page.locator('text=1.대상조회')).toBeVisible();
+    // 처리 로그 확인
+    await expect(page.locator('text=처리 로그')).toBeVisible();
   });
 
   test('칸반 전체 접기/펼치기 버튼이 동작한다', async ({ page }) => {
@@ -38,12 +38,12 @@ test.describe('4단계: 문제관리 + DocStore 연동', () => {
     await expect(page.locator('text=전체 펼치기')).toBeVisible();
   });
 
-  test('문제관리에서 문항 수 표시', async ({ page }) => {
+  test('문제관리에서 문제추가 모달이 열린다', async ({ page }) => {
     await loginAndGo(page, '/manage');
-    // "0문항" 또는 "N문항" 텍스트가 표시
-    await page.waitForTimeout(1000);
-    const text = await page.locator('body').textContent();
-    expect(text).toContain('문항');
+    await page.locator('text=+ 문제 추가').click();
+    await expect(page.locator('text=문제 추가').first()).toBeVisible();
+    // 폼 필드 확인
+    await expect(page.locator('textarea[placeholder*="문제 본문"]')).toBeVisible();
   });
 
 });

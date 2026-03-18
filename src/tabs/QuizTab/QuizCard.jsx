@@ -1,5 +1,7 @@
 // 문제 카드 — Quizlet 스타일 플래시카드
 import { useState } from 'react';
+import { useImageModal } from '../../App';
+import { useToast } from '../../components/ui/Toast';
 import AiExplanation from './AiExplanation';
 import MemoPanel from './MemoPanel';
 
@@ -8,8 +10,8 @@ const CIRCLE = ['①', '②', '③', '④', '⑤'];
 export default function QuizCard({ question, index, isExpanded, onToggle }) {
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [memoCount, setMemoCount] = useState(question.memo_count || 0);
-  const [explanationCount, setExplanationCount] = useState(question.explanation_count || 0);
+  const openImage = useImageModal();
+  const toast = useToast();
 
   const q = question;
   const rawChoices = typeof q.choices === 'string' ? JSON.parse(q.choices) : (q.choices || []);
@@ -95,16 +97,28 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
           {/* 구분선 */}
           <div className="border-t border-border" />
 
-          {/* 문제 이미지 */}
+          {/* 문제 이미지 (클릭 시 확대) */}
           {q.image_url && (
-            <div className="rounded-xl overflow-hidden border border-border">
+            <div className="rounded-xl overflow-hidden border border-border cursor-pointer" onClick={() => openImage(q.image_url)}>
               <img src={q.image_url} alt={`문제 ${q.question_number}`}
-                className="w-full max-h-80 object-contain bg-badge-bg" loading="lazy" />
+                className="w-full max-h-80 object-contain bg-badge-bg hover:opacity-90 transition-opacity" loading="lazy" />
             </div>
           )}
 
-          {/* 문제 본문 */}
-          <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.body}</p>
+          {/* 문제 본문 + 복사 버튼 */}
+          <div className="relative group">
+            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.body}</p>
+            <button onClick={() => {
+              const text = `#${q.question_number || index}\n${q.body}\n${choices.map((c,i) => `${CIRCLE[i]} ${c}`).join('\n')}\n정답: ${CIRCLE[correctAnswer-1]}`;
+              navigator.clipboard.writeText(text).then(() => toast('문제가 복사되었습니다.', 'info'));
+            }}
+              className="absolute top-0 right-0 p-1 text-text-secondary hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
+              title="문제 복사">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
 
           {/* 선택지 */}
           <div className="space-y-2">
