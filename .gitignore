@@ -1,0 +1,25 @@
+# === 공통 ===
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~
+.env
+.env.*
+!.env.example
+
+# === IDE ===
+.idea/
+.vscode/
+*.sublime-*
+
+# === Node.js ===
+node_modules/
+dist/
+.vercel/
+
+# === 테스트 결과 ===
+test-results/
+playwright-report/
+tests/.auth/

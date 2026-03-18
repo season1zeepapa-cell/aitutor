@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Quizlet 톤앤매너: 인디고/보라 기반 클린 디자인 ─── */
+:root, [data-theme="light"] {
+  --bg: #f6f7fb;
+  --card-bg: #ffffff;
+  --card-bg-hover: #f8f9fc;
+  --text: #1a1d28;
+  --text-secondary: #586380;
+  --primary: #4255ff;
+  --primary-hover: #3345d6;
+  --primary-light: #edefff;
+  --border: #e2e6ed;
+  --danger: #ff5252;
+  --danger-hover: #e04545;
+  --success: #23b26d;
+  --warning: #ff9800;
+  --input-bg: #ffffff;
+  --badge-bg: #edeff4;
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --gradient-start: #4255ff;
+  --gradient-end: #7b68ee;
+}
+
+[data-theme="dark"] {
+  --bg: #0a092d;
+  --card-bg: #1a1d3e;
+  --card-bg-hover: #282b52;
+  --text: #edefff;
+  --text-secondary: #9da2c2;
+  --primary: #6b7cff;
+  --primary-hover: #8b99ff;
+  --primary-light: #1e2050;
+  --border: #2e3160;
+  --danger: #ff6b6b;
+  --danger-hover: #ff5252;
+  --success: #51cf96;
+  --warning: #ffb74d;
+  --input-bg: #1a1d3e;
+  --badge-bg: #282b52;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --gradient-start: #6b7cff;
+  --gradient-end: #9b8aff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 다크모드 전환 애니메이션 */
+body, header, nav, main,
+input, select, textarea, button {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Safe Area (Capacitor) ─── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-top { padding-top: max(16px, env(safe-area-inset-top)); }
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .safe-top { padding-top: 16px; }
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-pb { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+  .safe-nav { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ─── 스크롤바 ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ─── 애니메이션 ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.3s ease-out; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-up { animation: slideUp 0.35s ease-out; }
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse-soft { animation: pulse-soft 1.5s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ─── 스켈레톤 로딩 ─── */
+.skeleton {
+  background: linear-gradient(90deg, var(--badge-bg) 25%, var(--card-bg-hover) 50%, var(--badge-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ─── 그라디언트 버튼 (Quizlet 스타일) ─── */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.btn-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(66, 85, 255, 0.35);
+}
+.btn-gradient:active {
+  transform: translateY(0);
+}
+
+/* ─── 토스트 알림 ─── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-12px) scale(0.95); }
+}
+
+/* ─── 모바일 최적화 ─── */
+@media (max-width: 639px) {
+  body { -webkit-text-size-adjust: 100%; }
+}
+
+/* ─── 맨위로 버튼 ─── */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  z-index: 35;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 12px var(--shadow-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.scroll-top-btn:hover { transform: scale(1.1); }
+
+/* ─── 다크모드 배경색 보정 ─── */
+[data-theme="dark"] .bg-green-50 { background: rgba(34,197,94,0.12) !important; }
+[data-theme="dark"] .bg-red-50 { background: rgba(239,68,68,0.12) !important; }
+[data-theme="dark"] .bg-blue-50 { background: rgba(59,130,246,0.12) !important; }
+[data-theme="dark"] .border-green-200 { border-color: rgba(34,197,94,0.3) !important; }
+[data-theme="dark"] .border-red-200 { border-color: rgba(239,68,68,0.3) !important; }

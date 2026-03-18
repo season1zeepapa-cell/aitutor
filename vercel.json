@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "framework": null,
+  "buildCommand": "npm run build:fe",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/gemini.js": { "maxDuration": 300 },
+    "api/openai.js": { "maxDuration": 300 },
+    "api/claude.js": { "maxDuration": 300 },
+    "api/import-docstore.js": { "maxDuration": 120 },
+    "api/memo-files.js": { "maxDuration": 30 },
+    "api/law.js": { "maxDuration": 15 }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
