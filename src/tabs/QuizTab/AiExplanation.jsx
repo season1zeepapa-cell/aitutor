@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import { apiGet, apiPost } from '../../lib/api';
 import useSSE from '../../hooks/useSSE';
+import { llmSettings } from '../../constants/llm';
 
 const PROVIDERS = [
-  { key: 'gemini', label: 'Gemini', color: '#4285f4', defaultModel: 'gemini-2.5-flash' },
-  { key: 'openai', label: 'OpenAI', color: '#10a37f', defaultModel: 'gpt-4o-mini' },
-  { key: 'claude', label: 'Claude', color: '#d97706', defaultModel: 'claude-sonnet-4-20250514' },
+  { key: 'gemini', label: 'Gemini', color: '#4285f4' },
+  { key: 'openai', label: 'OpenAI', color: '#10a37f' },
+  { key: 'claude', label: 'Claude', color: '#d97706' },
 ];
 
 export default function AiExplanation({ questionId, questionBody, choices, answer }) {
@@ -31,6 +32,7 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
   // 해설 생성 요청
   const generateExplanation = async (provider) => {
     const p = PROVIDERS.find(x => x.key === provider);
+    const providerSettings = llmSettings[provider] || {};
     setActiveTab(provider);
     reset();
 
@@ -43,10 +45,11 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
 
     const result = await startStream({
       provider,
-      model: p.defaultModel,
+      model: providerSettings.model || 'gemini-2.5-flash',
       prompt,
       systemPrompt: '시험 문제 해설 전문가입니다. 간결하고 정확하게 설명합니다.',
-      temperature: 0.3,
+      temperature: providerSettings.temperature ?? 0.3,
+      maxTokens: providerSettings.maxTokens || 2048,
     });
 
     // 결과 저장
@@ -55,12 +58,12 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
         await apiPost('/api/explanations', {
           question_id: questionId,
           provider,
-          model: p.defaultModel,
+          model: providerSettings.model || 'gemini-2.5-flash',
           content: result,
         });
         setSavedExplanations(prev => ({
           ...prev,
-          [provider]: { content: result, provider, model: p.defaultModel },
+          [provider]: { content: result, provider, model: providerSettings.model },
         }));
       } catch (err) {
         console.error('[AI] 해설 저장 실패:', err);

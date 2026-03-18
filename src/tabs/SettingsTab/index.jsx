@@ -4,6 +4,7 @@ import { apiGet, apiPost } from '../../lib/api';
 import { getAuthUser } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
 import Card from '../../components/ui/Card';
+import LlmSettingsPanel from './LlmSettingsPanel';
 
 export default function SettingsTab() {
   const [activeSection, setActiveSection] = useState('categories');
@@ -27,7 +28,7 @@ export default function SettingsTab() {
         ))}
       </div>
       {activeSection === 'categories' && <CategorySection />}
-      {activeSection === 'ai' && <AiSettingsSection />}
+      {activeSection === 'ai' && <Card><LlmSettingsPanel /></Card>}
       {activeSection === 'users' && <UsersSection />}
     </div>
   );
@@ -228,30 +229,6 @@ function CategorySection() {
   );
 }
 
-// ─── AI 설정 ───
-function AiSettingsSection() {
-  return (
-    <Card>
-      <p className="text-sm font-bold text-text mb-3">AI 모델 설정</p>
-      <p className="text-xs text-text-secondary mb-4">AI 해설 생성 시 사용할 기본 모델입니다.</p>
-      <div className="space-y-3">
-        {[
-          { label: 'Gemini', model: 'gemini-2.5-flash', color: '#4285f4' },
-          { label: 'OpenAI', model: 'gpt-4o-mini', color: '#10a37f' },
-          { label: 'Claude', model: 'claude-sonnet-4-20250514', color: '#d97706' },
-        ].map(ai => (
-          <div key={ai.label} className="flex items-center justify-between px-4 py-3 bg-badge-bg rounded-xl">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ background: ai.color }} />
-              <span className="text-sm font-semibold text-text">{ai.label}</span>
-            </div>
-            <span className="text-xs text-text-secondary font-mono">{ai.model}</span>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
 
 // ─── 회원관리 ───
 function UsersSection() {

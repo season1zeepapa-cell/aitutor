@@ -28,10 +28,11 @@ test.describe('5단계: 설정 + 최종', () => {
   test('AI 설정 섹션으로 전환 가능', async ({ page }) => {
     await loginAndGo(page, '/settings');
     await page.getByRole('button', { name: 'AI 설정' }).click();
-    await expect(page.locator('text=AI 모델 설정')).toBeVisible();
-    await expect(page.locator('text=Gemini').first()).toBeVisible();
-    await expect(page.locator('text=OpenAI').first()).toBeVisible();
-    await expect(page.locator('text=Claude').first()).toBeVisible();
+    // LLM 설정 패널: 프로바이더 탭 + 모델 선택 + 저장 버튼
+    await expect(page.locator('button >> text=Gemini').first()).toBeVisible();
+    await expect(page.locator('button >> text=OpenAI').first()).toBeVisible();
+    await expect(page.locator('button >> text=Claude').first()).toBeVisible();
+    await expect(page.locator('text=설정 저장')).toBeVisible();
   });
 
   test('전체 앱 빌드가 성공한다', async ({ page }) => {
