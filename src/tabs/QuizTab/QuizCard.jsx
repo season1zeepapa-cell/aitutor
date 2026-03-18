@@ -160,18 +160,26 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
 
           {/* 정답 결과 + 액션 버튼 */}
           {showAnswer && (
-            <div className="flex items-center justify-between pt-2 slide-up">
-              <div className="flex items-center gap-2">
+            <div className="space-y-3 slide-up">
+              <div className="flex items-center justify-between">
                 <span className={`text-sm font-bold ${selectedChoice === correctAnswer ? 'text-success' : 'text-danger'}`}>
                   {selectedChoice === correctAnswer ? '정답입니다!' : `오답 — 정답: ${CIRCLE[correctAnswer - 1]}`}
                 </span>
+                <button
+                  onClick={resetCard}
+                  className="text-xs text-primary font-semibold hover:text-primary-hover transition-colors px-3 py-1.5 rounded-lg hover:bg-primary-light"
+                >
+                  다시 풀기
+                </button>
               </div>
-              <button
-                onClick={resetCard}
-                className="text-xs text-primary font-semibold hover:text-primary-hover transition-colors px-3 py-1.5 rounded-lg hover:bg-primary-light"
-              >
-                다시 풀기
-              </button>
+
+              {/* 기본 해설 (DB에 저장된 explanation) */}
+              {q.explanation && (
+                <div className="bg-badge-bg border border-border rounded-xl p-4">
+                  <p className="text-xs font-bold text-text-secondary mb-2">해설</p>
+                  <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.explanation}</p>
+                </div>
+              )}
             </div>
           )}
 
