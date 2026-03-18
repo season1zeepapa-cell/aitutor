@@ -4,6 +4,8 @@ import { useImageModal } from '../../App';
 import { useToast } from '../../components/ui/Toast';
 import AiExplanation from './AiExplanation';
 import MemoPanel from './MemoPanel';
+import LawSearchPanel from './LawSearchPanel';
+import LawLinkedText from '../../components/LawLink';
 
 const CIRCLE = ['①', '②', '③', '④', '⑤'];
 
@@ -124,7 +126,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
 
           {/* 문제 본문 + 복사 버튼 */}
           <div className="relative group">
-            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.body}</p>
+            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap"><LawLinkedText text={q.body} /></p>
             <button onClick={() => {
               const text = `#${q.question_number || index}\n${q.body}\n${choices.map((c,i) => `${CIRCLE[i]} ${c}`).join('\n')}\n정답: ${CIRCLE[correctAnswer-1]}`;
               navigator.clipboard.writeText(text).then(() => toast('문제가 복사되었습니다.', 'info'));
@@ -148,7 +150,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
                   transition-all duration-200 ${getChoiceStyle(i)}`}
               >
                 <span className="flex-shrink-0 font-bold text-sm mt-0.5">{CIRCLE[i]}</span>
-                <span className="flex-1">{choice}</span>
+                <span className="flex-1"><LawLinkedText text={choice} /></span>
                 {showAnswer && (i + 1) === correctAnswer && (
                   <svg className="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -181,7 +183,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
                     <div className="text-sm text-text leading-relaxed explanation-html"
                       dangerouslySetInnerHTML={{ __html: q.explanation }} />
                   ) : (
-                    <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.explanation}</p>
+                    <p className="text-sm text-text leading-relaxed whitespace-pre-wrap"><LawLinkedText text={q.explanation} /></p>
                   )}
                 </div>
               )}
@@ -209,6 +211,11 @@ function AiSubPanels({ questionId, questionBody, choices, answer, categoryName }
     { key: 'memo', label: '메모', icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    )},
+    { key: 'law', label: '법령검색', icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
       </svg>
     )},
   ];
@@ -242,6 +249,11 @@ function AiSubPanels({ questionId, questionBody, choices, answer, categoryName }
       {activePanel === 'memo' && (
         <div className="fade-in">
           <MemoPanel questionId={questionId} />
+        </div>
+      )}
+      {activePanel === 'law' && (
+        <div className="fade-in">
+          <LawSearchPanel />
         </div>
       )}
     </div>
