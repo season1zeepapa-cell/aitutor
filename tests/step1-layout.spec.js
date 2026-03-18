@@ -5,18 +5,18 @@ test.describe('1단계: 레이아웃 및 인증', () => {
 
   test('로그인 페이지가 렌더링된다', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=AI Tutor').first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible();
-    await expect(page.locator('input[type="text"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'AI Tutor' })).toBeVisible();
+    await expect(page.locator('input[placeholder="아이디"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="비밀번호"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인' })).toBeVisible();
   });
 
   test('회원가입 전환 버튼이 동작한다', async ({ page }) => {
     await page.goto('/');
     await page.click('text=계정이 없으신가요? 회원가입');
-    await expect(page.getByRole('heading', { name: '회원가입' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '회원가입' })).toBeVisible();
     await page.click('text=이미 계정이 있으신가요? 로그인');
-    await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인' })).toBeVisible();
   });
 
   test('빈 폼 제출 시 브라우저 기본 유효성 검사', async ({ page }) => {
