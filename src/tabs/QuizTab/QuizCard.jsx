@@ -10,6 +10,7 @@ const CIRCLE = ['①', '②', '③', '④', '⑤'];
 export default function QuizCard({ question, index, isExpanded, onToggle }) {
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showImage, setShowImage] = useState(false);
   const openImage = useImageModal();
   const toast = useToast();
 
@@ -62,14 +63,14 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-card-bg-hover transition-colors"
       >
         {/* 번호 배지 */}
-        <span className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold
-          bg-primary-light text-primary">
-          {q.question_number || index}
+        <span className="flex-shrink-0 min-w-[48px] h-8 rounded-lg flex items-center justify-center text-xs font-bold
+          bg-primary-light text-primary px-2">
+          Q.{q.question_number || index}
         </span>
 
         {/* 문제 미리보기 */}
         <span className="flex-1 text-sm text-text truncate">
-          {(q.body || '').substring(0, 60)}{(q.body || '').length > 60 ? '...' : ''}
+          {(q.body || '').substring(0, 50)}{(q.body || '').length > 50 ? '...' : ''}
         </span>
 
         {/* 상태 배지 */}
@@ -101,11 +102,23 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
           {/* 구분선 */}
           <div className="border-t border-border" />
 
-          {/* 문제 이미지 (클릭 시 확대) */}
+          {/* 문제 이미지 — 버튼으로 토글 */}
           {imageUrl && (
-            <div className="rounded-xl overflow-hidden border border-border cursor-pointer" onClick={() => openImage(imageUrl)}>
-              <img src={imageUrl} alt={`문제 ${q.question_number}`}
-                className="w-full max-h-80 object-contain bg-badge-bg hover:opacity-90 transition-opacity" loading="lazy" />
+            <div>
+              <button onClick={() => setShowImage(!showImage)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                  bg-badge-bg text-text-secondary hover:text-primary hover:bg-primary-light">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {showImage ? '이미지 숨기기' : '원본 이미지 보기'}
+              </button>
+              {showImage && (
+                <div className="mt-2 rounded-xl overflow-hidden border border-border cursor-pointer fade-in" onClick={() => openImage(imageUrl)}>
+                  <img src={imageUrl} alt={`문제 ${q.question_number}`}
+                    className="w-full max-h-80 object-contain bg-badge-bg hover:opacity-90 transition-opacity" loading="lazy" />
+                </div>
+              )}
             </div>
           )}
 
