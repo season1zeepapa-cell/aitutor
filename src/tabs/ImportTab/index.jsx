@@ -138,7 +138,7 @@ export default function ImportTab() {
                   <div key={q.sourceId || q.id}
                     className="flex items-center gap-2 px-3 py-2 bg-badge-bg rounded-xl">
                     <span className="text-xs font-bold text-primary">#{q.number}</span>
-                    <span className="text-xs text-text truncate flex-1">{(q.body || '').substring(0, 40)}</span>
+                    <span className="text-xs text-text truncate flex-1">{String(q.body || '').substring(0, 40)}</span>
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
                       style={{ color: col.color, background: `${col.color}15` }}>
                       {['①','②','③','④','⑤'][q.answer - 1] || '?'}

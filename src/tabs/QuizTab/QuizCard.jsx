@@ -12,7 +12,9 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
   const [explanationCount, setExplanationCount] = useState(question.explanation_count || 0);
 
   const q = question;
-  const choices = typeof q.choices === 'string' ? JSON.parse(q.choices) : (q.choices || []);
+  const rawChoices = typeof q.choices === 'string' ? JSON.parse(q.choices) : (q.choices || []);
+  // choices가 객체 배열({num, text})일 수 있으므로 텍스트만 추출
+  const choices = rawChoices.map(c => (typeof c === 'object' && c !== null) ? (c.text || c.label || JSON.stringify(c)) : c);
   const correctAnswer = q.answer;
 
   // 선택지 클릭

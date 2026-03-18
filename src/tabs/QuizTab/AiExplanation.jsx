@@ -35,7 +35,8 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
     reset();
 
     const CIRCLE = ['①', '②', '③', '④', '⑤'];
-    const choiceList = (typeof choices === 'string' ? JSON.parse(choices) : choices || []);
+    const rawChoices = (typeof choices === 'string' ? JSON.parse(choices) : choices || []);
+    const choiceList = rawChoices.map(c => (typeof c === 'object' && c !== null) ? (c.text || c.label || '') : c);
     const choiceText = choiceList.map((c, i) => `${CIRCLE[i]} ${c}`).join('\n');
 
     const prompt = `다음 문제의 정답과 해설을 작성해주세요.\n\n[문제]\n${questionBody}\n\n[선택지]\n${choiceText}\n\n[정답] ${CIRCLE[answer - 1]}\n\n각 선택지가 왜 맞고 틀린지 간결하게 설명해주세요.`;
