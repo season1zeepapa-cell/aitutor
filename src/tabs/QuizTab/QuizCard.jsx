@@ -173,11 +173,16 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
                 </button>
               </div>
 
-              {/* 기본 해설 (DB에 저장된 explanation) */}
+              {/* 기본 해설 (DB에 저장된 explanation — HTML 또는 텍스트) */}
               {q.explanation && (
                 <div className="bg-badge-bg border border-border rounded-xl p-4">
                   <p className="text-xs font-bold text-text-secondary mb-2">해설</p>
-                  <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.explanation}</p>
+                  {q.explanation.includes('<') ? (
+                    <div className="text-sm text-text leading-relaxed explanation-html"
+                      dangerouslySetInnerHTML={{ __html: q.explanation }} />
+                  ) : (
+                    <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{q.explanation}</p>
+                  )}
                 </div>
               )}
             </div>

@@ -207,6 +207,18 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
 }
 
+/* ─── 해설 HTML 스타일 ─── */
+.explanation-html p { margin-bottom: 0.5em; }
+.explanation-html strong { color: var(--primary); font-weight: 600; }
+.explanation-html em { font-style: italic; }
+.explanation-html ul, .explanation-html ol { padding-left: 1.5em; margin-bottom: 0.5em; }
+.explanation-html li { margin-bottom: 0.25em; }
+.explanation-html .exp-answer { font-weight: 600; margin-bottom: 0.75em; }
+.explanation-html .exp-section { margin-bottom: 0.75em; }
+.explanation-html .exp-section-title { font-weight: 700; font-size: 13px; margin-bottom: 0.25em; color: var(--text); }
+.explanation-html .exp-tip { background: var(--primary-light); border-radius: 8px; padding: 8px 12px; margin-top: 0.5em; font-size: 13px; }
+.explanation-html .exp-result { display: none; }
+
 /* ─── 다크모드 배경색 보정 ─── */
 [data-theme="dark"] .bg-green-50 { background: rgba(34,197,94,0.12) !important; }
 [data-theme="dark"] .bg-red-50 { background: rgba(239,68,68,0.12) !important; }
