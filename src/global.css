@@ -171,6 +171,42 @@ body {
 }
 .scroll-top-btn:hover { transform: scale(1.1); }
 
+/* ─── Range 슬라이더 ─── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 1px 4px var(--shadow-color);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 1px 4px var(--shadow-color);
+  cursor: pointer;
+}
+
 /* ─── 다크모드 배경색 보정 ─── */
 [data-theme="dark"] .bg-green-50 { background: rgba(34,197,94,0.12) !important; }
 [data-theme="dark"] .bg-red-50 { background: rgba(239,68,68,0.12) !important; }

@@ -143,8 +143,7 @@ export default function LlmSettingsPanel() {
           <input type="range" min="0" max="2" step="0.1"
             value={current.temperature ?? 0.3}
             onChange={e => update('temperature', parseFloat(e.target.value))}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer"
-            style={{ accentColor: provider?.color }} />
+            className="w-full" />
           <div className="flex justify-between text-[10px] text-text-secondary mt-1">
             <span>정확 (0)</span>
             <span>균형 (0.3)</span>
