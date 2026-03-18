@@ -14,6 +14,10 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
   const toast = useToast();
 
   const q = question;
+  // 이미지 URL: 상대경로면 기존 error 사이트를 참조
+  const imageUrl = q.image_url
+    ? (q.image_url.startsWith('http') ? q.image_url : `https://error-liart.vercel.app${q.image_url.startsWith('/') ? '' : '/'}${q.image_url}`)
+    : null;
   const rawChoices = typeof q.choices === 'string' ? JSON.parse(q.choices) : (q.choices || []);
   // choices가 객체 배열({num, text})일 수 있으므로 텍스트만 추출
   const choices = rawChoices.map(c => (typeof c === 'object' && c !== null) ? (c.text || c.label || JSON.stringify(c)) : c);
@@ -98,9 +102,9 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
           <div className="border-t border-border" />
 
           {/* 문제 이미지 (클릭 시 확대) */}
-          {q.image_url && (
-            <div className="rounded-xl overflow-hidden border border-border cursor-pointer" onClick={() => openImage(q.image_url)}>
-              <img src={q.image_url} alt={`문제 ${q.question_number}`}
+          {imageUrl && (
+            <div className="rounded-xl overflow-hidden border border-border cursor-pointer" onClick={() => openImage(imageUrl)}>
+              <img src={imageUrl} alt={`문제 ${q.question_number}`}
                 className="w-full max-h-80 object-contain bg-badge-bg hover:opacity-90 transition-opacity" loading="lazy" />
             </div>
           )}
