@@ -86,6 +86,8 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
         {PROVIDERS.map(p => {
           const hasSaved = !!savedExplanations[p.key];
           const isActive = activeTab === p.key;
+          const ps = llmSettings[p.key] || {};
+          const modelShort = (ps.model || '').replace('gemini-', '').replace('gpt-', '').replace('claude-', '').replace('-preview', '');
           return (
             <button
               key={p.key}
@@ -98,7 +100,7 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
                 }
               }}
               disabled={isStreaming && activeTab !== p.key}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 border
+              className={`flex-1 py-2 px-1.5 rounded-xl text-center transition-all duration-200 border
                 ${isActive
                   ? 'border-current shadow-sm'
                   : 'border-border hover:border-current/30'
@@ -107,7 +109,8 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
               `}
               style={{ color: p.color, background: isActive ? `${p.color}10` : 'transparent' }}
             >
-              {hasSaved ? `${p.label} ✓` : p.label}
+              <div className="text-xs font-bold">{hasSaved ? `${p.label} ✓` : p.label}</div>
+              <div className="text-[9px] opacity-70 font-medium mt-0.5 truncate">{modelShort}</div>
             </button>
           );
         })}
