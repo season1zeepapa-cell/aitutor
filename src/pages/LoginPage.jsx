@@ -57,7 +57,7 @@ export default function LoginPage({ onLogin }) {
             </svg>
           </div>
           <h1 className="text-3xl font-extrabold text-text">AI Tutor</h1>
-          <p className="mt-2 text-text-secondary text-sm">영상정보관리사 오답노트</p>
+          <p className="mt-2 text-text-secondary text-sm">AI 기반 학습 플랫폼</p>
         </div>
 
         {/* 로그인 카드 */}
