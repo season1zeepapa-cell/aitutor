@@ -7,7 +7,7 @@ import MemoPanel from './MemoPanel';
 
 const CIRCLE = ['①', '②', '③', '④', '⑤'];
 
-export default function QuizCard({ question, index, isExpanded, onToggle }) {
+export default function QuizCard({ question, index, isExpanded, onToggle, categoryName }) {
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showImage, setShowImage] = useState(false);
@@ -189,7 +189,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
           )}
 
           {/* AI 해설 + 메모 토글 */}
-          <AiSubPanels questionId={q.id} questionBody={q.body} choices={q.choices} answer={correctAnswer} />
+          <AiSubPanels questionId={q.id} questionBody={q.body} choices={q.choices} answer={correctAnswer} categoryName={categoryName} />
         </div>
       )}
     </div>
@@ -197,7 +197,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
 }
 
 // 하위 패널 — AI 해설 / 메모 탭 전환
-function AiSubPanels({ questionId, questionBody, choices, answer }) {
+function AiSubPanels({ questionId, questionBody, choices, answer, categoryName }) {
   const [activePanel, setActivePanel] = useState(null);
 
   const panels = [
@@ -236,7 +236,7 @@ function AiSubPanels({ questionId, questionBody, choices, answer }) {
       {/* 패널 내용 */}
       {activePanel === 'ai' && (
         <div className="fade-in">
-          <AiExplanation questionId={questionId} questionBody={questionBody} choices={choices} answer={answer} />
+          <AiExplanation questionId={questionId} questionBody={questionBody} choices={choices} answer={answer} categoryName={categoryName} />
         </div>
       )}
       {activePanel === 'memo' && (

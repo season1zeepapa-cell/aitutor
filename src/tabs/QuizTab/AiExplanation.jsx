@@ -12,7 +12,7 @@ const PROVIDERS = [
   { key: 'claude', label: 'Claude', color: '#d97706' },
 ];
 
-export default function AiExplanation({ questionId, questionBody, choices, answer }) {
+export default function AiExplanation({ questionId, questionBody, choices, answer, categoryName }) {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState(null);
   const [lastResult, setLastResult] = useState(''); // 마지막 생성 결과 (미저장)
@@ -59,7 +59,8 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
     const rawChoices = (typeof choices === 'string' ? JSON.parse(choices) : choices || []);
     const choiceList = rawChoices.map(c => (typeof c === 'object' && c !== null) ? (c.text || c.label || '') : c);
     const choiceText = choiceList.map((c, i) => `${CIRCLE[i]} ${c}`).join('\n');
-    const prompt = `당신은 영상정보관리사 자격증 시험 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n**정답**: [번호 및 내용]\n\n**해설**: [상세한 해설]\n\n**핵심 키워드**: [관련 법령, 용어 등]\n\n---\n\n[문제]\n${questionBody}\n\n[선택지]\n${choiceText}\n\n[정답] ${CIRCLE[answer - 1]}\n\n각 선택지가 왜 맞고 틀린지 간결하게 설명해주세요.`;
+    const roleName = categoryName || '자격증 시험';
+    const prompt = `당신은 ${roleName} 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n**정답**: [번호 및 내용]\n\n**해설**: [상세한 해설]\n\n**핵심 키워드**: [관련 법령, 용어 등]\n\n---\n\n[문제]\n${questionBody}\n\n[선택지]\n${choiceText}\n\n[정답] ${CIRCLE[answer - 1]}\n\n각 선택지가 왜 맞고 틀린지 간결하게 설명해주세요.`;
 
     addTrace({ type: 'prompt', label: 'LLM 프롬프트', status: 'ok',
       detail: `${p.label} (${model}) | temp=${providerSettings.temperature ?? 0.3} | max=${providerSettings.maxTokens || 2048}`,

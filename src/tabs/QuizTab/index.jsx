@@ -105,15 +105,19 @@ export default function QuizTab() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {questions.map((q, idx) => (
-            <QuizCard
-              key={q.id}
-              question={q}
-              index={idx + 1}
-              isExpanded={expandedId === q.id}
-              onToggle={() => toggleCard(q.id)}
-            />
-          ))}
+          {questions.map((q, idx) => {
+            const catName = (meta.categories || []).find(c => c.id == categoryId)?.name || '';
+            return (
+              <QuizCard
+                key={q.id}
+                question={q}
+                index={idx + 1}
+                isExpanded={expandedId === q.id}
+                onToggle={() => toggleCard(q.id)}
+                categoryName={catName}
+              />
+            );
+          })}
 
           {/* 더보기 버튼 */}
           {hasMore && (
