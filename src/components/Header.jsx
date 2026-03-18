@@ -1,16 +1,8 @@
-// 상단 헤더 — 로고 + 카테고리 선택 + 다크모드 + 로그아웃
-import { useState, useEffect } from 'react';
-import { getAuthUser, apiPost } from '../lib/api';
+// 상단 헤더 — 로고 + 다크모드 + 로그아웃
+import { getAuthUser } from '../lib/api';
 
-export default function Header({ onLogout, theme, onToggleTheme, categoryId, onCategoryChange }) {
+export default function Header({ onLogout, theme, onToggleTheme }) {
   const user = getAuthUser();
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    apiPost('/api/questions', { action: 'meta' })
-      .then(data => setCategories(data.categories || []))
-      .catch(() => {});
-  }, []);
 
   return (
     <header className="bg-card-bg border-b border-border px-4 pb-3 sticky top-0 z-40 shadow-sm safe-top">
@@ -23,18 +15,8 @@ export default function Header({ onLogout, theme, onToggleTheme, categoryId, onC
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
           </div>
-          <h1 className="text-lg font-bold text-primary hidden sm:block">AI Tutor</h1>
+          <h1 className="text-lg font-bold text-primary">AI Tutor</h1>
         </div>
-
-        {/* 카테고리 선택 */}
-        {onCategoryChange && categories.length > 0 && (
-          <select value={categoryId || ''} onChange={e => onCategoryChange(e.target.value)}
-            className="flex-1 max-w-[180px] px-2 py-1.5 rounded-lg border border-border bg-input-bg text-text text-xs
-              focus:outline-none focus:border-primary transition-all truncate">
-            <option value="">전체 카테고리</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
 
         {/* 우측 액션 */}
         <div className="flex items-center gap-2 flex-shrink-0">
