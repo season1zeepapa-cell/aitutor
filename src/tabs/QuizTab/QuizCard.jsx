@@ -70,9 +70,9 @@ export default function QuizCard({ question, index, isExpanded, onToggle }) {
 
         {/* 상태 배지 */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {memoCount > 0 && (
+          {(question.memo_count > 0) && (
             <span className="text-[10px] font-semibold text-warning bg-warning/10 px-1.5 py-0.5 rounded-md">
-              메모 {memoCount}
+              메모 {question.memo_count}
             </span>
           )}
           {showAnswer && (
