@@ -47,9 +47,11 @@ export default function AiExplanation({ questionId, questionBody, choices, answe
       provider,
       model: providerSettings.model || 'gemini-2.5-flash',
       prompt,
-      systemPrompt: '시험 문제 해설 전문가입니다. 간결하고 정확하게 설명합니다.',
       temperature: providerSettings.temperature ?? 0.3,
       maxTokens: providerSettings.maxTokens || 2048,
+      thinkingBudget: providerSettings.thinkingBudget,
+      thinkingLevel: providerSettings.thinkingLevel,
+      reasoningEffort: providerSettings.reasoningEffort,
     });
 
     // 결과 저장

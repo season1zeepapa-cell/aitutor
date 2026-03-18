@@ -15,7 +15,7 @@ export default function useSSE() {
   const [error, setError] = useState(null);
   const abortRef = useRef(null);
 
-  const startStream = useCallback(async ({ provider, model, prompt, systemPrompt, temperature, maxTokens }) => {
+  const startStream = useCallback(async ({ provider, model, prompt, systemPrompt, temperature, maxTokens, thinkingBudget, thinkingLevel, reasoningEffort }) => {
     const endpoint = ENDPOINTS[provider];
     if (!endpoint) throw new Error(`알 수 없는 프로바이더: ${provider}`);
 
@@ -25,14 +25,23 @@ export default function useSSE() {
     abortRef.current = new AbortController();
 
     const token = getAuthToken();
+    // API가 기대하는 필드명: text, model, temperature, maxTokens, stream
     const body = {
+      text: prompt,
       model,
-      prompt,
-      system: systemPrompt || '',
-      temperature: temperature ?? 0.5,
-      max_tokens: maxTokens || 4096,
+      temperature: temperature ?? 0.3,
+      maxTokens: maxTokens || 2048,
       stream: true,
     };
+    // Gemini 전용 옵션
+    if (provider === 'gemini') {
+      if (thinkingBudget !== undefined) body.thinkingBudget = thinkingBudget;
+      if (thinkingLevel) body.thinkingLevel = thinkingLevel;
+    }
+    // OpenAI o-시리즈 전용
+    if (provider === 'openai' && reasoningEffort) {
+      body.reasoningEffort = reasoningEffort;
+    }
 
     try {
       const res = await fetch(endpoint, {
@@ -71,14 +80,12 @@ export default function useSSE() {
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              // 각 프로바이더별 텍스트 추출
               const text = parsed.text || parsed.content || parsed.delta || '';
               if (text) {
                 accumulated += text;
                 setContent(accumulated);
               }
             } catch {
-              // JSON이 아닌 일반 텍스트
               if (data && data !== '[DONE]') {
                 accumulated += data;
                 setContent(accumulated);
@@ -103,6 +110,10 @@ export default function useSSE() {
           },
           body: JSON.stringify({ ...body, stream: false }),
         });
+        if (!fallbackRes.ok) {
+          const errData = await fallbackRes.json().catch(() => ({}));
+          throw new Error(errData.error || `폴백 에러 (${fallbackRes.status})`);
+        }
         const fallbackData = await fallbackRes.json();
         const fallbackText = fallbackData.text || fallbackData.content || '';
         if (fallbackText) {
@@ -111,7 +122,7 @@ export default function useSSE() {
           return fallbackText;
         }
       } catch (fallbackErr) {
-        setError(`스트리밍 및 일반 모드 모두 실패: ${fallbackErr.message}`);
+        setError(`요청 실패: ${err.message}`);
       }
       return '';
     } finally {
