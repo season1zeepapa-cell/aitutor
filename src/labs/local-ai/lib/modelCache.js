@@ -1,14 +1,27 @@
 // Transformers.js Cache API 조회/관리
+//
+// 사이즈 측정 정책: 항상 blob.size 사용 (실측 디스크 사이즈)
+// — Content-Length 헤더는 압축/proxy 등으로 부정확할 수 있어 신뢰하지 않음
 
 const TRANSFORMERS_CACHE_NAME = 'transformers-cache';
 
+/** Cache Response 의 실측 사이즈 (blob.size 기준) */
+async function measureResponseSize(resp) {
+  try {
+    const blob = await resp.blob();
+    return blob.size;
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * @param {string} url - MODEL_URLS[size] (https://huggingface.co/{model_id})
- * @returns {Promise<{cached: boolean, size: number, partial: boolean, partialBytes: number}>}
+ * @returns {Promise<{cached: boolean, size: number, fileCount: number}>}
  */
 export async function getModelCacheStatus(url) {
   if (typeof caches === 'undefined') {
-    return { cached: false, size: 0, partial: false, partialBytes: 0 };
+    return { cached: false, size: 0, fileCount: 0 };
   }
 
   const matchPrefix = url.endsWith('/') ? url : `${url}/`;
@@ -22,27 +35,16 @@ export async function getModelCacheStatus(url) {
       if (req.url.startsWith(matchPrefix)) {
         const resp = await cache.match(req);
         if (resp) {
-          const cl = parseInt(resp.headers.get('Content-Length') || '0', 10);
-          if (cl > 0) {
-            totalBytes += cl;
-          } else {
-            const blob = await resp.blob();
-            totalBytes += blob.size;
-          }
+          totalBytes += await measureResponseSize(resp);
           fileCount += 1;
         }
       }
     }
   } catch {
-    return { cached: false, size: 0, partial: false, partialBytes: 0 };
+    return { cached: false, size: 0, fileCount: 0 };
   }
 
-  return {
-    cached: fileCount > 0,
-    size: totalBytes,
-    partial: false,
-    partialBytes: 0,
-  };
+  return { cached: fileCount > 0, size: totalBytes, fileCount };
 }
 
 /**
@@ -60,14 +62,7 @@ export async function getModelCacheFiles(url) {
       if (req.url.startsWith(matchPrefix)) {
         const resp = await cache.match(req);
         if (resp) {
-          const cl = parseInt(resp.headers.get('Content-Length') || '0', 10);
-          let size = cl;
-          if (size <= 0) {
-            try {
-              const blob = await resp.blob();
-              size = blob.size;
-            } catch { size = 0; }
-          }
+          const size = await measureResponseSize(resp);
           const shortName = req.url.replace(matchPrefix, '').replace(/^resolve\/[^/]+\//, '');
           files.push({
             url: req.url,

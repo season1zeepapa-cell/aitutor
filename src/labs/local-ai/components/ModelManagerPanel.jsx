@@ -150,44 +150,50 @@ export default function ModelManagerPanel({
                   </span>
                 </div>
 
-                {/* 상태 라인 */}
+                {/* 상태 라인 — 실측 디스크 사이즈 (blob.size 합산) */}
                 <p className="text-xs text-gray-600 mb-2">
                   {st.cached
-                    ? `✅ 다운로드됨 — ${formatBytes(st.size)} · 파일 ${files.length}개`
+                    ? <>✅ 다운로드됨 — <b className="text-gray-800">{formatBytes(st.size)}</b> · 파일 {files.length}개 <span className="text-[10px] text-gray-400">(실측)</span></>
                     : '⬇️ 미다운로드'}
                 </p>
 
-                {/* 파일 상세 토글 — 캐시된 경우만 */}
+                {/* 파일 상세 — 캐시된 경우 펼침 토글 (기본 펼침) */}
                 {st.cached && files.length > 0 && (
                   <div className="mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setFilesOpen(p => ({ ...p, [size]: !p[size] }))}
-                      className="text-[11px] text-blue-600 hover:underline"
-                    >
-                      {isFilesOpen ? '▲ 파일 상세 접기' : `▼ 파일 상세 보기 (${files.length}개)`}
-                    </button>
-                    {isFilesOpen && (
-                      <div className="mt-1.5 max-h-56 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-2 text-[10px] font-mono space-y-0.5">
+                    <div className="flex items-center justify-between mb-1">
+                      <button
+                        type="button"
+                        onClick={() => setFilesOpen(p => ({ ...p, [size]: !(p[size] ?? true) }))}
+                        className="text-[11px] text-blue-600 hover:underline font-medium"
+                      >
+                        {(filesOpen[size] ?? true) ? '▲ 파일 목록 접기' : `▼ 파일 목록 보기 (${files.length}개)`}
+                      </button>
+                      <a
+                        href={`https://huggingface.co/${MODEL_URLS[size].split('huggingface.co/')[1]}/tree/main`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] text-gray-500 hover:underline"
+                      >
+                        🔗 HuggingFace 원본
+                      </a>
+                    </div>
+                    {(filesOpen[size] ?? true) && (
+                      <div className="rounded border border-gray-200 bg-gray-50 p-2 text-[10px] font-mono space-y-0.5">
+                        <div className="flex justify-between gap-2 pb-1 mb-1 border-b border-gray-200 font-semibold text-gray-600 text-[10px]">
+                          <span>파일명</span>
+                          <span>실측 사이즈</span>
+                        </div>
                         {files.map((f, i) => (
-                          <div key={i} className="flex justify-between gap-2">
+                          <div key={i} className="flex justify-between gap-2 hover:bg-white">
                             <span className="truncate text-gray-700" title={f.url}>{f.name}</span>
-                            <span className="flex-shrink-0 text-gray-500">{formatBytes(f.size)}</span>
+                            <span className="flex-shrink-0 text-gray-600 tabular-nums">{formatBytes(f.size)}</span>
                           </div>
                         ))}
-                        <div className="pt-1 mt-1 border-t border-gray-200 flex justify-between font-bold text-gray-800">
-                          <span>합계</span>
-                          <span>{formatBytes(files.reduce((a, b) => a + b.size, 0))}</span>
+                        <div className="pt-1 mt-1 border-t border-gray-300 flex justify-between font-bold text-gray-900 text-[11px]">
+                          <span>합계 ({files.length}개)</span>
+                          <span className="tabular-nums">{formatBytes(files.reduce((a, b) => a + b.size, 0))}</span>
                         </div>
                       </div>
                     )}
-                    <a
-                      href={`https://huggingface.co/${MODEL_URLS[size].split('huggingface.co/')[1]}/tree/main/onnx`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="ml-2 text-[10px] text-gray-500 hover:underline"
-                    >
-                      🔗 HuggingFace
-                    </a>
                   </div>
                 )}
 
