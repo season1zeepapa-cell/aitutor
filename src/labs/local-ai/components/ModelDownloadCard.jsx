@@ -110,11 +110,21 @@ export default function ModelDownloadCard({ size = 'e2b', progress, onActivate, 
           <span>{progress.currentFile?.slice(0, 40) || `${progress.fileCount}개 파일`}</span>
           <span className="font-semibold">{overall.toFixed(0)}%</span>
         </div>
-        {progress.overallTotal > 0 && (
-          <div className="text-[11px] text-blue-800">
-            {fmtMB(progress.overallLoaded)} / {fmtMB(progress.overallTotal)}
-          </div>
-        )}
+
+        {/* 진행 중 받은 바이트 — Content-Length 헤더 기반 추정값이라 부정확할 수 있음 */}
+        <div className="text-[11px] text-blue-800">
+          받는 중: <b className="tabular-nums">{fmtMB(progress.overallLoaded)}</b>
+          {progress.overallTotal > 0 && (
+            <>
+              <span className="text-blue-400 mx-1">/</span>
+              <span className="text-blue-600 tabular-nums">~{fmtMB(progress.overallTotal)}</span>
+              <span className="text-[9px] text-blue-500 ml-1">(추정)</span>
+            </>
+          )}
+        </div>
+        <p className="text-[10px] text-blue-600 italic">
+          ※ 진행 사이즈는 서버 헤더 기준 추정치입니다. 정확한 디스크 사용량은 다운로드 완료 후 확인 가능합니다.
+        </p>
 
         {isHidden && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-2 text-[11px] text-amber-900">
