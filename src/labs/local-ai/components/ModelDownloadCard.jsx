@@ -3,11 +3,13 @@
 
 import { MODEL_META } from '../lib/inference';
 
+// ModelManagerPanel 의 formatBytes 와 동일 형식 (IEC 단위)
 function fmtMB(bytes) {
-  if (!bytes || bytes <= 0) return '0';
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 1024) return `${(mb / 1024).toFixed(2)}GB`;
-  return `${mb.toFixed(0)}MB`;
+  if (!bytes || bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
 
 // WebGPU + q4f16 단일 정책 (데스크탑 전용)

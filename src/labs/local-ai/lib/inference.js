@@ -12,9 +12,12 @@ export const MODEL_IDS = {
   e4b: 'onnx-community/gemma-4-E4B-it-ONNX',
 };
 
+// approxSizeGB = q4f16 단일 quantization 실측 (blob.size 합산, IEC GiB)
+//   E2B: decoder + embed + audio + vision + 메타 = 약 3.17 GB
+//   E4B: decoder(2 splits) + embed + audio + vision + 메타 = 약 4.84 GB
 export const MODEL_META = {
-  e2b: { label: 'Gemma 4 E2B', params: '2B', approxSizeGB: 1.5 },
-  e4b: { label: 'Gemma 4 E4B', params: '4B', approxSizeGB: 2.7 },
+  e2b: { label: 'Gemma 4 E2B', params: '2B', approxSizeGB: 3.2 },
+  e4b: { label: 'Gemma 4 E4B', params: '4B', approxSizeGB: 4.9 },
 };
 
 export const MODEL_URLS = {
