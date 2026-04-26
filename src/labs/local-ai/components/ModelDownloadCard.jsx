@@ -1,5 +1,4 @@
-// 모델 다운로드 진행률 카드
-// 첫 사용 시 모델 다운로드 — 사용자 동의 + 진행률 표시
+// 모델 다운로드 진행률 + 활성화 카드
 // 상태: init / downloading / cache_hit / initializing / ready / error
 
 import { MODEL_META } from '../lib/inference';

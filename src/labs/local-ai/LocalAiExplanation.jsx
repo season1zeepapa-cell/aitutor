@@ -1,10 +1,9 @@
-// 디바이스 AI(Gemma 4 E4B) 시범 화면 — Y 옵션 (REBUILD17 §8 결정)
+// 디바이스 AI 시범 화면 — Gemma 4 (E2B/E4B) WebGPU 추론
 //
 // 흐름:
 //  1) /api/questions?action=public&exam_id=161 으로 운전면허 문항 1건 무작위 표시
-//  2) 사용자가 디바이스 AI 활성화 클릭 → 모델 다운로드 (첫 1회만, 1.5~2.7GB)
-//  3) 다운로드 완료 → 자동으로 해설 생성 (스트리밍)
-//  4) "다음 문항" 버튼으로 새 문항
+//  2) 활성화 클릭 → 모델 다운로드 + WebGPU 적재 (첫 1회만)
+//  3) 해설 생성 (TextStreamer 스트리밍)
 
 import { useState, useEffect, useRef } from 'react';
 import DeviceCheckBadge from './components/DeviceCheckBadge';

@@ -1,5 +1,4 @@
 // 디바이스 능력 점검 결과 배지
-// 격리 모듈 — 기존 컴포넌트 의존 0 (Tailwind 만 사용)
 
 import { useEffect, useState } from 'react';
 import { getDeviceInfo } from '../lib/deviceCheck';

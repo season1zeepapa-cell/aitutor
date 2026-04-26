@@ -1,11 +1,7 @@
-// /lab/local-ai 라우트 진입점 — 격리된 디바이스 AI 시범 모듈 (REBUILD17)
+// /lab/local-ai 라우트 진입점
 //
-// 가드 흐름:
-//  1) /api/config 호출 → lab_local_ai_enabled === true 일 때만 접근 허용
-//  2) 비활성 시 안내 페이지만 표시 (관리자가 토글 ON 안 했음)
-//  3) 활성 시 LocalAiExplanation 마운트
-//
-// 격리 원칙: 기존 src/pages, src/tabs, src/components, src/lib 코드 import 0건.
+// 가드: /api/config 의 lab_local_ai_enabled === true 일 때만 LocalAiExplanation 마운트
+// 격리 원칙: 기존 src/pages, src/tabs, src/components, src/lib 코드 import 0건
 
 import { useState, useEffect } from 'react';
 import LocalAiExplanation from './LocalAiExplanation';

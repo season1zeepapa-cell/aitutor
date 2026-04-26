@@ -1,8 +1,4 @@
-// 디바이스 능력 감지 — WebGPU 전용 (데스크탑 Chrome/Edge)
-//
-// 정책:
-//   ✅ WebGPU 지원 브라우저 (데스크탑 Chrome/Edge) 만 허용
-//   ❌ WebGPU 미지원 (Safari/Firefox/모바일 등) 차단
+// 디바이스 능력 감지 — WebGPU 지원 브라우저(데스크탑 Chrome/Edge) 만 허용
 
 /** @returns {{supported: boolean, reason?: string, recommendedSize?: 'e2b'|'e4b'}} */
 export async function checkDeviceAi() {
@@ -37,7 +33,7 @@ export async function checkDeviceAi() {
   return { supported: true, recommendedSize, memoryWarning, deviceMemory: memory ?? null };
 }
 
-/** 진단 정보 한 번에 — UI 표시용 */
+/** UI 표시용 진단 정보 */
 export async function getDeviceInfo() {
   const result = await checkDeviceAi();
   return {
