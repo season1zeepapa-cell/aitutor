@@ -11,7 +11,7 @@ function fmtMB(bytes) {
   return `${mb.toFixed(0)}MB`;
 }
 
-// 단일 정책 (모바일/데스크탑 동일 — WebGPU + q4f16)
+// WebGPU + q4f16 단일 정책 (데스크탑 전용)
 function getRecommendedSize(meta) {
   return meta.approxSizeGB;
 }

@@ -301,7 +301,7 @@ export default function LocalAiExplanation() {
 
       {/* 안내 */}
       <p className="text-[11px] text-gray-500 text-center pt-4">
-        REBUILD17 §5 — 모바일 PWA + WebGPU + Gemma 4 시범 (격리 모듈)
+        REBUILD17 §5 — WebGPU + Gemma 4 시범 (데스크탑 전용 격리 모듈)
       </p>
     </div>
   );

@@ -1,32 +1,21 @@
-// Transformers.js + onnx-community Gemma 4 ONNX 모델 추론 (WebGPU)
+// Transformers.js + onnx-community Gemma 4 ONNX 모델 추론 (WebGPU 전용)
 //
-// 2026-04-26 14:46 시점 — tokenizer 직접 호출 (i.rgb fix) 적용된 첫 정상 동작 버전.
-// MediaPipe + LiteRT-Community web.task 의 quality 문제로 ONNX 로 전환.
-// 참조: https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/discussions/1
-//       https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX
+// 정책 — 데스크탑 Chrome/Edge (WebGPU) 만 지원. 모바일/WASM 관련 로직 일체 제거.
 //
 // 흐름:
 //   1) AutoProcessor.from_pretrained(model_id) — 토크나이저/processor 로드
-//   2) Gemma4ForConditionalGeneration.from_pretrained(model_id, { dtype, device, progress_callback })
-//      → 1차: WebGPU + q4f16 (데스크탑 최적)
-//      → catch: WASM + q4 fallback (모바일/WebGPU 미지원 환경)
-//   3) processor.apply_chat_template + processor.tokenizer 직접 호출 (i.rgb fix)
+//   2) Gemma4ForConditionalGeneration.from_pretrained(model_id, {
+//        dtype: 'q4f16', device: 'webgpu', progress_callback,
+//      })
+//   3) processor.apply_chat_template + processor.tokenizer 직접 호출
 //   4) model.generate({ ...inputs, streamer }) — TextStreamer 로 토큰 스트리밍
 
 import {
   AutoProcessor,
   Gemma4ForConditionalGeneration,
   TextStreamer,
-  env,
 } from '@huggingface/transformers';
 import { buildMessages } from './prompts';
-
-// ─── ONNX Runtime 환경 설정 — SharedArrayBuffer 없이도 동작 ───
-// COOP/COEP 헤더 미설정 환경에서는 SharedArrayBuffer 사용 불가 → single-thread 강제
-if (env?.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.numThreads = 1;
-  env.backends.onnx.wasm.proxy = false;
-}
 
 export const MODEL_IDS = {
   e2b: 'onnx-community/gemma-4-E2B-it-ONNX',
@@ -136,10 +125,9 @@ export async function loadPipe(size = 'e2b', onProgress = () => {}) {
     };
   };
 
+  // WebGPU + q4f16 단일 시도 (폴백 없음)
   let model;
-  let usedDevice = 'webgpu';
   try {
-    // 1차: WebGPU + q4f16 (데스크탑 최적)
     model = await Gemma4ForConditionalGeneration.from_pretrained(model_id, {
       dtype: 'q4f16',
       device: 'webgpu',
@@ -147,37 +135,20 @@ export async function loadPipe(size = 'e2b', onProgress = () => {}) {
     });
   } catch (eGpu) {
     const msg = eGpu?.message || String(eGpu);
-    console.warn('[loadPipe] WebGPU 로드 실패 — WASM fallback 시도', msg);
-
-    // 사용자에게 fallback 진행 알림
-    onProgress({
-      status: 'initializing',
-      currentFile: 'WebGPU 실패 — WASM fallback 시도 중',
-      currentPercent: 0, fileCount: 1,
-      overallLoaded: 0, overallTotal: 0, overallPercent: 0,
-    });
-
-    // 2차: WASM + q4 (CPU, 느리지만 호환성 ↑)
-    try {
-      model = await Gemma4ForConditionalGeneration.from_pretrained(model_id, {
-        dtype: 'q4',
-        device: 'wasm',
-        progress_callback: makeProgressHandler('WASM'),
-      });
-      usedDevice = 'wasm';
-    } catch (eWasm) {
-      const msgW = eWasm?.message || String(eWasm);
-      if (/memory|alloc|out of/i.test(msgW + msg)) {
-        throw new Error(`[모델 메모리 부족] 디바이스 RAM 한계. E4B 사용 중이면 E2B 로 시도. 원본: ${msgW}`);
-      }
-      throw new Error(`[모델 로드 실패] WebGPU: ${msg} / WASM: ${msgW}`);
+    console.error('[loadPipe] WebGPU 적재 실패 —', msg);
+    if (/memory|alloc|out of/i.test(msg)) {
+      throw new Error(`[모델 메모리 부족] 디바이스 GPU/RAM 한계. E4B → E2B 로 시도해 보세요. 원본: ${msg}`);
     }
+    if (/webgpu|adapter|not supported/i.test(msg)) {
+      throw new Error(`[WebGPU 미지원] 데스크탑 Chrome/Edge 에서만 동작합니다. 원본: ${msg}`);
+    }
+    throw new Error(`[모델 로드 실패] ${msg}`);
   }
 
   cached = { processor, model, size };
-  lastUsedDevice = usedDevice;
+  lastUsedDevice = 'webgpu';
 
-  console.log(`[loadPipe] 모델 적재 완료 — device: ${usedDevice}, size: ${size}`);
+  console.log(`[loadPipe] 모델 적재 완료 — device: webgpu, size: ${size}`);
 
   onProgress({
     status: 'ready',

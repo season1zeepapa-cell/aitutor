@@ -130,7 +130,7 @@ export default function ModelManagerPanel({
             const isLoaded = pipeReady && activeSize === size;
             const isFilesOpen = !!filesOpen[size];
 
-            // q4f16 단일 quantization 정책 (모바일/데스크탑 동일 모델)
+            // q4f16 단일 quantization 정책 (WebGPU 데스크탑 전용)
             const recommendedSize = meta.approxSizeGB;
 
             return (
@@ -145,7 +145,7 @@ export default function ModelManagerPanel({
                       </span>
                     )}
                   </p>
-                  <span className="text-xs text-gray-500" title="q4f16 quantization (모바일/데스크탑 동일)">
+                  <span className="text-xs text-gray-500" title="q4f16 quantization (WebGPU 데스크탑 전용)">
                     ~{recommendedSize}GB <span className="text-[10px] text-gray-400">(q4f16)</span>
                   </span>
                 </div>
