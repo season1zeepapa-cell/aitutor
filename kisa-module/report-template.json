@@ -1,0 +1,304 @@
+{
+  "version": "1.0.0",
+  "reference": "KISA 2025 SW보안약점 진단원 이수시험 안내서 붙임2",
+  "description": "진단보고서 양식. ReportBuilder UI와 서버 DOCX 생성기가 공통으로 읽는다.",
+  "templates": {
+    "simple": {
+      "title": "단순서술형 답안지",
+      "use_case": "실기 1~2번 유형 (보안약점 정·오탐 분석 서술)",
+      "fields": [
+        {
+          "key": "question_text",
+          "label": "문제",
+          "type": "readonly_text",
+          "source": "kisa_questions.body",
+          "required": false
+        },
+        {
+          "key": "answer",
+          "label": "답안",
+          "type": "textarea",
+          "rows": 10,
+          "required": true,
+          "placeholder": "문제에서 요구하는 항목을 번호 순서대로 서술하시오.",
+          "keyword_checklist_source": "kisa_questions.rationale_keywords",
+          "hint": "모범답안의 '빨간 글씨 필수 키워드'가 누락되면 부분점수를 받지 못할 수 있습니다."
+        }
+      ],
+      "docx_placeholders": {
+        "TITLE": "단순서술형 답안지",
+        "QUESTION": "{{question_text}}",
+        "ANSWER": "{{answer}}",
+        "DATE": "{{created_at|date:yyyy-MM-dd}}",
+        "AUTHOR": "{{user_name}}"
+      }
+    },
+
+    "composite": {
+      "title": "복합서술형 답안지 — 취약점 진단 보고서",
+      "use_case": "실기 복합서술형 유형 (요구사항정의서·아키텍처설계서·개발가이드·소스코드 검토 후 진단보고서 작성)",
+      "sections": [
+        {
+          "key": "security_weakness",
+          "label": "보안약점",
+          "fields": [
+            {
+              "key": "weakness_type",
+              "label": "유형",
+              "type": "select",
+              "options": [
+                "입력데이터 검증 및 표현",
+                "보안기능",
+                "시간 및 상태",
+                "에러처리",
+                "코드오류",
+                "캡슐화",
+                "API 오용"
+              ],
+              "required": true
+            },
+            {
+              "key": "weakness_name_ko",
+              "label": "한글명",
+              "type": "select_or_text",
+              "options_source": "constants.kisa_weakness_names",
+              "required": true,
+              "example": "2-3. 비밀번호 관리"
+            },
+            {
+              "key": "weakness_description",
+              "label": "설명",
+              "type": "textarea",
+              "rows": 2,
+              "required": true,
+              "example": "비밀번호 생성규칙, 저장방법, 변경주기 등 비밀번호 관리 정책별 안전한 적용방법을 설계해야 한다."
+            }
+          ]
+        },
+        {
+          "key": "security_requirement",
+          "label": "보안요구사항",
+          "type": "textarea_list",
+          "required": true,
+          "min_items": 1,
+          "max_items": 5,
+          "placeholder": "1. ...\n2. ..."
+        },
+        {
+          "key": "current_issue",
+          "label": "현황 및 문제점",
+          "fields": [
+            {
+              "key": "points",
+              "label": "문제 원인 (4점 기준)",
+              "type": "textarea",
+              "rows": 4,
+              "required": true,
+              "checklist_required": [
+                "원인을 발생시키는 파일/모듈 식별",
+                "문제 코드의 구체 라인 또는 조건 명시",
+                "결과적으로 발생하는 위험 서술"
+              ],
+              "hint": "3요소: ①어디서 ②무엇이 잘못 ③어떤 결과를 만드는지."
+            }
+          ]
+        },
+        {
+          "key": "solution",
+          "label": "해결방안",
+          "fields": [
+            {
+              "key": "fix_description",
+              "label": "해결 방안 (4점 기준)",
+              "type": "textarea",
+              "rows": 4,
+              "required": true,
+              "checklist_required": [
+                "수정 대상(무엇을)",
+                "수정 방법(어떻게)",
+                "수정 위치(어느 모듈/라인)"
+              ],
+              "keyword_checklist_source": "kisa_questions.fix_keywords",
+              "hint": "반드시 ①무엇을 ②어떻게 ③어디서 세 요소를 한 문장에 담는다."
+            }
+          ]
+        },
+        {
+          "key": "report_meta",
+          "label": "진단보고서 메타",
+          "fields": [
+            {
+              "key": "diagnosis_target",
+              "label": "진단대상",
+              "type": "text",
+              "required": true,
+              "example": "회원정보 관리 프로세스를 설계"
+            },
+            {
+              "key": "classification",
+              "label": "분류",
+              "type": "checkboxes",
+              "options": [
+                "입력데이터 검증 및 표현",
+                "보안기능",
+                "에러처리",
+                "세션통제",
+                "코드오류",
+                "캡슐화",
+                "API 오용"
+              ],
+              "required": true,
+              "min_selected": 1
+            },
+            {
+              "key": "design_standard",
+              "label": "보안설계기준",
+              "type": "text",
+              "required": true,
+              "example": "2-3. 비밀번호 관리"
+            },
+            {
+              "key": "standard_description",
+              "label": "설명",
+              "type": "textarea",
+              "rows": 2,
+              "required": true
+            },
+            {
+              "key": "diagnosis_result",
+              "label": "진단결과",
+              "type": "radio",
+              "options": ["Y", "N"],
+              "required": true
+            },
+            {
+              "key": "related_artifacts",
+              "label": "관련 산출물",
+              "type": "textarea",
+              "rows": 2,
+              "required": false,
+              "example": "요구사항분석서, 유즈케이스명세서, 아키텍처설계서"
+            },
+            {
+              "key": "evidence",
+              "label": "증적자료",
+              "type": "textarea",
+              "rows": 3,
+              "required": false,
+              "placeholder": "스크린샷·코드 스니펫·설계서 발췌 등. 파일 첨부는 별도."
+            },
+            {
+              "key": "improvement",
+              "label": "개선방안",
+              "type": "textarea",
+              "rows": 4,
+              "required": true,
+              "keyword_checklist_source": "kisa_questions.fix_keywords",
+              "hint": "해결방안과 같은 3요소를 포함하되, 보완조치 후의 결과(To-Be)까지 서술."
+            },
+            {
+              "key": "assignee",
+              "label": "이행담당자",
+              "type": "text",
+              "required": false,
+              "default": "{{user_name}}"
+            },
+            {
+              "key": "remediation_log",
+              "label": "보완조치내역",
+              "type": "textarea",
+              "rows": 3,
+              "required": false,
+              "placeholder": "차수별 보완 이력, 완료 일자, 확인자 등"
+            }
+          ]
+        }
+      ],
+      "docx_placeholders": {
+        "TITLE": "취약점 진단 보고서",
+        "WEAKNESS_TYPE": "{{security_weakness.weakness_type}}",
+        "WEAKNESS_NAME": "{{security_weakness.weakness_name_ko}}",
+        "WEAKNESS_DESC": "{{security_weakness.weakness_description}}",
+        "REQUIREMENT": "{{security_requirement.items|join:\n}}",
+        "CURRENT_ISSUE_POINTS": "{{current_issue.points}}",
+        "FIX_DESC": "{{solution.fix_description}}",
+        "DIAG_TARGET": "{{report_meta.diagnosis_target}}",
+        "CLASSIFICATION": "{{report_meta.classification|join:, }}",
+        "DESIGN_STANDARD": "{{report_meta.design_standard}}",
+        "STANDARD_DESC": "{{report_meta.standard_description}}",
+        "DIAG_RESULT": "{{report_meta.diagnosis_result}}",
+        "ARTIFACTS": "{{report_meta.related_artifacts}}",
+        "EVIDENCE": "{{report_meta.evidence}}",
+        "IMPROVEMENT": "{{report_meta.improvement}}",
+        "ASSIGNEE": "{{report_meta.assignee}}",
+        "REMEDIATION": "{{report_meta.remediation_log}}",
+        "DATE": "{{created_at|date:yyyy-MM-dd}}",
+        "AUTHOR": "{{user_name}}"
+      }
+    }
+  },
+
+  "validation_rules": {
+    "three_element_checklist": {
+      "description": "해결방안/개선방안 서술은 반드시 아래 3요소를 포함해야 한다.",
+      "elements": [
+        { "id": "what",  "label": "무엇을", "hint": "수정 대상 모듈·함수·조건절 명시" },
+        { "id": "how",   "label": "어떻게", "hint": "구체적 수정 방법, 안전한 API/키 길이/알고리즘 명시" },
+        { "id": "where", "label": "어디서", "hint": "파일·라인 번호·모듈 위치 명시" }
+      ],
+      "enforce_at_submit": true,
+      "allow_override_with_warning": true
+    },
+
+    "required_keyword_match_threshold": {
+      "rationale_min": 0.67,
+      "fix_min": 0.67,
+      "description": "모범답안 필수 키워드의 2/3 이상 포함을 경고 미만 기준으로 사용(강제 아님)."
+    }
+  },
+
+  "docx_generation": {
+    "library": "docx (npm)",
+    "default_font": "Malgun Gothic",
+    "font_fallbacks": ["맑은 고딕", "Noto Sans KR", "Nanum Gothic"],
+    "page_size": "A4",
+    "orientation": "portrait",
+    "margins": { "top": 1134, "right": 1134, "bottom": 1134, "left": 1134 },
+    "heading_levels": {
+      "h1": { "size": 24, "bold": true },
+      "h2": { "size": 18, "bold": true },
+      "h3": { "size": 14, "bold": true }
+    },
+    "table_style": {
+      "label_column_width_ratio": 0.3,
+      "header_fill": "E7E6FF",
+      "border_color": "4255FF",
+      "border_size": 4
+    }
+  },
+
+  "constants": {
+    "kisa_weakness_names_simple": [
+      "1-1. DBMS 조회 및 결과 검증",
+      "1-2. XML 조회 및 결과 검증",
+      "1-3. 디렉터리 서비스 조회 및 결과 검증",
+      "1-4. 시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "1-5. 웹 서비스 요청 및 결과 검증",
+      "1-6. 웹 기반 중요기능 수행 요청 유효성 검증",
+      "1-7. HTTP 프로토콜 유효성 검증",
+      "1-8. 허용된 범위 내 메모리 접근",
+      "1-9. 보안기능 입력값 검증",
+      "1-10. 업로드·다운로드 파일 검증",
+      "2-1. 인증 대상 및 방식",
+      "2-2. 인증 수행 제한",
+      "2-3. 비밀번호 관리",
+      "2-4. 중요자원 접근통제",
+      "2-5. 암호키 관리",
+      "2-6. 암호연산",
+      "2-7. 중요정보 저장",
+      "2-8. 중요정보 전송",
+      "3-1. 예외처리",
+      "4-1. 세션통제"
+    ]
+  }
+}

@@ -21,6 +21,8 @@ test.describe('5단계: 설정 + 최종', () => {
 
   test('카테고리 관리 섹션이 렌더링된다', async ({ page }) => {
     await loginAndGo(page, '/settings');
+    // 기본 탭이 '일반'이므로 카테고리 탭 클릭
+    await page.getByRole('button', { name: '카테고리' }).click();
     await expect(page.locator('text=카테고리 관리')).toBeVisible();
     await expect(page.locator('input[placeholder="새 카테고리명"]')).toBeVisible();
   });

@@ -1,0 +1,488 @@
+{
+  "version": "1.0.0",
+  "description": "구현단계 — 보안기능 + 시간상태 + 에러처리 + 코드오류 + 캡슐화 + API오용 (32개 챕터)",
+  "source": "KISA 개발보안 가이드 §4-2~7, 진단가이드(2021)",
+  "chapters": [
+    {
+      "chapter_code": "IMP-SF-01", "stage": "implementation", "category": "security_feature",
+      "title": "적절한 인증 없는 중요기능 허용",
+      "definition": "중요정보(금융정보, 개인정보, 인증정보 등)를 적절한 인증 없이 열람(또는 변경) 가능한 보안약점.",
+      "cause": "중요 API 엔드포인트에 인증 미들웨어 누락. 권한 체크 함수 호출 실수.",
+      "impact": "타인 정보 열람, 무단 수정, 자산 탈취.",
+      "countermeasures": [
+        "모든 중요기능은 인증 필수 (@RequiresAuth 등)",
+        "API Gateway 레벨 인증 필터",
+        "중요작업 직전 재인증(sudo 방식)",
+        "접근 로그 감사"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.1", "CWE-306"],
+      "tags": ["missing-auth", "cwe-306"]
+    },
+    {
+      "chapter_code": "IMP-SF-02", "stage": "implementation", "category": "security_feature",
+      "title": "부적절한 인가 (Broken Authorization)",
+      "definition": "중요자원에 접근할 때 적절한 제어가 없어 비인가자의 접근이 가능한 보안약점.",
+      "cause": "인증만 체크하고 세부 권한(role, ownership) 체크 누락. 수평/수직 권한 상승 가능.",
+      "impact": "타 사용자 데이터 접근, 관리자 기능 남용.",
+      "countermeasures": [
+        "Role 기반 접근제어 (RBAC) 일관 적용",
+        "리소스 소유권 검증 (IDOR 방지)",
+        "거부 우선 정책 (기본 Deny)",
+        "인가 로직을 중앙화하여 중복 방지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.2", "CWE-285"],
+      "tags": ["authorization", "idor", "cwe-285"]
+    },
+    {
+      "chapter_code": "IMP-SF-03", "stage": "implementation", "category": "security_feature",
+      "title": "중요한 자원에 대한 잘못된 권한 설정",
+      "definition": "중요자원에 적절한 접근 권한을 부여하지 않아 중요정보가 노출·수정 가능한 보안약점.",
+      "cause": "파일/디렉토리 퍼미션 과도 부여(0777), S3 버킷 public-read, DB 역할에 과도한 grant.",
+      "impact": "기밀 정보 유출, 설정 변조, 악성코드 삽입.",
+      "countermeasures": [
+        "파일 권한 0640/0750 수준 (최소 권한)",
+        "umask 설정 (022 이상)",
+        "S3/GCS 버킷 퍼미션 정기 감사",
+        "DB 사용자별 권한 분리"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.3", "CWE-732"],
+      "tags": ["permission", "cwe-732"]
+    },
+    {
+      "chapter_code": "IMP-SF-04", "stage": "implementation", "category": "security_feature",
+      "title": "취약한 암호화 알고리즘 사용",
+      "definition": "중요정보의 기밀성을 보장할 수 없는 취약한 암호화 알고리즘을 사용하여 정보가 노출 가능한 보안약점.",
+      "cause": "DES(56bit), RC4, MD5, SHA-1 등 이미 깨진 알고리즘 사용.",
+      "impact": "암호문 복호화, 해시 충돌 공격으로 위변조.",
+      "countermeasures": [
+        "대칭키: AES-128 이상 (AES-256 권장)",
+        "운영모드: GCM(권장), CBC(패딩 공격 주의)",
+        "해시: SHA-256 이상 (비밀번호는 bcrypt/Argon2)",
+        "비대칭키: RSA 2048bit 이상, ECC P-256 이상",
+        "검증필 암호모듈 사용 (CMVP 등)"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.4", "CWE-327"],
+      "tags": ["weak-crypto", "cwe-327"]
+    },
+    {
+      "chapter_code": "IMP-SF-05", "stage": "implementation", "category": "security_feature",
+      "title": "암호화되지 않은 중요정보",
+      "definition": "중요정보(비밀번호, 개인정보 등) 전송 시 암호화 또는 안전한 통신채널을 이용하지 않거나, 저장 시 암호화하지 않아 정보가 노출 가능한 보안약점.",
+      "cause": "HTTP 평문 전송, DB에 평문 저장, 파일시스템 평문 저장.",
+      "impact": "네트워크 도청으로 개인정보 유출, DB 유출 시 즉시 피해.",
+      "countermeasures": [
+        "전송: HTTPS(TLS 1.2 이상) 필수",
+        "저장: AES-256 암호화",
+        "비밀번호: 일방향 KDF (bcrypt/Argon2)",
+        "로그/디버그 출력에 평문 기록 금지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.5", "CWE-311"],
+      "tags": ["encryption", "cwe-311"]
+    },
+    {
+      "chapter_code": "IMP-SF-06", "stage": "implementation", "category": "security_feature",
+      "title": "하드코드된 중요정보 (Hardcoded Credentials)",
+      "definition": "소스코드에 중요정보(비밀번호, 암호화키 등)를 직접 코딩하여 소스코드 유출 시 중요정보가 노출되고 주기적 변경이 어려운 보안약점.",
+      "cause": "const API_KEY = 'xxx', password='admin1234' 같은 하드코딩. git commit으로 유출.",
+      "impact": "API 키 유출로 클라우드 비용 폭증, DB 탈취, 신뢰성 훼손.",
+      "countermeasures": [
+        "환경변수(.env) + 시크릿 매니저(AWS SSM, HashiCorp Vault)",
+        "git-secrets, trufflehog 등 커밋 훅으로 스캔",
+        "이미 유출된 키는 즉시 폐기/재발급",
+        "설정 파일은 .gitignore"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.6", "CWE-798"],
+      "tags": ["hardcoded", "credentials", "cwe-798"]
+    },
+    {
+      "chapter_code": "IMP-SF-07", "stage": "implementation", "category": "security_feature",
+      "title": "충분하지 않은 키 길이 사용",
+      "definition": "암호화 등에 사용되는 키의 길이가 충분하지 않아 데이터의 기밀성·무결성을 보장할 수 없는 보안약점.",
+      "cause": "DES(56bit), RSA 1024bit 등 현대 컴퓨팅 성능으로 무차별 공격 가능한 키 길이 사용.",
+      "impact": "암호문 복호화, 서명 위조.",
+      "countermeasures": [
+        "대칭키: 128bit 이상 (AES-128/256)",
+        "비대칭키: RSA 2048bit 이상 (3072bit 권장)",
+        "ECC: P-256 이상",
+        "SHA: 256bit 이상"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.7", "CWE-326"],
+      "tags": ["key-length", "cwe-326"]
+    },
+    {
+      "chapter_code": "IMP-SF-08", "stage": "implementation", "category": "security_feature",
+      "title": "적절하지 않은 난수값 사용",
+      "definition": "예측 가능한 난수를 사용하여 공격자가 다음 난수값을 예측해 시스템을 공격 가능한 보안약점.",
+      "cause": "java.util.Random, Math.random() 같은 비암호학적 PRNG 사용. 고정 seed.",
+      "impact": "세션 ID 예측, 임시 비밀번호 추측, CSRF 토큰 예측.",
+      "countermeasures": [
+        "암호학적 PRNG 사용: SecureRandom(Java), secrets(Python), crypto.randomBytes(Node.js)",
+        "/dev/urandom, /dev/random",
+        "seed는 OS 엔트로피 소스 사용",
+        "토큰은 128bit 이상 난수"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.8", "CWE-330"],
+      "tags": ["weak-random", "cwe-330"]
+    },
+    {
+      "chapter_code": "IMP-SF-09", "stage": "implementation", "category": "security_feature",
+      "title": "취약한 비밀번호 허용",
+      "definition": "비밀번호 조합규칙(영문, 숫자, 특수문자 등) 미흡 및 길이가 충분하지 않아 비밀번호가 노출 가능한 보안약점.",
+      "cause": "최소 길이/복잡도 정책 부재. 사전 단어/개인식별정보 필터링 없음.",
+      "impact": "무차별 대입/사전 공격으로 계정 탈취.",
+      "countermeasures": [
+        "최소 길이 8자 이상(권장 10자+)",
+        "영문/숫자/특수문자 2~3종 조합",
+        "사전 단어/개인정보/과거 비밀번호 차단",
+        "주기적 변경 강제 (3~6개월)"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.9", "CWE-521"],
+      "tags": ["password-policy", "cwe-521"]
+    },
+    {
+      "chapter_code": "IMP-SF-10", "stage": "implementation", "category": "security_feature",
+      "title": "부적절한 전자서명 확인",
+      "definition": "프로그램, 라이브러리, 코드의 전자서명에 대한 유효성 검증이 적절하지 않아 공격자의 악의적인 코드가 실행 가능한 보안약점.",
+      "cause": "JWT의 alg=none 허용, 서명 검증 생략, 서명 알고리즘 혼동(RS256→HS256).",
+      "impact": "토큰 위조, 임의 권한 부여, 코드 실행.",
+      "countermeasures": [
+        "JWT: 허용 알고리즘 화이트리스트, alg=none 거부",
+        "서명 키는 서버 관리 신뢰 목록에서만",
+        "코드 서명: SHA-256 이상 해시 + 인증서 체인 검증",
+        "만료된 서명/인증서 거부"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.10", "CWE-347"],
+      "tags": ["signature", "jwt", "cwe-347"]
+    },
+    {
+      "chapter_code": "IMP-SF-11", "stage": "implementation", "category": "security_feature",
+      "title": "부적절한 인증서 유효성 검증",
+      "definition": "인증서에 대한 유효성 검증이 적절하지 않아 발생하는 보안약점. 주로 TLS 통신의 중간자 공격(MITM) 취약점.",
+      "cause": "verify=False, trustAllCerts, InsecureSkipVerify 같은 검증 우회 코드.",
+      "impact": "MITM 공격으로 트래픽 가로채기/변조.",
+      "countermeasures": [
+        "TLS 인증서 검증 활성화 (verify=True 기본)",
+        "신뢰 CA 번들 사용, 사설 CA는 경로 명시",
+        "호스트명 검증(hostname verification) 활성화",
+        "Certificate Pinning 고려 (모바일 앱)"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.11", "CWE-295"],
+      "tags": ["tls", "certificate", "mitm", "cwe-295"]
+    },
+    {
+      "chapter_code": "IMP-SF-12", "stage": "implementation", "category": "security_feature",
+      "title": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "definition": "쿠키(세션 ID, 사용자 권한정보 등 중요정보)를 사용자 하드디스크에 저장하여 중요정보가 노출 가능한 보안약점.",
+      "cause": "쿠키 만료시간을 과도하게 길게 설정 (브라우저 디스크에 영구 저장).",
+      "impact": "PC 공용 사용 환경에서 타인이 쿠키 접근, 세션 탈취.",
+      "countermeasures": [
+        "중요 쿠키는 세션 쿠키로 (Max-Age 미설정)",
+        "Secure + HttpOnly + SameSite 속성",
+        "쿠키 값은 암호화 또는 랜덤 토큰",
+        "로그아웃 시 쿠키 즉시 삭제"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.12", "CWE-614"],
+      "tags": ["cookie", "cwe-614"]
+    },
+    {
+      "chapter_code": "IMP-SF-13", "stage": "implementation", "category": "security_feature",
+      "title": "주석문 안에 포함된 시스템 주요정보",
+      "definition": "소스코드 주석문에 인증정보 등 시스템 주요정보가 포함되어 소스코드 유출 시 노출 가능한 보안약점.",
+      "cause": "개발 편의상 주석에 DB 접속정보, 테스트 계정, API 키 등을 남김.",
+      "impact": "소스 유출(실수 public push, 프론트 번들 노출)로 즉시 피해.",
+      "countermeasures": [
+        "주석에 민감 정보 기록 금지",
+        "빌드 시 주석 제거(frontend minifier)",
+        "git 커밋 훅으로 시크릿 패턴 스캔",
+        "유출 의심 정보는 즉시 폐기/재발급"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.13", "CWE-615"],
+      "tags": ["comment-leak", "cwe-615"]
+    },
+    {
+      "chapter_code": "IMP-SF-14", "stage": "implementation", "category": "security_feature",
+      "title": "솔트 없이 일방향 해시함수 사용",
+      "definition": "솔트를 사용하지 않고 생성한 해시 값으로부터 공격자가 미리 계산된 레인보우 테이블을 이용하여 해시 이전 원본 메시지를 복원 가능한 보안약점.",
+      "cause": "단순 SHA-256(password) 같은 방식. 같은 비밀번호는 항상 같은 해시.",
+      "impact": "레인보우 테이블 공격으로 비밀번호 역산.",
+      "countermeasures": [
+        "사용자별 고유 솔트(16byte 이상 난수) 사용",
+        "bcrypt/scrypt/PBKDF2/Argon2 같은 KDF 사용 (솔트 자동 처리)",
+        "해시 반복 횟수(iteration) 충분히 (bcrypt cost 10+)",
+        "Pepper(서버 비밀) 추가 고려"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.14", "CWE-759"],
+      "tags": ["password-hash", "salt", "cwe-759"]
+    },
+    {
+      "chapter_code": "IMP-SF-15", "stage": "implementation", "category": "security_feature",
+      "title": "무결성 검사없는 코드 다운로드",
+      "definition": "소스코드 또는 실행파일을 무결성 검사 없이 다운로드 받아 실행하는 경우, 공격자의 악의적인 코드가 실행 가능한 보안약점.",
+      "cause": "HTTP로 업데이트 다운로드 + 서명/해시 검증 생략.",
+      "impact": "공급망 공격, 원격 코드 실행, 서버 장악.",
+      "countermeasures": [
+        "HTTPS + 서명(code signing) + SHA-256 해시 검증",
+        "신뢰 CA로 서명된 바이너리만 실행",
+        "Subresource Integrity (SRI) for 웹",
+        "업데이트 채널은 pinned 인증서 사용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.15", "CWE-494"],
+      "tags": ["supply-chain", "code-signing", "cwe-494"]
+    },
+    {
+      "chapter_code": "IMP-SF-16", "stage": "implementation", "category": "security_feature",
+      "title": "반복된 인증시도 제한 기능 부재",
+      "definition": "인증 시도 수를 제한하지 않아 공격자가 반복적으로 임의의 값을 입력하여 계정 권한을 획득 가능한 보안약점.",
+      "cause": "로그인 실패 횟수 제한 없음. CAPTCHA 없음.",
+      "impact": "무차별 대입 공격으로 계정 탈취.",
+      "countermeasures": [
+        "IP + 계정 단위 레이트 리미트",
+        "연속 실패 N회 시 계정 잠금 또는 지연",
+        "CAPTCHA 도입 (반복 의심 시)",
+        "비정상 로그인 감지 및 알림"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.2.16", "CWE-307"],
+      "tags": ["brute-force", "rate-limit", "cwe-307"]
+    },
+    {
+      "chapter_code": "IMP-TS-01", "stage": "implementation", "category": "time_state",
+      "title": "경쟁조건: 검사시점과 사용시점 (TOCTOU)",
+      "definition": "멀티 프로세스 상에서 자원을 검사하는 시점과 사용하는 시점이 달라서 발생하는 보안약점.",
+      "cause": "파일 존재 확인 후 열기, 권한 체크 후 사용 사이에 공격자가 자원을 교체.",
+      "impact": "권한 우회, 심볼릭 링크 공격, 임의 파일 덮어쓰기.",
+      "countermeasures": [
+        "check 와 use 를 원자적으로 (open + O_CREAT | O_EXCL)",
+        "파일 핸들로 조작 (경로 재검증 생략)",
+        "락(lock) 또는 트랜잭션 사용",
+        "심볼릭 링크 검사"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.3.1", "CWE-367"],
+      "tags": ["toctou", "race-condition", "cwe-367"]
+    },
+    {
+      "chapter_code": "IMP-TS-02", "stage": "implementation", "category": "time_state",
+      "title": "종료되지 않는 반복문 또는 재귀 함수",
+      "definition": "종료조건 없는 제어문 사용으로 반복문 또는 재귀함수가 무한히 반복되어 발생 가능한 보안약점.",
+      "cause": "while(true) 에서 break 조건 누락, 재귀함수의 기저 조건 누락.",
+      "impact": "CPU 100% 소모, 스택 오버플로우, 서비스 거부(DoS).",
+      "countermeasures": [
+        "모든 루프에 명확한 종료 조건",
+        "최대 반복 횟수 제한",
+        "재귀는 꼬리재귀/반복문으로 변환",
+        "타임아웃 설정"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.3.2", "CWE-835"],
+      "tags": ["infinite-loop", "dos", "cwe-835"]
+    },
+    {
+      "chapter_code": "IMP-EH-01", "stage": "implementation", "category": "error_handling",
+      "title": "오류 메시지 정보노출",
+      "definition": "오류메시지나 스택정보에 시스템 내부구조가 포함되어 민감한 정보, 디버깅 정보가 노출 가능한 보안약점.",
+      "cause": "개발 모드 설정이 프로덕션에 남음. 예외를 응답 본문에 그대로 출력.",
+      "impact": "내부 구조·DB 스키마·경로 노출로 추가 공격 단서 제공.",
+      "countermeasures": [
+        "사용자에게는 일반 메시지만 표시",
+        "스택 트레이스는 서버 로그로만",
+        "프로덕션: DEBUG=false, 개발: DEBUG=true",
+        "에러 코드 카탈로그로 관리"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.4.1", "CWE-209"],
+      "tags": ["information-leak", "cwe-209"]
+    },
+    {
+      "chapter_code": "IMP-EH-02", "stage": "implementation", "category": "error_handling",
+      "title": "오류상황 대응 부재",
+      "definition": "시스템 오류상황을 처리하지 않아 프로그램 실행정지 등 의도하지 않은 상황이 발생 가능한 보안약점.",
+      "cause": "예외를 catch 않거나 try-catch 블록 없음. 오류 반환값 체크 생략.",
+      "impact": "서비스 중단, 비일관 상태, 보안 경계 붕괴.",
+      "countermeasures": [
+        "모든 가능한 예외를 catch",
+        "시스템 호출의 반환값 반드시 확인",
+        "에러 시 안전 상태로 복구 (fail-secure)",
+        "에러 핸들링 표준 수립"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.4.2", "CWE-703"],
+      "tags": ["error-handling", "cwe-703"]
+    },
+    {
+      "chapter_code": "IMP-EH-03", "stage": "implementation", "category": "error_handling",
+      "title": "부적절한 예외 처리",
+      "definition": "예외사항을 부적절하게 처리하여 의도하지 않은 상황이 발생 가능한 보안약점.",
+      "cause": "catch(Exception e){} 처럼 빈 블록. 상위로 단순 throw. 민감 정보가 로그에 포함.",
+      "impact": "오류 원인 파악 불가, 보안 우회, 데이터 불일치.",
+      "countermeasures": [
+        "예외를 삼키지 말고 의미있게 처리",
+        "구체적 예외 타입 catch (NPE, IOException 각각)",
+        "예외는 로그에 원인 + 스택 포함",
+        "rethrow 시 원인 체인 유지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.4.3", "CWE-396"],
+      "tags": ["exception-handling", "cwe-396"]
+    },
+    {
+      "chapter_code": "IMP-CE-01", "stage": "implementation", "category": "code_error",
+      "title": "Null Pointer 역참조",
+      "definition": "변수의 주소 값이 Null인 객체를 참조하는 보안약점.",
+      "cause": "함수 반환값을 확인하지 않고 바로 사용. 초기화 전 사용.",
+      "impact": "NPE로 프로그램 크래시, 서비스 거부.",
+      "countermeasures": [
+        "역참조 전 null 체크",
+        "Java: Optional<T> 활용",
+        "Kotlin: ?. 안전 호출 연산자",
+        "@NonNull 어노테이션 + 정적 분석"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.5.1", "CWE-476"],
+      "tags": ["null-pointer", "cwe-476"]
+    },
+    {
+      "chapter_code": "IMP-CE-02", "stage": "implementation", "category": "code_error",
+      "title": "부적절한 자원 해제",
+      "definition": "사용 완료된 자원을 해제하지 않아 자원이 고갈되어 새로운 입력을 처리할 수 없는 보안약점.",
+      "cause": "DB 커넥션/파일 핸들/소켓을 close() 하지 않음. finally 블록 누락.",
+      "impact": "자원 고갈로 서비스 거부(DoS), 성능 저하.",
+      "countermeasures": [
+        "try-with-resources (Java), with(Python) 사용",
+        "finally 블록에서 반드시 해제",
+        "풀(pool) 사용 시 누수 모니터링",
+        "정적 분석으로 누수 탐지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.5.2", "CWE-404"],
+      "tags": ["resource-leak", "cwe-404"]
+    },
+    {
+      "chapter_code": "IMP-CE-03", "stage": "implementation", "category": "code_error",
+      "title": "해제된 자원 사용 (Use After Free)",
+      "definition": "메모리 등 해제된 자원을 참조하여 예기치 않은 오류가 발생하는 보안약점.",
+      "cause": "C/C++에서 free() 후 포인터 재사용, Java에서 close()된 Stream 참조.",
+      "impact": "크래시, 메모리 corruption, 원격 코드 실행.",
+      "countermeasures": [
+        "해제 후 포인터 NULL 설정",
+        "자원 수명 주기를 명확히 (try-with-resources)",
+        "스마트 포인터(C++11 unique_ptr/shared_ptr)",
+        "메모리 안전 언어(Rust) 도입"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.5.3", "CWE-416"],
+      "tags": ["use-after-free", "cwe-416"]
+    },
+    {
+      "chapter_code": "IMP-CE-04", "stage": "implementation", "category": "code_error",
+      "title": "초기화되지 않은 변수 사용",
+      "definition": "변수를 초기화하지 않고 사용하여 예기치 않은 오류가 발생하는 보안약점.",
+      "cause": "C/C++ 지역 변수는 선언 시 스택 쓰레기값. 명시적 초기화 누락.",
+      "impact": "정의되지 않은 동작(UB), 예측 불가 결과, 정보 노출.",
+      "countermeasures": [
+        "선언과 동시에 초기화 (int x = 0;)",
+        "C++: brace initialization (int x{};)",
+        "컴파일러 경고 -Wuninitialized 활성화",
+        "정적 분석 도구 사용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.5.4", "CWE-457"],
+      "tags": ["uninitialized", "cwe-457"]
+    },
+    {
+      "chapter_code": "IMP-CE-05", "stage": "implementation", "category": "code_error",
+      "title": "신뢰할 수 없는 데이터의 역직렬화",
+      "definition": "악의적인 코드가 삽입·수정된 직렬화 데이터를 적절한 검증 없이 역직렬화하여 발생하는 보안약점.",
+      "cause": "Java ObjectInputStream, Python pickle, PHP unserialize 등으로 외부 데이터 역직렬화.",
+      "impact": "원격 코드 실행(RCE), 권한 상승, 서버 장악.",
+      "countermeasures": [
+        "신뢰할 수 없는 데이터는 역직렬화 금지",
+        "JSON 등 데이터 전용 포맷 사용",
+        "허용 클래스 화이트리스트",
+        "역직렬화 라이브러리 최신 버전 + 보안 패치"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.5.5", "CWE-502"],
+      "tags": ["deserialization", "cwe-502"]
+    },
+    {
+      "chapter_code": "IMP-EN-01", "stage": "implementation", "category": "encapsulation",
+      "title": "잘못된 세션에 의한 데이터 정보 노출",
+      "definition": "잘못된 세션에 의해 인가되지 않은 사용자에게 중요정보가 노출 가능한 보안약점.",
+      "cause": "싱글톤/static 변수에 사용자 상태 저장. 멀티스레드 환경에서 다른 요청이 해당 값 접근.",
+      "impact": "타 사용자 데이터 노출, 권한 혼선.",
+      "countermeasures": [
+        "요청별 값은 지역변수 또는 Request 속성",
+        "서블릿은 stateless로 설계",
+        "ThreadLocal 사용 시 정리(remove) 필수",
+        "세션 데이터는 HttpSession 사용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.6.1", "CWE-488"],
+      "tags": ["session-leak", "thread-safety", "cwe-488"]
+    },
+    {
+      "chapter_code": "IMP-EN-02", "stage": "implementation", "category": "encapsulation",
+      "title": "제거되지 않고 남은 디버그 코드",
+      "definition": "디버깅을 위한 코드를 제거하지 않아 인가되지 않은 사용자에게 중요정보가 노출 가능한 보안약점.",
+      "cause": "개발/디버그용 엔드포인트(/debug, /admin-test), 테스트 계정, 주석 처리된 백도어 코드 잔존.",
+      "impact": "내부 정보 노출, 인증 우회, 권한 상승.",
+      "countermeasures": [
+        "배포 전 디버그 코드/엔드포인트 제거",
+        "DEBUG 환경변수로 분기 (프로덕션에서 off)",
+        "CI/CD에서 debug 패턴 스캔",
+        "로그 레벨을 프로덕션은 INFO/WARN"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.6.2", "CWE-489"],
+      "tags": ["debug-code", "cwe-489"]
+    },
+    {
+      "chapter_code": "IMP-EN-03", "stage": "implementation", "category": "encapsulation",
+      "title": "Public 메소드부터 반환된 Private 배열",
+      "definition": "Public으로 선언된 메소드에서 Private으로 선언된 배열을 반환(return)하면 Private 배열의 주소값이 외부에 노출되어 수정 가능한 보안약점.",
+      "cause": "getter 메소드가 내부 배열/객체 참조를 그대로 반환.",
+      "impact": "외부에서 내부 상태 변경, 캡슐화 파괴.",
+      "countermeasures": [
+        "방어적 복사(defensive copy): Arrays.copyOf, clone()",
+        "불변 컬렉션(Collections.unmodifiableList)",
+        "Record/Immutable 클래스 사용",
+        "배열 대신 불변 List 반환"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.6.3", "CWE-495"],
+      "tags": ["encapsulation", "defensive-copy", "cwe-495"]
+    },
+    {
+      "chapter_code": "IMP-EN-04", "stage": "implementation", "category": "encapsulation",
+      "title": "Private 배열에 Public 데이터 할당",
+      "definition": "Public으로 선언된 데이터 또는 메소드의 인자가 Private로 선언된 배열에 저장되면 이 Private 배열을 외부에서 접근하여 수정 가능한 보안약점.",
+      "cause": "setter 메소드가 외부 배열 참조를 그대로 저장.",
+      "impact": "외부에서 내부 배열 변경으로 캡슐화 파괴.",
+      "countermeasures": [
+        "생성자/setter에서 방어적 복사",
+        "배열 대신 불변 List 사용",
+        "final 필드 + 생성자 초기화"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.6.4", "CWE-496"],
+      "tags": ["encapsulation", "defensive-copy", "cwe-496"]
+    },
+    {
+      "chapter_code": "IMP-AA-01", "stage": "implementation", "category": "api_abuse",
+      "title": "DNS lookup에 의존한 보안결정",
+      "definition": "도메인명(DNS lookup)으로 보안결정을 수행할 때 악의적으로 변조된 DNS 정보를 보안 위협에 노출되는 보안약점.",
+      "cause": "역방향 DNS(PTR)로 내부망/신뢰 호스트 판정. 공격자가 자신의 DNS를 위조 가능.",
+      "impact": "내부망 접근, 인증 우회, DNS rebinding 공격.",
+      "countermeasures": [
+        "보안 결정은 IP/CIDR 기반으로",
+        "상호 TLS/VPN 인증서로 신원 검증",
+        "DNS 캐시 포이즈닝 방어",
+        "DNSSEC 사용 고려"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.7.1", "CWE-247"],
+      "tags": ["dns", "trust-boundary", "cwe-247"]
+    },
+    {
+      "chapter_code": "IMP-AA-02", "stage": "implementation", "category": "api_abuse",
+      "title": "취약한 API 사용",
+      "definition": "보안 문제로 사용이 금지된 취약한 API를 사용하여 프로그램의 보안을 위협하는 보안약점.",
+      "cause": "gets, strcpy, sprintf 같은 경계 미검증 함수. System.exec 같은 위험 API.",
+      "impact": "버퍼 오버플로우, 인젝션, 원격 코드 실행.",
+      "countermeasures": [
+        "안전한 대체 API 사용 (strncpy_s, snprintf)",
+        "언어별 Deprecated API 목록 참조",
+        "정적 분석 도구로 위험 함수 탐지",
+        "최신 라이브러리 + 보안 패치 유지",
+        "취약 의존성 스캔 (OWASP Dependency-Check)"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.7.2", "CWE-676"],
+      "tags": ["dangerous-api", "cwe-676"]
+    }
+  ]
+}

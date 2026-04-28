@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}', './src/index.html'],
+  // 다크 모드: useTheme 훅이 <html data-theme="dark"> 적용 → 동일 셀렉터로 매칭
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {

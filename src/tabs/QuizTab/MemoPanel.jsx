@@ -1,6 +1,6 @@
 // 메모 패널 — 문제별 메모 CRUD + 첨부파일
 import { useState, useEffect, useRef } from 'react';
-import { apiGet, apiPost, apiFetch, getAuthToken } from '../../lib/api';
+import { apiGet, apiPost, apiFetch } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
 
 export default function MemoPanel({ questionId }) {
@@ -39,7 +39,7 @@ export default function MemoPanel({ questionId }) {
         question_id: questionId,
         content: newText.trim() || '(첨부파일)',
       });
-      const memo = data.memo || { id: Date.now(), content: newText, created_at: new Date().toISOString(), files: [] };
+      const memo = data.id ? data : { id: Date.now(), content: newText, created_at: new Date().toISOString(), files: [] };
 
       // 첨부파일 업로드
       if (pendingFiles.length > 0 && memo.id) {
@@ -137,9 +137,8 @@ export default function MemoPanel({ questionId }) {
   // 파일 다운로드
   const downloadFile = async (fileId, filename) => {
     try {
-      const token = getAuthToken();
       const res = await fetch(`/api/memo-files?action=download&id=${fileId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
       });
       const data = await res.json();
       if (data.file?.data) {
@@ -172,6 +171,7 @@ export default function MemoPanel({ questionId }) {
         <div className="flex gap-2">
           <input type="text" value={newText} onChange={e => setNewText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addMemo()} placeholder="메모를 입력하세요..."
+            autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck="false"
             className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-input-bg text-text text-sm
               placeholder:text-text-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
           <button onClick={() => fileInputRef.current?.click()}
@@ -215,6 +215,7 @@ export default function MemoPanel({ questionId }) {
                 <div className="flex gap-2">
                   <input type="text" value={editText} onChange={e => setEditText(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && updateMemo(memo.id)}
+                    autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck="false"
                     className="flex-1 px-2 py-1 rounded-lg border border-border bg-input-bg text-text text-sm focus:outline-none focus:border-primary" autoFocus />
                   <button onClick={() => updateMemo(memo.id)} className="text-xs text-primary font-semibold">저장</button>
                   <button onClick={() => setEditingId(null)} className="text-xs text-text-secondary">취소</button>

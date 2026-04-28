@@ -1,6 +1,6 @@
 // SSE 스트리밍 공통 훅 — Gemini/OpenAI/Claude 통합
 import { useState, useRef, useCallback } from 'react';
-import { getAuthToken } from '../lib/api';
+// 토큰은 HttpOnly 쿠키로 자동 전송 (credentials: 'include')
 
 // 프로바이더별 엔드포인트
 const ENDPOINTS = {
@@ -24,7 +24,6 @@ export default function useSSE() {
     setIsStreaming(true);
     abortRef.current = new AbortController();
 
-    const token = getAuthToken();
     // API가 기대하는 필드명: text, model, temperature, maxTokens, stream
     const body = {
       text: prompt,
@@ -53,9 +52,9 @@ export default function useSSE() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
           'Accept': 'text/event-stream',
         },
+        credentials: 'include',
         body: JSON.stringify(body),
         signal: abortRef.current.signal,
       });
@@ -116,8 +115,8 @@ export default function useSSE() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ ...body, stream: false }),
         });
         if (!fallbackRes.ok) {

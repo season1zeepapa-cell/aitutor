@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AI TutorTwo</string>
+    <string name="title_activity_main">AI TutorTwo</string>
+    <string name="package_name">com.aitutortwo.app</string>
+    <string name="custom_url_scheme">com.aitutortwo.app</string>
+</resources>

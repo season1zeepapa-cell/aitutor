@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-AA-01",
+  "description": "구현단계 — API 오용 누락 항목 보강 (DNS lookup 의존 보안결정)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) §4.7",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-AA-01",
+      "weakness_code": "CWE-247",
+      "question_type": "diagnosis4",
+      "weakness_category": "api_abuse",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "language": "java",
+      "difficulty": "상",
+      "body": "아래 Java 코드의 보안약점을 진단하시오. 내부망 접근 제한 로직이다.",
+      "vulnerable_code": "1  public boolean isInternalHost(HttpServletRequest req) {\n2      String host = req.getRemoteHost();\n3      String hostname = InetAddress.getByName(host).getHostName();\n4      return hostname.endsWith(\".internal.corp\");\n5  }",
+      "code_language": "java",
+      "vulnerable_lines": [3, 4],
+      "rationale_keywords": ["DNS lookup", "신뢰 경계", "역방향 DNS", "스푸핑"],
+      "fix_keywords": ["IP 기반 ACL", "CIDR", "VPN 클라이언트 인증서", "상호 TLS"],
+      "safe_code": "1  import java.net.InetAddress;\n2  private static final List<String> INTERNAL_CIDRS = List.of(\"10.0.0.0/8\", \"172.16.0.0/12\");\n3  public boolean isInternalHost(HttpServletRequest req) {\n4      InetAddress addr = InetAddress.getByName(req.getRemoteAddr());\n5      return INTERNAL_CIDRS.stream().anyMatch(cidr -> cidrContains(cidr, addr));\n6  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L3~4는 클라이언트 IP의 역방향 DNS(PTR) 레코드를 조회하여 \".internal.corp\"로 끝나는지 판단한다. 공격자는 자신이 제어하는 DNS 서버를 가진 IP로 PTR 레코드를 위조하여 내부망인 것처럼 우회할 수 있다.",
+        "fix_description": "보안 결정에는 DNS 이름이 아닌 IP 주소·CIDR 범위를 사용한다. 내부망 식별이 필요하면 상호 TLS/VPN 클라이언트 인증서 등 암호학적 증거로 검증한다."
+      },
+      "reference": "KISA 진단가이드 §4.7.1 DNS lookup에 의존한 보안결정",
+      "tags": ["dns-rebinding", "trust-boundary", "java"]
+    }
+  ]
+}

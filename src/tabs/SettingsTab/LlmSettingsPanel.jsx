@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import { GEMINI_CATALOG, OPENAI_CATALOG, CLAUDE_CATALOG, TIER_COLORS } from '../../constants/models';
-import { llmSettings, saveLlmSettings, DEFAULT_LLM_SETTINGS } from '../../constants/llm';
+import { llmSettings, saveLlmSettings, DEFAULT_LLM_SETTINGS, getActiveProvider, setActiveProvider as saveActiveProvider } from '../../constants/llm';
 
 const PROVIDERS = [
   { key: 'gemini', label: 'Gemini', color: '#4285f4', catalog: GEMINI_CATALOG },
@@ -12,7 +12,7 @@ const PROVIDERS = [
 
 export default function LlmSettingsPanel() {
   const toast = useToast();
-  const [activeProvider, setActiveProvider] = useState('gemini');
+  const [activeProvider, setActiveProviderState] = useState(getActiveProvider);
   const [settings, setSettings] = useState(() => ({
     gemini: { ...llmSettings.gemini },
     openai: { ...llmSettings.openai },
@@ -94,7 +94,7 @@ export default function LlmSettingsPanel() {
       {/* 프로바이더 탭 */}
       <div className="flex gap-1 bg-badge-bg rounded-xl p-1">
         {PROVIDERS.map(p => (
-          <button key={p.key} onClick={() => setActiveProvider(p.key)}
+          <button key={p.key} onClick={() => { setActiveProviderState(p.key); saveActiveProvider(p.key); }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeProvider === p.key ? 'bg-card-bg shadow-sm' : 'text-text-secondary hover:text-text'}`}
             style={activeProvider === p.key ? { color: p.color } : {}}>

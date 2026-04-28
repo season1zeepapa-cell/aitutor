@@ -1,0 +1,210 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-SF-01~08",
+  "description": "설계단계 — 보안기능 (8개 항목). 인증·권한·암호키·암호연산·중요정보 저장/전송 설계 원칙.",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드(2021.12.29) §3-3.2",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-01",
+      "weakness_code": "DSG-SF-01-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "인증대상 및 방식 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "서비스 인증대상·인증방식 설계 원칙으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "중요기능은 반드시 인증 후에만 접근 가능하도록 설계한다"},
+        {"num": 2, "text": "인증방식은 서비스 특성(보안수준, 사용 빈도, 자산 가치)에 따라 선택한다"},
+        {"num": 3, "text": "클라이언트에서 '인증 통과' 플래그를 전송하면 서버는 이를 신뢰하여 인증 처리한다"},
+        {"num": 4, "text": "다단계 인증(MFA) 도입 여부는 자산 민감도와 비용을 고려해 설계한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.1 인증대상 및 방식",
+      "tags": ["authentication", "design", "mfa"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-02",
+      "weakness_code": "DSG-SF-02-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "인증수행 제한 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "반복된 인증 시도 제한 설계 요구사항으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "연속 실패 횟수 제한·잠금 시간·IP 기반 레이트 리미트를 조합하여 설계한다"},
+        {"num": 2, "text": "실패 이력은 저장하지 않고 성공한 로그인만 기록한다"},
+        {"num": 3, "text": "모든 로그인 시도를 즉시 허용하고, 사후 감사 로그로만 대응한다"},
+        {"num": 4, "text": "클라이언트 JavaScript로 실패 횟수를 관리하여 서버 부하를 줄인다"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.2.2 인증수행 제한",
+      "tags": ["brute-force", "rate-limit", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-03",
+      "weakness_code": "DSG-SF-03-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 관리 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "비밀번호 생성규칙 설계 요구사항 중 잘못된 것은?",
+      "choices": [
+        {"num": 1, "text": "최소 길이 8자 이상, 숫자·영문·특수문자 조합으로 설계한다"},
+        {"num": 2, "text": "사용자 ID·이메일·전화번호 등 개인 식별정보를 포함한 비밀번호를 허용한다"},
+        {"num": 3, "text": "동일 문자 반복·키보드 배열 패턴을 금지한다"},
+        {"num": 4, "text": "사전 단어·과거 사용 비밀번호 재사용을 금지한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.3 비밀번호 관리",
+      "tags": ["password", "design", "policy"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-03",
+      "weakness_code": "DSG-SF-03-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 관리 설계 - 저장",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "비밀번호 저장 방식 설계 원칙으로 올바른 것은?",
+      "choices": [
+        {"num": 1, "text": "비밀번호는 AES-256으로 대칭 암호화하여 저장한다 (복호화 가능)"},
+        {"num": 2, "text": "비밀번호는 SHA-256만 단독 해시하여 저장한다"},
+        {"num": 3, "text": "사용자별 솔트를 적용한 PBKDF2/bcrypt/scrypt/Argon2 등 안전한 KDF로 해시하여 저장한다"},
+        {"num": 4, "text": "비밀번호 평문과 해시값을 모두 저장하여 복구를 지원한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.3",
+      "tags": ["password", "hash", "kdf", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-04",
+      "weakness_code": "DSG-SF-04-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "중요자원 접근통제 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "중요자원(프로세스·설정·민감 사용자 데이터) 접근통제 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "정의된 접근통제 방법(RBAC, ABAC, DAC)을 문서화한다"},
+        {"num": 2, "text": "접근통제 실패 시 기본 정책은 'Deny by default'(기본 거부)로 설정한다"},
+        {"num": 3, "text": "모든 사용자에게 동일 권한을 부여하여 운영 편의성을 높인다"},
+        {"num": 4, "text": "최소 권한 원칙(Principle of Least Privilege)에 따라 권한을 분리한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.4 중요자원 접근통제",
+      "tags": ["access-control", "rbac", "least-privilege", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-05",
+      "weakness_code": "DSG-SF-05-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "암호키 관리 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "암호키 생명주기 관리 설계 요구사항으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "소스코드에 암호키를 하드코딩하여 외부 노출을 막는다"},
+        {"num": 2, "text": "키 저장은 HSM/KMS/키 볼트 등 보호된 저장소를 사용한다"},
+        {"num": 3, "text": "키 유효기간을 정의하고 정기적으로 갱신한다"},
+        {"num": 4, "text": "키 파기는 매체에서 복구 불가능하도록 완전 삭제한다"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.2.5 암호키 관리",
+      "tags": ["key-management", "hsm", "kms", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-06",
+      "weakness_code": "DSG-SF-06-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "암호연산 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "암호연산 설계 시 사용 권고되는 알고리즘 조합으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "대칭키: DES(56bit) + 해시: MD5"},
+        {"num": 2, "text": "대칭키: AES-128 이상 + 해시: SHA-256 이상 + 비대칭키: RSA 2048bit 이상"},
+        {"num": 3, "text": "대칭키: RC4 + 해시: SHA-1"},
+        {"num": 4, "text": "CBC 모드 + PKCS#7 padding 사용 시 padding oracle 대응 불필요"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.6 암호연산",
+      "tags": ["crypto", "aes", "sha", "rsa", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-06",
+      "weakness_code": "DSG-SF-06-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "암호연산 설계 - 대칭키/비대칭키 선택",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "서버 간 대용량 데이터를 빈번하게 송수신하는 암호화 통신 구간 설계 시 적절한 방식과 이유는?",
+      "choices": [
+        {"num": 1, "text": "비대칭키 방식만 사용 - 키 교환 부담이 없어서 성능이 높다"},
+        {"num": 2, "text": "대칭키 방식을 사용 - 비대칭키보다 연산 속도가 빠르므로 대용량 전송에 적합하다"},
+        {"num": 3, "text": "해시 함수만 사용 - 암호화가 불필요하다"},
+        {"num": 4, "text": "평문 전송 - 내부망이므로 암호화 불필요"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.6, 이수시험 안내서 붙임2 실습시험 예시",
+      "tags": ["symmetric", "asymmetric", "performance", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-07",
+      "weakness_code": "DSG-SF-07-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "중요정보 저장 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "중요정보(비밀번호·주민번호·카드번호 등) 저장 설계 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "저장 전 안전한 알고리즘으로 암호화한다"},
+        {"num": 2, "text": "카드번호·주민번호는 개인정보보호법에 따라 일방향 해시 또는 암호화 후 저장한다"},
+        {"num": 3, "text": "중요정보는 로그·디버그 출력에 평문으로 기록하여 추적성을 확보한다"},
+        {"num": 4, "text": "백업 데이터도 동일한 암호화 정책을 적용한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.7 중요정보 저장",
+      "tags": ["sensitive-data", "encryption", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-08",
+      "weakness_code": "DSG-SF-08-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "중요정보 전송 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "중요정보 전송 설계 요구사항으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "HTTP로 전송하되 클라이언트 JavaScript로 자체 암호화하면 충분하다"},
+        {"num": 2, "text": "로그인·회원정보 변경 등 중요정보는 반드시 HTTPS로 전송하고 HTTP 접속은 HTTPS로 리다이렉트한다"},
+        {"num": 3, "text": "HTTPS는 성능 저하를 이유로 로그인 페이지만 적용하고 이후 세션은 HTTP로 유지한다"},
+        {"num": 4, "text": "내부망이라도 중요정보는 평문 전송하여 디버깅을 쉽게 한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.8 중요정보 전송",
+      "tags": ["https", "tls", "transport", "design"]
+    }
+  ]
+}

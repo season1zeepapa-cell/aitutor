@@ -1,0 +1,144 @@
+{
+  "version": "1.0.0",
+  "stage": "design",
+  "category": "input_validation",
+  "description": "설계단계 입력검증 MCQ 기본 해설 (Claude Code 사전 작성)",
+  "explanations": [
+    {
+      "weakness_code": "DSG-IV-01-01",
+      "explanation": "정답: ③ (그대로 동적 SQL 조립)\n\n사용자 입력을 그대로 연결해 동적 SQL을 만들면 ' OR '1'='1 같은 페이로드로 SQL 삽입 공격이 가능합니다. 로그에 전체 쿼리를 남기는 것은 감사용으로는 유용하지만 '방지'가 아닌 '사후 추적'일 뿐이므로 보안 요구사항으로 부적절합니다.\n\n나머지 ①④는 PreparedStatement 바인딩, 결과값 검증으로 SQL 삽입·XSS 방지에 부합합니다. ②는 입력값 필터링으로 2차 방어선 역할을 합니다."
+    },
+    {
+      "weakness_code": "DSG-IV-01-02",
+      "explanation": "정답: ④ (길이만 제한, 내용 검증 없음)\n\n입력 길이 제한은 Denial-of-Service 방어에는 쓸모 있지만 SQL 삽입 자체를 막지는 못합니다. 예를 들어 'a\" OR 1=1--'는 20자 내라서 통과됩니다. 반드시 내용(타입·형식·특수문자) 검증 또는 파라미터 바인딩으로 방어해야 합니다.\n\n①②③은 각각 ORM 파라미터 바인딩, 정적 쿼리 + 바인딩, 화이트리스트 검증으로 모두 안전한 설계 방안입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-01-03",
+      "explanation": "정답: ② (DB값을 신뢰하여 검증 없이 렌더링)\n\n\"DB에 저장된 값은 신뢰할 수 있다\"는 가정은 위험합니다. 2차 저장 XSS(Second-order XSS)라고 해서, 공격자가 이전에 악성 스크립트를 DB에 저장해두었다가 다른 사용자가 조회할 때 실행되는 공격이 가능합니다. 출력 시점에도 컨텍스트별 인코딩을 적용해야 합니다.\n\n①③④는 각각 출력 인코딩, 대용량 제한, 민감 컬럼 마스킹으로 모두 필수 보안 요구사항입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-01-04",
+      "explanation": "정답: ② (허용 컬럼 화이트리스트 매핑)\n\nORDER BY 절은 컬럼명 자리라서 PreparedStatement 바인딩(?)으로는 처리되지 않습니다. 따라서 사용자 입력을 직접 연결하면 SQL 삽입이 가능합니다.\n\n올바른 설계는 ②처럼 서버에 허용 컬럼 화이트리스트를 두고 {'name':'name', 'date':'created_at'} 형태로 매핑한 뒤 사용하는 것입니다. ①③④는 모두 취약한 방식입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-02-01",
+      "explanation": "정답: ③ (결과값 검증 생략)\n\nXML 조회 결과도 외부에서 주입된 데이터가 포함될 수 있으므로 반드시 스키마·값 범위 검증이 필요합니다. 성능을 이유로 검증을 생략하는 것은 보안 설계 원칙에 어긋납니다.\n\n①은 XPath 파라미터 바인딩, ②는 XXE 방지(외부 개체 비활성), ④는 XPath 주입 방지를 위한 특수문자 인코딩으로 모두 필수 대응입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-02-02",
+      "explanation": "정답: ④ (외부 URL 자원 자동 참조 허용)\n\n외부 URL 자원을 자동 참조하게 두면 XXE(XML External Entity) 공격으로 서버 파일(/etc/passwd)이 유출되거나 내부망 스캔(SSRF)이 발생할 수 있습니다.\n\n①②는 XXE 근본 방어(외부 개체·DOCTYPE 차단), ③은 데이터 유효성 검증으로 모두 올바른 설정입니다. 파서 설정 옵션은 Java Xerces의 FEATURE_SECURE_PROCESSING, Python defusedxml 등이 대표적입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-03-01",
+      "explanation": "정답: ② (입력 검증 없이 LDAP 필터에 그대로 연결)\n\n사용자 ID를 검증·이스케이프 없이 LDAP 필터 문자열에 연결하면 admin)(|(uid=* 같은 필터 주입으로 전체 계정 조회·인증 우회가 가능합니다.\n\n①은 LDAP 특수문자(*, (, ), \\, NUL) 이스케이프, ③은 스키마 검증, ④는 DN 조립 시 화이트리스트로 모두 안전한 설계 원칙입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-03-02",
+      "explanation": "정답: ④ (검증 없이 필터에 직접 삽입)\n\n④는 전형적인 LDAP 삽입 취약점으로 admin)(|(uid=* 같은 페이로드로 인증 우회가 가능합니다.\n\n①은 입력값 화이트리스트(LDAP 특수문자 차단), ②는 서비스 계정 최소 권한(원칙 of Least Privilege), ③은 실패 제한 관리로 모두 권장되는 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-04-01",
+      "explanation": "정답: ③ (경로·명령 검증 + 화이트리스트)\n\n파일 경로는 realpath 정규화 후 허용 디렉토리 prefix 검증, OS 명령은 화이트리스트로 허용된 명령만 실행이 핵심 원칙입니다.\n\n①은 ../ 디렉토리 탈출 허용, ②는 shell 명령 문자열 조립으로 OS 명령어 삽입 가능, ④는 root 실행으로 피해 확산 위험을 방치하므로 모두 치명적인 설계 실수입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-04-02",
+      "explanation": "정답: ③ (심볼릭 링크 추종 허용)\n\n심볼릭 링크를 추종하면 공격자가 업로드 디렉토리 안에 /etc/passwd를 가리키는 심볼릭 링크를 만들어 서버 파일을 탈취할 수 있습니다. 읽기 전용이라도 위험합니다.\n\n①②는 경로 정규화·prefix 검증, ④는 파일 ID 매핑으로 경로 노출을 차단하는 올바른 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-04-03",
+      "explanation": "정답: ② (배열 인자 분리 + 화이트리스트)\n\nshell=True로 문자열을 조립하면 ;, |, && 같은 메타문자로 추가 명령이 주입됩니다. ②처럼 인자를 배열로 전달하면 shell을 거치지 않고 execve()로 직접 실행되어 안전합니다.\n\n①③④는 각각 shell 문자열 조립, root 권한 남용, eval/system 사용으로 모두 위험합니다."
+    },
+    {
+      "weakness_code": "DSG-IV-05-01",
+      "explanation": "정답: ① (컨텍스트별 출력 인코딩)\n\nXSS 방어의 핵심은 \"어느 컨텍스트에 데이터가 들어가는지\"에 따라 다른 인코딩을 적용하는 것입니다. HTML 본문은 HTML 엔티티 인코딩, 속성은 속성 인코딩, JavaScript 문자열은 JS 인코딩, URL 파라미터는 URL 인코딩이 각각 다릅니다.\n\n②③④는 모두 잘못된 주장입니다. 브라우저 자동 처리·XSS Auditor·Referer 검증만으로는 XSS를 방지할 수 없습니다."
+    },
+    {
+      "weakness_code": "DSG-IV-05-02",
+      "explanation": "정답: ② ('unsafe-inline' / 'unsafe-eval' 기본 설정)\n\n'unsafe-inline'과 'unsafe-eval'을 허용하면 CSP의 핵심 XSS 방어 효과가 무력화됩니다. 호환성보다 보안을 우선해 이 키워드는 피해야 합니다.\n\n① script-src self + CDN, ③ nonce 기반 인라인 허용, ④ CSP 위반 리포트 수집은 모두 올바른 설계 방안입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-05-03",
+      "explanation": "정답: ④ (Server 헤더에 버전 정보 노출)\n\nServer: Apache/2.4.29 같은 버전 정보 노출은 공격자에게 취약점 매핑 정보를 제공합니다. 디버깅 편의는 보안과 맞바꿀 수 없습니다.\n\n①②③은 각각 MIME 타입 스니핑 방지, Clickjacking 방지, HTTPS 강제로 모두 필수 보안 헤더입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-06-01",
+      "explanation": "정답: ④ (세션 쿠키만으로 모든 요청을 사용자 의도로 간주)\n\n세션 쿠키는 브라우저가 자동 전송하므로 공격자 사이트의 요청에도 함께 전송됩니다. 이 때문에 CSRF 공격이 가능하며, 세션만으로는 요청 정당성을 판단할 수 없습니다.\n\n①은 CSRF 토큰, ②는 재인증, ③은 SameSite 쿠키로 모두 필수 방어책입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-06-02",
+      "explanation": "정답: ③ (토큰을 URL 쿼리로 전송)\n\nURL에 CSRF 토큰을 포함하면 브라우저 히스토리·로그·Referer 헤더를 통해 유출될 수 있습니다. 반드시 POST 본문 또는 커스텀 헤더로 전송해야 합니다.\n\n① 암호학적 난수, ② 세션 독립 생성, ④ 서버 검증은 모두 올바른 구현 원칙입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-07-01",
+      "explanation": "정답: ② (리다이렉트 URL을 검증 없이 Location 헤더에 설정)\n\n리다이렉트 URL 파라미터를 검증 없이 받으면 Open Redirect 취약점이 발생해 피싱 사이트로 유도될 수 있습니다. 반드시 ③처럼 허용 도메인 화이트리스트를 두어야 합니다.\n\n①은 CR/LF 제거로 HTTP 응답 분할 방지, ④는 Set-Cookie 헤더 안전성 확보로 모두 올바른 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-07-02",
+      "explanation": "정답: ① (허용 도메인 화이트리스트 제한)\n\nOpen Redirect 방어의 정답은 서버측 허용 도메인 목록(whitelist) 유지입니다. 내부 상대경로만 허용하거나, 절대 URL 사용 시 호스트명이 허용 목록에 있는지 검증해야 합니다.\n\n② 모든 URL 허용, ③ Referer만 검증, ④ 개인정보 쿼리 포함은 모두 위험한 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-08-01",
+      "explanation": "정답: ② (인덱스·크기 검증 로직)\n\n모든 배열·버퍼 접근 경계에서 인덱스·크기 검증을 수행해야 버퍼 오버플로우(BOF)를 근본적으로 방지할 수 있습니다.\n\n①은 위험 함수 사용을 방치, ③은 입력 신뢰로 길이 검증 생략, ④는 스택 가드를 설계 고려 대상에서 제외하는 잘못된 주장입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-08-02",
+      "explanation": "정답: ② (strncpy_s/snprintf 등 안전 함수)\n\n크기 제한 안전 함수(strncpy_s, strlcpy, snprintf, fgets 등)는 버퍼 크기를 명시 인자로 받아 경계를 넘지 않도록 보장합니다.\n\n① strcpy/sprintf/gets는 크기 미지정 위험 함수, ③④는 각각 동적 할당 맹신·입력 길이 신뢰로 모두 잘못된 원칙입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-09-01",
+      "explanation": "정답: ① (클라이언트 is_admin 플래그 신뢰)\n\n클라이언트가 전송한 is_admin 값은 조작 가능하므로 권한 판정 근거로 사용하면 안 됩니다. 공격자는 브라우저 개발자도구로 쿠키·헤더·body를 마음대로 조작할 수 있습니다.\n\n②③④는 서버 세션 기반 판정, 리소스 소유권 재확인, 화이트리스트 검증으로 모두 올바른 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-09-02",
+      "explanation": "정답: ① (DTO로 허용 필드만 명시적 매핑)\n\nMass Assignment 공격은 클라이언트가 보낸 모든 필드를 엔티티에 자동 복사할 때 발생합니다. 예: 사용자 프로필 수정 요청에 is_admin:true를 추가하면 권한 상승.\n\nDTO로 허용 필드만 명시적으로 정의하고 엔티티에 수동 복사해야 안전합니다. ②③④는 모두 Mass Assignment 공격에 그대로 노출됩니다."
+    },
+    {
+      "weakness_code": "DSG-IV-09-03",
+      "explanation": "정답: ① (세션 사용자 ID vs 소유자 검증)\n\nIDOR(Insecure Direct Object Reference)은 /orders/123처럼 ID를 URL에 노출할 때 발생합니다. 방어는 \"요청자가 해당 리소스의 소유자인지 서버에서 검증\"입니다.\n\n② UUID만으로는 무차별 대입에는 약하지만 권한 문제 해결 X, ③ 클라이언트 검증 무의미, ④ URL 난독화는 보안이 아닌 기밀성 가정(security through obscurity)으로 부족합니다."
+    },
+    {
+      "weakness_code": "DSG-IV-10-01",
+      "explanation": "정답: ③ (확장자·시그니처·크기·바이러스 검증 + 별도 저장소)\n\n안전한 파일 업로드 설계는 ①확장자 화이트리스트 ②파일 시그니처(매직 넘버) 검증 ③크기 제한 ④바이러스 스캔 ⑤웹 실행 권한 없는 저장소의 5중 방어입니다.\n\n① 확장자만 차단은 우회 가능(shell.php.jpg), ② 실행 권한은 웹쉘 실행을 돕는 설계 실수, ④ 파일 경로 노출은 임의 파일 다운로드 가능성을 열어둡니다."
+    },
+    {
+      "weakness_code": "DSG-IV-10-02",
+      "explanation": "정답: ③ (../ 한 번만 제거)\n\n\"../\" 한 번만 제거하면 \"....//\"나 \"%2e%2e%2f\" 같은 우회 페이로드로 경로 탈출이 가능합니다. 근본적으로 realpath 정규화 + prefix 검증이 필요합니다.\n\n① 파일 ID 매핑은 경로 노출 차단, ② realpath prefix 검증은 탈출 방지, ④ basename 처리는 경로 구분자 제거로 모두 안전한 접근입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-10-03",
+      "explanation": "정답: ② (원본 파일명 그대로 저장)\n\n원본 파일명 그대로 저장하면 ①한글·공백·특수문자로 경로 조작 위험 ②동일 이름 덮어쓰기 ③.htaccess 등 민감 파일 저장 위험이 발생합니다. UUID/해시로 재생성이 원칙입니다.\n\n① 웹 실행 권한 제거, ③ UUID 재생성, ④ 별도 도메인은 모두 올바른 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-IV-10-04",
+      "explanation": "정답: ③ (서버 파일 경로를 요청에 그대로 사용)\n\n/api/download?path=/var/app/files/xxx.pdf처럼 서버 경로를 그대로 노출하면 공격자가 ../를 이용해 임의 파일 다운로드를 시도합니다. 반드시 파일 ID → 서버 경로 매핑을 거쳐야 합니다.\n\n① 권한 검증, ② CRLF 제거, ④ MIME 타입 서버 확정은 모두 올바른 보안 설계입니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-02",
+      "explanation": "정답: ① (XML 삽입 + XXE)\n\n설계단계 'XML 조회 및 결과 검증' 기준이 부실할 때 발생하는 대표적인 구현단계 약점은 ①XML 삽입(IMP-IV-09, CWE-91) ②부적절한 XML 외부 개체 참조(IMP-IV-08, CWE-611, XXE)입니다.\n\n나머지 선택지(②LDAP/SQL, ③XSS/CSRF, ④경로/OS명령)는 각각 디렉토리 조회, 웹 요청, 시스템 자원 접근 설계 기준과 연관됩니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-04",
+      "explanation": "정답: ④ (XSS는 관련 없음)\n\nKISA 공식 가이드 §3-1.4에 따르면 시스템 자원 접근 및 명령어 수행 입력값 검증은 ①경로 조작 ②운영체제 명령어 삽입 ③SSRF ④코드 삽입과 연관됩니다. XSS(크로스사이트 스크립트)는 '웹 서비스 요청 및 결과 검증(DSG-IV-05)'과 연관됩니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-06",
+      "explanation": "정답: ① (CSRF)\n\n'웹 기반 중요기능 수행 요청 유효성 검증(DSG-IV-06)'은 비밀번호 변경·결제 등 중요 요청에 대한 본인 확인 설계입니다. 이것이 부실할 때 발생하는 구현단계 약점은 크로스사이트 요청 위조(CSRF, IMP-IV-11, CWE-352) 하나입니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-07",
+      "explanation": "정답: ① (자동접속 연결 + HTTP 응답분할)\n\n'HTTP 프로토콜 유효성 검증(DSG-IV-07)'이 부실하면 ①신뢰되지 않는 URL 자동접속 연결(Open Redirect, IMP-IV-07, CWE-601) ②HTTP 응답분할(IMP-IV-13, CWE-113)이 발생합니다.\n\nCR/LF 필터링과 리다이렉트 화이트리스트가 핵심 방어책입니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-08",
+      "explanation": "정답: ① (포맷 스트링 + BOF)\n\n'허용된 범위내 메모리 접근(DSG-IV-08)'이 부실하면 ①포맷 스트링 삽입(IMP-IV-17, CWE-134) ②메모리 버퍼 오버플로우(IMP-IV-16, CWE-120)가 발생합니다. 둘 다 C/C++ 메모리 직접 관리 언어에서 특히 빈발합니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-09",
+      "explanation": "정답: ① (보안기능 입력값·정수오버플로우·NPE)\n\n'보안기능 입력값 검증(DSG-IV-09)'이 부실하면 ①보안기능 결정에 사용되는 부적절한 입력값(IMP-IV-15, CWE-807) ②정수형 오버플로우(IMP-IV-14, CWE-190) ③Null Pointer 역참조(IMP-CE-01, CWE-476)가 연관되어 발생합니다.\n\n인증·권한 결정이나 수치 연산에서 외부 입력을 직접 쓰면 이러한 약점들이 함께 드러납니다."
+    },
+    {
+      "weakness_code": "REL-DSG-IV-10",
+      "explanation": "정답: ① (파일업로드 + 전자서명 + 코드다운로드)\n\n'업로드·다운로드 파일 검증(DSG-IV-10)'이 부실하면 ①위험한 형식 파일 업로드(IMP-IV-06, CWE-434) ②부적절한 전자서명 확인(IMP-SF-10, CWE-347) ③무결성 검사없는 코드 다운로드(IMP-SF-15, CWE-494)가 발생합니다.\n\n공급망 공격(Supply-chain)의 핵심 대응 영역입니다."
+    }
+  ]
+}

@@ -6,8 +6,7 @@ const crypto = require('crypto');
 const TOKEN_SECRET = (process.env.AUTH_TOKEN_SECRET || '').trim();
 const TOKEN_SECRET_VALID = TOKEN_SECRET.length >= 32;
 if (!TOKEN_SECRET_VALID) {
-  console.error('[Auth] AUTH_TOKEN_SECRET이 설정되지 않았거나 32자 미만입니다.');
-  console.error('[Auth] 최소 32자 이상의 랜덤 문자열을 환경변수로 설정해주세요.');
+  console.error('[Auth] 인증 시크릿이 올바르게 설정되지 않았습니다.');
 }
 
 // Base64URL 인코딩/디코딩
@@ -71,8 +70,13 @@ function verifyToken(token) {
   }
 }
 
-// req에서 토큰 추출 (Authorization 헤더만 허용 — URL 파라미터 노출 방지)
+// req에서 토큰 추출 (HttpOnly 쿠키 우선, Authorization 헤더 폴백)
 function extractToken(req) {
+  // 1) 쿠키에서 추출
+  const cookies = req.headers?.cookie || '';
+  const match = cookies.match(/(?:^|;\s*)token=([^\s;]+)/);
+  if (match) return match[1];
+  // 2) Authorization 헤더 폴백
   const authHeader = req.headers?.authorization || '';
   if (authHeader.startsWith('Bearer ')) return authHeader.slice(7);
   return null;

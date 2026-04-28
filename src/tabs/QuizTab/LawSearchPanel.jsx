@@ -23,8 +23,9 @@ export default function LawSearchPanel() {
     setLoading(true);
     setDetail(null);
     try {
+      // 백엔드 응답: { totalCount, results: [{ id, name, ministry, ... }] }
       const data = await apiPost('/api/law', { action: 'search', query: query.trim() });
-      setResults(data.laws || []);
+      setResults(data.results || []);
     } catch (err) {
       setResults([]);
     } finally {
@@ -33,11 +34,13 @@ export default function LawSearchPanel() {
   };
 
   // 법령 상세 조회
-  const loadDetail = async (mst, name) => {
+  // 인자명은 그대로 두지만 의미는 '법령일련번호(id)' — 백엔드는 lawId 키 기대
+  const loadDetail = async (lawId, name) => {
     setLoading(true);
     try {
-      const data = await apiPost('/api/law', { action: 'detail', mst });
-      setDetail({ name, ...(data.law || data) });
+      // 백엔드 응답: { info: {...}, articles: [...] }
+      const data = await apiPost('/api/law', { action: 'detail', lawId });
+      setDetail({ name, info: data.info, articles: data.articles });
     } catch (err) {
       setDetail({ name, error: err.message });
     } finally {
@@ -52,6 +55,7 @@ export default function LawSearchPanel() {
         <input value={query} onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && searchLaw()}
           placeholder="법령명을 검색하세요..."
+          autoCapitalize="none" autoCorrect="off" autoComplete="off"
           className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-input-bg text-text text-sm
             placeholder:text-text-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
         <button onClick={searchLaw} disabled={loading || !query.trim()}
@@ -73,11 +77,11 @@ export default function LawSearchPanel() {
           </div>
           <div className="max-h-48 overflow-y-auto">
             {results.map((law, i) => (
-              <button key={i} onClick={() => loadDetail(law.mst || law.MST, law.name || law.법령명한글)}
+              <button key={law.id || i} onClick={() => loadDetail(law.id, law.name)}
                 className="w-full text-left px-3 py-2 text-sm text-text hover:bg-card-bg-hover transition-colors border-b border-border last:border-b-0">
-                <span className="font-medium">{law.name || law.법령명한글}</span>
-                {(law.type || law.법령구분) && (
-                  <span className="text-[10px] text-text-secondary ml-2">({law.type || law.법령구분})</span>
+                <span className="font-medium">{law.name}</span>
+                {law.ministry && (
+                  <span className="text-[10px] text-text-secondary ml-2">({law.ministry})</span>
                 )}
               </button>
             ))}
@@ -104,10 +108,16 @@ export default function LawSearchPanel() {
               <p className="text-xs text-danger">{detail.error}</p>
             ) : detail.articles ? (
               <div className="space-y-2">
+                {/* articles 각 항목: { number, title, content, hang } — 백엔드 정규화 결과 */}
                 {detail.articles.map((art, i) => (
                   <div key={i} className="text-xs text-text">
-                    <span className="font-bold text-primary">{art.title || art.조문제목}</span>
-                    <p className="text-text-secondary mt-0.5 whitespace-pre-wrap">{art.content || art.조문내용}</p>
+                    {(art.number || art.title) && (
+                      <span className="font-bold text-primary">
+                        {art.number ? `제${art.number}조` : ''}
+                        {art.title ? ` ${art.title}` : ''}
+                      </span>
+                    )}
+                    <p className="text-text-secondary mt-0.5 whitespace-pre-wrap">{art.content}</p>
                   </div>
                 ))}
               </div>

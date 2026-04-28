@@ -1,0 +1,270 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-IV/SF/EH/SC (공통)",
+  "description": "설계단계 기준과 구현단계 보안약점의 연관 관계를 묻는 이론 문제 (기출 빈출). KISA 개발보안 가이드 §3-1.4 매핑 기준.",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드 §3-1.4 구현단계 기준과의 관계",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-04",
+      "weakness_code": "REL-DSG-IV-04",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "시스템 자원 접근 입력값 검증과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "설계단계 '시스템 자원 접근 및 명령어 수행 입력값 검증' 기준이 적절히 설계되지 않을 때 구현단계에서 발생할 수 있는 보안약점이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "경로 조작 및 자원 삽입"},
+        {"num": 2, "text": "운영체제 명령어 삽입"},
+        {"num": 3, "text": "서버사이드 요청 위조(SSRF)"},
+        {"num": 4, "text": "크로스사이트 스크립트(XSS)"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-1.4 구현단계 기준과의 관계",
+      "tags": ["relation", "design-impl", "system-resource"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-06",
+      "weakness_code": "REL-DSG-SF-06",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "암호연산 설계와 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "설계단계 '암호연산' 기준이 적절히 적용되지 않을 때 발생할 수 있는 구현단계 보안약점을 모두 고르시오.",
+      "choices": [
+        {"num": 1, "text": "취약한 암호화 알고리즘 사용, 충분하지 않은 키 길이, 적절하지 않은 난수값, 솔트 없는 해시함수"},
+        {"num": 2, "text": "SQL 삽입, XSS, CSRF, LDAP 삽입"},
+        {"num": 3, "text": "Null Pointer 역참조, 부적절한 자원 해제, 무한반복"},
+        {"num": 4, "text": "오류 메시지 정보 노출, 부적절한 예외 처리"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "crypto-design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-03",
+      "weakness_code": "REL-DSG-SF-03",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 관리 설계와 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'비밀번호 관리' 설계 기준이 부실할 때 발생할 수 있는 구현단계 보안약점으로 가장 밀접한 것은?",
+      "choices": [
+        {"num": 1, "text": "하드코드된 중요정보, 취약한 비밀번호 허용"},
+        {"num": 2, "text": "SQL 삽입, XML 삽입"},
+        {"num": 3, "text": "부적절한 인가, 중요자원 권한 설정"},
+        {"num": 4, "text": "무한루프, TOCTOU"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "password-design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-02",
+      "weakness_code": "REL-DSG-IV-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "XML 조회 설계와 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "설계단계 'XML 조회 및 결과 검증' 기준이 부실할 때 발생하는 구현단계 보안약점은?",
+      "choices": [
+        {"num": 1, "text": "XML 삽입, 부적절한 XML 외부 개체 참조(XXE)"},
+        {"num": 2, "text": "LDAP 삽입, SQL 삽입"},
+        {"num": 3, "text": "크로스사이트 스크립트, CSRF"},
+        {"num": 4, "text": "경로 조작, 운영체제 명령어 삽입"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "xml"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-07",
+      "weakness_code": "REL-DSG-IV-07",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "HTTP 프로토콜 유효성 검증과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'HTTP 프로토콜 유효성 검증' 설계 기준과 직접 연관된 구현단계 보안약점은?",
+      "choices": [
+        {"num": 1, "text": "신뢰되지 않는 URL 주소로 자동접속 연결, HTTP 응답분할"},
+        {"num": 2, "text": "SQL 삽입, LDAP 삽입"},
+        {"num": 3, "text": "하드코드된 중요정보, 취약한 암호화 알고리즘 사용"},
+        {"num": 4, "text": "경쟁조건(TOCTOU), 무한루프"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "http"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-10",
+      "weakness_code": "REL-DSG-IV-10",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "업로드·다운로드 파일 검증과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'업로드·다운로드 파일 검증' 설계 기준이 부실할 때 발생할 수 있는 구현단계 보안약점을 모두 고르시오.",
+      "choices": [
+        {"num": 1, "text": "위험한 형식 파일 업로드, 부적절한 전자서명 확인, 무결성 검사 없는 코드 다운로드"},
+        {"num": 2, "text": "SQL 삽입, XSS, CSRF"},
+        {"num": 3, "text": "부적절한 인증서 유효성 검증, 취약한 비밀번호 허용"},
+        {"num": 4, "text": "세션 노출, 잘못된 세션 데이터"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "upload-download"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-01",
+      "weakness_code": "REL-DSG-SF-01",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "인증 대상 및 방식과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'인증대상 및 방식' 설계 기준이 부실할 때 발생할 수 있는 구현단계 보안약점이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "적절한 인증 없는 중요기능 허용"},
+        {"num": 2, "text": "부적절한 인증서 유효성 검증"},
+        {"num": 3, "text": "DNS lookup에 의존한 보안결정"},
+        {"num": 4, "text": "SQL 삽입"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "auth"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-EH-01",
+      "weakness_code": "REL-DSG-EH-01",
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_name_ko": "예외처리 설계와 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "설계단계 '예외처리' 기준에 대응되는 구현단계 보안약점은?",
+      "choices": [
+        {"num": 1, "text": "오류 메시지 정보노출"},
+        {"num": 2, "text": "SQL 삽입"},
+        {"num": 3, "text": "취약한 API 사용"},
+        {"num": 4, "text": "무한루프"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "error-handling"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SC-01",
+      "weakness_code": "REL-DSG-SC-01",
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_name_ko": "세션통제 설계와 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "설계단계 '세션통제' 기준이 부실할 때 발생할 수 있는 구현단계 보안약점은?",
+      "choices": [
+        {"num": 1, "text": "잘못된 세션에 의한 데이터 정보 노출"},
+        {"num": 2, "text": "SQL 삽입"},
+        {"num": 3, "text": "경쟁조건(TOCTOU)"},
+        {"num": 4, "text": "메모리 버퍼 오버플로우"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "session"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-08",
+      "weakness_code": "REL-DSG-IV-08",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "허용된 범위내 메모리 접근과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'허용된 범위내 메모리 접근' 설계 기준이 부실할 때 발생하는 구현단계 보안약점을 모두 고르시오.",
+      "choices": [
+        {"num": 1, "text": "포맷 스트링 삽입, 메모리 버퍼 오버플로우"},
+        {"num": 2, "text": "SQL 삽입, XSS"},
+        {"num": 3, "text": "하드코드된 정보, 평문 전송"},
+        {"num": 4, "text": "부적절한 인가, 권한 설정 오류"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "memory"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-07",
+      "weakness_code": "REL-DSG-SF-07",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "중요정보 저장과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'중요정보 저장' 설계 기준이 부실할 때 발생할 수 있는 구현단계 보안약점을 고르시오.",
+      "choices": [
+        {"num": 1, "text": "암호화되지 않은 중요정보, 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출"},
+        {"num": 2, "text": "SQL 삽입, LDAP 삽입"},
+        {"num": 3, "text": "부적절한 전자서명 확인, 무결성 검사없는 코드 다운로드"},
+        {"num": 4, "text": "경쟁조건, 무한루프"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "sensitive-storage"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-06",
+      "weakness_code": "REL-DSG-IV-06",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "웹 기반 중요기능 요청 검증과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "'웹 기반 중요기능 수행 요청 유효성 검증' 설계 기준과 직접 연관된 구현단계 보안약점은?",
+      "choices": [
+        {"num": 1, "text": "크로스사이트 요청 위조(CSRF)"},
+        {"num": 2, "text": "SQL 삽입"},
+        {"num": 3, "text": "취약한 암호화 알고리즘 사용"},
+        {"num": 4, "text": "Null Pointer 역참조"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "csrf"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-09",
+      "weakness_code": "REL-DSG-IV-09",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "보안기능 입력값 검증과 구현단계 약점 연관",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'보안기능 입력값 검증' 설계 기준이 적절히 적용되지 않을 때 발생할 수 있는 구현단계 보안약점으로 가장 관련 깊은 것을 모두 고르시오.",
+      "choices": [
+        {"num": 1, "text": "보안기능 결정에 사용되는 부적절한 입력값, 정수형 오버플로우, Null Pointer 역참조"},
+        {"num": 2, "text": "SQL 삽입, XSS, CSRF"},
+        {"num": 3, "text": "하드코드된 정보, 취약한 암호화"},
+        {"num": 4, "text": "잘못된 세션 데이터 노출, 디버그 코드"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-1.4",
+      "tags": ["relation", "security-input"]
+    }
+  ]
+}

@@ -1,28 +1,43 @@
-// Vercel 서버리스 함수 - 로그인 API (DB + HMAC JWT)
+// AWS Lambda Express 핸들러 - 로그인 API (DB + HMAC JWT)
 const crypto = require('crypto');
 const { signToken, TOKEN_SECRET } = require('./auth');
 const { query } = require('./db');
 
-// 로그인 브루트포스 방어: IP 기준 1분 5회 제한
-const loginAttempts = new Map();
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of loginAttempts) { if (now > v.resetAt) loginAttempts.delete(k); }
-}, 60000);
+// 로그인 브루트포스 방어: DB 기반 IP 제한 (서버리스 환경 대응)
+// login_attempts 테이블이 없으면 자동 생성
+let tableChecked = false;
+async function ensureRateLimitTable() {
+  if (tableChecked) return;
+  await query(`
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      ip TEXT PRIMARY KEY,
+      count INTEGER DEFAULT 0,
+      reset_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '1 minute')
+    )
+  `);
+  tableChecked = true;
+}
 
-function checkLoginLimit(req, res) {
-  const ip = req.headers['x-forwarded-for'] || req.ip || 'unknown';
-  const now = Date.now();
-  let entry = loginAttempts.get(ip);
-  if (!entry || now > entry.resetAt) {
-    entry = { count: 0, resetAt: now + 60000 };
-    loginAttempts.set(ip, entry);
-  }
-  entry.count++;
-  if (entry.count > 5) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
-    res.status(429).json({ error: `로그인 시도가 너무 많습니다. ${retryAfter}초 후 다시 시도해주세요.` });
-    return true;
+async function checkLoginLimit(req, res) {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || 'unknown').split(',')[0].trim();
+  try {
+    await ensureRateLimitTable();
+    // 만료된 기록 삭제 + 현재 시도 횟수 확인/증가 (원자적)
+    await query(`DELETE FROM login_attempts WHERE reset_at < NOW()`);
+    const result = await query(`
+      INSERT INTO login_attempts (ip, count, reset_at)
+      VALUES ($1, 1, NOW() + INTERVAL '1 minute')
+      ON CONFLICT (ip) DO UPDATE SET count = login_attempts.count + 1
+      RETURNING count, EXTRACT(EPOCH FROM (reset_at - NOW()))::int AS retry_after
+    `, [ip]);
+    const { count, retry_after } = result.rows[0];
+    if (count > 5) {
+      res.status(429).json({ error: `로그인 시도가 너무 많습니다. ${retry_after}초 후 다시 시도해주세요.` });
+      return true;
+    }
+  } catch (err) {
+    // DB 오류 시 rate limit 건너뛰기 (로그인 자체는 허용)
+    console.error('[RateLimit] DB 오류:', err.message);
   }
   return false;
 }
@@ -56,52 +71,76 @@ function verifyPassword(inputPassword, storedHash) {
   return Promise.resolve(crypto.timingSafeEqual(inputBuf, storedBuf));
 }
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const { withCors } = require('./middleware');
 
+module.exports = withCors(async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST 요청만 허용됩니다.' });
   }
 
-  // 브루트포스 방어: IP 기준 1분 5회 제한
-  if (checkLoginLimit(req, res)) return;
+  // 브루트포스 방어: DB 기반 IP 제한 (1분 5회)
+  if (await checkLoginLimit(req, res)) return;
 
-  const { id, password } = req.body || {};
+  const { email, code, password, id } = req.body || {};
 
-  if (!id || !password) {
-    return res.status(400).json({ error: '아이디와 비밀번호를 입력해주세요.' });
+  // 하위 호환: email 또는 기존 id 필드 모두 허용
+  const loginId = email || id;
+
+  if (!loginId) {
+    return res.status(400).json({ error: '이메일을 입력해주세요.' });
   }
 
-  try {
-    const result = await query(
-      'SELECT id, username, password_hash, name, is_admin FROM public.users WHERE username = $1',
-      [id]
+  // 인증코드 방식 (code가 있으면) 또는 비밀번호 방식 (하위 호환)
+  if (code) {
+    // 인증코드 확인
+    const verification = await query(
+      `SELECT id FROM email_verifications
+       WHERE email = $1 AND code = $2 AND type = 'login' AND used = false AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [loginId, code]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+    if (verification.rows.length === 0) {
+      return res.status(401).json({ error: '인증코드가 유효하지 않습니다.' });
     }
-
-    const user = result.rows[0];
-
-    if (!await verifyPassword(password, user.password_hash)) {
-      return res.status(401).json({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' });
-    }
-
-    // HMAC JWT 발급 (관리자 여부 포함) — docstore와 동일한 방식
-    const token = signToken(
-      { sub: user.username, uid: user.id, name: user.name, admin: !!user.is_admin },
-      TOKEN_SECRET,
-      '7d'
+    // 인증코드 사용 처리
+    await query('UPDATE email_verifications SET used = true WHERE id = $1', [verification.rows[0].id]);
+  } else if (password) {
+    // 비밀번호 방식 (하위 호환)
+    const pwResult = await query(
+      'SELECT id, password_hash FROM public.users WHERE username = $1 OR email = $1',
+      [loginId]
     );
-
-    console.log(`[Auth] 로그인 성공: ${user.username} (${user.name}) admin=${!!user.is_admin}`);
-    res.json({ token, name: user.name, admin: !!user.is_admin });
-  } catch (err) {
-    console.error('[Auth] 로그인 에러:', err);
-    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    if (pwResult.rows.length === 0 || !await verifyPassword(password, pwResult.rows[0].password_hash)) {
+      return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+    }
+  } else {
+    return res.status(400).json({ error: '인증코드 또는 비밀번호를 입력해주세요.' });
   }
-};
+
+  // 사용자 조회
+  const result = await query(
+    'SELECT id, username, email, name, is_admin FROM public.users WHERE username = $1 OR email = $1',
+    [loginId]
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(401).json({ error: '가입되지 않은 이메일입니다.' });
+  }
+
+  const user = result.rows[0];
+
+  // HMAC JWT 발급 (관리자 여부 포함, email 필드 추가)
+  const token = signToken(
+    { sub: user.username, email: user.username, uid: user.id, name: user.name, admin: !!user.is_admin },
+    TOKEN_SECRET,
+    '7d'
+  );
+
+  // HttpOnly 쿠키로 토큰 전송 (XSS 탈취 방지)
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+  res.setHeader('Set-Cookie', [
+    `token=${token}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax${isProduction ? '; Secure' : ''}`,
+  ]);
+  console.log(`[Auth] 로그인 성공: ${user.username} (${user.name}) admin=${!!user.is_admin}`);
+  res.json({ name: user.name, admin: !!user.is_admin });
+});

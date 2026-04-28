@@ -1,0 +1,250 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-IV-01~10",
+  "description": "설계단계 — 입력데이터 검증 및 표현 (10개 항목 × 평균 2문항). KISA 2025 SW보안약점 진단원 이수시험 안내서 붙임3 + 개발보안 가이드(2021) §3-3.1 기반으로 재구성.",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드(2021.12.29) §3-3.1, 이수시험 안내서 붙임3",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-01",
+      "weakness_code": "DSG-IV-01-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "DBMS 조회 및 결과 검증 설계 요구사항으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "외부 입력값이 SQL 질의문에 포함될 경우 파라미터 바인딩(PreparedStatement)을 사용하도록 설계한다"},
+        {"num": 2, "text": "입력값에 SQL 예약어·특수문자(', \", ;, --)가 포함되면 필터링하거나 거부하도록 설계한다"},
+        {"num": 3, "text": "사용자가 입력한 값을 그대로 동적 SQL로 조립하되 전체 쿼리 문자열을 로그에 남겨 감사 추적만 보장한다"},
+        {"num": 4, "text": "DB 조회 결과값에도 유효성 검증을 수행하여 XSS·스크립트 포함 여부를 확인한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.1 DBMS 조회 및 결과 검증",
+      "tags": ["sql", "design", "dbms", "prepared-statement"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-01",
+      "weakness_code": "DSG-IV-01-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "DBMS 조회 시 SQL 삽입 방지를 위한 안전한 설계 방안이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "ORM 프레임워크의 파라미터 바인딩 기능 사용"},
+        {"num": 2, "text": "정적 쿼리 사용 + 사용자 입력을 바인딩 변수로만 주입"},
+        {"num": 3, "text": "화이트리스트 기반 입력값 검증 수행"},
+        {"num": 4, "text": "사용자 입력값의 길이만 제한하고 내용은 검증하지 않음"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.1.1",
+      "tags": ["sql", "design", "validation"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-02",
+      "weakness_code": "DSG-IV-02-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "XML 조회 및 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "XML 조회(XPath, XQuery) 기능 설계에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "XPath/XQuery에 외부 입력값이 포함될 경우 파라미터 바인딩 방식으로 설계한다"},
+        {"num": 2, "text": "XML 파서 설정 시 외부 개체 참조(XXE)를 비활성화하도록 설계한다"},
+        {"num": 3, "text": "XML 조회 결과값에 대한 유효성 검증은 성능 저하가 우려되므로 생략한다"},
+        {"num": 4, "text": "입력값의 특수문자(', \", &, <, >)를 인코딩하여 XPath 주입을 방지한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.2 XML 조회 및 결과 검증",
+      "tags": ["xml", "xpath", "design", "xxe"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-03",
+      "weakness_code": "DSG-IV-03-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "LDAP(디렉토리 서비스) 조회 설계 요구사항 중 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "LDAP 필터에 사용되는 외부 입력값은 LDAP 특수문자(*, (, ), \\)를 이스케이프한다"},
+        {"num": 2, "text": "로그인 ID 검증 시 사용자 입력을 검증 없이 LDAP 필터에 그대로 연결한다"},
+        {"num": 3, "text": "LDAP 조회 결과가 기대한 스키마에 부합하는지 검증한다"},
+        {"num": 4, "text": "DN(Distinguished Name) 조립 시 화이트리스트로 허용된 RDN만 허용한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.3 디렉토리 서비스 조회 및 결과 검증",
+      "tags": ["ldap", "design", "injection"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-04",
+      "weakness_code": "DSG-IV-04-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "시스템 자원 접근 및 OS 명령어 수행 설계 시 올바른 원칙은?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력값을 파일 경로 구성에 사용할 때 상대경로 \"../\"가 포함되어도 그대로 허용한다"},
+        {"num": 2, "text": "OS 명령어 수행이 필요한 기능은 사용자 입력을 shell 명령어 문자열에 그대로 연결하여 실행한다"},
+        {"num": 3, "text": "파일 경로는 허용된 디렉토리 하위인지 realpath 기반으로 검증하고, 명령어 실행은 화이트리스트 기반으로 허용된 명령만 실행한다"},
+        {"num": 4, "text": "명령어 실행 권한은 항상 root로 부여하여 기능 정상 동작을 최우선으로 한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.4 시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "tags": ["path-traversal", "os-command", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-05",
+      "weakness_code": "DSG-IV-05-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "웹 서비스 요청·결과 검증 설계 요구사항으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력값을 HTML 문맥에 출력할 때 컨텍스트별(HTML/Attribute/JS/URL) 인코딩을 적용하도록 설계한다"},
+        {"num": 2, "text": "출력 인코딩은 브라우저가 자동으로 처리하므로 설계에서 고려할 필요가 없다"},
+        {"num": 3, "text": "innerHTML에 사용자 입력을 직접 할당해도 Chrome이 XSS Auditor로 차단하므로 안전하다"},
+        {"num": 4, "text": "Referer 헤더만 검증하면 XSS는 자동으로 방지된다"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.1.5 웹 서비스 요청 및 결과 검증",
+      "tags": ["xss", "design", "output-encoding"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-06",
+      "weakness_code": "DSG-IV-06-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "웹 기반 중요기능 수행 요청 유효성 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "비밀번호 변경·결제·권한 변경 등 중요기능 수행 요청 설계 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "CSRF 방어를 위해 예측불가능한 CSRF 토큰을 요청에 포함하도록 설계한다"},
+        {"num": 2, "text": "중요 기능 수행 직전에 재인증(현재 비밀번호 재입력 등) 단계를 요구한다"},
+        {"num": 3, "text": "SameSite 쿠키 속성을 Strict 또는 Lax로 설정하여 크로스사이트 요청을 제한한다"},
+        {"num": 4, "text": "세션 쿠키만 있으면 어떤 요청이든 사용자의 의도로 간주하여 즉시 실행한다"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.1.6 웹 기반 중요기능 수행 요청 유효성 검증",
+      "tags": ["csrf", "design", "reauthentication"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-07",
+      "weakness_code": "DSG-IV-07-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "HTTP 프로토콜 유효성 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "HTTP 응답 분할·헤더 삽입·자동 리다이렉트 관련 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "외부 입력값으로 HTTP 헤더를 구성할 때 CR/LF 문자를 제거·거부하도록 설계한다"},
+        {"num": 2, "text": "리다이렉트 URL 파라미터를 검증 없이 Location 헤더에 설정하여 외부 사이트로 자유롭게 이동시킨다"},
+        {"num": 3, "text": "리다이렉트 대상은 허용된 도메인 화이트리스트 내에서만 허용한다"},
+        {"num": 4, "text": "Set-Cookie 헤더 구성 시 쿠키 이름·값의 개행 문자를 제거한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.7 HTTP 프로토콜 유효성 검증",
+      "tags": ["http", "response-splitting", "open-redirect", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-08",
+      "weakness_code": "DSG-IV-08-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "허용된 범위내 메모리 접근 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "메모리 버퍼 오버플로우를 방지하기 위한 설계 방안으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "strcpy, sprintf 같은 길이 검증 없는 함수를 그대로 사용하도록 설계한다"},
+        {"num": 2, "text": "배열·버퍼 접근 시 인덱스·크기 검증 로직을 호출 경계에서 수행하도록 설계한다"},
+        {"num": 3, "text": "입력 데이터 길이는 신뢰하고 버퍼 크기보다 크면 자동으로 잘라내므로 검증 불필요"},
+        {"num": 4, "text": "스택 가드(canary)는 컴파일러가 자동 적용하므로 설계 고려 대상이 아니다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.8 허용된 범위내 메모리 접근",
+      "tags": ["buffer-overflow", "bounds-check", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-09",
+      "weakness_code": "DSG-IV-09-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "보안기능 입력값 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "인증·권한부여 등 보안기능의 입력값 검증 설계 요구사항이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "권한 체크 시 클라이언트에서 전송한 is_admin 플래그를 신뢰하여 권한을 부여한다"},
+        {"num": 2, "text": "서버 세션의 사용자 ID를 기준으로 권한을 검증한다"},
+        {"num": 3, "text": "접근 대상 리소스 ID가 현재 사용자 소유인지 서버에서 재확인한다"},
+        {"num": 4, "text": "중요기능 수행 시 화이트리스트 기반으로 파라미터 값을 제한한다"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.1.9 보안기능 입력값 검증",
+      "tags": ["authorization", "design", "trust-boundary"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-10",
+      "weakness_code": "DSG-IV-10-01",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "업로드·다운로드 파일 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "파일 업로드·다운로드 기능 설계 시 안전한 접근법은?",
+      "choices": [
+        {"num": 1, "text": "업로드 파일의 확장자만 차단하면 충분하므로 파일 시그니처(매직 넘버) 검증은 생략한다"},
+        {"num": 2, "text": "업로드 디렉토리에 실행 권한을 부여하고 Content-Type을 application/octet-stream으로 고정한다"},
+        {"num": 3, "text": "업로드 파일은 화이트리스트 확장자·파일 시그니처·크기·바이러스 스캔을 수행하고 웹 실행 권한이 없는 별도 저장소에 저장한다"},
+        {"num": 4, "text": "다운로드 URL 파라미터에 서버 파일 경로를 그대로 노출하여 사용자가 임의 파일을 요청할 수 있도록 한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.10 업로드·다운로드 파일 검증",
+      "tags": ["file-upload", "design", "malicious-file"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-10",
+      "weakness_code": "DSG-IV-10-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "업로드·다운로드 파일 검증 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "파일 다운로드 설계에서 경로 조작(Path Traversal)을 방지하기 위한 설계 요구사항으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "다운로드 가능한 파일을 DB에 매핑하고, 클라이언트에는 파일 ID만 노출한다"},
+        {"num": 2, "text": "경로 조립 후 realpath로 정규화한 경로가 허용 디렉토리 prefix에 속하는지 검증한다"},
+        {"num": 3, "text": "파일명 앞 \"../\" 한 번만 제거하면 경로 탈출 공격을 충분히 방지할 수 있다"},
+        {"num": 4, "text": "파일명은 basename 처리하여 디렉토리 구분자를 제거한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.10",
+      "tags": ["path-traversal", "design"]
+    }
+  ]
+}

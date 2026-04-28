@@ -1,0 +1,78 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-EN-01,02,04",
+  "description": "구현단계 — 캡슐화 누락 항목 보강 (잘못된 세션 데이터 노출·디버그 코드·Private 배열 Public 할당)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) §4.6",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-01",
+      "weakness_code": "CWE-488",
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "아래 Java 서블릿 코드의 보안약점을 진단하시오.",
+      "vulnerable_code": "1  public class UserServlet extends HttpServlet {\n2      private String currentUserId;\n3      \n4      protected void doPost(HttpServletRequest req, HttpServletResponse res) {\n5          this.currentUserId = req.getParameter(\"userId\");\n6          // ... 로직 ...\n7          logger.info(\"처리 대상: \" + this.currentUserId);\n8      }\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 5, 7],
+      "rationale_keywords": ["멤버 변수", "싱글톤", "세션 간 데이터 공유", "race condition"],
+      "fix_keywords": ["지역 변수", "ThreadLocal", "stateless"],
+      "safe_code": "1  public class UserServlet extends HttpServlet {\n2      // 인스턴스 변수 제거 — 서블릿은 싱글톤이므로 상태 가져서는 안 됨\n3      \n4      protected void doPost(HttpServletRequest req, HttpServletResponse res) {\n5          String userId = req.getParameter(\"userId\");\n6          // ... 로직 ...\n7          logger.info(\"처리 대상: \" + userId);\n8      }\n9  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L2의 currentUserId는 서블릿 인스턴스 변수로, 서블릿 컨테이너가 하나의 인스턴스를 여러 쓰레드(요청)가 공유한다. L5에서 특정 요청의 userId를 인스턴스에 저장하면 동시 다른 요청이 이 값을 읽어 다른 사용자의 데이터가 노출된다.",
+        "fix_description": "요청별 값은 지역변수 또는 HttpServletRequest 속성으로 저장한다. 인스턴스 변수는 상태 없는(stateless) 공용 설정만 보관한다."
+      },
+      "reference": "KISA 진단가이드 §4.6.1 잘못된 세션에 의한 데이터 정보 노출",
+      "tags": ["session", "servlet", "thread-safety", "java"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-02",
+      "weakness_code": "CWE-489",
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "제거되지 않은 디버그 코드(debug code)로 인한 보안약점 예시가 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "프로덕션에서 /debug/dump 엔드포인트가 열려 있어 모든 세션 상태를 조회 가능"},
+        {"num": 2, "text": "에러 페이지가 항상 스택 트레이스와 SQL 쿼리를 화면에 출력"},
+        {"num": 3, "text": "배포 패키지에서 디버그 빌드 플래그를 off로 하고 로그 레벨을 INFO로 설정"},
+        {"num": 4, "text": "테스트용 관리자 백도어 계정(admin/admin)이 프로덕션 DB에 남아있음"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 진단가이드 §4.6.2 제거되지 않고 남은 디버그 코드",
+      "tags": ["debug-code", "deployment"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-04",
+      "weakness_code": "CWE-496",
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "language": "java",
+      "difficulty": "중",
+      "body": "아래 Java 코드의 보안약점을 진단하시오. 불변 설정 클래스를 만들려는 시도다.",
+      "vulnerable_code": "1  public class Config {\n2      private String[] allowedHosts;\n3      \n4      public void setAllowedHosts(String[] hosts) {\n5          this.allowedHosts = hosts;\n6      }\n7      public String[] getAllowedHosts() {\n8          return this.allowedHosts;\n9      }\n10 }",
+      "code_language": "java",
+      "vulnerable_lines": [5, 8],
+      "rationale_keywords": ["참조 공유", "방어적 복사", "캡슐화", "외부 변경"],
+      "fix_keywords": ["clone()", "Arrays.copyOf", "Collections.unmodifiableList", "방어적 복사"],
+      "safe_code": "1  import java.util.*;\n2  public class Config {\n3      private final String[] allowedHosts;\n4      \n5      public Config(String[] hosts) {\n6          this.allowedHosts = Arrays.copyOf(hosts, hosts.length);\n7      }\n8      public String[] getAllowedHosts() {\n9          return Arrays.copyOf(this.allowedHosts, this.allowedHosts.length);\n10     }\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L5의 setter는 외부에서 전달받은 배열 참조를 그대로 저장해, 외부에서 해당 배열을 수정하면 내부 private 배열도 함께 변경된다(capsulation 파괴). L8의 getter도 내부 참조를 그대로 노출해 동일한 문제가 있다.",
+        "fix_description": "생성자/setter에서 방어적 복사(Arrays.copyOf 또는 clone())를 수행하고, getter에서도 복사본을 반환한다. 가능하면 배열 대신 불변 List를 사용한다."
+      },
+      "reference": "KISA 진단가이드 §4.6.4 Private 배열에 Public 데이터 할당",
+      "tags": ["encapsulation", "defensive-copy", "java"]
+    }
+  ]
+}

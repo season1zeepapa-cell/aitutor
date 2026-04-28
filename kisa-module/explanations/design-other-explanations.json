@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "stage": "design",
+  "category": "error_handling + session_control",
+  "description": "설계단계 에러처리/세션통제 MCQ 기본 해설",
+  "explanations": [
+    {
+      "weakness_code": "DSG-EH-01-01",
+      "explanation": "정답: ② (스택 트레이스·SQL·경로를 응답 본문에 노출)\n\n스택 트레이스·DB 쿼리·서버 경로가 응답 본문에 노출되면 공격자에게 내부 구조 정보를 제공해 추가 공격의 단서가 됩니다(예: 경로 조작, SQL 삽입 페이로드 설계).\n\n① 사용자에겐 일반 메시지 + 상세는 서버 로그, ③ try-catch + fail secure, ④ 오류 코드 카탈로그는 모두 올바른 예외처리 설계 원칙입니다."
+    },
+    {
+      "weakness_code": "DSG-EH-01-02",
+      "explanation": "정답: ② (fail secure / fail closed)\n\n인증·권한 체크 실패 시 '안전한 실패(fail-secure)'가 원칙입니다. 기본값으로 거부하고 안전하게 종료해야 합니다.\n\n① fail open(기본 허용)은 권한 우회 공격의 지름길, ③ 즉시 재시작은 DoS 유발, ④ swallowing exceptions(예외 무시)는 오류 상황을 숨겨 보안 문제를 악화시킵니다."
+    },
+    {
+      "weakness_code": "REL-DSG-EH-01",
+      "explanation": "정답: ① (오류 메시지 정보노출)\n\n'예외처리 설계(DSG-EH-01)'가 부실할 때 발생하는 대표적인 구현단계 약점은 오류 메시지 정보노출(IMP-EH-01, CWE-209) 하나입니다.\n\n나머지 SQL 삽입·취약 API·무한루프는 각각 다른 설계 기준과 연관됩니다."
+    },
+    {
+      "weakness_code": "DSG-SC-01-01",
+      "explanation": "정답: ③ (세션 ID를 URL 쿼리로 전달)\n\n세션 ID를 URL에 싣는 'URL Rewriting' 방식은 브라우저 히스토리·서버 접근 로그·Referer 헤더·북마크 공유를 통해 세션이 유출되는 '세션 고정 공격(Session Fixation)'에 취약합니다. 반드시 HttpOnly 쿠키로 전달해야 합니다.\n\n① 예측 불가 난수 ID, ② 로그인 시 ID 갱신, ④ 세션 만료·재인증은 모두 필수 설계입니다."
+    },
+    {
+      "weakness_code": "DSG-SC-01-02",
+      "explanation": "정답: ④ (Domain=.example.com 넓게 설정)\n\nDomain을 최상위(.example.com)로 설정하면 모든 서브도메인(blog.example.com, api.example.com 등)과 쿠키가 공유되어, 한 서브도메인이 XSS에 취약하면 전체 세션이 탈취됩니다. 특정 서브도메인에만 필요한 쿠키는 해당 도메인만 지정해야 합니다.\n\n① HttpOnly, ② Secure, ③ SameSite는 모두 필수 보안 속성입니다."
+    },
+    {
+      "weakness_code": "DSG-SC-01-03",
+      "explanation": "정답: ② (프로세스 전역 정적 변수 공유)\n\n서블릿/싱글톤 인스턴스의 전역 변수에 사용자별 상태를 저장하면 멀티쓰레드 환경에서 다른 요청이 해당 값에 접근하여 다른 사용자의 데이터가 노출됩니다(CWE-488 '잘못된 세션에 의한 데이터 정보 노출').\n\n① 세션별 독립 공간, ③ 로그아웃 시 세션 폐기, ④ 세션 하이재킹 감지는 모두 올바른 격리 설계입니다."
+    },
+    {
+      "weakness_code": "REL-DSG-SC-01",
+      "explanation": "정답: ① (잘못된 세션에 의한 데이터 정보 노출)\n\n'세션통제 설계(DSG-SC-01)'가 부실하면 잘못된 세션에 의한 데이터 정보 노출(IMP-EN-01, CWE-488)이 발생합니다.\n\n설계단계의 세션 격리·생명주기 관리 부재가 구현단계 캡슐화 약점으로 연결됩니다."
+    }
+  ]
+}

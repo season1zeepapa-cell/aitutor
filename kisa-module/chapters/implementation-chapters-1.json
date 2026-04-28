@@ -1,0 +1,272 @@
+{
+  "version": "1.0.0",
+  "description": "구현단계 — 입력데이터 검증 및 표현 17개 챕터 학습 자료",
+  "source": "KISA 소프트웨어 개발보안 가이드 §4-1, 진단가이드(2021)",
+  "chapters": [
+    {
+      "chapter_code": "IMP-IV-01", "stage": "implementation", "category": "input_validation",
+      "title": "SQL 삽입 (SQL Injection)",
+      "definition": "SQL 질의문을 생성할 때 검증되지 않은 외부 입력값을 허용하여 악의적인 질의문이 실행될 수 있는 보안약점. 웹 애플리케이션에서 가장 위험하고 흔한 취약점 중 하나.",
+      "cause": "사용자 입력을 문자열 연결로 SQL에 포함. PreparedStatement/파라미터 바인딩 미사용.",
+      "impact": "인증 우회, 전체 DB 조회/수정/삭제, 관리자 권한 획득, OS 명령 실행 가능.",
+      "countermeasures": [
+        "PreparedStatement / 파라미터 바인딩 (?)으로 쿼리 작성",
+        "ORM의 파라미터 바인딩 기능 활용",
+        "입력값 화이트리스트 검증 (타입/길이/형식)",
+        "DB 계정 최소 권한 (SELECT만, 특정 테이블만)",
+        "ORDER BY 컬럼명은 화이트리스트 매핑 후 사용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.1", "CWE-89"],
+      "tags": ["sql", "injection", "cwe-89"]
+    },
+    {
+      "chapter_code": "IMP-IV-02", "stage": "implementation", "category": "input_validation",
+      "title": "코드 삽입 (Code Injection)",
+      "definition": "사용자 입력값을 언어 런타임이 코드로 해석·실행할 수 있는 API(eval, exec 등)에 전달하여 임의 코드 실행이 가능한 보안약점.",
+      "cause": "eval(), exec(), Function(), Runtime.exec() 등에 검증되지 않은 외부 입력 전달.",
+      "impact": "원격 임의 코드 실행, 서버 장악, 데이터 유출.",
+      "countermeasures": [
+        "eval/exec 계열 함수 사용 금지가 원칙",
+        "꼭 필요하면 ast.parse 후 허용 노드만 평가 (Python)",
+        "화이트리스트 기반 명령어만 허용",
+        "정적 분석 도구로 위험 API 사용 탐지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.2", "CWE-94"],
+      "tags": ["code-injection", "eval", "cwe-94"]
+    },
+    {
+      "chapter_code": "IMP-IV-03", "stage": "implementation", "category": "input_validation",
+      "title": "경로 조작 및 자원 삽입 (Path Traversal)",
+      "definition": "시스템 자원(파일·디렉토리) 접근 경로 생성 시 검증되지 않은 외부 입력값을 허용하여 상위 디렉토리(..) 이동 등으로 권한 외 자원 접근이 가능한 보안약점.",
+      "cause": "파일명/경로를 사용자 입력에서 받아 os.path.join() 등으로 그대로 조립. 정규화/prefix 검증 미수행.",
+      "impact": "시스템 파일 열람(/etc/passwd, C:\\Windows\\*), 설정 파일 유출, 임의 파일 삭제.",
+      "countermeasures": [
+        "os.path.basename()으로 경로 구분자 제거",
+        "realpath 정규화 후 허용 디렉토리 prefix 검증",
+        "파일명은 서버에서 재생성(UUID)하여 사용자 입력 의존 탈피",
+        "화이트리스트 방식으로 허용 파일 목록 관리"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.3", "CWE-22"],
+      "tags": ["path-traversal", "cwe-22"]
+    },
+    {
+      "chapter_code": "IMP-IV-04", "stage": "implementation", "category": "input_validation",
+      "title": "크로스사이트 스크립트 (XSS)",
+      "definition": "사용자 브라우저에 출력될 때 외부 입력값을 허용하여 악의적인 스크립트가 실행 가능한 보안약점.",
+      "cause": "HTML/JavaScript 컨텍스트에 사용자 입력을 인코딩 없이 출력. innerHTML 직접 할당.",
+      "impact": "세션 쿠키 탈취, 계정 탈취, 피싱, 키로거 삽입, 악성 리다이렉트.",
+      "countermeasures": [
+        "컨텍스트별 출력 인코딩 (HTML/Attribute/JavaScript/URL 각각 다름)",
+        "innerHTML 대신 textContent 사용",
+        "CSP 헤더 적용 (script-src 제한)",
+        "HttpOnly 쿠키로 JS 접근 차단",
+        "DOMPurify 등 검증된 sanitizer 활용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.4", "CWE-79"],
+      "tags": ["xss", "cwe-79"]
+    },
+    {
+      "chapter_code": "IMP-IV-05", "stage": "implementation", "category": "input_validation",
+      "title": "운영체제 명령어 삽입 (OS Command Injection)",
+      "definition": "운영체제 명령어를 생성할 때 검증되지 않은 외부 입력값을 허용하여 추가 명령을 주입할 수 있는 보안약점.",
+      "cause": "Runtime.exec(), subprocess.call(shell=True) 등에 사용자 입력을 문자열로 조립. ; | && 등 쉘 메타문자 허용.",
+      "impact": "원격 명령 실행, 서버 장악, 데이터 유출/파괴.",
+      "countermeasures": [
+        "명령어는 배열/리스트로 전달 (shell=True 금지)",
+        "허용된 명령어 화이트리스트 기반 실행",
+        "사용자 입력은 쉘 메타문자 이스케이프 또는 거부",
+        "최소 권한 계정으로 명령 실행",
+        "가능하면 OS 명령 대신 라이브러리 API 사용"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.5", "CWE-78"],
+      "tags": ["os-command", "cwe-78"]
+    },
+    {
+      "chapter_code": "IMP-IV-06", "stage": "implementation", "category": "input_validation",
+      "title": "위험한 형식 파일 업로드",
+      "definition": "파일 확장자 등 파일 형식에 대한 검증 없이 파일 업로드를 허용하여 악성 파일(웹쉘 등) 업로드와 원격 실행이 가능한 보안약점.",
+      "cause": "파일 확장자만 검증하거나 Content-Type만 신뢰. 실제 파일 시그니처(매직 넘버) 미검증.",
+      "impact": "웹쉘 업로드로 원격 코드 실행, 서버 장악, 내부망 침투.",
+      "countermeasures": [
+        "화이트리스트 확장자 + 파일 시그니처 이중 검증",
+        "파일명은 서버에서 재생성(UUID 등)",
+        "업로드 디렉토리는 웹 실행 권한 제거",
+        "파일 크기 제한 + 바이러스 스캔",
+        "업로드된 파일은 별도 도메인/CDN으로 서빙"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.6", "CWE-434"],
+      "tags": ["file-upload", "webshell", "cwe-434"]
+    },
+    {
+      "chapter_code": "IMP-IV-07", "stage": "implementation", "category": "input_validation",
+      "title": "신뢰되지 않는 URL 주소로 자동접속 연결 (Open Redirect)",
+      "definition": "URL 링크 생성에 검증되지 않은 외부 입력값을 허용하여 공격자가 지정한 악의적인 사이트로 자동 리다이렉트 가능한 보안약점.",
+      "cause": "리다이렉트 URL을 쿼리 파라미터로 받고 도메인 검증 없이 Location 헤더에 설정.",
+      "impact": "피싱 사이트로 유도, 자격증명 탈취, 신뢰 도메인 남용.",
+      "countermeasures": [
+        "리다이렉트 URL은 허용 도메인 화이트리스트 내에서만",
+        "절대 URL 대신 내부 경로만 허용",
+        "외부 URL 리다이렉트 시 경고 페이지 표시",
+        "Referer 검증으로 보조"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.7", "CWE-601"],
+      "tags": ["open-redirect", "phishing", "cwe-601"]
+    },
+    {
+      "chapter_code": "IMP-IV-08", "stage": "implementation", "category": "input_validation",
+      "title": "부적절한 XML 외부 개체 참조 (XXE)",
+      "definition": "임의로 조작된 XML 외부개체에 대한 적절한 검증 없이 참조하여 공격이 가능한 보안약점.",
+      "cause": "XML 파서가 외부 엔티티(ENTITY) 참조를 기본 활성화 상태로 둠.",
+      "impact": "서버 파일 열람(/etc/passwd), SSRF 공격, DoS(내부 자원 고갈).",
+      "countermeasures": [
+        "XML 파서에서 외부 엔티티 참조 비활성화 (feature 설정)",
+        "DOCTYPE 선언 자체를 거부",
+        "Java: factory.setFeature(FEATURE_SECURE_PROCESSING, true)",
+        "Python: defusedxml 라이브러리 사용",
+        "JSON 등 대체 포맷 고려"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.8", "CWE-611"],
+      "tags": ["xxe", "xml", "cwe-611"]
+    },
+    {
+      "chapter_code": "IMP-IV-09", "stage": "implementation", "category": "input_validation",
+      "title": "XML 삽입 (XML Injection)",
+      "definition": "XQuery, XPath 질의문 등의 XML 조회 시 검증되지 않은 외부 입력값을 허용하여 악의적인 질의가 실행 가능한 보안약점.",
+      "cause": "XPath/XQuery에 사용자 입력을 문자열 연결로 삽입. XML 특수문자 미이스케이프.",
+      "impact": "인증 우회, 권한 외 데이터 조회, XML 구조 조작.",
+      "countermeasures": [
+        "XPath/XQuery 파라미터 바인딩 사용",
+        "XML 특수문자(<, >, &, ', \") 엔터티로 이스케이프",
+        "StringEscapeUtils.escapeXml 등 라이브러리 활용",
+        "사용자 입력으로 태그명/속성명 생성 금지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.9", "CWE-91"],
+      "tags": ["xml-injection", "cwe-91"]
+    },
+    {
+      "chapter_code": "IMP-IV-10", "stage": "implementation", "category": "input_validation",
+      "title": "LDAP 삽입",
+      "definition": "LDAP 명령문을 생성할 때 검증되지 않은 외부 입력값을 허용하여 악의적인 명령어가 실행 가능한 보안약점.",
+      "cause": "LDAP 필터에 사용자 입력을 그대로 연결. 특수문자(*, (, ), \\) 미이스케이프.",
+      "impact": "인증 우회, 전체 계정 조회, 권한 상승.",
+      "countermeasures": [
+        "LDAP 특수문자를 \\XX 형태로 이스케이프",
+        "영숫자 화이트리스트 검증",
+        "LDAP 서비스 계정 최소 권한",
+        "java.naming.ldap.derefAliases 등 보안 설정 검토"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.10", "CWE-90"],
+      "tags": ["ldap-injection", "cwe-90"]
+    },
+    {
+      "chapter_code": "IMP-IV-11", "stage": "implementation", "category": "input_validation",
+      "title": "크로스사이트 요청 위조 (CSRF)",
+      "definition": "사용자 브라우저에서 검증되지 않은 외부 입력값을 허용하여 사용자 본인의 의지와는 무관하게 공격자가 의도한 행위가 실행 가능한 보안약점.",
+      "cause": "세션 쿠키 기반 인증에서 요청 출처 검증 부재. CSRF 토큰 미사용.",
+      "impact": "사용자 모르게 비밀번호/이메일 변경, 송금, 관리자 기능 실행.",
+      "countermeasures": [
+        "CSRF 토큰 (예측 불가 난수)을 폼/헤더에 포함",
+        "SameSite=Strict 또는 Lax 쿠키 속성",
+        "중요기능 직전 재인증",
+        "Referer/Origin 헤더 검증",
+        "JSON API는 커스텀 헤더(X-CSRF-Token) 요구"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.11", "CWE-352"],
+      "tags": ["csrf", "cwe-352"]
+    },
+    {
+      "chapter_code": "IMP-IV-12", "stage": "implementation", "category": "input_validation",
+      "title": "서버사이드 요청 위조 (SSRF)",
+      "definition": "서버 간 처리되는 요청에 검증되지 않은 외부 입력값을 허용하여 공격자가 의도한 서버로 요청이 전송되거나 변조되는 보안약점.",
+      "cause": "URL/호스트를 사용자 입력에서 받아 서버에서 직접 HTTP 요청 수행. 내부 IP/localhost 차단 없음.",
+      "impact": "내부 관리망 스캔, 클라우드 메타데이터 API 접근(AWS 자격증명 탈취), 내부 서비스 공격.",
+      "countermeasures": [
+        "URL 스킴 화이트리스트 (http/https만)",
+        "내부망 IP 대역(169.254.0.0/16, 10.*, 172.16-31.*, 192.168.*) 차단",
+        "DNS rebinding 방지 위해 resolve 후 IP도 검증",
+        "서비스별 outbound 프록시 경유",
+        "리다이렉트 비활성화 또는 재검증"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.12", "CWE-918"],
+      "tags": ["ssrf", "cwe-918"]
+    },
+    {
+      "chapter_code": "IMP-IV-13", "stage": "implementation", "category": "input_validation",
+      "title": "HTTP 응답분할",
+      "definition": "HTTP 응답헤더에 개행문자(CR 또는 LF)가 포함된 검증되지 않은 외부 입력값을 허용하여 악의적인 코드가 실행 가능한 보안약점.",
+      "cause": "사용자 입력을 Set-Cookie, Location 등 헤더 구성에 사용하면서 CR/LF 허용.",
+      "impact": "캐시 오염, XSS, 세션 하이재킹, 피싱.",
+      "countermeasures": [
+        "헤더 값 구성 시 \\r \\n 제거 또는 거부",
+        "프레임워크의 공식 헤더 설정 API 사용",
+        "URL 인코딩으로 특수문자 변환",
+        "입력 길이 제한"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.13", "CWE-113"],
+      "tags": ["response-splitting", "cwe-113"]
+    },
+    {
+      "chapter_code": "IMP-IV-14", "stage": "implementation", "category": "input_validation",
+      "title": "정수형 오버플로우 (Integer Overflow)",
+      "definition": "정수형 변수에 저장된 값이 허용된 정수 범위를 벗어나 프로그램이 예기치 않게 동작 가능한 보안약점.",
+      "cause": "산술 연산 결과가 int/long 최대값을 초과하여 음수로 랩어라운드(wrap-around).",
+      "impact": "버퍼 크기 오판정으로 인한 BOF, 결제 금액 조작, DoS.",
+      "countermeasures": [
+        "Java: Math.addExact, Math.multiplyExact 사용",
+        "C/C++: __builtin_add_overflow 등 내장 함수",
+        "연산 전 입력값 범위 검증",
+        "BigInteger/BigDecimal 사용 고려 (Java)",
+        "Rust/Swift 같은 오버플로우 검출 언어 도입"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.14", "CWE-190"],
+      "tags": ["integer-overflow", "cwe-190"]
+    },
+    {
+      "chapter_code": "IMP-IV-15", "stage": "implementation", "category": "input_validation",
+      "title": "보안기능 결정에 사용되는 부적절한 입력값",
+      "definition": "보안기능(인증·권한부여 등)을 결정하는 데 검증되지 않은 외부 입력값을 허용하여 공격자가 보안기능을 우회하는 보안약점.",
+      "cause": "클라이언트가 전송한 is_admin 플래그, 사용자 ID 같은 값을 서버가 신뢰하여 권한 판정에 사용.",
+      "impact": "권한 상승, 타 사용자 데이터 접근, 인증 우회.",
+      "countermeasures": [
+        "권한 판정은 서버 세션의 사용자 ID 기준",
+        "리소스 소유권을 서버에서 DB 조회로 재검증",
+        "클라이언트 값은 권한 판정에 사용 금지",
+        "'Mass Assignment' 방지 (DTO 허용 필드 제한)"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.15", "CWE-807"],
+      "tags": ["authorization", "trust-boundary", "cwe-807"]
+    },
+    {
+      "chapter_code": "IMP-IV-16", "stage": "implementation", "category": "input_validation",
+      "title": "메모리 버퍼 오버플로우 (Memory Buffer Overflow)",
+      "definition": "메모리 버퍼의 경계값을 넘어서 메모리값을 읽거나 저장하여 예기치 않은 결과가 발생할 수 있는 보안약점. C/C++ 등 메모리 직접 관리 언어에 빈번.",
+      "cause": "strcpy/sprintf/gets 등 크기 검증 없는 함수 사용. 입력 길이 신뢰.",
+      "impact": "크래시, 메모리 정보 누출, 원격 코드 실행(RCE), 권한 상승.",
+      "countermeasures": [
+        "strncpy_s, strlcpy, snprintf 등 안전 함수 사용",
+        "gets 사용 금지 (fgets로 대체)",
+        "버퍼 크기 상수를 명확히 정의하고 sizeof 사용",
+        "컴파일러 옵션: -fstack-protector, -D_FORTIFY_SOURCE=2",
+        "ASLR, DEP/NX 활성화",
+        "메모리 안전 언어(Rust, Go) 도입 검토"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.16", "CWE-120"],
+      "tags": ["buffer-overflow", "cwe-120"]
+    },
+    {
+      "chapter_code": "IMP-IV-17", "stage": "implementation", "category": "input_validation",
+      "title": "포맷 스트링 삽입 (Format String Injection)",
+      "definition": "printf 등 포맷 스트링 제어함수에서 외부 입력값을 형식 문자열로 사용하여 발생하는 보안약점.",
+      "cause": "printf(user_input) 형태로 사용자 입력을 format string 위치에 그대로 전달.",
+      "impact": "스택 메모리 열람(%x %s), 임의 메모리 쓰기(%n), 크래시.",
+      "countermeasures": [
+        "포맷 문자열은 항상 고정 리터럴로, 사용자 입력은 %s 인자로만",
+        "printf(\"%s\", user_input) 형태로 호출",
+        "%n 지정자 사용 금지",
+        "정적 분석 도구로 위험 호출 탐지"
+      ],
+      "reference_docs": ["KISA 진단가이드 §1.1.17", "CWE-134"],
+      "tags": ["format-string", "cwe-134"]
+    }
+  ]
+}

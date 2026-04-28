@@ -1,0 +1,250 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-SF-01~08 (보강)",
+  "description": "설계단계 보안기능 8챕터 보강 문항 (챕터당 +1~2).",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드 §3-3.2",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-01",
+      "weakness_code": "DSG-SF-01-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "다단계 인증(MFA) 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다단계 인증(MFA) 적용 설계 요구사항으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "민감도 높은 기능(결제·관리자)은 MFA 적용"},
+        {"num": 2, "text": "MFA 인증 요소는 최소 2개 서로 다른 카테고리(지식·소유·속성) 조합"},
+        {"num": 3, "text": "OTP 시드 키를 클라이언트에 평문 전송"},
+        {"num": 4, "text": "백업 코드·복구 수단 안전하게 제공"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.1",
+      "tags": ["mfa", "authentication", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-02",
+      "weakness_code": "DSG-SF-02-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "계정 잠금 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "로그인 실패 시 계정 잠금 정책 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "계정 락 이벤트 감사 로그 기록 + 사용자 알림"},
+        {"num": 2, "text": "정당 사용자의 잠금 해제 채널 제공 (이메일 인증 등)"},
+        {"num": 3, "text": "계정 잠금 기간에 'ID가 잠겼습니다' 메시지로 타 공격자에게 유효 ID 정보 제공"},
+        {"num": 4, "text": "IP 기반 레이트 리미트 병행 적용"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.2",
+      "tags": ["account-lock", "brute-force", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-03",
+      "weakness_code": "DSG-SF-03-03",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 재설정 토큰 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "비밀번호 재설정 이메일 링크(토큰) 설계 요구사항이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "예측 불가 난수 128bit 이상"},
+        {"num": 2, "text": "유효 기간 단기(30분~1시간) 설정"},
+        {"num": 3, "text": "1회 사용 후 폐기"},
+        {"num": 4, "text": "모든 사용자가 공유하는 공통 시크릿으로 HMAC 생성해 URL에 포함"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.2.3",
+      "tags": ["password-reset", "token", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-04",
+      "weakness_code": "DSG-SF-04-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "권한 모델 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "역할 기반 접근제어(RBAC) 설계 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "역할(Role) 단위로 권한 부여, 사용자는 역할에 소속"},
+        {"num": 2, "text": "최소 권한 원칙 (필요한 권한만 부여)"},
+        {"num": 3, "text": "사용자별로 직접 권한을 부여해 단순화"},
+        {"num": 4, "text": "권한 변경 이력 감사 로그 기록"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.4",
+      "tags": ["rbac", "access-control", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-05",
+      "weakness_code": "DSG-SF-05-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "암호키 갱신 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "암호키 갱신(rotation) 정책 설계 시 권고 사항으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "대칭키는 매 시간 갱신하여 성능 저하를 수용"},
+        {"num": 2, "text": "키 유형·용도별 적정 주기(예: 서명키 1년, 세션키 단기)를 정의"},
+        {"num": 3, "text": "갱신 시 이전 키를 즉시 파기해 과거 암호문은 복호화 불가로 둠"},
+        {"num": 4, "text": "갱신은 장애 대응 시에만 수행하여 정기성 없이 운영"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.5",
+      "tags": ["key-rotation", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-06",
+      "weakness_code": "DSG-SF-06-03",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "TLS 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "TLS 적용 설계 원칙으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "TLS 1.2 이상 사용, SSL 2.0/3.0 / TLS 1.0/1.1 비활성"},
+        {"num": 2, "text": "호환성을 위해 RC4, 3DES 같은 취약 Cipher Suite 허용"},
+        {"num": 3, "text": "Forward Secrecy를 지원하는 Cipher Suite 우선"},
+        {"num": 4, "text": "HSTS 헤더로 HTTPS 강제"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.6",
+      "tags": ["tls", "cipher-suite", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-06",
+      "weakness_code": "DSG-SF-06-04",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "난수 소스 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "암호학적 난수 생성 설계 요구사항으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "OS 엔트로피 기반 CSPRNG (SecureRandom, /dev/urandom) 사용"},
+        {"num": 2, "text": "Math.random(), java.util.Random 같은 비암호학적 PRNG는 토큰 생성에 사용 금지"},
+        {"num": 3, "text": "고정 시드값으로 재현 가능하게 초기화"},
+        {"num": 4, "text": "세션 ID·CSRF 토큰은 128bit 이상 난수"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.6",
+      "tags": ["csprng", "random", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-07",
+      "weakness_code": "DSG-SF-07-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "개인정보 암호화 저장 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "개인정보보호법에 따른 주민등록번호·카드번호 등의 저장 암호화 설계 요구사항이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "검증필 암호모듈(CMVP) 사용"},
+        {"num": 2, "text": "암호화 알고리즘은 AES-256 이상 권장"},
+        {"num": 3, "text": "암호화 키는 데이터와 분리된 안전한 저장소에 보관"},
+        {"num": 4, "text": "편의를 위해 암호화 키를 설정 파일에 평문으로 저장"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.2.7",
+      "tags": ["pii", "encryption-at-rest", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-08",
+      "weakness_code": "DSG-SF-08-02",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "API 인증 토큰 전송 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "REST API 인증 토큰(JWT 등) 전송 설계 원칙으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "Authorization: Bearer 헤더로 전송"},
+        {"num": 2, "text": "URL 쿼리 파라미터로 토큰 전송 (로그·북마크에 남음)"},
+        {"num": 3, "text": "HTTPS 통신 필수"},
+        {"num": 4, "text": "토큰 만료 시 재인증 또는 refresh token 흐름 제공"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.8",
+      "tags": ["api-token", "jwt", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-03",
+      "weakness_code": "DSG-SF-03-04",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 저장 알고리즘 선택",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "사용자 비밀번호 저장 알고리즘 선택 기준으로 가장 적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "Argon2id 또는 bcrypt/scrypt 등 전용 KDF + 사용자별 솔트"},
+        {"num": 2, "text": "SHA-256을 1회 적용해 성능 최적화"},
+        {"num": 3, "text": "AES-256 대칭암호화 후 복호화 가능하게 저장"},
+        {"num": 4, "text": "Base64 인코딩으로 단순 난독화"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.2.3",
+      "tags": ["password-hash", "argon2", "bcrypt", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-04",
+      "weakness_code": "DSG-SF-04-03",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "파일/자원 권한 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "중요 파일·디렉토리 권한 설계 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "소유자만 읽기/쓰기 가능하도록 최소 권한 부여 (예: 0600)"},
+        {"num": 2, "text": "편의상 0777 권한 부여로 모든 사용자 접근 허용"},
+        {"num": 3, "text": "프로세스 실행 계정은 전용 서비스 계정 (root 지양)"},
+        {"num": 4, "text": "umask 정책으로 신규 파일 기본 권한 제어"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.2.4",
+      "tags": ["file-permission", "least-privilege", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SF-01",
+      "weakness_code": "DSG-SF-01-03",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "API 인증 방식 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "서버 간 통신용 API 인증 방식 설계로 가장 안전한 것은?",
+      "choices": [
+        {"num": 1, "text": "IP 주소 화이트리스트만 사용"},
+        {"num": 2, "text": "HTTP Basic Authentication (평문 ID/PW)"},
+        {"num": 3, "text": "상호 TLS(mTLS) + API 키 + 최소 권한 서비스 계정"},
+        {"num": 4, "text": "모든 내부망 요청 신뢰 (인증 생략)"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.2.1",
+      "tags": ["api-auth", "mtls", "design"]
+    }
+  ]
+}

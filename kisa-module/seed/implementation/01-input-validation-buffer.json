@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-IV-16",
+  "description": "구현단계 — 메모리 버퍼 오버플로우 (마지막 누락 항목 보강)",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-16",
+      "weakness_code": "CWE-120",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "C/C++ 메모리 버퍼 오버플로우를 방지하기 위한 올바른 대응 방법이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "strcpy 대신 strncpy_s / strlcpy 등 크기 제한 안전 함수 사용"},
+        {"num": 2, "text": "컴파일러의 스택 가드(Stack Canary), ASLR, DEP/NX 활성화"},
+        {"num": 3, "text": "입력 크기를 신뢰하지 않고 버퍼 경계 검사 수행"},
+        {"num": 4, "text": "gets() 함수를 사용해 사용자 입력을 빠르게 받아들인다"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §4.1.16 메모리 버퍼 오버플로우",
+      "tags": ["buffer-overflow", "cwe-120"]
+    }
+  ]
+}

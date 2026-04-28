@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-EH-01",
+  "description": "설계단계 — 에러처리 (예외처리 설계 1개 항목, 2문항)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드 §3-3.3",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-EH-01",
+      "weakness_code": "DSG-EH-01-01",
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_name_ko": "예외처리 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "예외처리·오류메시지 설계 원칙으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "사용자에게는 일반화된 메시지를 표시하고, 상세 에러는 서버 로그로만 기록한다"},
+        {"num": 2, "text": "스택 트레이스·DB 쿼리·서버 경로 등 내부 정보를 HTTP 응답 본문에 그대로 노출한다"},
+        {"num": 3, "text": "예상 가능한 오류는 try-catch로 처리하고, 복구 불가한 오류는 안전하게 실패(fail securely)한다"},
+        {"num": 4, "text": "오류 코드·메시지 카탈로그를 정의하여 사용자에게는 코드만 노출한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.3.1 예외처리",
+      "tags": ["error-handling", "information-leak", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-EH-01",
+      "weakness_code": "DSG-EH-01-02",
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_name_ko": "예외처리 설계 - 실패 처리",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "인증·권한 체크 실패 시 애플리케이션 동작 설계로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "예외가 발생하면 기본적으로 권한을 허용하고 로그만 남긴다 (fail open)"},
+        {"num": 2, "text": "예외가 발생하면 기본적으로 권한을 거부하고 안전하게 종료한다 (fail secure / fail closed)"},
+        {"num": 3, "text": "예외가 발생하면 프로세스를 즉시 재시작하여 상태를 초기화한다"},
+        {"num": 4, "text": "예외 무시하고 다음 요청을 처리한다 (swallowing exceptions)"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.3.1",
+      "tags": ["fail-secure", "error-handling", "design"]
+    }
+  ]
+}

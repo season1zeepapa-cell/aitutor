@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 배경: primary color rounded square (iOS 호환) -->
+  <rect width="512" height="512" rx="96" fill="#4255ff"/>
+  <!-- 방패 외곽선 (BottomNav KISA 아이콘 재사용) -->
+  <path d="M256 80
+           L448 144
+           L448 272
+           Q448 368 256 432
+           Q64 368 64 272
+           L64 144 Z"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="28"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <!-- 체크 마크 -->
+  <path d="M176 256 L232 312 L344 200"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="34"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

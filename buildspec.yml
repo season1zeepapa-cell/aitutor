@@ -1,0 +1,37 @@
+version: 0.2
+
+# AWS CodeBuild 빌드 스펙 — Lambda Container Image (linux/amd64) 빌드 후 ECR push
+# 환경: aws/codebuild/amazonlinux2-x86_64-standard:5.0 (Docker 20.x 포함)
+#
+# GIT_SHA 환경변수 (codebuild start-build 호출 시 --environment-variables-override 로 전달)
+# 가 있으면 :latest 와 :sha-{git_sha} 두 태그로 push — 롤백 추적용.
+# 미전달 시 :latest 만 push (회귀 0).
+
+env:
+  variables:
+    IMAGE_REPO_NAME: "aitutor"
+    IMAGE_TAG: "latest"
+
+phases:
+  pre_build:
+    commands:
+      - echo "=== ECR login ==="
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+      - REPO_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}
+      - echo "Repo URI is $REPO_URI"
+      - if [ -n "$GIT_SHA" ]; then SHORT_SHA=$(echo "$GIT_SHA" | cut -c1-7); SHA_TAG="sha-${SHORT_SHA}"; echo "GIT_SHA tag = ${SHA_TAG}"; else echo "GIT_SHA 미전달 — :latest 만 push"; fi
+
+  build:
+    commands:
+      - echo "=== Docker image build ==="
+      - docker build -t ${REPO_URI}:${IMAGE_TAG} .
+      - if [ -n "$SHA_TAG" ]; then docker tag ${REPO_URI}:${IMAGE_TAG} ${REPO_URI}:${SHA_TAG}; fi
+
+  post_build:
+    commands:
+      - echo "=== ECR push ==="
+      - docker push ${REPO_URI}:${IMAGE_TAG}
+      - if [ -n "$SHA_TAG" ]; then docker push ${REPO_URI}:${SHA_TAG}; fi
+      - echo "=== Image URI ==="
+      - echo "${REPO_URI}:${IMAGE_TAG}"
+      - if [ -n "$SHA_TAG" ]; then echo "${REPO_URI}:${SHA_TAG}"; fi

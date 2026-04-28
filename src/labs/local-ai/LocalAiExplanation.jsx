@@ -5,12 +5,15 @@
 //  2) 활성화 클릭 → 모델 다운로드 + WebGPU 적재 (첫 1회만)
 //  3) 해설 생성 (TextStreamer 스트리밍)
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useBeforeUnload } from 'react-router-dom';
 import DeviceCheckBadge from './components/DeviceCheckBadge';
 import ModelDownloadCard from './components/ModelDownloadCard';
 import ModelManagerPanel from './components/ModelManagerPanel';
+import MemoryStatus from './components/MemoryStatus';
+import MemoryHelpCard from './components/MemoryHelpCard';
 import { checkDeviceAi } from './lib/deviceCheck';
-import { loadPipe, explainQuestion, disposePipe, getLastUsedDevice } from './lib/inference';
+import { loadPipe, explainQuestion, disposePipe, getLastUsedDevice, MODEL_META } from './lib/inference';
 import { buildSinglePrompt } from './lib/prompts';
 import { activateWakeLock, releaseWakeLock, attachVisibilityRetry } from './lib/wakeLock';
 
@@ -52,6 +55,52 @@ export default function LocalAiExplanation() {
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   }, []);
+
+  // ─── 다운로드 중 락 ──────────────────────────────────────────────────
+  // 백그라운드 다운로드는 transformers.js + 브라우저 제약상 미지원이라
+  // 다운로드 진행 중엔 사용자가 페이지 떠나지 못하게 보호.
+  //   1) beforeunload    — 새로고침 / 탭 닫기 / 브라우저 종료 시 경고
+  //   2) popstate guard  — 브라우저 뒤로가기 차단 (현재 페이지 한 번 더 push)
+  //   3) UI disabled     — 자식 컴포넌트의 액션 버튼 props.disabled 강제
+  // ※ useBlocker 는 데이터 라우터(createBrowserRouter) 전용 — 우리는 BrowserRouter 라 미사용
+  const isDownloading = activating || (
+    progress?.status === 'init' ||
+    progress?.status === 'downloading' ||
+    progress?.status === 'assembling' ||
+    progress?.status === 'initializing'
+  );
+
+  // (1) beforeunload — 브라우저 표준 경고 다이얼로그
+  useBeforeUnload(
+    useCallback((e) => {
+      if (isDownloading) {
+        e.preventDefault();
+        e.returnValue = '';   // Chrome/Edge 호환
+        return '';
+      }
+    }, [isDownloading])
+  );
+
+  // (2) popstate guard — 브라우저 뒤로가기 / 다른 SPA 이동 시 confirm
+  useEffect(() => {
+    if (!isDownloading) return;
+    // 현재 위치를 history 에 한 번 더 push → buffer 만들어 popstate 가로채기 가능
+    window.history.pushState(null, '', window.location.href);
+    const handler = () => {
+      const ok = window.confirm(
+        '⚠️ 모델 다운로드가 진행 중입니다.\n페이지를 이동하면 다운로드가 중단됩니다.\n\n계속 이동하시겠습니까?'
+      );
+      if (ok) {
+        // 사용자 OK → 한 번 더 뒤로가기로 진짜 이동
+        window.history.back();
+      } else {
+        // 취소 → 다시 push 해서 현재 위치 유지
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, [isDownloading]);
 
   // 운전면허 문항 무작위 1건 로드
   const fetchRandomQuestion = async () => {
@@ -142,7 +191,7 @@ export default function LocalAiExplanation() {
         answer: question.answer,
         answer_extra: question.answer_extra,
       }, {
-        maxTokens: 256,
+        maxTokens: 512,    // 보기 4개 × 한 줄 + 정답 명시 + 여유 마진 (이전 256 으로 잘림)
         temperature: 0.3,
         onToken: (t) => setExplanation(prev => prev + t),
       });
@@ -153,16 +202,18 @@ export default function LocalAiExplanation() {
     }
   };
 
-  // 디바이스 미지원 시 안내
+  // 디바이스 미지원 시 안내 (메모리 현황 + 도움말은 그래도 표시 — 사용자가 자기 디바이스 능력 확인 + 액션)
   if (device && !device.supported) {
     return (
       <div className="max-w-md mx-auto p-4 space-y-3">
-        <h1 className="text-lg font-bold">🧪 디바이스 AI 시범</h1>
+        <h1 className="text-lg font-bold text-text">🧪 디바이스 AI 시범</h1>
         <DeviceCheckBadge />
-        <p className="text-xs text-gray-600">
+        <MemoryStatus />
+        <MemoryHelpCard activeSize={null} onActivate={() => {}} onAfterChange={() => setRefreshKey(k => k + 1)} />
+        <p className="text-xs text-text-secondary">
           WebGPU 지원 브라우저(Chrome, Edge 등)에서 동작합니다. Safari/Firefox 는 미지원.
         </p>
-        <a href="/" className="block text-center py-2 rounded-xl border border-gray-300 text-sm">홈으로</a>
+        <a href="/" className="block text-center py-2 rounded-xl border border-border text-sm text-text hover:bg-card-bg-hover">홈으로</a>
       </div>
     );
   }
@@ -174,11 +225,34 @@ export default function LocalAiExplanation() {
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-lg font-bold">🧪 디바이스 AI 시범</h1>
-        <a href="/" className="text-xs text-blue-600">← 홈</a>
+        <h1 className="text-lg font-bold text-text">🧪 디바이스 AI 시범</h1>
+        {isDownloading ? (
+          <span className="text-xs text-text-secondary cursor-not-allowed" title="다운로드 중에는 이동할 수 없습니다">🔒 잠김</span>
+        ) : (
+          <a href="/" className="text-xs text-primary hover:underline">← 홈</a>
+        )}
       </header>
 
+      {/* 다운로드 중 안내 배너 */}
+      {isDownloading && (
+        <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-3 py-2 text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
+          🔒 <b>모델 다운로드 진행 중</b> — 완료될 때까지 페이지를 이동하거나 새로고침하지 마세요.
+          백그라운드 다운로드는 미지원이라 페이지를 떠나면 다운로드가 중단됩니다.
+        </div>
+      )}
+
       <DeviceCheckBadge />
+
+      {/* 메모리 현황 — 항상 노출 (펼침 기본) */}
+      <MemoryStatus />
+
+      {/* 메모리 부족·주의 모델이 있을 때만 노출 — 액션 단축 + 디바이스별 가이드 */}
+      <MemoryHelpCard
+        activeSize={pipeReady ? activeSize : null}
+        onActivate={(s) => activate(s)}
+        onAfterChange={() => setRefreshKey(k => k + 1)}
+        disabled={isDownloading}
+      />
 
       {/* 모델 관리 패널 — 항상 노출 (접힘 상태가 기본) */}
       {device?.supported && (
@@ -189,6 +263,7 @@ export default function LocalAiExplanation() {
           onActivate={(s) => activate(s)}
           onUnload={unload}
           onAfterChange={() => setRefreshKey(k => k + 1)}
+          disabled={isDownloading}
         />
       )}
 
@@ -209,27 +284,27 @@ export default function LocalAiExplanation() {
 
       {/* 문항 카드 */}
       {loadingQ ? (
-        <p className="text-center text-sm text-gray-500 py-8">문항 로드 중…</p>
+        <p className="text-center text-sm text-text-secondary py-8">문항 로드 중…</p>
       ) : question ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+        <div className="rounded-xl border border-border bg-card-bg p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">운전면허 #{question.question_number}</span>
-            <button onClick={fetchRandomQuestion}
-              className="text-xs text-blue-600 hover:underline">다음 문항 ↻</button>
+            <span className="text-xs text-text-secondary">운전면허 #{question.question_number}</span>
+            <button onClick={fetchRandomQuestion} disabled={isDownloading}
+              className="text-xs text-primary hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline">다음 문항 ↻</button>
           </div>
-          <p className="text-sm font-medium leading-relaxed">{question.body}</p>
+          <p className="text-sm font-medium leading-relaxed text-text">{question.body}</p>
           <ul className="space-y-1.5">
             {choices.map((c, i) => (
               <li key={i} className={`flex gap-2 text-sm ${
                 showAnswer && (i + 1 === question.answer || i + 1 === question.answer_extra)
-                  ? 'text-green-700 font-bold' : 'text-gray-800'}`}>
+                  ? 'text-success font-bold' : 'text-text'}`}>
                 <span>{CIRCLE[i]}</span>
                 <span className="flex-1">{c}</span>
               </li>
             ))}
           </ul>
           <button onClick={() => setShowAnswer(s => !s)}
-            className="text-xs text-blue-600 hover:underline">
+            className="text-xs text-primary hover:underline">
             {showAnswer ? '정답 숨기기' : '정답 보기'}
           </button>
         </div>
@@ -238,21 +313,21 @@ export default function LocalAiExplanation() {
       {/* AI 해설 생성 버튼 */}
       {pipeReady && question && (
         <button onClick={generate} disabled={generating}
-          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold">
-          {generating ? '✨ 생성 중…' : '✨ Gemma 4 로 해설 생성'}
+          className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
+          {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성`}
         </button>
       )}
 
       {/* 최종 입력 프롬프트 미리보기 — 디버깅/투명성 (접힘 기본) */}
       {question && (
-        <div className="rounded-xl border border-gray-200 bg-white">
+        <div className="rounded-xl border border-border bg-card-bg">
           <button
             type="button"
             onClick={() => setShowPrompt(s => !s)}
-            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-gray-700"
+            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-text"
           >
             <span>🔍 최종 입력 프롬프트 보기</span>
-            <span className="text-gray-500">{showPrompt ? '접기 ▲' : '펼치기 ▼'}</span>
+            <span className="text-text-secondary">{showPrompt ? '접기 ▲' : '펼치기 ▼'}</span>
           </button>
           {showPrompt && (() => {
             const previewQ = {
@@ -263,18 +338,18 @@ export default function LocalAiExplanation() {
             };
             const promptText = buildSinglePrompt(previewQ);
             return (
-              <div className="px-4 pb-3 border-t border-gray-100">
+              <div className="px-4 pb-3 border-t border-border">
                 <div className="flex items-center justify-between mt-2 mb-1">
-                  <span className="text-[10px] text-gray-500">{promptText.length}자 — 모델에 그대로 전달됩니다</span>
+                  <span className="text-[10px] text-text-secondary">{promptText.length}자 — 모델에 그대로 전달됩니다</span>
                   <button
                     type="button"
                     onClick={() => navigator.clipboard?.writeText(promptText)}
-                    className="text-[10px] text-blue-600 hover:underline"
+                    className="text-[10px] text-primary hover:underline"
                   >
                     📋 복사
                   </button>
                 </div>
-                <pre className="text-[11px] bg-gray-50 p-2 rounded whitespace-pre-wrap break-words leading-relaxed text-gray-800 max-h-72 overflow-y-auto">
+                <pre className="text-[11px] bg-bg p-2 rounded whitespace-pre-wrap break-words leading-relaxed text-text max-h-72 overflow-y-auto border border-border">
 {promptText}
                 </pre>
               </div>
@@ -285,22 +360,22 @@ export default function LocalAiExplanation() {
 
       {/* 해설 출력 */}
       {explanation && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-xs font-bold text-blue-900 mb-2">📝 디바이스 AI 해설</p>
-          <p className="text-sm text-blue-900 whitespace-pre-wrap leading-relaxed">{explanation}</p>
+        <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
+          <p className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-2">📝 디바이스 AI 해설</p>
+          <p className="text-sm text-blue-900 dark:text-blue-100 whitespace-pre-wrap leading-relaxed">{explanation}</p>
         </div>
       )}
 
       {/* 에러 */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900">
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-3 text-xs text-red-900 dark:text-red-200">
           {error}
         </div>
       )}
 
       {/* 안내 */}
-      <p className="text-[11px] text-gray-500 text-center pt-4">
-        REBUILD17 §5 — WebGPU + Gemma 4 시범 (데스크탑 전용 격리 모듈)
+      <p className="text-[11px] text-text-secondary text-center pt-4">
+        REBUILD17 §5 — WebGPU 디바이스 AI 시범 (Gemma 4 + Qwen 3.5)
       </p>
     </div>
   );

@@ -1,0 +1,309 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-IV-01~17 (언어 변종 보강)",
+  "description": "구현단계 입력검증 17챕터 × 언어 변종 +1문항. Python/JavaScript 비중 확대.",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드 + 언어별 시큐어코딩 가이드",
+  "questions": [
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-01", "weakness_code": "CWE-89",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "SQL 삽입", "language": "python", "difficulty": "하",
+      "body": "아래 Python 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  import sqlite3\n2  def find_user(user_id):\n3      conn = sqlite3.connect('app.db')\n4      cur = conn.cursor()\n5      cur.execute(\"SELECT * FROM users WHERE id = '%s'\" % user_id)\n6      return cur.fetchone()",
+      "code_language": "python",
+      "vulnerable_lines": [5],
+      "rationale_keywords": ["SQL 삽입", "문자열 포맷", "%s", "외부입력"],
+      "fix_keywords": ["파라미터 바인딩", "?", "placeholder"],
+      "safe_code": "1  def find_user(user_id):\n2      conn = sqlite3.connect('app.db')\n3      cur = conn.cursor()\n4      cur.execute(\"SELECT * FROM users WHERE id = ?\", (user_id,))\n5      return cur.fetchone()",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L5는 %s 포맷으로 외부입력 user_id를 쿼리 문자열에 직접 주입하여 SQL 삽입이 발생한다.",
+        "fix_description": "? placeholder + 튜플 바인딩으로 user_id가 데이터로 처리되도록 한다."
+      },
+      "reference": "Python 시큐어코딩 가이드 §SQL 삽입",
+      "tags": ["sql", "python", "sqlite"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-02", "weakness_code": "CWE-94",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "코드 삽입", "language": "javascript", "difficulty": "상",
+      "body": "아래 Node.js 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  const express = require('express');\n2  const app = express();\n3  app.get('/template', (req, res) => {\n4      const tpl = req.query.tpl || 'Hello {name}';\n5      const rendered = new Function('ctx', `with(ctx) { return \\`${tpl}\\`; }`);\n6      res.send(rendered({name: 'User'}));\n7  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [5, 6],
+      "rationale_keywords": ["코드 삽입", "Function 생성자", "외부입력", "임의 코드 실행"],
+      "fix_keywords": ["템플릿 엔진", "Handlebars", "이스케이프", "화이트리스트"],
+      "safe_code": "1  const Handlebars = require('handlebars');\n2  app.get('/template', (req, res) => {\n3      const tplSource = PREDEFINED_TEMPLATES[req.query.tplId];\n4      if (!tplSource) return res.status(400).send('Unknown template');\n5      const tpl = Handlebars.compile(tplSource);\n6      res.send(tpl({name: 'User'}));\n7  });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L5의 new Function()은 외부입력 tpl을 JS 코드로 해석·실행하여 ${process.exit()} 같은 임의 코드 실행이 가능하다.",
+        "fix_description": "Function 생성자 제거. 미리 정의된 템플릿 ID로만 매핑하고 Handlebars 같은 안전한 템플릿 엔진 사용."
+      },
+      "reference": "Javascript 시큐어코딩 가이드 §코드 삽입",
+      "tags": ["code-injection", "javascript", "template"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-03", "weakness_code": "CWE-22",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "경로 조작", "language": "javascript", "difficulty": "중",
+      "body": "아래 Node.js 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  const fs = require('fs');\n2  const path = require('path');\n3  app.get('/file', (req, res) => {\n4      const filePath = 'uploads/' + req.query.name;\n5      fs.readFile(filePath, (err, data) => {\n6          if (err) return res.status(404).send();\n7          res.send(data);\n8      });\n9  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [4, 5],
+      "rationale_keywords": ["경로 조작", "..", "외부입력", "디렉토리 탈출"],
+      "fix_keywords": ["path.basename", "path.resolve", "startsWith", "정규화"],
+      "safe_code": "1  const UPLOAD_DIR = path.resolve(__dirname, 'uploads');\n2  app.get('/file', (req, res) => {\n3      const name = path.basename(req.query.name || '');\n4      const full = path.resolve(UPLOAD_DIR, name);\n5      if (!full.startsWith(UPLOAD_DIR + path.sep)) return res.status(400).send();\n6      fs.readFile(full, (err, data) => err ? res.status(404).send() : res.send(data));\n7  });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4에서 외부입력 name을 검증 없이 경로 조립에 사용하여 ../../etc/passwd 같은 디렉토리 탈출이 가능하다.",
+        "fix_description": "basename으로 경로 구분자 제거 + resolve 정규화 + 허용 디렉토리 prefix 검증."
+      },
+      "reference": "Javascript 시큐어코딩 가이드 §경로 조작",
+      "tags": ["path-traversal", "javascript", "node"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-04", "weakness_code": "CWE-79",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "크로스사이트 스크립트", "language": "javascript", "difficulty": "중",
+      "body": "아래 React 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  function CommentView({ comment }) {\n2      return (\n3          <div className=\"comment\"\n4               dangerouslySetInnerHTML={{__html: comment.text}} />\n5      );\n6  }",
+      "code_language": "javascript",
+      "vulnerable_lines": [4],
+      "rationale_keywords": ["XSS", "dangerouslySetInnerHTML", "외부입력", "스크립트"],
+      "fix_keywords": ["textContent", "DOMPurify", "이스케이프"],
+      "safe_code": "1  import DOMPurify from 'dompurify';\n2  function CommentView({ comment }) {\n3      // 서식이 필요없다면 텍스트로\n4      return <div className=\"comment\">{comment.text}</div>;\n5      // HTML 허용이 필요하면 DOMPurify로 sanitize\n6      // const clean = DOMPurify.sanitize(comment.text, {ALLOWED_TAGS:['b','i']});\n7      // return <div dangerouslySetInnerHTML={{__html: clean}} />;\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4의 dangerouslySetInnerHTML은 comment.text를 HTML로 그대로 삽입하여 <script> 태그 주입으로 XSS가 발생한다.",
+        "fix_description": "React 기본 JSX({}) 삽입은 자동 이스케이프되므로 textContent 방식으로 변경. HTML 서식이 필요하면 DOMPurify sanitize."
+      },
+      "reference": "Javascript 시큐어코딩 가이드 §XSS",
+      "tags": ["xss", "react", "javascript"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-05", "weakness_code": "CWE-78",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "운영체제 명령어 삽입", "language": "javascript", "difficulty": "상",
+      "body": "아래 Node.js 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  const { exec } = require('child_process');\n2  app.post('/ping', (req, res) => {\n3      const host = req.body.host;\n4      exec('ping -c 3 ' + host, (err, stdout) => {\n5          res.send(stdout);\n6      });\n7  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [3, 4],
+      "rationale_keywords": ["OS 명령어 삽입", "exec", "문자열 연결", "shell 메타문자"],
+      "fix_keywords": ["execFile", "spawn", "배열 인자", "화이트리스트"],
+      "safe_code": "1  const { execFile } = require('child_process');\n2  app.post('/ping', (req, res) => {\n3      const host = req.body.host;\n4      if (!/^[a-zA-Z0-9.-]+$/.test(host)) return res.status(400).send();\n5      execFile('ping', ['-c', '3', host], (err, stdout) => {\n6          res.send(stdout);\n7      });\n8  });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4의 exec는 shell을 통해 명령을 실행하므로 host=; rm -rf / 같은 값이 추가 명령으로 해석된다.",
+        "fix_description": "execFile로 shell 없이 인자 배열 분리 전달 + 입력값 화이트리스트 정규식 검증."
+      },
+      "reference": "Javascript 시큐어코딩 가이드 §OS 명령어 삽입",
+      "tags": ["os-command", "javascript", "node"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-06", "weakness_code": "CWE-434",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "위험한 형식 파일 업로드", "language": "python", "difficulty": "중",
+      "body": "아래 Flask 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  from flask import request\n2  @app.route('/upload', methods=['POST'])\n3  def upload():\n4      f = request.files['file']\n5      filename = f.filename\n6      f.save(f'/var/www/uploads/{filename}')\n7      return '업로드 완료'",
+      "code_language": "python",
+      "vulnerable_lines": [5, 6],
+      "rationale_keywords": ["파일 업로드", "확장자 검증", "파일 시그니처", "웹쉘"],
+      "fix_keywords": ["화이트리스트", "UUID", "secure_filename", "magic number"],
+      "safe_code": "1  import uuid, os\n2  from werkzeug.utils import secure_filename\n3  ALLOWED = {'jpg','png','pdf'}\n4  @app.route('/upload', methods=['POST'])\n5  def upload():\n6      f = request.files['file']\n7      ext = f.filename.rsplit('.',1)[-1].lower()\n8      if ext not in ALLOWED: return 'invalid', 400\n9      new_name = f'{uuid.uuid4().hex}.{ext}'\n10     f.save(os.path.join('/var/data/uploads', secure_filename(new_name)))\n11     return '업로드 완료'",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L5~6은 사용자 제공 파일명·확장자 검증 없이 그대로 저장하므로 .php/.jsp 파일 업로드로 웹쉘 공격 가능.",
+        "fix_description": "허용 확장자 화이트리스트 검증 + secure_filename으로 경로 조작 제거 + UUID로 파일명 재생성 + 웹 실행 안 되는 디렉토리에 저장."
+      },
+      "reference": "Python 시큐어코딩 가이드 §파일 업로드",
+      "tags": ["file-upload", "python", "flask"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-07", "weakness_code": "CWE-601",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "신뢰되지 않는 URL 자동접속", "language": "python", "difficulty": "중",
+      "body": "아래 Flask 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  from flask import request, redirect\n2  @app.route('/login-success')\n3  def login_success():\n4      next_url = request.args.get('next', '/')\n5      return redirect(next_url)",
+      "code_language": "python",
+      "vulnerable_lines": [4, 5],
+      "rationale_keywords": ["오픈 리다이렉트", "외부 도메인", "피싱", "검증 부재"],
+      "fix_keywords": ["화이트리스트", "urlparse", "netloc", "상대경로"],
+      "safe_code": "1  from urllib.parse import urlparse\n2  ALLOWED_HOSTS = {'app.example.com'}\n3  @app.route('/login-success')\n4  def login_success():\n5      next_url = request.args.get('next', '/')\n6      parsed = urlparse(next_url)\n7      if parsed.netloc and parsed.netloc not in ALLOWED_HOSTS:\n8          next_url = '/'\n9      return redirect(next_url)",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4~5에서 외부입력 next를 검증 없이 redirect에 전달하여 ?next=https://evil.com 으로 피싱 사이트 유도가 가능하다.",
+        "fix_description": "urlparse로 도메인 추출 후 허용 호스트 화이트리스트 검증. 상대경로 또는 내부 도메인만 허용."
+      },
+      "reference": "Python 시큐어코딩 가이드 §오픈 리다이렉트",
+      "tags": ["open-redirect", "python", "flask"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-08", "weakness_code": "CWE-611",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "XXE (XML External Entity)", "language": "python", "difficulty": "상",
+      "body": "아래 Python XML 파싱 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  from xml.etree import ElementTree as ET\n2  def parse_user_xml(xml_str):\n3      root = ET.fromstring(xml_str)\n4      return root.find('name').text",
+      "code_language": "python",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["XXE", "외부 개체", "ENTITY", "파일 노출"],
+      "fix_keywords": ["defusedxml", "DOCTYPE 거부", "외부 엔티티 비활성"],
+      "safe_code": "1  from defusedxml.ElementTree import fromstring\n2  def parse_user_xml(xml_str):\n3      root = fromstring(xml_str)  # defusedxml은 XXE 자동 차단\n4      return root.find('name').text",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L3의 xml.etree는 기본적으로 외부 엔티티 참조를 막지 않아, <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]> 페이로드로 서버 파일 유출이 가능하다.",
+        "fix_description": "표준 xml.etree 대신 defusedxml 라이브러리 사용. 외부 엔티티 참조·DOCTYPE을 자동으로 거부한다."
+      },
+      "reference": "Python 시큐어코딩 가이드 §XXE",
+      "tags": ["xxe", "xml", "python"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-11", "weakness_code": "CWE-352",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "CSRF 방어 토큰 검증", "language": "etc", "difficulty": "중",
+      "body": "CSRF 토큰 구현 시 올바른 검증 방식은?",
+      "choices": [
+        {"num": 1, "text": "클라이언트가 전송한 토큰이 세션에 저장된 토큰과 일치하는지 서버에서 검증"},
+        {"num": 2, "text": "쿠키에 토큰을 저장하고 쿠키 자체가 자동으로 보호한다고 가정"},
+        {"num": 3, "text": "GET 요청도 CSRF 토큰을 검증"},
+        {"num": 4, "text": "토큰 검증은 클라이언트 JS에서만 수행"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.1.11 CSRF",
+      "tags": ["csrf", "token"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-12", "weakness_code": "CWE-918",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "SSRF", "language": "javascript", "difficulty": "상",
+      "body": "아래 Node.js 프록시 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  const axios = require('axios');\n2  app.get('/fetch', async (req, res) => {\n3      const url = req.query.url;\n4      const response = await axios.get(url);\n5      res.send(response.data);\n6  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [3, 4],
+      "rationale_keywords": ["SSRF", "내부망", "metadata", "검증 부재"],
+      "fix_keywords": ["화이트리스트", "스킴 제한", "내부 IP 차단", "dns.lookup"],
+      "safe_code": "1  const axios = require('axios');\n2  const dns = require('dns').promises;\n3  const PRIVATE = ['10.','127.','169.254.','172.16.','192.168.'];\n4  app.get('/fetch', async (req, res) => {\n5      const url = new URL(req.query.url);\n6      if (!['http:','https:'].includes(url.protocol)) return res.status(400).send();\n7      const {address} = await dns.lookup(url.hostname);\n8      if (PRIVATE.some(p => address.startsWith(p))) return res.status(403).send();\n9      const r = await axios.get(url.toString(), {maxRedirects:0});\n10     res.send(r.data);\n11 });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L3~4는 외부입력 url을 검증 없이 서버에서 호출하여, ?url=http://169.254.169.254/ 같은 클라우드 메타데이터 API 접근으로 IAM 자격증명 탈취가 가능하다.",
+        "fix_description": "URL 스킴 화이트리스트(http/https), DNS 해석 후 내부 IP 대역 차단, 리다이렉트 비활성."
+      },
+      "reference": "KISA 진단가이드 §1.1.12 SSRF",
+      "tags": ["ssrf", "javascript", "node"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-13", "weakness_code": "CWE-113",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "HTTP 응답분할 방지", "language": "etc", "difficulty": "중",
+      "body": "HTTP 응답분할 방어를 위한 올바른 구현 방식은?",
+      "choices": [
+        {"num": 1, "text": "Set-Cookie, Location 헤더 구성 시 외부 입력값의 CR(\\r)/LF(\\n) 제거"},
+        {"num": 2, "text": "개행 문자만 URL 인코딩하고 그대로 삽입"},
+        {"num": 3, "text": "쿠키 값을 Base64 인코딩하면 자동으로 안전"},
+        {"num": 4, "text": "프레임워크의 HTTP 라이브러리는 기본적으로 위험하지 않다"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.1.13",
+      "tags": ["response-splitting", "crlf"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-14", "weakness_code": "CWE-190",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "정수형 오버플로우", "language": "java", "difficulty": "상",
+      "body": "아래 Java 코드의 보안 약점을 진단하시오. 결제 금액 계산 로직.",
+      "vulnerable_code": "1  public int calculateTotal(int unitPrice, int quantity) {\n2      int total = unitPrice * quantity;\n3      if (total < 0) throw new IllegalArgumentException();\n4      return total;\n5  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 3],
+      "rationale_keywords": ["정수 오버플로우", "wrap around", "Integer.MAX_VALUE", "곱셈"],
+      "fix_keywords": ["Math.multiplyExact", "ArithmeticException", "long", "BigInteger"],
+      "safe_code": "1  public int calculateTotal(int unitPrice, int quantity) {\n2      try {\n3          return Math.multiplyExact(unitPrice, quantity);\n4      } catch (ArithmeticException e) {\n5          throw new IllegalArgumentException(\"금액 계산 범위 초과\");\n6      }\n7  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L2의 정수 곱셈이 Integer.MAX_VALUE를 초과하면 음수로 wrap around되고, L3 검사를 우회할 수도 있고 음수 금액이 그대로 반환될 수도 있다. 결제 금액 조작 공격 가능.",
+        "fix_description": "Math.multiplyExact로 오버플로우 발생 시 ArithmeticException을 던지게 하여 안전하게 실패시킨다."
+      },
+      "reference": "KISA 진단가이드 §1.1.14",
+      "tags": ["integer-overflow", "java"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-15", "weakness_code": "CWE-807",
+      "question_type": "diagnosis4", "weakness_category": "input_validation",
+      "weakness_name_ko": "보안기능 결정에 쓰이는 부적절한 입력값", "language": "python", "difficulty": "중",
+      "body": "아래 Python 코드의 보안 약점을 진단하시오. 관리자 페이지 접근 제어.",
+      "vulnerable_code": "1  @app.route('/admin')\n2  def admin_page():\n3      role = request.cookies.get('role', 'user')\n4      if role == 'admin':\n5          return render_template('admin.html')\n6      return 'Forbidden', 403",
+      "code_language": "python",
+      "vulnerable_lines": [3, 4, 5],
+      "rationale_keywords": ["클라이언트 쿠키", "권한 판정", "조작 가능", "신뢰경계"],
+      "fix_keywords": ["서버 세션", "DB 조회", "신뢰경계"],
+      "safe_code": "1  @app.route('/admin')\n2  def admin_page():\n3      user_id = session.get('user_id')\n4      if not user_id: return redirect('/login')\n5      user = User.query.get(user_id)\n6      if not user or not user.is_admin:\n7          return 'Forbidden', 403\n8      return render_template('admin.html')",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L3~4에서 클라이언트 쿠키의 role 값을 그대로 권한 판정 근거로 사용한다. 공격자는 브라우저 개발자도구로 role=admin 쿠키를 만들어 관리자 페이지에 접근 가능하다.",
+        "fix_description": "서버 세션의 user_id로 DB 조회하여 is_admin 컬럼 값으로 권한 판정. 쿠키에 저장된 값은 식별용이 아닌 서명된 세션 ID로만 사용."
+      },
+      "reference": "KISA 진단가이드 §1.1.15",
+      "tags": ["authorization", "python"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-09", "weakness_code": "CWE-91",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "XML 삽입 방지", "language": "etc", "difficulty": "중",
+      "body": "외부 입력으로 XML 문서를 생성할 때 XML 삽입을 방지하는 방법은?",
+      "choices": [
+        {"num": 1, "text": "외부 입력의 XML 특수문자(<, >, &, ', \")를 엔터티(&lt; &gt; &amp; 등)로 인코딩"},
+        {"num": 2, "text": "입력값을 Base64로 인코딩하면 자동 안전"},
+        {"num": 3, "text": "XML 주석(<!-- -->)으로 감싸면 안전"},
+        {"num": 4, "text": "XML 파서는 알아서 처리하므로 별도 처리 불필요"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.1.9",
+      "tags": ["xml-injection"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-10", "weakness_code": "CWE-90",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "LDAP 특수문자 이스케이프", "language": "etc", "difficulty": "중",
+      "body": "LDAP 검색 필터 구성 시 이스케이프해야 하는 특수문자에 해당하지 않는 것은?",
+      "choices": [
+        {"num": 1, "text": "* (와일드카드)"},
+        {"num": 2, "text": "(, ) (그룹화)"},
+        {"num": 3, "text": "\\ (이스케이프 문자 자체)"},
+        {"num": 4, "text": "@ (at 기호)"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.1.10 LDAP 삽입",
+      "tags": ["ldap-injection", "escape"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-16", "weakness_code": "CWE-120",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "안전한 C 문자열 함수", "language": "etc", "difficulty": "중",
+      "body": "다음 C 함수 중 버퍼 오버플로우 방지를 위해 권장되는 안전 함수가 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "strncpy_s, strcpy_s"},
+        {"num": 2, "text": "snprintf"},
+        {"num": 3, "text": "fgets"},
+        {"num": 4, "text": "gets"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.1.16",
+      "tags": ["buffer-overflow", "safe-function"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-IV-17", "weakness_code": "CWE-134",
+      "question_type": "mcq", "weakness_category": "input_validation",
+      "weakness_name_ko": "포맷 스트링 원칙", "language": "etc", "difficulty": "하",
+      "body": "printf 계열 함수 사용 시 포맷 스트링 공격을 방지하는 안전한 작성 패턴은?",
+      "choices": [
+        {"num": 1, "text": "printf(user_input)"},
+        {"num": 2, "text": "printf(\"%s\", user_input)"},
+        {"num": 3, "text": "printf(\"User: %s\", user_input) — 포맷 리터럴 + 인자 분리"},
+        {"num": 4, "text": "printf 함수를 Shell 명령으로 대체"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 진단가이드 §1.1.17",
+      "tags": ["format-string"]
+    }
+  ]
+}

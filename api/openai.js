@@ -1,6 +1,7 @@
-// Vercel 서버리스 함수 - OpenAI API 프록시 (SSE 스트리밍)
-const OpenAI = require('openai');
-const { verifyToken, extractToken } = require('./auth');
+// AWS Lambda Express 핸들러 — OpenAI Chat Completions 프록시 (SSE 스트리밍).
+// REBUILD16 §8 — _llm/openai-chat.js 공통 fetch 헬퍼 사용으로 단순화 (openai SDK 의존 제거).
+const { withAuth } = require('./middleware');
+const openai = require('./_llm/openai-chat');
 
 const SYSTEM_PROMPT =
   '당신은 영상정보관리사 자격증 시험 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n' +
@@ -11,7 +12,7 @@ const SYSTEM_PROMPT =
 const DEFAULT_MODEL = 'gpt-4o';
 const ALLOWED_MODELS = [
   // GPT-5.4 (최신 플래그십)
-  'gpt-5.4',
+  'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano',
   // GPT-5.3 (ChatGPT 최신)
   'gpt-5.3-chat-latest',
   // GPT-5.x
@@ -22,150 +23,97 @@ const ALLOWED_MODELS = [
   'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
   'gpt-4o', 'gpt-4o-mini',
 ];
-// o-시리즈 + GPT-5.4: temperature 미지원, reasoning_effort 지원
-const O_SERIES = ['gpt-5.4', 'o3-pro', 'o4-mini', 'o3', 'o3-mini', 'o1-mini', 'o1'];
-// GPT-5 계열: max_tokens 대신 max_completion_tokens 사용
-const GPT5_SERIES = ['gpt-5.3-chat-latest', 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano'];
 
-module.exports = async (req, res) => {
-  // CORS 허용
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+/** 사용자 입력(텍스트 + 선택 이미지)을 OpenAI 메시지 형식으로 변환 */
+function buildUserContent({ text, imageBase64, mimeType }) {
+  if (!imageBase64) return text;
+  return [
+    { type: 'image_url', image_url: { url: `data:${mimeType || 'image/png'};base64,${imageBase64}` } },
+    { type: 'text', text },
+  ];
+}
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'POST 요청만 허용됩니다.' });
-  }
-
-  // 인증 확인
-  const user = verifyToken(extractToken(req));
-  if (!user) {
-    return res.status(401).json({ error: '로그인이 필요합니다.' });
-  }
+module.exports = withAuth(async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'POST 요청만 허용됩니다.' });
 
   try {
-    const { text, imageBase64, mimeType, model, temperature, reasoningEffort, maxTokens, stream: useStream } = req.body;
-    // 허용된 모델만 사용 (화이트리스트)
+    const {
+      text, imageBase64, mimeType, model,
+      temperature, reasoningEffort, maxTokens,
+      stream: useStream,
+    } = req.body || {};
+
     const selectedModel = ALLOWED_MODELS.includes(model) ? model : DEFAULT_MODEL;
-    const isOSeries = O_SERIES.includes(selectedModel);
-    const isGPT5 = GPT5_SERIES.includes(selectedModel);
-    const apiKey = (process.env.OPENAI_API_KEY || '').trim();
+    const userContent = buildUserContent({ text, imageBase64, mimeType });
+    const messages = [
+      { role: 'system', content: SYSTEM_PROMPT },  // 헬퍼가 o-series 인 경우 'developer' 역할로 자동 변환
+      { role: 'user', content: userContent },
+    ];
+    const tokens = (maxTokens && parseInt(maxTokens) > 0) ? parseInt(maxTokens) : 2048;
 
-    if (!apiKey) {
-      return res.status(500).json({ error: 'OPENAI_API_KEY가 설정되지 않았습니다.' });
-    }
-
-    const openai = new OpenAI({ apiKey });
-
-    const userContent = imageBase64
-      ? [
-          {
-            type: 'image_url',
-            image_url: { url: `data:${mimeType || 'image/png'};base64,${imageBase64}` },
-          },
-          { type: 'text', text },
-        ]
-      : text;
-
-    // 완성 파라미터 구성
-    // o-시리즈/gpt-5.4는 system 역할 미지원 → developer 역할 사용
-    const systemRole = isOSeries ? 'developer' : 'system';
-    const resolvedMaxTokens = (maxTokens && parseInt(maxTokens) > 0) ? parseInt(maxTokens) : 2048;
-    const completionParams = {
-      model: selectedModel,
-      max_tokens: resolvedMaxTokens,
-      messages: [
-        { role: systemRole, content: SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-    };
-
-    if (isOSeries) {
-      // xhigh는 OpenAI API 미지원 → high로 매핑
-      const VALID_EFFORT = { low: 'low', medium: 'medium', high: 'high', xhigh: 'high' };
-      const effort = VALID_EFFORT[reasoningEffort] || 'high';
-      completionParams.reasoning_effort = effort;
-      delete completionParams.max_tokens;
-      completionParams.max_completion_tokens = resolvedMaxTokens;
-    } else if (isGPT5) {
-      delete completionParams.max_tokens;
-      completionParams.max_completion_tokens = resolvedMaxTokens;
-      if (temperature !== undefined && temperature !== null) {
-        completionParams.temperature = parseFloat(temperature);
-      }
-    } else {
-      if (temperature !== undefined && temperature !== null) {
-        completionParams.temperature = parseFloat(temperature);
-      }
-    }
-
-    // ── 스트리밍 모드 ──
     if (useStream) {
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('X-Accel-Buffering', 'no');
 
-      completionParams.stream = true;
-      console.log('[OpenAI] 스트리밍 요청:', selectedModel, 'role:', systemRole,
-        'reasoning_effort:', completionParams.reasoning_effort,
-        'temperature:', completionParams.temperature);
-      const stream = await openai.chat.completions.create(completionParams);
+      console.log('[OpenAI] 스트리밍 요청:', selectedModel,
+        'reasoning:', reasoningEffort || '-',
+        'temperature:', temperature ?? '-');
 
       let hasContent = false;
       let refusalText = '';
-      let chunkIndex = 0;
-      for await (const chunk of stream) {
-        // 처음 3개 chunk 구조를 로깅 (디버깅용)
-        if (chunkIndex < 3) {
-          console.log(`[OpenAI] chunk[${chunkIndex}]:`, JSON.stringify(chunk).slice(0, 500));
-        }
-        chunkIndex++;
-
-        const delta = chunk.choices?.[0]?.delta;
-        // 거부 응답 감지
-        if (delta?.refusal) {
-          refusalText += delta.refusal;
-        }
-        if (delta?.content) {
+      await openai.chatStream({
+        model: selectedModel,
+        messages,
+        maxTokens: tokens,
+        temperature,
+        reasoningEffort,
+        userId: req.user?.uid,
+        action: 'card_explain',
+        onText: (t) => {
           hasContent = true;
-          res.write(`data: ${JSON.stringify({ t: delta.content })}\n\n`);
-        } else {
-          // 추론 모델의 thinking 단계에서 연결 유지용 SSE 코멘트
-          res.write(`: heartbeat\n\n`);
-        }
-      }
-      console.log(`[OpenAI] 스트리밍 종료: 총 ${chunkIndex} chunks, hasContent: ${hasContent}`);
-      // 거부 응답인 경우 에러로 전송
-      if (refusalText) {
-        console.warn('[OpenAI] 모델 거부:', selectedModel, refusalText);
-        res.write(`data: ${JSON.stringify({ error: '모델 거부: ' + refusalText })}\n\n`);
-      }
-      if (!hasContent && !refusalText) {
-        console.warn('[OpenAI] 스트리밍 완료했지만 content/refusal 모두 없음:', selectedModel, '— 응답 구조 확인 필요');
-        // 빈 응답을 에러로 전송하여 클라이언트에서 명확히 표시
-        res.write(`data: ${JSON.stringify({ error: 'AI가 빈 응답을 반환했습니다. 다른 모델을 시도해주세요.' })}\n\n`);
-      }
-      res.write('data: [DONE]\n\n');
-      res.end();
+          res.write(`data: ${JSON.stringify({ t })}\n\n`);
+        },
+        onRefusal: (r) => { refusalText += r; },
+        onDone: () => {
+          if (refusalText) {
+            console.warn('[OpenAI] 모델 거부:', selectedModel, refusalText.slice(0, 200));
+            res.write(`data: ${JSON.stringify({ error: '모델 거부: ' + refusalText })}\n\n`);
+          } else if (!hasContent) {
+            console.warn('[OpenAI] 빈 응답:', selectedModel);
+            res.write(`data: ${JSON.stringify({ error: 'AI가 빈 응답을 반환했습니다. 다른 모델을 시도해주세요.' })}\n\n`);
+          }
+          res.write('data: [DONE]\n\n');
+          res.end();
+        },
+        onError: (err) => {
+          console.error('[OpenAI] 스트리밍 에러:', err.message);
+          res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+          res.write('data: [DONE]\n\n');
+          res.end();
+        },
+      });
       return;
     }
 
-    // ── 일반 모드 (하위 호환) ──
+    // 일반 모드 (하위 호환)
     console.log('[OpenAI] 일반 모드 요청:', selectedModel);
-    const completion = await openai.chat.completions.create(completionParams);
-    const msg = completion.choices[0]?.message;
-    const answer = msg?.content || '';
-    const refusal = msg?.refusal || '';
-    console.log('[OpenAI] 일반 모드 응답 길이:', answer.length, 'refusal:', refusal ? refusal.slice(0,100) : '없음', 'finish:', completion.choices[0]?.finish_reason);
+    const { text: answer, refusal } = await openai.chat({
+      model: selectedModel,
+      messages,
+      maxTokens: tokens,
+      temperature,
+      reasoningEffort,
+      userId: req.user?.uid,
+      action: 'card_explain',
+    });
     if (refusal && !answer) {
       return res.status(400).json({ error: '모델 거부: ' + refusal });
     }
     res.json({ answer });
   } catch (err) {
-    console.error('OpenAI API 에러:', err);
-    // 스트리밍 중 에러 시 SSE 형식으로 전송
+    console.error('[OpenAI] 에러:', err);
     if (res.headersSent) {
       res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
       res.end();
@@ -173,4 +121,4 @@ module.exports = async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   }
-};
+});

@@ -1,0 +1,274 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-SF-01~16 (보강)",
+  "description": "구현단계 보안기능 16챕터 보강 문항 (챕터당 +1).",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) §4.2",
+  "questions": [
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-01", "weakness_code": "CWE-306-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용", "language": "javascript", "difficulty": "중",
+      "body": "아래 Express 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  app.delete('/user/:id', async (req, res) => {\n2      const id = req.params.id;\n3      await db.users.deleteById(id);\n4      res.json({ok: true});\n5  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [1, 3],
+      "rationale_keywords": ["인증 누락", "권한 체크 부재", "중요 기능", "무단 삭제"],
+      "fix_keywords": ["requireAuth", "session 검증", "권한 확인"],
+      "safe_code": "1  function requireAuth(req, res, next) {\n2      if (!req.session.userId) return res.status(401).json({error:'unauthorized'});\n3      next();\n4  }\n5  app.delete('/user/:id', requireAuth, async (req, res) => {\n6      const target = await db.users.findById(req.params.id);\n7      const me = await db.users.findById(req.session.userId);\n8      if (!me.is_admin && me.id !== target.id) return res.status(403).json({error:'forbidden'});\n9      await db.users.deleteById(req.params.id);\n10     res.json({ok:true});\n11 });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L1~4는 DELETE 엔드포인트가 인증·권한 검증 없이 임의 사용자 ID를 삭제한다. 공격자가 API 호출만으로 다른 계정을 삭제할 수 있다.",
+        "fix_description": "requireAuth 미들웨어로 세션 검증 + 본인 또는 관리자만 삭제 가능하도록 권한 체크."
+      },
+      "reference": "KISA 진단가이드 §1.2.1",
+      "tags": ["missing-auth", "javascript"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-02", "weakness_code": "CWE-285-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "IDOR 방지", "language": "etc", "difficulty": "중",
+      "body": "/api/order/123 처럼 주문 ID를 URL에 노출하는 구조에서 IDOR(Insecure Direct Object Reference)을 방지하는 올바른 구현은?",
+      "choices": [
+        {"num": 1, "text": "요청마다 세션 사용자가 해당 주문의 소유자인지 DB 조회로 검증"},
+        {"num": 2, "text": "주문 ID를 UUID로 변경하면 IDOR이 자동 해결"},
+        {"num": 3, "text": "클라이언트에서 권한 체크 후 API 요청"},
+        {"num": 4, "text": "주문 ID를 암호화해 URL에 노출"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.2.2",
+      "tags": ["idor", "authorization"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-03", "weakness_code": "CWE-732-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "파일 권한 0777 위험", "language": "etc", "difficulty": "하",
+      "body": "리눅스에서 chmod 777 /app/data 와 같이 실행하면 발생할 수 있는 보안 문제가 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "다른 사용자가 해당 디렉토리에 파일을 마음대로 생성/삭제"},
+        {"num": 2, "text": "다른 사용자가 실행 권한으로 웹쉘 등을 업로드"},
+        {"num": 3, "text": "권한 승격을 통한 root 탈취"},
+        {"num": 4, "text": "CPU 점유율 상승으로 서비스 거부"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.2.3",
+      "tags": ["permission"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-04", "weakness_code": "CWE-327-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "취약한 암호화 알고리즘", "language": "python", "difficulty": "중",
+      "body": "아래 Python 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  from Crypto.Cipher import DES\n2  def encrypt(plaintext, key):\n3      cipher = DES.new(key, DES.MODE_ECB)\n4      return cipher.encrypt(plaintext)",
+      "code_language": "python",
+      "vulnerable_lines": [1, 3],
+      "rationale_keywords": ["DES", "취약한 알고리즘", "ECB", "56bit 키"],
+      "fix_keywords": ["AES", "GCM", "256bit", "IV"],
+      "safe_code": "1  from Crypto.Cipher import AES\n2  from Crypto.Random import get_random_bytes\n3  def encrypt(plaintext, key):  # key: 32 bytes = 256bit\n4      iv = get_random_bytes(12)\n5      cipher = AES.new(key, AES.MODE_GCM, nonce=iv)\n6      ct, tag = cipher.encrypt_and_digest(plaintext)\n7      return iv + tag + ct",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "DES(56bit)는 현대 컴퓨팅 성능으로 수 시간 내 무차별 대입 공격 가능. ECB 모드는 동일 평문 블록이 동일 암호문이 되어 패턴이 노출된다.",
+        "fix_description": "AES-256 + GCM(인증 포함) 모드 + 매 암호화마다 고유 IV/nonce 사용."
+      },
+      "reference": "KISA 진단가이드 §1.2.4",
+      "tags": ["weak-crypto", "python"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-05", "weakness_code": "CWE-311-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "암호화 없이 중요정보 저장", "language": "etc", "difficulty": "하",
+      "body": "DB에 주민등록번호를 저장하려 할 때 개인정보보호법에 부합하는 안전한 저장 방식은?",
+      "choices": [
+        {"num": 1, "text": "평문 저장 + DB 접근 제한"},
+        {"num": 2, "text": "AES-256 + 안전한 키 관리(HSM/KMS)로 암호화 저장"},
+        {"num": 3, "text": "MD5 해시 저장"},
+        {"num": 4, "text": "Base64 인코딩"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 진단가이드 §1.2.5",
+      "tags": ["encryption", "pii"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-06", "weakness_code": "CWE-798-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "하드코드된 중요정보", "language": "python", "difficulty": "하",
+      "body": "아래 Python 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  import pymysql\n2  def get_connection():\n3      return pymysql.connect(\n4          host='prod-db.internal',\n5          user='admin',\n6          password='P@ssw0rd!2024',\n7          database='app'\n8      )",
+      "code_language": "python",
+      "vulnerable_lines": [5, 6],
+      "rationale_keywords": ["하드코딩", "자격 증명", "소스코드 유출", "git"],
+      "fix_keywords": ["환경변수", "Secret Manager", "Vault", "os.environ"],
+      "safe_code": "1  import os, pymysql\n2  def get_connection():\n3      return pymysql.connect(\n4          host=os.environ['DB_HOST'],\n5          user=os.environ['DB_USER'],\n6          password=os.environ['DB_PASSWORD'],\n7          database=os.environ['DB_NAME']\n8      )",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L5~6은 DB 관리자 ID·비밀번호를 소스코드에 평문 하드코딩한다. git 저장소 공개 시 즉시 유출. 비밀번호 변경 시 전체 코드 재배포 필요.",
+        "fix_description": "환경변수·시크릿 매니저(AWS SSM/Vault) 사용. .env는 .gitignore에 반드시 추가."
+      },
+      "reference": "KISA 진단가이드 §1.2.6",
+      "tags": ["hardcoded", "python"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-07", "weakness_code": "CWE-326-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "RSA 키 길이", "language": "etc", "difficulty": "중",
+      "body": "2026년 기준 안전하다고 권장되는 RSA 키 길이는?",
+      "choices": [
+        {"num": 1, "text": "512bit"},
+        {"num": 2, "text": "1024bit"},
+        {"num": 3, "text": "2048bit 이상 (3072bit 권장)"},
+        {"num": 4, "text": "256bit"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 진단가이드 §1.2.7",
+      "tags": ["key-length", "rsa"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-08", "weakness_code": "CWE-330-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "취약한 난수 생성", "language": "java", "difficulty": "중",
+      "body": "아래 Java 코드의 보안 약점을 진단하시오. 임시 비밀번호 발급 로직.",
+      "vulnerable_code": "1  import java.util.Random;\n2  public String generateTempPassword() {\n3      Random r = new Random();\n4      StringBuilder sb = new StringBuilder();\n5      for (int i = 0; i < 8; i++) {\n6          sb.append((char)('a' + r.nextInt(26)));\n7      }\n8      return sb.toString();\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [3, 6],
+      "rationale_keywords": ["java.util.Random", "비암호학적 PRNG", "예측 가능", "seed"],
+      "fix_keywords": ["SecureRandom", "암호학적 난수"],
+      "safe_code": "1  import java.security.SecureRandom;\n2  public String generateTempPassword() {\n3      SecureRandom r = new SecureRandom();\n4      StringBuilder sb = new StringBuilder();\n5      for (int i = 0; i < 12; i++) {\n6          sb.append((char)('a' + r.nextInt(26)));\n7      }\n8      return sb.toString();\n9  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "java.util.Random은 48bit seed 기반 선형합동법(LCG)으로 연속 출력을 관찰하면 내부 상태를 복원해 다음 값을 예측 가능하다. 임시 비밀번호·토큰 생성에 부적합.",
+        "fix_description": "java.security.SecureRandom 사용 (OS 엔트로피 기반 CSPRNG)."
+      },
+      "reference": "KISA 진단가이드 §1.2.8",
+      "tags": ["weak-random", "java"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-09", "weakness_code": "CWE-521-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "비밀번호 정책 검증", "language": "etc", "difficulty": "하",
+      "body": "비밀번호 입력 검증 함수에서 적용해야 할 정책이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "최소 길이(8자 이상) 검증"},
+        {"num": 2, "text": "영문 대소문자·숫자·특수문자 조합 검증"},
+        {"num": 3, "text": "사용자 ID·이메일 포함 여부 검증"},
+        {"num": 4, "text": "비밀번호를 최대 6자로 제한하여 기억하기 쉽게 함"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.2.9",
+      "tags": ["password-policy"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-10", "weakness_code": "CWE-347-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "JWT alg 혼동 공격", "language": "etc", "difficulty": "상",
+      "body": "JWT 라이브러리의 'alg=none' 또는 RS256→HS256 혼동 공격을 방지하는 방법은?",
+      "choices": [
+        {"num": 1, "text": "서버가 허용하는 알고리즘 화이트리스트를 명시적으로 지정"},
+        {"num": 2, "text": "헤더의 alg 값을 그대로 신뢰하여 알고리즘 선택"},
+        {"num": 3, "text": "공개 키와 비밀 키를 같은 변수에 저장"},
+        {"num": 4, "text": "alg=none을 허용해 디버깅 편의를 높임"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.2.10",
+      "tags": ["jwt", "signature"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-11", "weakness_code": "CWE-295-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "TLS 인증서 검증 비활성", "language": "javascript", "difficulty": "상",
+      "body": "아래 Node.js 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';\n2  const axios = require('axios');\n3  async function fetchExternal(url) {\n4      const res = await axios.get(url);\n5      return res.data;\n6  }",
+      "code_language": "javascript",
+      "vulnerable_lines": [1],
+      "rationale_keywords": ["인증서 검증", "NODE_TLS_REJECT_UNAUTHORIZED", "MITM", "전역 비활성"],
+      "fix_keywords": ["rejectUnauthorized", "CA 체인", "선별 적용"],
+      "safe_code": "1  // NODE_TLS_REJECT_UNAUTHORIZED 전역 비활성 금지\n2  const https = require('https');\n3  const axios = require('axios');\n4  async function fetchExternal(url) {\n5      const res = await axios.get(url, {\n6          httpsAgent: new https.Agent({rejectUnauthorized: true}),\n7          timeout: 10000,\n8      });\n9      return res.data;\n10 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L1에서 전역 TLS 인증서 검증을 비활성화하여 모든 HTTPS 호출이 중간자 공격(MITM)에 노출된다.",
+        "fix_description": "전역 비활성 대신 요청별로 rejectUnauthorized=true 유지. 사설 CA는 개별 http agent에 CA 경로 명시."
+      },
+      "reference": "KISA 진단가이드 §1.2.11",
+      "tags": ["tls", "certificate", "javascript"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-12", "weakness_code": "CWE-614-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "세션 쿠키 속성", "language": "etc", "difficulty": "중",
+      "body": "세션 쿠키 설정에서 하드디스크에 저장돼 타인에게 노출될 위험을 줄이는 속성은?",
+      "choices": [
+        {"num": 1, "text": "Max-Age 또는 Expires 속성을 설정하지 않아 세션 쿠키로 유지"},
+        {"num": 2, "text": "Max-Age=31536000 (1년) 설정"},
+        {"num": 3, "text": "Path=/ 로 설정"},
+        {"num": 4, "text": "Domain=.example.com 로 설정"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 진단가이드 §1.2.12",
+      "tags": ["cookie"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-13", "weakness_code": "CWE-615-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "주석 스캔", "language": "etc", "difficulty": "하",
+      "body": "주석에 민감 정보가 포함되는 것을 예방하는 운영 프로세스가 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "git commit 훅에서 시크릿 패턴(패스워드·API 키) 스캔"},
+        {"num": 2, "text": "빌드 단계에서 JS/CSS 주석 제거(minifier)"},
+        {"num": 3, "text": "코드리뷰에서 민감 주석 검토"},
+        {"num": 4, "text": "개발 편의를 위해 주석에 테스트 계정·API 키 명시"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.2.13",
+      "tags": ["comment-leak"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-14", "weakness_code": "CWE-759-B",
+      "question_type": "diagnosis4", "weakness_category": "security_feature",
+      "weakness_name_ko": "솔트 없는 해시", "language": "javascript", "difficulty": "중",
+      "body": "아래 Node.js 코드의 보안 약점을 진단하시오.",
+      "vulnerable_code": "1  const crypto = require('crypto');\n2  function hashPassword(password) {\n3      return crypto.createHash('sha256')\n4          .update(password)\n5          .digest('hex');\n6  }",
+      "code_language": "javascript",
+      "vulnerable_lines": [3, 4, 5],
+      "rationale_keywords": ["솔트 없음", "SHA-256", "레인보우 테이블", "단일 해시"],
+      "fix_keywords": ["bcrypt", "Argon2", "사용자별 솔트", "KDF"],
+      "safe_code": "1  const bcrypt = require('bcrypt');\n2  async function hashPassword(password) {\n3      // bcrypt는 자동으로 사용자별 솔트를 생성·포함\n4      return await bcrypt.hash(password, 12);\n5  }\n6  async function verifyPassword(password, hash) {\n7      return await bcrypt.compare(password, hash);\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L3~5는 솔트 없이 단순 SHA-256 1회. 동일 비밀번호는 항상 동일 해시가 되어 레인보우 테이블·GPU 병렬 공격에 취약. SHA-256은 속도가 빨라 비밀번호 해시에 부적합.",
+        "fix_description": "bcrypt/Argon2 같은 비밀번호 전용 KDF 사용. 사용자별 솔트 자동 포함, cost factor로 연산 비용 조절 가능."
+      },
+      "reference": "KISA 진단가이드 §1.2.14",
+      "tags": ["password-hash", "salt", "javascript"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-15", "weakness_code": "CWE-494-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "패키지 의존성 무결성", "language": "etc", "difficulty": "중",
+      "body": "npm/pip 등 패키지 매니저로 의존성 설치 시 공급망 공격(Supply-chain attack)을 방지하는 방법이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "package-lock.json / requirements.txt 로 버전 고정 + 해시 검증"},
+        {"num": 2, "text": "Subresource Integrity (SRI)로 CDN 스크립트 해시 검증"},
+        {"num": 3, "text": "Dependabot/Snyk로 취약 의존성 자동 탐지"},
+        {"num": 4, "text": "패키지 이름만 유사하면 신뢰 (typosquatting 무시)"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.2.15",
+      "tags": ["supply-chain", "integrity"]
+    },
+    {
+      "stage": "implementation", "chapter_code": "IMP-SF-16", "weakness_code": "CWE-307-B",
+      "question_type": "mcq", "weakness_category": "security_feature",
+      "weakness_name_ko": "로그인 Rate Limit", "language": "etc", "difficulty": "중",
+      "body": "로그인 엔드포인트의 무차별 대입 공격 방어로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "IP + 계정 조합으로 레이트 리미트 (예: 1분 5회)"},
+        {"num": 2, "text": "연속 실패 N회 후 계정 일시 잠금 + 이메일 알림"},
+        {"num": 3, "text": "CAPTCHA 추가 (의심 시)"},
+        {"num": 4, "text": "실패 응답에 '비밀번호가 틀렸습니다'로 ID 존재 여부 노출"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 진단가이드 §1.2.16",
+      "tags": ["brute-force", "rate-limit"]
+    }
+  ]
+}

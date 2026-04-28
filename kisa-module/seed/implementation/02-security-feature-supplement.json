@@ -1,0 +1,122 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-SF-03,10,11,13,15",
+  "description": "구현단계 — 보안기능 누락 항목 보강 (권한설정·전자서명·인증서·주석노출·코드다운로드)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) §4.2",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-03",
+      "weakness_code": "CWE-732",
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "language": "python",
+      "difficulty": "중",
+      "body": "아래 Python 코드의 보안약점을 진단하시오. 업로드된 파일을 저장하는 로직이다.",
+      "vulnerable_code": "1  import os\n2  def save_upload(filename, content):\n3      path = f'/var/app/uploads/{filename}'\n4      with open(path, 'wb') as f:\n5          f.write(content)\n6      os.chmod(path, 0o777)\n7      return path",
+      "code_language": "python",
+      "vulnerable_lines": [6],
+      "rationale_keywords": ["잘못된 권한", "0o777", "모두 쓰기", "최소 권한"],
+      "fix_keywords": ["0o640", "최소 권한", "umask"],
+      "safe_code": "1  import os\n2  def save_upload(filename, content):\n3      path = f'/var/app/uploads/{filename}'\n4      with open(path, 'wb') as f:\n5          f.write(content)\n6      os.chmod(path, 0o640)\n7      return path",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L6에서 업로드 파일에 0o777(rwxrwxrwx) 권한을 부여하여 같은 서버의 모든 프로세스/사용자가 해당 파일을 수정할 수 있다. 최소 권한 원칙 위배.",
+        "fix_description": "파일 소유자·그룹에만 필요한 권한을 부여(예: 0o640)하고, 실행 권한은 부여하지 않는다."
+      },
+      "reference": "KISA 진단가이드 §4.2.3 중요한 자원에 대한 잘못된 권한 설정",
+      "tags": ["permission", "chmod", "least-privilege", "python"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-11",
+      "weakness_code": "CWE-295",
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "language": "python",
+      "difficulty": "중",
+      "body": "아래 Python 코드의 보안약점을 진단하시오. 외부 API 호출 로직이다.",
+      "vulnerable_code": "1  import requests\n2  def call_payment_api(order_id):\n3      url = f'https://payment.example.com/api/order/{order_id}'\n4      response = requests.get(url, verify=False)\n5      return response.json()",
+      "code_language": "python",
+      "vulnerable_lines": [4],
+      "rationale_keywords": ["인증서 검증", "verify=False", "MITM", "중간자 공격"],
+      "fix_keywords": ["verify=True", "인증서 체인", "CA"],
+      "safe_code": "1  import requests\n2  def call_payment_api(order_id):\n3      url = f'https://payment.example.com/api/order/{order_id}'\n4      response = requests.get(url, verify=True, timeout=10)\n5      return response.json()",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4에서 verify=False로 TLS 인증서 검증을 비활성화하여 중간자 공격(MITM)에 노출된다. 공격자가 위조 인증서로 트래픽을 가로채거나 수정할 수 있다.",
+        "fix_description": "verify=True(기본값)로 두고 신뢰 CA 번들을 사용한다. 사설 CA인 경우 verify에 CA 경로를 명시한다."
+      },
+      "reference": "KISA 진단가이드 §4.2.11 부적절한 인증서 유효성 검증",
+      "tags": ["tls", "certificate", "mitm", "python"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-13",
+      "weakness_code": "CWE-615",
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "language": "javascript",
+      "difficulty": "하",
+      "body": "아래 JavaScript 코드의 보안약점을 진단하시오.",
+      "vulnerable_code": "1  // TODO: 개발계 테스트용 임시 백도어 (배포 전 제거!)\n2  // admin / P@ssw0rd! 로 로그인 가능\n3  // DB: prod-db.internal.corp:5432, user=dbadmin, pw=Sec#ret2024\n4  function login(user, pass) {\n5      return api.post('/auth', {user, pass});\n6  }",
+      "code_language": "javascript",
+      "vulnerable_lines": [1, 2, 3],
+      "rationale_keywords": ["주석", "민감 정보", "자격 증명 노출", "정보 노출"],
+      "fix_keywords": ["주석 삭제", "비밀번호 제거", "Vault"],
+      "safe_code": "1  // 로그인 요청 처리\n2  function login(user, pass) {\n3      return api.post('/auth', {user, pass});\n4  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L1~3 주석에 관리자 계정·내부 DB 접속정보·비밀번호 같은 민감 정보가 하드코딩되어 있다. JavaScript 번들은 브라우저에 그대로 전달되므로 누구나 열람할 수 있다.",
+        "fix_description": "모든 민감 정보를 주석에서 삭제하고, 서버측 환경변수/시크릿 스토어로 이동한다. 배포 전 주석 스캐닝 자동화."
+      },
+      "reference": "KISA 진단가이드 §4.2.13 주석문 안에 포함된 시스템 주요정보",
+      "tags": ["comment", "credentials-leak", "javascript"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-15",
+      "weakness_code": "CWE-494",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "무결성 검사없는 코드 다운로드",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "원격 서버에서 업데이트 모듈을 다운로드하여 실행하는 기능의 안전한 구현 방식은?",
+      "choices": [
+        {"num": 1, "text": "HTTP로 다운로드하고 파일명만 확인한 뒤 즉시 실행한다"},
+        {"num": 2, "text": "HTTPS로 다운로드 + 전자서명 검증 + SHA-256 해시 비교 후 실행한다"},
+        {"num": 3, "text": "FTP로 다운로드하고 파일 크기만 확인한다"},
+        {"num": 4, "text": "DNS로 서버 IP만 확인되면 신뢰하고 실행한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 진단가이드 §4.2.15 무결성 검사없는 코드 다운로드",
+      "tags": ["supply-chain", "integrity", "code-signing"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-10",
+      "weakness_code": "CWE-347",
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "JWT 토큰의 전자서명 검증 구현 시 반드시 지켜야 할 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "서버가 허용한 알고리즘(예: RS256) 외에는 거부한다"},
+        {"num": 2, "text": "alg=none 헤더를 절대 허용하지 않는다"},
+        {"num": 3, "text": "토큰 본문만 Base64 디코딩해서 사용자 정보를 추출하고 서명 검증은 생략한다"},
+        {"num": 4, "text": "서명 키의 공개키·KID는 서버가 관리하는 신뢰 목록에서만 조회한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 진단가이드 §4.2.10 부적절한 전자서명 확인",
+      "tags": ["jwt", "signature", "none-algorithm"]
+    }
+  ]
+}

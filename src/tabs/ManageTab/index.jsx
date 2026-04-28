@@ -5,6 +5,8 @@ import { useToast } from '../../components/ui/Toast';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Skeleton from '../../components/ui/Skeleton';
+import MultiSelect from '../../components/ui/MultiSelect';
+import useFilterState from '../../hooks/useFilterState';
 import QuestionForm from './QuestionForm';
 
 export default function ManageTab() {
@@ -12,8 +14,7 @@ export default function ManageTab() {
   const [meta, setMeta] = useState({ categories: [], exams: [], subjects: [] });
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [categoryId, setCategoryId] = useState('');
-  const [examId, setExamId] = useState('');
+  const { categoryIds, setCategoryIds, examIds, setExamIds } = useFilterState('manage');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [editModal, setEditModal] = useState(null); // null | 'new' | question object
@@ -28,8 +29,8 @@ export default function ManageTab() {
     setLoading(true);
     try {
       let url = `/api/questions?page=${p}&limit=30`;
-      if (categoryId) url += `&category_id=${categoryId}`;
-      if (examId) url += `&exam_id=${examId}`;
+      if (categoryIds.length > 0) url += `&category_id=${categoryIds.join(',')}`;
+      if (examIds.length > 0) url += `&exam_id=${examIds.join(',')}`;
       const data = await apiGet(url);
       const items = data.questions || [];
       setQuestions(prev => append ? [...prev, ...items] : items);
@@ -38,7 +39,7 @@ export default function ManageTab() {
       if (!append) setCheckedIds(new Set());
     } catch (err) { console.error('[Manage]', err); }
     finally { setLoading(false); }
-  }, [categoryId, examId]);
+  }, [categoryIds, examIds]);
 
   useEffect(() => { loadQuestions(1); }, [loadQuestions]);
 
@@ -68,9 +69,9 @@ export default function ManageTab() {
     if (checkedIds.size === 0 || !bulkSubjectId) return;
     try {
       await apiPost('/api/questions', {
-        action: 'bulkAssignSubject',
-        questionIds: [...checkedIds],
-        subjectId: Number(bulkSubjectId),
+        action: 'assignSubject',
+        ids: [...checkedIds],
+        subject_id: Number(bulkSubjectId),
       });
       toast(`${checkedIds.size}개 문제에 과목 지정 완료`, 'success');
       loadQuestions(page);
@@ -96,8 +97,12 @@ export default function ManageTab() {
     toast('문제가 저장되었습니다.', 'success');
   };
 
-  const filteredExams = categoryId ? (meta.exams || []).filter(e => e.category_id == categoryId) : (meta.exams || []);
-  const filteredSubjects = categoryId ? (meta.subjects || []).filter(s => s.category_id == categoryId) : (meta.subjects || []);
+  const filteredExams = categoryIds.length > 0
+    ? (meta.exams || []).filter(e => categoryIds.includes(String(e.category_id)))
+    : (meta.exams || []);
+  const filteredSubjects = categoryIds.length > 0
+    ? (meta.subjects || []).filter(s => categoryIds.includes(String(s.category_id)))
+    : (meta.subjects || []);
   const allChecked = questions.length > 0 && checkedIds.size === questions.length;
 
   return (
@@ -110,18 +115,20 @@ export default function ManageTab() {
         </button>
       </div>
 
-      {/* 필터 */}
+      {/* 필터 (다중 선택) */}
       <div className="flex gap-2 flex-wrap">
-        <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setExamId(''); }}
-          className="flex-1 min-w-[130px] px-3 py-2.5 rounded-xl border border-border bg-input-bg text-text text-sm focus:outline-none focus:border-primary transition-all">
-          <option value="">전체 카테고리</option>
-          {(meta.categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select value={examId} onChange={e => setExamId(e.target.value)}
-          className="flex-1 min-w-[130px] px-3 py-2.5 rounded-xl border border-border bg-input-bg text-text text-sm focus:outline-none focus:border-primary transition-all">
-          <option value="">전체 시험</option>
-          {filteredExams.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
-        </select>
+        <MultiSelect
+          options={meta.categories || []}
+          selected={categoryIds}
+          onChange={setCategoryIds}
+          placeholder="전체 카테고리"
+        />
+        <MultiSelect
+          options={filteredExams}
+          selected={examIds}
+          onChange={setExamIds}
+          placeholder="전체 시험"
+        />
       </div>
 
       {/* 일괄 작업 바 */}

@@ -1,0 +1,3868 @@
+{
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-MCQ-X-A",
+      "chapter_code": "IMP-AA-01",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "language": "java",
+      "difficulty": "중",
+      "body": "DNS lookup에 의존한 보안결정에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "호스트명 기반 ACL 만으로는 신원 보장이 불가능하다."
+        },
+        {
+          "num": 2,
+          "text": "TLS 상호 인증(mTLS) 은 DNS 가 아닌 인증서 체인으로 신원 확인한다."
+        },
+        {
+          "num": 3,
+          "text": "IP 역조회 결과는 DNS 스푸핑·캐시 포이즈닝으로 변조될 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "reverse DNS lookup 결과는 변조 불가능해 신뢰할 수 있다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "IP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nIP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §DNS lookup에 의존한 보안결정",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-MCQ-X-B",
+      "chapter_code": "IMP-AA-01",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "language": "java",
+      "difficulty": "중",
+      "body": "DNS lookup에 의존한 보안결정 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "IP 주소 정규식으로 화이트리스트를 관리한다."
+        },
+        {
+          "num": 2,
+          "text": "TLS 클라이언트 인증서 검증 기반 상호 인증을 적용한다."
+        },
+        {
+          "num": 3,
+          "text": "User-Agent 헤더를 검사해 차단한다."
+        },
+        {
+          "num": 4,
+          "text": "Reverse DNS 결과를 신뢰해 권한을 판단한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "IP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nIP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §DNS lookup에 의존한 보안결정",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-MCQ-X-A",
+      "chapter_code": "IMP-AA-02",
+      "weakness_name_ko": "취약한 API 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 API 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "해시·암호·파일 I/O 등은 항상 명시적 인코딩(UTF-8)을 지정해야 한다."
+        },
+        {
+          "num": 2,
+          "text": "플랫폼 기본 문자셋은 모든 JDK 에서 동일해 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "String.getBytes() 는 플랫폼 기본 문자셋을 사용한다."
+        },
+        {
+          "num": 4,
+          "text": "new String(byte[]) 역시 인코딩 지정 없으면 환경 의존적이다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "String.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nString.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §취약한 API 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-MCQ-X-B",
+      "chapter_code": "IMP-AA-02",
+      "weakness_name_ko": "취약한 API 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 API 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Charset.defaultCharset() 으로 자동 선택한다."
+        },
+        {
+          "num": 2,
+          "text": "StandardCharsets.UTF_8 을 명시적으로 지정한다."
+        },
+        {
+          "num": 3,
+          "text": "인코딩을 지정하지 않고 JVM 기본값에 맡긴다."
+        },
+        {
+          "num": 4,
+          "text": "System.getProperty(\"file.encoding\") 을 읽어 사용한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "String.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nString.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §취약한 API 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-MCQ-X-A",
+      "chapter_code": "IMP-CE-01",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Null Pointer 역참조에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "null 상태에서 .메소드() 호출 시 NullPointerException 이 발생한다."
+        },
+        {
+          "num": 2,
+          "text": "공용 API 경계에서는 Objects.requireNonNull 로 계약을 명시한다."
+        },
+        {
+          "num": 3,
+          "text": "Optional 은 값이 null 일 때를 안전하게 래핑한다."
+        },
+        {
+          "num": 4,
+          "text": "null 검사는 런타임 비용이 커서 생략하는 것이 성능상 유리하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "Null Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nNull Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §Null Pointer 역참조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-MCQ-X-B",
+      "chapter_code": "IMP-CE-01",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Null Pointer 역참조 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "assert 문으로 처리하고 프로덕션에서는 끈다."
+        },
+        {
+          "num": 2,
+          "text": "try-catch(NullPointerException) 로 감싸서 무시한다."
+        },
+        {
+          "num": 3,
+          "text": "Optional.ofNullable(x).ifPresent(...) 패턴으로 처리한다."
+        },
+        {
+          "num": 4,
+          "text": "모든 변수를 String 으로 초기화한다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "Null Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nNull Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §Null Pointer 역참조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-MCQ-X-A",
+      "chapter_code": "IMP-CE-02",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 자원 해제에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "try-with-resources 는 AutoCloseable 자원을 자동 해제한다."
+        },
+        {
+          "num": 2,
+          "text": "Java 는 GC 가 있으므로 stream, connection 을 명시적으로 닫을 필요가 없다."
+        },
+        {
+          "num": 3,
+          "text": "InputStream, Connection, Socket 등은 사용 후 반드시 close() 해야 한다."
+        },
+        {
+          "num": 4,
+          "text": "finally 블록은 예외 발생 시에도 자원 해제를 보장한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §부적절한 자원 해제",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-MCQ-X-B",
+      "chapter_code": "IMP-CE-02",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 자원 해제 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "finalize() 메소드에 해제 로직을 작성한다."
+        },
+        {
+          "num": 2,
+          "text": "try-with-resources 구문으로 선언부에서 자동 해제한다."
+        },
+        {
+          "num": 3,
+          "text": "connection pool 이 알아서 처리하도록 둔다."
+        },
+        {
+          "num": 4,
+          "text": "System.gc() 를 호출해 강제 정리한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §부적절한 자원 해제",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-MCQ-X-A",
+      "chapter_code": "IMP-CE-03",
+      "weakness_name_ko": "해제된 자원 사용",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "해제된 자원 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "free() 후에도 포인터는 동일 메모리를 가리키므로 재사용해도 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "UAF 는 heap spray 와 결합해 RCE 로 이어질 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "free() 된 메모리 포인터 재사용은 Use-After-Free(UAF) 로 불린다."
+        },
+        {
+          "num": 4,
+          "text": "해제 직후 포인터에 NULL 대입이 기본 방어다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "Use After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nUse After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §해제된 자원 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-MCQ-X-B",
+      "chapter_code": "IMP-CE-03",
+      "weakness_name_ko": "해제된 자원 사용",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "해제된 자원 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "해제 직후 NULL 대입 + 스마트 포인터(unique_ptr) 사용."
+        },
+        {
+          "num": 2,
+          "text": "전역 배열에 모든 포인터를 저장한다."
+        },
+        {
+          "num": 3,
+          "text": "ASLR 이 있으니 UAF 는 익스플로잇되지 않는다."
+        },
+        {
+          "num": 4,
+          "text": "free() 를 두 번 호출해 메모리를 초기화한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "Use After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nUse After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §해제된 자원 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-04-MCQ-X-A",
+      "chapter_code": "IMP-CE-04",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "초기화되지 않은 변수 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "C/C++ 의 스택 변수는 자동 초기화되지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "calloc 은 할당된 메모리를 0 으로 초기화한다."
+        },
+        {
+          "num": 3,
+          "text": "malloc 은 항상 0 으로 초기화된 메모리를 반환한다."
+        },
+        {
+          "num": 4,
+          "text": "초기화 없이 읽으면 이전 함수의 잔재 값이 노출될 수 있다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §초기화되지 않은 변수 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-04-MCQ-X-B",
+      "chapter_code": "IMP-CE-04",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "초기화되지 않은 변수 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "memcmp 로 읽기 전에 0 인지만 확인하면 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "volatile 키워드를 붙이면 자동 초기화된다."
+        },
+        {
+          "num": 3,
+          "text": "변수를 사용 직전에 선언하면 초기화 불필요하다."
+        },
+        {
+          "num": 4,
+          "text": "모든 지역 변수는 선언 즉시 0 이나 기본값으로 초기화한다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §초기화되지 않은 변수 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-MCQ-X-A",
+      "chapter_code": "IMP-CE-05",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "language": "java",
+      "difficulty": "중",
+      "body": "신뢰할 수 없는 데이터의 역직렬화에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "가젯 체인을 이용하면 역직렬화만으로 RCE 가능하다."
+        },
+        {
+          "num": 2,
+          "text": "JSON/Jackson 도 @JsonTypeInfo 남용 시 동일 위험이 있다."
+        },
+        {
+          "num": 3,
+          "text": "Java ObjectInputStream.readObject() 는 임의 클래스 인스턴스를 생성한다."
+        },
+        {
+          "num": 4,
+          "text": "직렬화된 바이트에는 실행 코드가 없으므로 역직렬화는 항상 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "Java ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nJava ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §신뢰할 수 없는 데이터의 역직렬화",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-MCQ-X-B",
+      "chapter_code": "IMP-CE-05",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "language": "java",
+      "difficulty": "중",
+      "body": "신뢰할 수 없는 데이터의 역직렬화 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "입력 바이트 앞 4바이트만 검증한다."
+        },
+        {
+          "num": 2,
+          "text": "Base64 로 인코딩 후 저장하면 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "try-catch 로 감싸서 예외를 무시한다."
+        },
+        {
+          "num": 4,
+          "text": "ObjectInputFilter 로 허용 클래스 화이트리스트를 적용한다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "Java ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nJava ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §신뢰할 수 없는 데이터의 역직렬화",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-01-MCQ-X-A",
+      "chapter_code": "IMP-EH-01",
+      "weakness_name_ko": "오류 메시지 정보노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "오류 메시지 정보노출에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "스택트레이스에 SQL 구문·파일 경로·버전이 노출될 수 있다."
+        },
+        {
+          "num": 2,
+          "text": "공격자는 오류 메시지로 내부 구조를 정찰한다."
+        },
+        {
+          "num": 3,
+          "text": "상세 오류 메시지는 사용자 경험을 위해 항상 모든 정보를 공개해야 한다."
+        },
+        {
+          "num": 4,
+          "text": "프로덕션에서는 일반화된 메시지만 노출해야 한다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §오류 메시지 정보노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-01-MCQ-X-B",
+      "chapter_code": "IMP-EH-01",
+      "weakness_name_ko": "오류 메시지 정보노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "오류 메시지 정보노출 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "에러 발생 시 어떤 로그도 남기지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "스택트레이스를 모두 API 응답에 포함한다."
+        },
+        {
+          "num": 3,
+          "text": "사용자에겐 일반 메시지, 서버 로그에만 상세 내용을 기록한다."
+        },
+        {
+          "num": 4,
+          "text": "HTTP 500 대신 200 으로 반환해 에러 자체를 숨긴다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §오류 메시지 정보노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-MCQ-X-A",
+      "chapter_code": "IMP-EH-02",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "오류상황 대응 부재에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "부분적 상태 변경이 발생했다면 롤백해야 일관성이 유지된다."
+        },
+        {
+          "num": 2,
+          "text": "예외가 발생해도 자원은 finally 나 try-with-resources 로 해제한다."
+        },
+        {
+          "num": 3,
+          "text": "빈 catch 블록으로 예외를 삼키는 것이 가장 우아한 처리 방식이다."
+        },
+        {
+          "num": 4,
+          "text": "무시된 예외는 장애 원인 추적을 어렵게 만든다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §오류상황 대응 부재",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-MCQ-X-B",
+      "chapter_code": "IMP-EH-02",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "오류상황 대응 부재 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "catch 에서 로깅 + 필요 시 rethrow, finally 에서 자원 해제."
+        },
+        {
+          "num": 2,
+          "text": "예외를 throws 선언 없이 전역으로 전파시킨다."
+        },
+        {
+          "num": 3,
+          "text": "예외 발생 시 System.exit(1) 로 종료한다."
+        },
+        {
+          "num": 4,
+          "text": "모든 예외를 Exception 으로 잡아 로그만 남기고 무시한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §오류상황 대응 부재",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-MCQ-X-A",
+      "chapter_code": "IMP-EH-03",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 예외 처리에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "rethrow 없는 catch 는 호출자에게 실패를 숨기는 꼴이 된다."
+        },
+        {
+          "num": 2,
+          "text": "catch(Exception e) {} 처럼 모든 예외를 조용히 삼키는 것이 안정성을 높인다."
+        },
+        {
+          "num": 3,
+          "text": "로그에는 예외 메시지뿐 아니라 스택트레이스도 포함해야 한다."
+        },
+        {
+          "num": 4,
+          "text": "구체적 예외보다 Exception 을 잡으면 원인 식별이 어려워진다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "catch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\ncatch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §부적절한 예외 처리",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-MCQ-X-B",
+      "chapter_code": "IMP-EH-03",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 예외 처리 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "의미 있는 로그 + 재전파 여부 명확히 판단 + 자원 정리 finally."
+        },
+        {
+          "num": 2,
+          "text": "exception chaining 을 사용하지 않고 새 예외만 던진다."
+        },
+        {
+          "num": 3,
+          "text": "catch 에서 e.printStackTrace() 만 호출하고 끝낸다."
+        },
+        {
+          "num": 4,
+          "text": "모든 메소드에 throws Throwable 을 붙여 둔다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "catch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\ncatch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §부적절한 예외 처리",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-MCQ-X-A",
+      "chapter_code": "IMP-EN-01",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "잘못된 세션에 의한 데이터 정보 노출에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "static 변수는 요청마다 독립적으로 저장되어 사용자 분리가 자동 보장된다."
+        },
+        {
+          "num": 2,
+          "text": "@RequestScope / @SessionScope 빈으로 범위를 명확히 한다."
+        },
+        {
+          "num": 3,
+          "text": "ThreadLocal 은 사용 후 반드시 remove 해야 누수가 없다."
+        },
+        {
+          "num": 4,
+          "text": "서블릿에서 static 변수에 요청별 데이터를 저장하면 동시 요청이 공유한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "static 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nstatic 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §잘못된 세션에 의한 데이터 정보 노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-MCQ-X-B",
+      "chapter_code": "IMP-EN-01",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "잘못된 세션에 의한 데이터 정보 노출 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "HttpServletRequest 를 static 필드에 저장해 재사용한다."
+        },
+        {
+          "num": 2,
+          "text": "synchronized 블록 하나로 모든 동시성 문제를 해결한다."
+        },
+        {
+          "num": 3,
+          "text": "모든 필드를 public static 으로 선언해 공유한다."
+        },
+        {
+          "num": 4,
+          "text": "요청 스코프 객체(@RequestScope)나 메소드 로컬 변수를 사용한다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "static 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nstatic 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §잘못된 세션에 의한 데이터 정보 노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-MCQ-X-A",
+      "chapter_code": "IMP-EN-02",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "제거되지 않고 남은 디버그 코드에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "개발자만 보는 console.log 는 보안에 영향이 없어 제거할 필요가 없다."
+        },
+        {
+          "num": 2,
+          "text": "개발자 계정 하드코딩, 테스트 URL 잔존은 대표적 실수다."
+        },
+        {
+          "num": 3,
+          "text": "System.out.println, console.log 는 운영 환경에서도 계속 출력된다."
+        },
+        {
+          "num": 4,
+          "text": "배포 번들에 소스맵이 남으면 원본 코드가 노출된다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "System.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nSystem.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §제거되지 않고 남은 디버그 코드",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-MCQ-X-B",
+      "chapter_code": "IMP-EN-02",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "제거되지 않고 남은 디버그 코드 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "프로파일 분리 + 빌드 시 디버그 코드 제거(소스맵 분리) 적용."
+        },
+        {
+          "num": 2,
+          "text": "클라이언트 JS 는 난독화되므로 그대로 두어도 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "주석으로 처리된 코드는 브라우저에 로드되지 않는다."
+        },
+        {
+          "num": 4,
+          "text": "디버그 로그는 모두 DEBUG 레벨이므로 프로덕션에선 자동 사라진다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "System.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nSystem.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §제거되지 않고 남은 디버그 코드",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-MCQ-X-A",
+      "chapter_code": "IMP-EN-03",
+      "weakness_name_ko": "Public 메소드부터 반환된 Private 배열",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Public 메소드부터 반환된 Private 배열에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "불변 컬렉션(Collections.unmodifiableList) 으로 감싸면 방어된다."
+        },
+        {
+          "num": 2,
+          "text": "private 필드이기만 하면 반환된 참조도 외부에서 수정 불가능하다."
+        },
+        {
+          "num": 3,
+          "text": "Arrays.copyOf 로 깊은 복사본을 반환하면 원본이 보호된다."
+        },
+        {
+          "num": 4,
+          "text": "배열은 참조 타입이므로 반환 시 호출자가 원본을 수정 가능하다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "public 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\npublic 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §Public 메소드부터 반환된 Private 배열",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-MCQ-X-B",
+      "chapter_code": "IMP-EN-03",
+      "weakness_name_ko": "Public 메소드부터 반환된 Private 배열",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Public 메소드부터 반환된 Private 배열 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "배열을 final 로 선언하면 원소 수정도 금지된다."
+        },
+        {
+          "num": 2,
+          "text": "@Nullable 어노테이션을 붙이면 된다."
+        },
+        {
+          "num": 3,
+          "text": "Arrays.copyOf() 로 복사본을 반환한다."
+        },
+        {
+          "num": 4,
+          "text": "반환 타입을 Object 로 선언해 캐스팅을 막는다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "public 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\npublic 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §Public 메소드부터 반환된 Private 배열",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-MCQ-X-A",
+      "chapter_code": "IMP-EN-04",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Private 배열에 Public 데이터 할당에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "defensive copy 로 수신 데이터를 복사 저장해야 캡슐화가 유지된다."
+        },
+        {
+          "num": 2,
+          "text": "setter 가 외부 배열 참조를 그대로 저장하면 외부 수정이 내부에 반영된다."
+        },
+        {
+          "num": 3,
+          "text": "불변 객체 패턴에서는 내부 상태 변경을 완전히 차단한다."
+        },
+        {
+          "num": 4,
+          "text": "setter 는 참조만 저장하므로 외부 변경은 내부에 반영되지 않는다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "setter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nsetter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §Private 배열에 Public 데이터 할당",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-MCQ-X-B",
+      "chapter_code": "IMP-EN-04",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "language": "java",
+      "difficulty": "중",
+      "body": "Private 배열에 Public 데이터 할당 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "synchronized setter 로 감싸면 해결된다."
+        },
+        {
+          "num": 2,
+          "text": "volatile 키워드를 배열에 붙인다."
+        },
+        {
+          "num": 3,
+          "text": "참조만 저장하고 외부에서 수정하지 않도록 문서로 공지한다."
+        },
+        {
+          "num": 4,
+          "text": "setter 에서 Arrays.copyOf() 로 깊은 복사 후 저장한다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "setter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nsetter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §Private 배열에 Public 데이터 할당",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-01-MCQ-X-A",
+      "chapter_code": "IMP-IV-01",
+      "weakness_name_ko": "SQL 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "SQL 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "입력값을 URL 인코딩하면 SQL 삽입이 완전히 방어된다."
+        },
+        {
+          "num": 2,
+          "text": "ORM 을 써도 동적 쿼리 구성에서 SQL 삽입이 발생할 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "MyBatis 의 #{} 는 바인드, ${} 는 문자열 치환이다."
+        },
+        {
+          "num": 4,
+          "text": "PreparedStatement 는 SQL 구조와 데이터를 분리해 바인딩한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "SQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nSQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §SQL 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-01-MCQ-X-B",
+      "chapter_code": "IMP-IV-01",
+      "weakness_name_ko": "SQL 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "SQL 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "ESCAPE 절만 추가하면 모든 특수문자가 처리된다."
+        },
+        {
+          "num": 2,
+          "text": "SELECT 문은 SQL 삽입이 불가능하다."
+        },
+        {
+          "num": 3,
+          "text": "LIMIT, ORDER BY 절에는 바인드 파라미터가 필요 없다."
+        },
+        {
+          "num": 4,
+          "text": "PreparedStatement + ? 바인드 파라미터 사용."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "SQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nSQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §SQL 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-MCQ-X-A",
+      "chapter_code": "IMP-IV-02",
+      "weakness_name_ko": "코드 삽입",
+      "language": "javascript",
+      "difficulty": "중",
+      "body": "코드 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "eval(userInput) 은 임의 JS 실행으로 이어진다."
+        },
+        {
+          "num": 2,
+          "text": "서버 사이드 템플릿의 SSTI 는 RCE 로 이어질 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "Function(str) 도 eval 과 동일한 위험이 있다."
+        },
+        {
+          "num": 4,
+          "text": "setTimeout(fn, 0) 은 eval 과 같은 방식으로 사용해도 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "eval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\neval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §코드 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-MCQ-X-B",
+      "chapter_code": "IMP-IV-02",
+      "weakness_name_ko": "코드 삽입",
+      "language": "javascript",
+      "difficulty": "중",
+      "body": "코드 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "클라이언트에서 실행되므로 서버엔 영향 없다."
+        },
+        {
+          "num": 2,
+          "text": "사용자 입력을 Base64 로 인코딩 후 eval 하면 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "JSON.parse 같은 안전한 파서 사용 + 템플릿은 이스케이프 모드."
+        },
+        {
+          "num": 4,
+          "text": "eval 대신 new Function() 을 쓰면 안전하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "eval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\neval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §코드 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-03-MCQ-X-A",
+      "chapter_code": "IMP-IV-03",
+      "weakness_name_ko": "경로 조작 및 자원 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "경로 조작 및 자원 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "허용 루트 디렉토리로 시작하는지 startsWith 검증이 필요하다."
+        },
+        {
+          "num": 2,
+          "text": "\"..\" 가 포함된 경로는 상위 디렉토리로 이동 가능하다."
+        },
+        {
+          "num": 3,
+          "text": "replace(\"../\", \"\") 한 번이면 경로 조작이 완벽히 차단된다."
+        },
+        {
+          "num": 4,
+          "text": "getCanonicalPath 는 심볼릭 링크를 해석해 실제 경로를 반환한다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "Path Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nPath Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §경로 조작 및 자원 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-03-MCQ-X-B",
+      "chapter_code": "IMP-IV-03",
+      "weakness_name_ko": "경로 조작 및 자원 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "경로 조작 및 자원 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "파일명을 고정 접두사로 감싸면 자동 방어된다."
+        },
+        {
+          "num": 2,
+          "text": "File.getCanonicalPath() 후 허용 루트와 startsWith 비교."
+        },
+        {
+          "num": 3,
+          "text": "상위 경로 이동은 운영체제 레벨에서 차단된다."
+        },
+        {
+          "num": 4,
+          "text": "URL 인코딩된 %2e%2e 는 파일 시스템에서 무시된다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "Path Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nPath Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §경로 조작 및 자원 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-MCQ-X-A",
+      "chapter_code": "IMP-IV-04",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "language": "java",
+      "difficulty": "중",
+      "body": "크로스사이트 스크립트에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "DOM 기반 XSS 는 서버 응답에 포함되지 않는 클라이언트 전용 변형이다."
+        },
+        {
+          "num": 2,
+          "text": "Content-Security-Policy 헤더는 XSS 영향 완화에 효과적이다."
+        },
+        {
+          "num": 3,
+          "text": "HTML 속성, JS, URL, CSS 컨텍스트마다 이스케이프 규칙이 다르다."
+        },
+        {
+          "num": 4,
+          "text": "innerText 대신 innerHTML 을 쓰면 XSS 가 차단된다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "XSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nXSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §크로스사이트 스크립트",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-MCQ-X-B",
+      "chapter_code": "IMP-IV-04",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "language": "java",
+      "difficulty": "중",
+      "body": "크로스사이트 스크립트 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "HTTPS 만 사용하면 XSS 는 일어나지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "htmlspecialchars 한 번이면 모든 XSS 가 차단된다."
+        },
+        {
+          "num": 3,
+          "text": "출력 컨텍스트별 이스케이프(HtmlUtils.htmlEscape 등) + CSP."
+        },
+        {
+          "num": 4,
+          "text": "모든 입력에 strip_tags 만 적용하면 된다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "XSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nXSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §크로스사이트 스크립트",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-MCQ-X-A",
+      "chapter_code": "IMP-IV-05",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "운영체제 명령어 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "최소 권한 계정 + chroot 환경이 다층 방어에 기여한다."
+        },
+        {
+          "num": 2,
+          "text": "ProcessBuilder 인자 배열은 셸 해석을 거치지 않는다."
+        },
+        {
+          "num": 3,
+          "text": "명령어 앞에 \"safe_\" 접두사를 붙이면 모든 삽입이 차단된다."
+        },
+        {
+          "num": 4,
+          "text": "Runtime.exec(String) 은 셸 메타문자 ; | & 로 주입이 가능하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "Runtime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nRuntime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §운영체제 명령어 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-MCQ-X-B",
+      "chapter_code": "IMP-IV-05",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "운영체제 명령어 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Windows 환경에서는 OS 명령어 삽입이 발생하지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "Runtime.exec(String[]) 이면 어떤 입력이든 그대로 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "sudo 권한 없이 실행하면 임의 명령은 성공하지 않는다."
+        },
+        {
+          "num": 4,
+          "text": "ProcessBuilder 에 인자를 배열로 전달하고 화이트리스트 검증."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "Runtime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nRuntime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §운영체제 명령어 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-MCQ-X-A",
+      "chapter_code": "IMP-IV-06",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "위험한 형식 파일 업로드에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "파일 시그니처(magic number) 검증이 확장자보다 신뢰도가 높다."
+        },
+        {
+          "num": 2,
+          "text": ".jsp, .php 같은 실행 가능 확장자가 업로드 디렉토리에 저장되면 웹쉘 위험."
+        },
+        {
+          "num": 3,
+          "text": "업로드 디렉토리에서 스크립트 실행 권한 제거가 기본 대책이다."
+        },
+        {
+          "num": 4,
+          "text": "확장자를 소문자로 바꾸면 위험한 확장자 판별이 완벽히 된다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §위험한 형식 파일 업로드",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-MCQ-X-B",
+      "chapter_code": "IMP-IV-06",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "위험한 형식 파일 업로드 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "magic number 검증 + 실행 권한 제거 + 별도 저장 위치."
+        },
+        {
+          "num": 2,
+          "text": "원본 파일명을 그대로 저장해 추적성을 확보한다."
+        },
+        {
+          "num": 3,
+          "text": "Content-Type 헤더를 신뢰해 파일 타입을 판정한다."
+        },
+        {
+          "num": 4,
+          "text": "업로드 후 즉시 서버에서 실행해 이상 여부를 본다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §위험한 형식 파일 업로드",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-07-MCQ-X-A",
+      "chapter_code": "IMP-IV-07",
+      "weakness_name_ko": "신뢰되지 않는 URL 주소로 자동접속 연결",
+      "language": "java",
+      "difficulty": "중",
+      "body": "신뢰되지 않는 URL 주소로 자동접속 연결에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "리다이렉트 URL 앞에 \"/\" 문자가 있으면 외부 이동이 불가능하다."
+        },
+        {
+          "num": 2,
+          "text": "상대 경로만 허용해도 // 접두사를 통한 프로토콜 상대 우회가 가능하다."
+        },
+        {
+          "num": 3,
+          "text": "Open Redirect 는 OAuth redirect_uri 검증 우회와 결합될 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "redirect 파라미터가 외부 사이트를 가리키면 피싱에 악용된다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §신뢰되지 않는 URL 주소로 자동접속 연결",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-07-MCQ-X-B",
+      "chapter_code": "IMP-IV-07",
+      "weakness_name_ko": "신뢰되지 않는 URL 주소로 자동접속 연결",
+      "language": "java",
+      "difficulty": "중",
+      "body": "신뢰되지 않는 URL 주소로 자동접속 연결 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "JavaScript 에서 window.location 을 바꾸면 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "서버 측 allowlist(도메인 목록) 로 리다이렉트 대상 제한."
+        },
+        {
+          "num": 3,
+          "text": "HTTP 302 대신 HTML <meta refresh> 를 쓰면 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "http:// 접두사만 제거하면 외부 이동이 차단된다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §신뢰되지 않는 URL 주소로 자동접속 연결",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-08-MCQ-X-A",
+      "chapter_code": "IMP-IV-08",
+      "weakness_name_ko": "부적절한 XML 외부 개체 참조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 XML 외부 개체 참조에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "DocumentBuilderFactory FEATURE_SECURE_PROCESSING 이 기본 방어다."
+        },
+        {
+          "num": 2,
+          "text": "XXE 는 외부 엔티티 해석으로 로컬 파일 유출·SSRF 를 일으킨다."
+        },
+        {
+          "num": 3,
+          "text": "Billion Laughs(Entity Expansion) 는 DoS 변형 공격이다."
+        },
+        {
+          "num": 4,
+          "text": "잘 구성된(well-formed) XML 이면 XXE 는 발생하지 않는다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "XXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nXXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §부적절한 XML 외부 개체 참조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-08-MCQ-X-B",
+      "chapter_code": "IMP-IV-08",
+      "weakness_name_ko": "부적절한 XML 외부 개체 참조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 XML 외부 개체 참조 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "disallow-doctype-decl=true 설정 + FEATURE_SECURE_PROCESSING."
+        },
+        {
+          "num": 2,
+          "text": "XML 스키마(XSD) 검증만으로 외부 엔티티가 차단된다."
+        },
+        {
+          "num": 3,
+          "text": "XML 파일을 UTF-8 로 파싱하면 XXE 가 차단된다."
+        },
+        {
+          "num": 4,
+          "text": "SAXParser 는 기본적으로 XXE 에 안전하다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "XXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nXXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §부적절한 XML 외부 개체 참조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-09-MCQ-X-A",
+      "chapter_code": "IMP-IV-09",
+      "weakness_name_ko": "XML 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "XML 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "< > & \" ' 다섯 문자가 핵심 이스케이프 대상이다."
+        },
+        {
+          "num": 2,
+          "text": "사용자 입력이 XML 태그/속성 구조에 삽입되면 파싱이 변조된다."
+        },
+        {
+          "num": 3,
+          "text": "DOM API 로 요소·속성을 명시적으로 생성하면 구조 변조가 없다."
+        },
+        {
+          "num": 4,
+          "text": "Base64 로 감싸면 XML 삽입은 원천 차단된다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "XML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nXML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §XML 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-09-MCQ-X-B",
+      "chapter_code": "IMP-IV-09",
+      "weakness_name_ko": "XML 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "XML 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "XML 은 HTML 과 달리 삽입 공격에 영향받지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "CDATA 섹션으로 감싸면 모든 입력이 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "DOM API 로 구조 생성 + 문자 데이터는 createTextNode 사용."
+        },
+        {
+          "num": 4,
+          "text": "XML 선언부(<?xml?>) 만 검증하면 충분하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "XML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nXML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §XML 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-MCQ-X-A",
+      "chapter_code": "IMP-IV-10",
+      "weakness_name_ko": "LDAP 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "LDAP 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "LDAP 필터 특수문자 *, (, ), \\, NUL 이 주입 벡터다."
+        },
+        {
+          "num": 2,
+          "text": "RFC 4515 준수 라이브러리의 encodeForLDAP 이 안전한 이스케이프를 제공한다."
+        },
+        {
+          "num": 3,
+          "text": "인증 시 사용자 입력을 그대로 필터에 결합하면 인증 우회가 가능하다."
+        },
+        {
+          "num": 4,
+          "text": "LDAP 은 인증 프로토콜이라 삽입 공격이 발생하지 않는다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "LDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nLDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §LDAP 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-MCQ-X-B",
+      "chapter_code": "IMP-IV-10",
+      "weakness_name_ko": "LDAP 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "LDAP 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "SASL 인증을 쓰면 LDAP 삽입이 발생하지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "특수문자를 \\xx 헥사 이스케이프 + 라이브러리 사용."
+        },
+        {
+          "num": 3,
+          "text": "필터 문자열에 괄호가 없으면 삽입 불가하다."
+        },
+        {
+          "num": 4,
+          "text": "비밀번호를 MD5 해시로 넘기면 LDAP 삽입이 차단된다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "LDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nLDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §LDAP 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-MCQ-X-A",
+      "chapter_code": "IMP-IV-11",
+      "weakness_name_ko": "크로스사이트 요청 위조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "크로스사이트 요청 위조에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "POST 요청은 기본적으로 CSRF 공격 대상이 되지 않는다."
+        },
+        {
+          "num": 2,
+          "text": "SameSite=Strict 쿠키 속성은 교차 사이트 전송을 차단한다."
+        },
+        {
+          "num": 3,
+          "text": "Synchronizer Token Pattern 은 요청당 토큰을 검증한다."
+        },
+        {
+          "num": 4,
+          "text": "CSRF 는 세션 쿠키의 자동 전송을 악용한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "CSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nCSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §크로스사이트 요청 위조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-MCQ-X-B",
+      "chapter_code": "IMP-IV-11",
+      "weakness_name_ko": "크로스사이트 요청 위조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "크로스사이트 요청 위조 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "CORS 헤더만 설정하면 CSRF 가 차단된다."
+        },
+        {
+          "num": 2,
+          "text": "로그인 후 세션 타임아웃을 짧게 하면 CSRF 가 불가능하다."
+        },
+        {
+          "num": 3,
+          "text": "Spring Security CsrfFilter + SameSite 쿠키 + Origin/Referer 검증."
+        },
+        {
+          "num": 4,
+          "text": "HTTPS 만 쓰면 CSRF 공격은 일어나지 않는다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "CSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nCSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §크로스사이트 요청 위조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-MCQ-X-A",
+      "chapter_code": "IMP-IV-12",
+      "weakness_name_ko": "서버사이드 요청 위조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "서버사이드 요청 위조에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "SSRF 는 서버가 외부 URL 을 입력 그대로 호출할 때 발생한다."
+        },
+        {
+          "num": 2,
+          "text": "DNS 재조회로 allowlist 를 우회하는 DNS rebinding 도 고려해야 한다."
+        },
+        {
+          "num": 3,
+          "text": "클라우드 메타데이터 IP(169.254.169.254) 접근이 주요 공격 목표다."
+        },
+        {
+          "num": 4,
+          "text": "HTTPS URL 만 허용하면 SSRF 는 완전히 차단된다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "SSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nSSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §서버사이드 요청 위조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-MCQ-X-B",
+      "chapter_code": "IMP-IV-12",
+      "weakness_name_ko": "서버사이드 요청 위조",
+      "language": "java",
+      "difficulty": "중",
+      "body": "서버사이드 요청 위조 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "서버 IP 와 다른 IP 는 모두 안전하다고 간주한다."
+        },
+        {
+          "num": 2,
+          "text": "요청 timeout 을 1초로 짧게 두면 SSRF 가 방어된다."
+        },
+        {
+          "num": 3,
+          "text": "대상 도메인 allowlist + private IP 차단 + 해석된 IP 검증."
+        },
+        {
+          "num": 4,
+          "text": "301 redirect 는 서버가 따라가지 않으니 SSRF 는 불가능하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "SSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nSSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §서버사이드 요청 위조",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-MCQ-X-A",
+      "chapter_code": "IMP-IV-13",
+      "weakness_name_ko": "HTTP 응답분할",
+      "language": "java",
+      "difficulty": "중",
+      "body": "HTTP 응답분할에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "CR(0x0D), LF(0x0A) 가 헤더 값에 포함되면 응답분할이 발생한다."
+        },
+        {
+          "num": 2,
+          "text": "응답분할은 HTTP/2 에서도 기존과 동일한 방식으로 작동한다."
+        },
+        {
+          "num": 3,
+          "text": "캐시 포이즈닝 등 추가 공격과 결합될 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "최신 서블릿 컨테이너는 개행문자 포함 헤더 설정을 거부한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §HTTP 응답분할",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-MCQ-X-B",
+      "chapter_code": "IMP-IV-13",
+      "weakness_name_ko": "HTTP 응답분할",
+      "language": "java",
+      "difficulty": "중",
+      "body": "HTTP 응답분할 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "HTTP 헤더는 항상 ASCII 만 사용되므로 주입 불가능하다."
+        },
+        {
+          "num": 2,
+          "text": "헤더 값 작성 전 CR/LF/탭 문자 제거 또는 요청 거부."
+        },
+        {
+          "num": 3,
+          "text": "쿠키 값은 별도로 UTF-8 인코딩되어 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "브라우저가 알아서 이중 개행을 처리한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §HTTP 응답분할",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-MCQ-X-A",
+      "chapter_code": "IMP-IV-14",
+      "weakness_name_ko": "정수형 오버플로우",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "정수형 오버플로우에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "signed int 오버플로우는 C 표준에 의해 0 으로 초기화된다."
+        },
+        {
+          "num": 2,
+          "text": "Integer overflow 는 연산 결과가 표현 범위를 벗어나 래핑되는 현상이다."
+        },
+        {
+          "num": 3,
+          "text": "음수가 양수로 변하면서 길이 검증을 우회할 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "C23 ckd_mul, GCC __builtin_mul_overflow 로 체크 가능하다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "Integer Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nInteger Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §정수형 오버플로우",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-MCQ-X-B",
+      "chapter_code": "IMP-IV-14",
+      "weakness_name_ko": "정수형 오버플로우",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "정수형 오버플로우 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "try-catch(ArithmeticException) 으로 잡으면 된다."
+        },
+        {
+          "num": 2,
+          "text": "연산 전 overflow 체크 매크로 사용 + 상한 검증."
+        },
+        {
+          "num": 3,
+          "text": "unsigned int 는 오버플로우가 일어나지 않는다."
+        },
+        {
+          "num": 4,
+          "text": "변수를 long 으로 선언하면 모든 오버플로우가 방지된다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "Integer Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nInteger Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §정수형 오버플로우",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-MCQ-X-A",
+      "chapter_code": "IMP-IV-15",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "language": "java",
+      "difficulty": "중",
+      "body": "보안기능 결정에 사용되는 부적절한 입력값에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "hidden input, 쿠키 값은 클라이언트가 변조 가능하다."
+        },
+        {
+          "num": 2,
+          "text": "권한 결정은 서버 세션/토큰 기반으로만 해야 한다."
+        },
+        {
+          "num": 3,
+          "text": "서버 측 재검증 없는 \"1회 확인\"은 TOCTOU 와 결합된다."
+        },
+        {
+          "num": 4,
+          "text": "클라이언트 JWT 의 alg 필드는 서버가 신뢰해도 무방하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §보안기능 결정에 사용되는 부적절한 입력값",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-MCQ-X-B",
+      "chapter_code": "IMP-IV-15",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "language": "java",
+      "difficulty": "중",
+      "body": "보안기능 결정에 사용되는 부적절한 입력값 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "hidden 필드 값을 암호화하면 변조 걱정이 없다."
+        },
+        {
+          "num": 2,
+          "text": "서버 측 세션/토큰으로 권한 확인 + 모든 보안 결정 재검증."
+        },
+        {
+          "num": 3,
+          "text": "관리자 여부는 사용자 이메일의 도메인으로 결정한다."
+        },
+        {
+          "num": 4,
+          "text": "localStorage 에 role 을 저장해 권한을 판정한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §보안기능 결정에 사용되는 부적절한 입력값",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-MCQ-X-A",
+      "chapter_code": "IMP-IV-16",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "메모리 버퍼 오버플로우에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Stack canary, ASLR, DEP 는 완화(mitigation) 기술이다."
+        },
+        {
+          "num": 2,
+          "text": "ASLR 이 적용된 현대 OS 에서는 버퍼 오버플로우가 발생하지 않는다."
+        },
+        {
+          "num": 3,
+          "text": "크기 제한 함수 strncpy, snprintf 가 기본 대체 수단이다."
+        },
+        {
+          "num": 4,
+          "text": "strcpy, sprintf 는 크기 검사 없는 대표적 위험 함수다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §메모리 버퍼 오버플로우",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-MCQ-X-B",
+      "chapter_code": "IMP-IV-16",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "메모리 버퍼 오버플로우 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "strcpy_s 는 Windows 에서만 동작하므로 Linux 에선 strcpy 를 그대로 쓴다."
+        },
+        {
+          "num": 2,
+          "text": "스택 오버플로우는 GC 언어에서는 발생하지 않는다."
+        },
+        {
+          "num": 3,
+          "text": "크기 제한 함수 + 경계 검증 + 컴파일러 보호 옵션."
+        },
+        {
+          "num": 4,
+          "text": "gets() 는 표준 함수이므로 사용해도 안전하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §메모리 버퍼 오버플로우",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-17-MCQ-X-A",
+      "chapter_code": "IMP-IV-17",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "포맷 스트링 삽입에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "printf 의 %n 은 현재까지 출력한 바이트 수를 인자에 쓴다."
+        },
+        {
+          "num": 2,
+          "text": "printf(userInput) 은 %s, %n 시퀀스로 메모리 읽기/쓰기가 가능하다."
+        },
+        {
+          "num": 3,
+          "text": "printf 는 가변 인자 함수이므로 추가 인자를 넘기지 않으면 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "포맷 문자열은 항상 상수 리터럴을 사용해야 한다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "printf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput)."
+      },
+      "explanation": "정답: 3번\n\n해설:\nprintf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput).\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §포맷 스트링 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-17-MCQ-X-B",
+      "chapter_code": "IMP-IV-17",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "포맷 스트링 삽입 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "사용자 입력에 \\n 을 제거하면 %n 공격이 차단된다."
+        },
+        {
+          "num": 2,
+          "text": "콘솔 출력에는 포맷 스트링 공격이 영향을 주지 않는다."
+        },
+        {
+          "num": 3,
+          "text": "printf(\"%s\", userInput) 처럼 고정 포맷 + 값을 가변인자로 분리."
+        },
+        {
+          "num": 4,
+          "text": "snprintf 를 쓰면 포맷 문자열 삽입 공격이 불가능하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "printf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput)."
+      },
+      "explanation": "정답: 3번\n\n해설:\nprintf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput).\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §포맷 스트링 삽입",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-MCQ-X-A",
+      "chapter_code": "IMP-SF-01",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "적절한 인증 없는 중요기능 허용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "관리자 기능은 인증 + 인가 이중 검증이 필요하다."
+        },
+        {
+          "num": 2,
+          "text": "API 게이트웨이에서 모든 경로에 대해 기본 정책을 적용한다."
+        },
+        {
+          "num": 3,
+          "text": "중요 기능은 URL 만 숨기면 인증 없이 공개되어도 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "Spring Security @PreAuthorize 는 메소드 수준 권한 검사를 제공한다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §적절한 인증 없는 중요기능 허용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-MCQ-X-B",
+      "chapter_code": "IMP-SF-01",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "적절한 인증 없는 중요기능 허용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "User-Agent 가 특정 값이면 자동 로그인 처리한다."
+        },
+        {
+          "num": 2,
+          "text": "내부망에서만 접근 가능하다고 가정하고 인증을 생략한다."
+        },
+        {
+          "num": 3,
+          "text": "HTTP Referer 헤더로 관리자 페이지 접근을 판단한다."
+        },
+        {
+          "num": 4,
+          "text": "모든 중요 기능에 인증 필터 + 메소드 수준 권한 검사 적용."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §적절한 인증 없는 중요기능 허용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-04-MCQ-X-A",
+      "chapter_code": "IMP-SF-04",
+      "weakness_name_ko": "취약한 암호화 알고리즘 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 암호화 알고리즘 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "AES-256, ChaCha20, SHA-256 이상 사용이 권장된다."
+        },
+        {
+          "num": 2,
+          "text": "MD5 는 빠르기 때문에 비밀번호 해시로 권장된다."
+        },
+        {
+          "num": 3,
+          "text": "MD5, SHA-1 은 충돌 공격으로 무결성 보장이 깨졌다."
+        },
+        {
+          "num": 4,
+          "text": "DES, 3DES, RC4 는 더 이상 안전하지 않다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "DES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nDES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §취약한 암호화 알고리즘 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-04-MCQ-X-B",
+      "chapter_code": "IMP-SF-04",
+      "weakness_name_ko": "취약한 암호화 알고리즘 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 암호화 알고리즘 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "내부 통신은 ROT13 으로 암호화해도 충분하다."
+        },
+        {
+          "num": 2,
+          "text": "3DES 는 DES 를 3번 쓰므로 AES-256 과 같은 수준이다."
+        },
+        {
+          "num": 3,
+          "text": "알고리즘보다 키 길이만 늘리면 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "AES-GCM, ChaCha20-Poly1305 같은 인증 암호화 사용."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "DES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nDES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §취약한 암호화 알고리즘 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-MCQ-X-A",
+      "chapter_code": "IMP-SF-06",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "하드코드된 중요정보에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "소스에 키를 박되 Base64 로 인코딩하면 하드코딩 취약점이 해결된다."
+        },
+        {
+          "num": 2,
+          "text": "KMS, Secrets Manager, Vault 같은 전용 저장소가 표준 해법이다."
+        },
+        {
+          "num": 3,
+          "text": "환경변수 주입은 최소한 소스 분리는 달성한다."
+        },
+        {
+          "num": 4,
+          "text": "소스 주석, 설정 파일에 비밀키가 그대로 남으면 저장소 유출 시 치명적이다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "API 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nAPI 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §하드코드된 중요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-MCQ-X-B",
+      "chapter_code": "IMP-SF-06",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "하드코드된 중요정보 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Secret Manager/KMS 에 저장 후 환경변수나 SDK 로 주입."
+        },
+        {
+          "num": 2,
+          "text": "비밀번호를 reverse() 함수로 뒤집어 저장한다."
+        },
+        {
+          "num": 3,
+          "text": "Git ignore 에 키 파일을 등록하면 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "키를 주석으로 감춰두면 빌드 산출물에 포함되지 않는다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "API 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nAPI 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §하드코드된 중요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-MCQ-X-A",
+      "chapter_code": "IMP-SF-08",
+      "weakness_name_ko": "적절하지 않은 난수값 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "적절하지 않은 난수값 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Math.random() 은 내부적으로 SecureRandom 을 사용해 보안에 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "java.util.Random 은 선형 합동 PRNG 로 예측 가능하다."
+        },
+        {
+          "num": 3,
+          "text": "java.security.SecureRandom 은 /dev/urandom 등 엔트로피 소스를 사용한다."
+        },
+        {
+          "num": 4,
+          "text": "System.currentTimeMillis() 기반 시드는 재현 가능해 보안에 부적합하다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "java.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\njava.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §적절하지 않은 난수값 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-MCQ-X-B",
+      "chapter_code": "IMP-SF-08",
+      "weakness_name_ko": "적절하지 않은 난수값 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "적절하지 않은 난수값 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "SecureRandom 또는 JDK 17+ RandomGenerator(secure variant) 사용."
+        },
+        {
+          "num": 2,
+          "text": "Random 에 System.nanoTime() 을 시드로 주면 예측 불가능해진다."
+        },
+        {
+          "num": 3,
+          "text": "Random 을 static 으로 선언하면 예측이 어려워진다."
+        },
+        {
+          "num": 4,
+          "text": "UUID.randomUUID() 는 난수가 아니라 결정론적이므로 안전하다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "java.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\njava.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §적절하지 않은 난수값 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-02-MCQ-X-A",
+      "chapter_code": "IMP-SF-02",
+      "weakness_name_ko": "부적절한 인가",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 인가에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "인증된 사용자이면 어떤 자원이든 접근 가능하게 열어도 된다."
+        },
+        {
+          "num": 2,
+          "text": "IDOR(Insecure Direct Object Reference) 이 대표 사례다."
+        },
+        {
+          "num": 3,
+          "text": "역할 검증만으로는 리소스 소유자 권한을 확인할 수 없다."
+        },
+        {
+          "num": 4,
+          "text": "요청마다 자원 소유자와 현재 사용자 ID 비교가 필요하다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §부적절한 인가",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-02-MCQ-X-B",
+      "chapter_code": "IMP-SF-02",
+      "weakness_name_ko": "부적절한 인가",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 인가 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "프런트엔드에서 권한별 UI 만 숨기면 된다."
+        },
+        {
+          "num": 2,
+          "text": "리소스 단위 인가 검사 + 소유자 ID 비교."
+        },
+        {
+          "num": 3,
+          "text": "role=admin 쿠키만 확인하면 충분하다."
+        },
+        {
+          "num": 4,
+          "text": "URL 에 userId 가 있으면 알아서 검증된다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §부적절한 인가",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-MCQ-X-A",
+      "chapter_code": "IMP-SF-03",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "language": "java",
+      "difficulty": "중",
+      "body": "중요한 자원에 대한 잘못된 권한 설정에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "모든 파일을 777 로 두면 배포 오류가 없어 운영상 권장된다."
+        },
+        {
+          "num": 2,
+          "text": "파일 권한 777 은 누구나 읽기/쓰기/실행 가능한 상태다."
+        },
+        {
+          "num": 3,
+          "text": "umask 설정으로 신규 생성 파일의 기본 권한을 제한한다."
+        },
+        {
+          "num": 4,
+          "text": "최소 권한 원칙(PoLP)을 따라 필요한 만큼만 부여한다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §중요한 자원에 대한 잘못된 권한 설정",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-MCQ-X-B",
+      "chapter_code": "IMP-SF-03",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "language": "java",
+      "difficulty": "중",
+      "body": "중요한 자원에 대한 잘못된 권한 설정 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "chmod 600 (또는 640) + umask 027 로 최소 권한 적용."
+        },
+        {
+          "num": 2,
+          "text": "컨테이너 내부는 격리되므로 root 로 실행해도 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "권한은 애플리케이션 코드에서 동적으로 변경한다."
+        },
+        {
+          "num": 4,
+          "text": "chmod 755 가 보안 설정의 표준이다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\n중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §중요한 자원에 대한 잘못된 권한 설정",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-05-MCQ-X-A",
+      "chapter_code": "IMP-SF-05",
+      "weakness_name_ko": "암호화되지 않은 중요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "암호화되지 않은 중요정보에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "키는 데이터와 분리 보관(KMS, Vault)해야 유출 시 피해가 제한된다."
+        },
+        {
+          "num": 2,
+          "text": "DB 저장 정보도 유출 대비 암호화가 필요하다."
+        },
+        {
+          "num": 3,
+          "text": "전송 구간은 TLS, 저장 구간은 AES-GCM 같은 인증 암호화가 기본."
+        },
+        {
+          "num": 4,
+          "text": "HTTPS 만 쓰면 DB 에 평문 저장해도 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §암호화되지 않은 중요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-05-MCQ-X-B",
+      "chapter_code": "IMP-SF-05",
+      "weakness_name_ko": "암호화되지 않은 중요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "암호화되지 않은 중요정보 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "Base64 인코딩은 암호화의 일종이므로 충분하다."
+        },
+        {
+          "num": 2,
+          "text": "비밀번호는 reverse() 후 저장하면 복호화 불가능해 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "저장=AES-GCM 인증 암호화, 전송=TLS 1.2+, 키=KMS 에 분리."
+        },
+        {
+          "num": 4,
+          "text": "내부 DB 는 외부 접근 불가하므로 평문 저장 가능하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §암호화되지 않은 중요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-MCQ-X-A",
+      "chapter_code": "IMP-SF-09",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 비밀번호 허용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "사전 공격(dictionary attack)은 유출된 비밀번호 목록을 이용한다."
+        },
+        {
+          "num": 2,
+          "text": "길이·복잡도·유출 단어 필터링이 표준이다."
+        },
+        {
+          "num": 3,
+          "text": "HaveIBeenPwned 같은 외부 API 로 유출 여부를 확인할 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "4자리 숫자 PIN 은 충분히 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §취약한 비밀번호 허용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-MCQ-X-B",
+      "chapter_code": "IMP-SF-09",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "취약한 비밀번호 허용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "특수문자만 포함하면 무조건 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "길이 8 자 이상 + 복잡도 + 유출 목록 대조."
+        },
+        {
+          "num": 3,
+          "text": "관리자가 수동으로 확인하는 것이 가장 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "사용자 이름과 다르면 어떤 비밀번호든 허용한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §취약한 비밀번호 허용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-MCQ-X-A",
+      "chapter_code": "IMP-SF-12",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "세션 쿠키에 Max-Age=31536000 을 주면 로그인이 편리해져 보안에 유리하다."
+        },
+        {
+          "num": 2,
+          "text": "공유 PC 에서 쿠키 탈취로 세션 유출이 일어날 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "Max-Age/Expires 가 있는 쿠키는 브라우저 종료 후에도 파일로 남는다."
+        },
+        {
+          "num": 4,
+          "text": "HttpOnly + Secure + SameSite 조합이 표준 방어다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "Max-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nMax-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-MCQ-X-B",
+      "chapter_code": "IMP-SF-12",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "세션 쿠키는 Max-Age/Expires 없이 + HttpOnly + Secure + SameSite."
+        },
+        {
+          "num": 2,
+          "text": "쿠키 값을 URL 인코딩하면 디스크에 평문으로 저장되지 않는다."
+        },
+        {
+          "num": 3,
+          "text": "쿠키 이름에 _secure 접미사를 붙이면 방어된다."
+        },
+        {
+          "num": 4,
+          "text": "HTTPS 쿠키는 디스크에 저장되지 않는다."
+        }
+      ],
+      "answer_index": 0,
+      "model_answer": {
+        "correct_choice": 1,
+        "rationale": "Max-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다."
+      },
+      "explanation": "정답: 1번\n\n해설:\nMax-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-MCQ-X-A",
+      "chapter_code": "IMP-SF-13",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "주석문 안에 포함된 시스템 주요정보에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "JS 번들의 주석은 브라우저에 그대로 노출된다."
+        },
+        {
+          "num": 2,
+          "text": "주석은 실행되지 않으므로 비밀정보를 남겨도 안전하다."
+        },
+        {
+          "num": 3,
+          "text": "개발자 계정·테스트 URL 잔존은 전형적 실수다."
+        },
+        {
+          "num": 4,
+          "text": "minify 단계에서 주석 제거가 표준이다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §주석문 안에 포함된 시스템 주요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-MCQ-X-B",
+      "chapter_code": "IMP-SF-13",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "language": "java",
+      "difficulty": "중",
+      "body": "주석문 안에 포함된 시스템 주요정보 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "git blame 으로 찾을 수 없으면 안전하다."
+        },
+        {
+          "num": 2,
+          "text": "주석에 // SECRET 을 붙이면 배포 시 자동 제거된다."
+        },
+        {
+          "num": 3,
+          "text": "빌드 시 주석 제거 + 민감 정보 ESLint 규칙으로 사전 차단."
+        },
+        {
+          "num": 4,
+          "text": "서버 렌더링 템플릿의 주석은 클라이언트에 가지 않는다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §주석문 안에 포함된 시스템 주요정보",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-MCQ-X-A",
+      "chapter_code": "IMP-SF-14",
+      "weakness_name_ko": "솔트 없이 일방향 해시함수 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "솔트 없이 일방향 해시함수 사용에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "솔트는 사용자마다 고유해야 효과적이다."
+        },
+        {
+          "num": 2,
+          "text": "MD5/SHA-1 만으로는 레인보우 테이블 역추적에 노출된다."
+        },
+        {
+          "num": 3,
+          "text": "bcrypt/scrypt/Argon2 는 키 스트레칭으로 brute-force 비용을 올린다."
+        },
+        {
+          "num": 4,
+          "text": "SHA-256 을 한 번 돌리면 솔트 없이도 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §솔트 없이 일방향 해시함수 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-MCQ-X-B",
+      "chapter_code": "IMP-SF-14",
+      "weakness_name_ko": "솔트 없이 일방향 해시함수 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "솔트 없이 일방향 해시함수 사용 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "솔트를 소스 상수로 박으면 테이블별 공격이 불가능하다."
+        },
+        {
+          "num": 2,
+          "text": "SHA-256 을 1,000 번 반복하면 충분한 스트레칭이다."
+        },
+        {
+          "num": 3,
+          "text": "고유 솔트 + bcrypt/Argon2/PBKDF2 키 스트레칭 해시 저장."
+        },
+        {
+          "num": 4,
+          "text": "사용자 ID 를 솔트로 재사용하면 관리가 편리하다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §솔트 없이 일방향 해시함수 사용",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-MCQ-X-A",
+      "chapter_code": "IMP-SF-16",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "반복된 인증시도 제한 기능 부재에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "분산 공격 대응을 위해 Redis 등 전역 카운터가 필요하다."
+        },
+        {
+          "num": 2,
+          "text": "무차별 대입은 IP/계정 양쪽 기준으로 제한해야 한다."
+        },
+        {
+          "num": 3,
+          "text": "로그인 실패를 무제한 허용해야 사용자 편의성이 유지된다."
+        },
+        {
+          "num": 4,
+          "text": "Rate Limit + CAPTCHA + 점진적 지연 조합이 효과적이다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\n로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §반복된 인증시도 제한 기능 부재",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-MCQ-X-B",
+      "chapter_code": "IMP-SF-16",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "반복된 인증시도 제한 기능 부재 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "DB 락만 걸면 분산 환경에서도 차단 가능하다."
+        },
+        {
+          "num": 2,
+          "text": "IP+계정 기반 Rate Limit + CAPTCHA + 점진적 지연."
+        },
+        {
+          "num": 3,
+          "text": "반복 실패 시 계정을 영구 삭제하면 가장 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "로그만 남기고 제한은 걸지 않는다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\n로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §반복된 인증시도 제한 기능 부재",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-01-MCQ-X-A",
+      "chapter_code": "IMP-TS-01",
+      "weakness_name_ko": "경쟁조건: 검사시점과 사용시점",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "경쟁조건: 검사시점과 사용시점에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "심볼릭 링크 교체로 권한 경계를 우회할 수 있다."
+        },
+        {
+          "num": 2,
+          "text": "access() 검사 후 open() 사용 사이에 파일이 교체될 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "openat(O_NOFOLLOW) 로 심볼릭 링크 따라가기를 차단한다."
+        },
+        {
+          "num": 4,
+          "text": "access(path) 후 곧바로 open(path) 를 호출하면 경쟁 조건이 발생하지 않는다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "TOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\nTOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §경쟁조건: 검사시점과 사용시점",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-01-MCQ-X-B",
+      "chapter_code": "IMP-TS-01",
+      "weakness_name_ko": "경쟁조건: 검사시점과 사용시점",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "경쟁조건: 검사시점과 사용시점 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "read/write 함수에는 경쟁 조건이 없다."
+        },
+        {
+          "num": 2,
+          "text": "openat + fchown/fstat 같은 원자적 파일 디스크립터 연산."
+        },
+        {
+          "num": 3,
+          "text": "파일을 root 로 검사하고 일반 권한으로 쓰면 안전하다."
+        },
+        {
+          "num": 4,
+          "text": "mutex 하나면 모든 파일 경쟁 조건을 해결한다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "TOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nTOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §경쟁조건: 검사시점과 사용시점",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-MCQ-X-A",
+      "chapter_code": "IMP-TS-02",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "language": "java",
+      "difficulty": "중",
+      "body": "종료되지 않는 반복문 또는 재귀 함수에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "타임아웃·최대 반복·입력 상한 검증이 기본 방어다."
+        },
+        {
+          "num": 2,
+          "text": "재귀 깊이 제한 없이 돌리면 스택 오버플로우가 난다."
+        },
+        {
+          "num": 3,
+          "text": "외부 입력이 반복 횟수를 결정하면 DoS 위험이 커진다."
+        },
+        {
+          "num": 4,
+          "text": "while(true) 구조는 내부 조건만 잘 두면 외부 입력의 영향이 없다."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §종료되지 않는 반복문 또는 재귀 함수",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-MCQ-X-B",
+      "chapter_code": "IMP-TS-02",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "language": "java",
+      "difficulty": "중",
+      "body": "종료되지 않는 반복문 또는 재귀 함수 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "자바는 꼬리 재귀 최적화가 있어 깊이 제한이 불필요하다."
+        },
+        {
+          "num": 2,
+          "text": "async 로 바꾸면 모든 무한 루프가 안전해진다."
+        },
+        {
+          "num": 3,
+          "text": "CPU 가 빠르면 무한 루프도 결국 끝난다."
+        },
+        {
+          "num": 4,
+          "text": "입력 범위 검증 + 최대 반복/깊이 상한 + 타임아웃."
+        }
+      ],
+      "answer_index": 3,
+      "model_answer": {
+        "correct_choice": 4,
+        "rationale": "반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다."
+      },
+      "explanation": "정답: 4번\n\n해설:\n반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §종료되지 않는 반복문 또는 재귀 함수",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-MCQ-X-A",
+      "chapter_code": "IMP-SF-11",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 인증서 유효성 검증에 대한 설명 중 옳지 **않은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "trust-all TrustManager 는 MitM 에 무방비한 상태다."
+        },
+        {
+          "num": 2,
+          "text": "자체 서명 인증서는 검증만 끄면 개발·운영 모두 문제가 없다."
+        },
+        {
+          "num": 3,
+          "text": "TLS 연결 시 인증서 체인, 유효 기간, 호스트명(CN/SAN) 모두 검증한다."
+        },
+        {
+          "num": 4,
+          "text": "Pin(인증서 고정)은 CA 신뢰 체인 외의 추가 방어층이다."
+        }
+      ],
+      "answer_index": 1,
+      "model_answer": {
+        "correct_choice": 2,
+        "rationale": "TLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다."
+      },
+      "explanation": "정답: 2번\n\n해설:\nTLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다.\n\n오답(정답 외)은 실제로 맞는 설명입니다.",
+      "reference": "진단가이드 §부적절한 인증서 유효성 검증",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-MCQ-X-B",
+      "chapter_code": "IMP-SF-11",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "부적절한 인증서 유효성 검증 에 대한 방어 방법 중 **옳은** 것을 고르시오.",
+      "choices": [
+        {
+          "num": 1,
+          "text": "인증서가 유효한 기간 내면 호스트명이 다르더라도 접속한다."
+        },
+        {
+          "num": 2,
+          "text": "OCSP 확인은 속도가 느려 비활성화가 권장된다."
+        },
+        {
+          "num": 3,
+          "text": "기본 TrustManager 사용 + 호스트명 검증 + 필요 시 pinning."
+        },
+        {
+          "num": 4,
+          "text": "TrustManagerFactory 를 null 로 주면 검증이 자동된다."
+        }
+      ],
+      "answer_index": 2,
+      "model_answer": {
+        "correct_choice": 3,
+        "rationale": "TLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다."
+      },
+      "explanation": "정답: 3번\n\n해설:\nTLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다.\n\n오답은 실무에서 흔한 오해이거나 부분적 해결에 불과합니다.",
+      "reference": "진단가이드 §부적절한 인증서 유효성 검증",
+      "tags": [
+        "mcq",
+        "implementation",
+        "auto-seed",
+        "pool-expand"
+      ],
+      "is_active": true
+    }
+  ]
+}

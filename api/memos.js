@@ -1,15 +1,11 @@
-// Vercel 서버리스 함수 - 문제별 메모 API
+// AWS Lambda Express 핸들러 - 문제별 메모 API
 const { query } = require('./db');
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const { withCors } = require('./middleware');
 
+module.exports = withCors(async (req, res) => {
   const action = req.query?.action || req.body?.action;
 
-  try {
     // ── 메모 목록 조회 ──
     if (req.method === 'GET' && action === 'list') {
       const { question_id } = req.query;
@@ -85,9 +81,5 @@ module.exports = async (req, res) => {
       return res.json({ message: '메모가 삭제되었습니다.' });
     }
 
-    res.status(400).json({ error: '알 수 없는 액션입니다.' });
-  } catch (err) {
-    console.error('[Memos] 에러:', err);
-    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-};
+  res.status(400).json({ error: '알 수 없는 액션입니다.' });
+});

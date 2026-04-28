@@ -1,15 +1,46 @@
-// DocStore 연동 탭 — 칸반 보드 + 이관/해설생성/소스삭제 전체 구현
+// ImportTab — DocStore 연동 + 파일 업로드 서브탭 래퍼
 import { useState, useEffect } from 'react';
-import { apiGet, apiPost, apiFetch, getAuthToken } from '../../lib/api';
+import { apiGet, apiPost, apiFetch } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
+import PoolUpload from './PoolUpload';
 
+const SUB_TABS = [
+  { key: 'docstore', label: 'DocStore 연동', icon: '📥' },
+  { key: 'upload', label: '파일 업로드', icon: '📄' },
+];
+
+export default function ImportTab() {
+  const [subTab, setSubTab] = useState('docstore');
+
+  return (
+    <div>
+      {/* 서브탭 전환 */}
+      <div className="flex gap-1 mb-4 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+        {SUB_TABS.map(t => (
+          <button key={t.key}
+            onClick={() => setSubTab(t.key)}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all
+              ${subTab === t.key
+                ? 'bg-white dark:bg-gray-700 shadow text-primary'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'docstore' ? <DocStoreImport /> : <PoolUpload />}
+    </div>
+  );
+}
+
+// ── DocStore 연동 (기존 코드 그대로) ──
 const STEPS = [
   { key: 'wait', label: '대상조회', color: '#4255ff', icon: '📋' },
   { key: 'imported', label: '문제이관', color: '#f59e0b', icon: '📥' },
   { key: 'done', label: '해설생성 및 완료', color: '#22c55e', icon: '✅' },
 ];
 
-export default function ImportTab() {
+function DocStoreImport() {
   const toast = useToast();
   const [sourceExams, setSourceExams] = useState([]);
   const [selectedExam, setSelectedExam] = useState('');
@@ -86,7 +117,7 @@ export default function ImportTab() {
 
       // 이관된 문제 상태 새로고침
       const statusRes = await apiPost('/api/import-docstore', {
-        action: 'check-status', targetExamId
+        action: 'status', targetExamId
       });
       if (statusRes.questions) {
         const noExp = [], hasExp = [];
@@ -255,6 +286,7 @@ export default function ImportTab() {
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 <input value={examTitle} onChange={e => setExamTitle(e.target.value)} placeholder="시험 이름 (예: 2026년 1회차)"
+                  autoCapitalize="none" autoCorrect="off" autoComplete="off"
                   className="flex-1 min-w-[120px] px-2 py-1 rounded-lg border border-border bg-input-bg text-text text-xs" />
                 <button onClick={importQuestions} disabled={waitQueue.length === 0}
                   className="px-2 py-1 rounded-lg text-white text-xs font-bold disabled:opacity-40 transition-colors" style={{ background: STEPS[1].color }}>

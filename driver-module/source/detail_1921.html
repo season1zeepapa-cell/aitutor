@@ -1,0 +1,2251 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title>홈 | 한국도로교통공단 안전운전 통합민원</title>
+    <style type="text/css">
+        .bnr-close:focus {outline-offset: 1px; outline: 2px solid rgba(36, 107, 235, 0.8);}
+        .go-top{
+		    display:block;
+		    font-size: 0;
+		    text-indent: -9999px;
+		}
+    </style>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    <meta name="author" content="KoROAD"/>
+    <meta name="robots" content="index,follow"/>
+    <meta name="google-site-verification" content="9f0ARYtarcgxt-Dxe2SjUp7vPF127VvzRK0wFWYg_Zw" />
+    <meta name="keywords" content="한국도로교통공단,안전운전통합민원,안전운전,운전면허갱신,운전면허적성검사,교통안전교육,연습면허발급,운전면허교통안전교육,운전면허발급,운전면허증재발급,운전면허재발급,2종운전면허갱신,면허증재발급,면허증갱신,운전면허증분실재발급,운전면허증분실,자동차면허증갱신,자동차면허증재발급,면허증분실,운전면허,운전면허시험장,운전면허필기시험접수,국제면허증발급,운전면허증,운전면허필기시험,운전면허기능시험,운전면허시험,2종소형면허,운전면허필기,1종보통운전면허,원동기면허,2종보통,1종보통,2종소형,운전면허벌점,도로주행,2종운전면허,운전면허학과시험,운전면허증발급,1종보통도로주행,면허증,운전면허1종보통,자동차면허시험,운전면허학과시험접수,도로주행시험,운전면허종류,면허시험,운전면허시험필기,면허취소,장내기능시험,운전면허기능,운전면허필기시험시간,2종보통면허,운전필기시험,운전면허1종,운전기능시험,1종보통면허,자동차운전면허갱신,운전면허코스,운전면허취소,1종운전면허,운전면허학과교육,운전면허실기시험,운전면허재취득,면허취소재취득,운전면허기능시험코스,1종대형면허,오토바이면허,도로교통안전교육,특별안전교육,원동기면허시험,특별교통안전교육"/>
+    <meta name="description" content="한국도로교통공단의 통합민원 서비스로 안전, 교육, 운전면허 정보와 민원을 PC 및 모바일로 제공하는 대표 포털"/>
+    <meta name="og:type" content="website"/>
+    <meta name="og:title" content="한국도로교통공단 안전운전 통합민원"/>
+    <meta name="og:description" content="한국도로교통공단의 통합민원 서비스로 안전, 교육, 운전면허 정보와 민원을 PC 및 모바일로 제공하는 대표 포털"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0 user-scalable=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="/resources/img/component/favicon_180.png">
+    <link rel="icon" type="image/x-icon" href="/resources/imgs/favicon.ico"/>
+    <link rel="icon" type="image/png" sizes="512x512" href="/resources/img/component/favicon_512.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/resources/img/component/favicon_192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/resources/img/component/favicon_32.png">
+    <link href="/resources/css/sub.css?ver=20260425195358905" rel="stylesheet" type="text/css">
+    <link href="/resources/css/style.css?ver=20260425195358905" type="text/css" rel="stylesheet">
+    <link href="/resources/css/base/swiper.min.css?ver=20260425195358905" type="text/css" rel="stylesheet">
+    <script src="/resources/js/vendor/jquery.min.js?ver=20260425195358905"></script>
+    <script src="/resources/js/vendor/swiper.min.js?ver=20260425195358905"></script>
+    <script src="/resources/js/vendor/bootstrap.min.js?ver=20260425195358905"></script>
+    <script src="/resources/js/vendor/jquery-ui.js?ver=20260425195358905"></script>
+    <script src="/resources/js/jquery.js?ver=20260425195358905"></script>
+    <script src="/resources/js/netfunnel/netfunnel.js?ver=20260425195358905" charset="UTF-8"></script>
+    <script src="/resources/js/safedrv.commonUtil.js?ver=20260425195358905"></script>
+    <script src="/resources/js/safedrv.menuUtil.js?ver=20260425195358905"></script>
+    <script src="/resources/js/safedrv.authUtil.js?ver=20260425195358905"></script>
+    <script src="/resources/js/safedrv.licnsUtil.js?ver=20260425195358905"></script>
+    <script type="module" src="/resources/anyid/app/main.js?ver=20260425195358905"></script>
+    <script src="/resources/anyid/app/api/anyidAdaptor.js?ver=20260425195358905"></script>
+    <script src="/resources/anyid/libs/cryptico/cryptico.js?ver=20260425195358905"></script>  
+    <script>let anyidAdaptor = new AnyidAdaptor({});</script>
+    <script type="text/javascript">
+        //messages code(JS)
+        var messages = {
+            err0002 : "실패 에러가 발생했습니다."
+        };
+        $(document).ready(function() {
+            
+                 var isCertTStep = "false";
+                 if(isCertTStep == "true"){
+                     fnUserAuthPassPop(); //3차 실명인증 팝업
+                 }
+            
+
+            //간편인증
+            var requsetPath = "/subExamBoard/selectSubExamBoardKor.do";
+            if(requsetPath.indexOf("multiAuthLogin") != "-1" || requsetPath.indexOf("login") != "-1" || requsetPath.indexOf("anyidAuthLogin") != "-1"){
+                $("#oacxDiv").css("display" , "block");
+            }else{
+                $("#oacxDiv").css("display" , "none");
+            }
+
+            //메뉴 비정상 접근시
+            
+
+            fnSubBannerListSecrah(); //상단 배너 조회(서브화면용)
+        });
+
+        //상단 배너 조회(서브화면용)
+        function fnSubBannerListSecrah(){
+            $.ajax({
+                url: "/selectSubBannerListAx.do",
+                type: "post",
+                success:function(data){
+                    if(data.returnMessage == 'success'){
+                          //배너가 없을경우
+                          var bannerList = '0';
+                          if(bannerList == "0"){
+                              box.classList.add('active');
+                              btn.textContent = "팝업열기";
+                              btn.classList.add('active');
+                          }
+                     }else{
+                         //SD.E.0002 실패 에러가 발생했습니다.
+                         fnCommonReturnPopup('실패 에러가 발생했습니다.');
+                     }
+                 },
+                 error:function(){
+                     //SD.E.0002 실패 에러가 발생했습니다.
+                     fnCommonReturnPopup('실패 에러가 발생했습니다.');
+                 }
+            });
+        }
+    </script>
+    
+	<style type="text/css">
+	    a:focus {outline-offset:7px;}
+	</style>
+
+	<!-- s : 학과시험 문제[한국어] 게시글 script -->
+    <script type="text/javaScript">
+        //게시판 목록
+        function fnBoardList() {
+            var menuCd = document.getElementById('menuCd').value;
+            showLoadingBar(); //로딩바 보이기
+            $("#listForm").attr("action", "/subExamBoard/selectSubExamBoardKorList.do");
+            $("#listForm").submit();
+        }
+    </script>
+    <!-- e : 학과시험 문제[한국어] 게시글 script -->
+
+</head>
+
+<!-- s : 컨텐츠 서브 -->
+<body>
+    <!-- s : 본문바로가기 : 웹접근성 스킵 -->
+    <div id="skip-nav">
+        <a href="#subContainer">본문 바로가기</a>
+    </div>
+    <!-- e : 본문바로가기 : 웹접근성 스킵 -->
+    <!-- s : 대한민국 누리집 -->
+    <div class="nuri-banner">
+        <div class="nuri-div">
+             <div class="nuri-text"><i class="ico-flag"></i> 이 누리집은 대한민국 공식 전자정부 누리집입니다.</div>
+        </div>
+    </div>
+    <!-- e : 대한민국 누리집 -->
+    <!-- s : top banner -->
+        
+
+
+
+
+
+
+
+
+
+<!-- s : 컨텐츠 메인 구조 > 상단 배너 script -->
+<script type="text/javascript">
+	$(document).ready(function() {
+        $("#bannerX").change(function(){
+        	//상단 배너 클릭시
+        	if($("#bannerX").is(":checked")){
+        		setCookie("mainbBannerList" ,"end", 1);
+                box.classList.add('active');
+                btn.textContent = "팝업열기";
+                btn.classList.add('active');
+        	}else{
+        		setCookie("mainbBannerList" ,"", 1);
+        	}
+        });
+
+        $("#bannerP").change(function(){
+            //상단 배너 팝업 클릭시
+            if($("#bannerP").is(":checked")){
+                setCookie("mainbBannerList" ,"end", 1);
+            }else{
+                setCookie("mainbBannerList" ,"", 1);
+            }
+        });
+
+		//상단배너 오늘하루 열지않음 쿠키값 가져오기
+	    var result = getCookie("mainbBannerList");
+		const box = document.querySelector('.top-banner-cont');
+        const btn = document.querySelector('.bnr-close');
+	    if(result == "end"){
+	        $("#bannerX").prop("checked",true);
+	        $("#bannerP").prop("checked",true);
+            box.classList.add('active');
+            btn.textContent = "팝업열기";
+            btn.classList.add('active');
+	    }else{
+            box.classList.remove('active');
+            btn.textContent = "팝업닫기";
+            btn.classList.remove('active');
+	    }
+
+	    //배너가 없을경우
+        var bannerListSize = '0';
+        var bannerList = 
+        if(bannerListSize != "0"){
+            for(var i = 0; i < bannerListSize; i++){
+                $("#ibanerTtl_" + i).html(bannerList[i].ibanerExpln);
+                $("#ibanerTtl_p" + i).html(bannerList[i].ibanerExpln);
+            }
+        }
+	});
+
+   //검색어 있을 경우 X 버튼 생성(모바일)
+   document.addEventListener("input", function(e) {
+        const searchDel = e.target.closest(".sch-input")?.querySelector(".search-del");
+        if(searchDel != null && searchDel != ""){
+            searchDel.classList.toggle("on",e.target.value.length > 0);
+        }
+    });
+</script>
+<!-- e : 컨텐츠 메인 구조 > 상단 배너 script -->
+
+<!-- s : 컨텐츠 메인 구조 > 상단 배너 -->
+    <div class="top-banner">
+        <div class="top-banner-cont">
+            <div class="swiper-container">
+	            <div class="swiper-wrapper">
+	                
+			        </div>
+                <div class="top-control" style="border-top:0px solid #ffffff;">
+                    <div class="top-control-wrap">
+                        <div class="top-close">
+                            <div class="chk-area">
+                                <div class="form-check">
+                                    <input type="checkbox" name="bannerX" id="bannerX">
+                                    <label for="bannerX">오늘 하루 열지 않기</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="swiper-control">
+                            <div class="slide-num">
+                                <span class="current">1</span>/<span class="total"></span>
+                            </div>
+                            <button type="button" class="top-play-btn">정지</button>
+                            <div class="btn-control-wrap">
+                                <button type="button" class="btn-control swiper-button-prev">이전</button>
+                                <button type="button" class="btn-control swiper-button-next">다음</button>
+                            </div>
+                            <button type="button" class="top-notice-more" data-bs-toggle="modal" data-bs-target="#noticeMore">더보기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="top-banener-close">
+            <div><button type="button" class="bnr-close">팝업 닫기</button></div>
+        </div>
+    </div>
+<!-- e : 컨텐츠 메인 구조 > 상단 배너 -->
+
+<!-- s : 공지 팝업 -->
+	<div class="modal fade notice-modal" id="noticeMore" data-bs-backdrop="static" data-bs-keyboard="false">
+	    <div class="modal-dialog modal-ml modal-dialog-centered">
+	        <div class="modal-content">
+	            <div class="modal-body">
+	                <div class="main-notice-wrap">
+	                    <div class="btn-close-wrap">
+	                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">닫기</button>
+	                    </div>
+	                    <div class="notice-slider">
+	                        <div class="swiper-container">
+	                            <div class="swiper-wrapper">
+	                                
+	                            </div>
+	                        </div>
+	                    </div>
+	                    <div class="both">
+	                        <div class="form-check">
+	                            <input type="checkbox" name="bannerP" id="bannerP">
+                                <label for="bannerP">오늘 하루 열지 않기</label>
+	                        </div>
+	                        <button type="button" class="btn sm tertiary" data-bs-dismiss="modal">닫기</button>
+	                    </div>
+	                </div>
+	                <div class="swiper-control">
+	                    <div class="swiper-pagination"></div>
+	                    <div class="slide-num">
+	                        <span class="current">1</span>/<span class="total"></span>
+	                    </div>
+	                    <button type="button" class="notice-play-btn">재생</button>
+	                    <div class="btn-control-wrap">
+	                        <button type="button" class="btn-control swiper-button-prev">이전 공지 슬라이드</button>
+	                        <button type="button" class="btn-control swiper-button-next">다음 공지 슬라이드</button>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+<!-- e : 공지 팝업 -->
+    <!-- e : top banner -->
+    <div id="wrap">
+        <!-- 포탈 간편인증 Append Main Template  -->
+        <div id="oacxDiv" style="display:none;"></div>
+        <!-- s : header-->
+        
+
+
+
+
+
+
+
+
+
+
+<!-- s : 컨텐츠 메인 구조 > 상단 -->
+    <header id="header">
+        <div class="head-wrap max-w">
+            <div class="header-in">
+                <div class="head-body">
+                    <div class="inner">
+                        <div class="head-etc">
+                            <ul class="etc-ul">
+                            <li class="li">
+                                    <div class="krds-drop-wrap zoom-drop">
+                                        <button type="button" class="btn btn-txt ico-arr-down xsm drop-btn" id="zoom" title="열림">화면크기</button>
+                                        <div class="drop-menu">
+                                            <div class="drop-in">
+                                                <ul class="drop-list">
+                                                    <li><a href="#" class="item-link xlg zoom-in" title="화면크기 크게">크게</a></li>
+                                                    <li><a href="#" class="item-link xsm zoom-out" title="화면크기 작게">작게</a></li>
+                                                </ul>
+                                                <div class="drop-btm-btn">
+                                                    <button type="button" class="btn sm btn-txt ico-reset ico-before zoom-reset" title="화면크기 초기화">초기화</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="li">
+                                    <div class="krds-drop-wrap">
+                                        <button type="button" class="btn btn-txt ico-arr-down xsm drop-btn" id="language" title="열림">Language</button>
+                                        <div class="drop-menu">
+                                            <div class="drop-in">
+                                                <ul class="drop-list">
+                                                    <li><a href="/main.do?language=ko" class="item-link" title="Language 한국어 바로가기">한국어</a></li>
+                                                    <li><a href="javascript:fnCommonMoveEngPage('/enGuide/selectEnGuide01.do','MN-EN-1110','en');" title="Language English 바로가기" class="item-link">English(영어)</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="head-in">
+                            <h1 class="logo">
+                                <a href="/main.do"><img src="/resources/img/logo.png" alt="한국도로교통공단 안전운전 통합민원"></a>
+                            </h1>
+                            <div class="right" id="btn-navi">
+                                
+                                    
+                                    <!-- [세션 : 9719CDD3A1B9DFDCAFC873435C5263FE.SafeDrv_01] -->
+                                   <script>
+                                       var sessionId = "9719CDD3A1B9DFDCAFC873435C5263FE.SafeDrv_01";
+                                       console.log("세션 :" +sessionId);
+                                   </script>
+                                
+                                <!-- 시범오픈 오류등록 -->
+                                <!--
+                                <div id="errReportPcDiv" >
+                                    <button type="button" class="btn-navi navi-row my" name="modalPopup" data-bs-toggle="modal" data-bs-target="#modalPopupDiv" data-bs-href="/errorRpUtil/errRptPop.do" data-bs-id="errRptPopBtn" style="color:#E74C55;">오류등록</button>
+                                </div>
+                                -->
+                                <button type="button" class="btn-navi navi-row search" name="modalPopup" data-bs-target="#modalPopupDiv"  data-bs-href="/menuManage/selectSitemapPop.do" data-bs-id="searchBtn"  data-bs-toggle="modal" title="전체메뉴">통합검색</button>
+                                <button type="button" class="btn-navi navi-row search mo"  onclick="javascript:showMobileHeaderMenuMove();" title="통합검색">통합검색</button><!--모바일용-->
+                                
+                                        <button type="button" class="btn-navi navi-row login" onclick="javascript:fnCommonMovePage('/mainManage/returnLoginHome.do','MN-PO-1900');" title="로그인">로그인</button>
+                                
+                                
+                                    
+                                    
+            
+                                        
+                                        
+                                        
+                                    
+                                
+                                <button type="button" class="btn-navi navi-row join" onclick="javascript:fnNetFunnelAction('/myPageManage/selectMyPageInfo.do', 'MN-PO-1811', 'drvMyDash');" title="마이페이지">마이페이지</button>
+                                <button type="button" class="btn-navi navi-row all-menu" name="modalPopup" data-bs-target="#modalPopupDiv"  data-bs-href="/menuManage/selectSitemapPop.do" data-bs-id="sitemapBtn"  data-bs-toggle="modal" title="전체메뉴">전체메뉴</button>
+                                <!--s : 모바일 메뉴버튼-->
+                                <div class="util">
+                                    <a href="javascript:showMobileHeaderMenu();" class="btn-navi all" id="m-gnb-open" title="메뉴열기"><span class="sr-only">메뉴열기</span></a>
+                                </div>
+                                <!--e : 모바일 메뉴버튼-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- s : 웹 메뉴 영역 -->
+                <nav class="krds-gnb">
+                    <div class="inner">
+                        <ul class="gnb-menu">
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuGeDiv','MN-PO-1300');" title="메뉴 열기">교통안전교육</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuGeDiv"></div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuDtDiv','MN-PO-1100');" title="메뉴 열기">운전면허시험</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuDtDiv"></div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuDiDiv','MN-PO-1200');" title="메뉴 열기">운전면허증 발급</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuDiDiv"></div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuItDiv','MN-PO-1400');" title="메뉴 열기">강사 및 기능검정원</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuItDiv"></div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuEeDiv','MN-PO-1500');" title="메뉴 열기">교통안전 전문교육</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuEeDiv"></div>
+                                </div>
+                            </li>
+                            <li>
+                                <button type="button" class="gnb-main-trigger" onclick="javascript:showHeaderMenu('headerMenuEtDiv','MN-PO-1700');" title="메뉴 열기">고객센터</button>
+                                <div class="gnb-toggle-wrap">
+                                    <div class="gnb-main-list" data-has-submenu="true" id="headerMenuEtDiv"></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <!-- e : 웹 메뉴 영역 -->
+            </div>
+        </div>
+
+        <!--s : 모바일 네비게이션-->
+        <div id="m-gnb" class="m-gnb-wrap" aria-hidden="true">
+            <div class="m-gnb-in">
+                <div class="m-gnb-head">
+                    <div class="m-gnb-top-etc">
+                        <ul class="etc-ul">
+                            <li>
+                            <div class="krds-drop-wrap zoom-drop">
+                                <button type="button" class="btn btn-txt ico-arr-down xsm drop-btn active" title="화면크기">화면크기<span class="sr-only">닫기</span></button>
+                                <div class="drop-menu" style="display: block;">
+                                    <div class="drop-in">
+                                        <ul class="drop-list">
+                                            <li><a href="#" class="item-link xlg zoom-in" title="화면크기 크게">크게</a></li>
+                                            <li><a href="#" class="item-link xsm zoom-out" title="화면크기 작게">작게</a></li>
+                                        </ul>
+                                        <div class="drop-btm-btn">
+                                            <button type="button" class="btn sm btn-txt ico-reset ico-before zoom-reset" title="화면크기 초기화">초기화</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </li>
+                            <li><button type="button" class="btn btn-txt chk" onclick="javascript:fnCommonMoveEngPage('/enGuide/selectEnGuide01.do','MN-EN-1110','en');" title="English 바로가기">English</button></li>
+                            <li><button type="button" class="btn btn-txt chk" onclick="javascript:fnNetFunnelAction('/myPageManage/selectMyPageInfo.do', 'MN-PO-1811', 'drvMyDash');" title="마이페이지 바로가기">마이페이지</button></li>
+                        </ul>
+                        <button type="button" class="btn btn-ico ico-close" title="전체메뉴 닫기">
+                            <span class="sr-only">전체메뉴 닫기</span>
+                        </button>
+                    </div>
+
+                    <!--s : 로그인 / 로그아웃-->
+                    
+                        
+                        
+                            
+                                <div class="m-gnb-login">
+                                    <button type="button" class="btn btn-txt ico-logout ico-before  xsm" onclick="javascript:fnNetFunnelAction('/myPageManage/selectMyPageInfo.do', 'MN-PO-1811', 'drvMyDash');"  title="로그인해주세요">로그인해주세요</button>
+                                </div>
+                            
+                            
+                            
+                            
+                        
+                    
+                    <!--e : 로그인 / 로그아웃-->
+
+                    <!--s : 모바일검색어 입력-->
+                    <div class="etc-sch">
+                        <div class="sch-input">
+                            <label for="searchMobileNm">검색어 입력</label>
+                            <input type="text" class="form-control md"  id="searchMobileNm" name="searchMobileNm" placeholder="찾고자 하는 메뉴명을 입력해주세요" style="font-size: inherit;">
+                            <a href="javascript:fnSearchMobileDel();" class="search-del"><span class="sr-only">검색어 지우기</span></a>
+                            <button type="button" class="btn btn-ico ico-sch open-modal" data-target="modal_search" onclick="javascript:fnMenuSearchMobile();" title="검색">
+                                <span class="sr-only">검색</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!--e : 모바일검색어 입력-->
+                </div>
+
+                <!--s : 모바일 사이트맵-->
+                <div class="m-gnb-body">
+                    <div class="m-gnb-menu">
+                        <div class="menu-wrap" id="mobileMenuDiv">
+                            <ul class="ul">
+                                <li><a href="#mGnb-anchor1" class="mn active">교통안전교육</a></li>
+                                <li><a href="#mGnb-anchor2" class="mn">운전면허시험</a></li>
+                                <li><a href="#mGnb-anchor3" class="mn">운전면허증 발급</a></li>
+                                <li><a href="#mGnb-anchor4" class="mn">강사 및 기능검정원</a></li>
+                                <li><a href="#mGnb-anchor5" class="mn">교통안전 전문교육</a></li>
+                                <li><a href="#mGnb-anchor6" class="mn">고객센터</a></li>
+                            </ul>
+                        </div>
+                        <div class="submenu-wrap" id="mobileSubMenuDiv">
+                            <div class="dl" id="mGnb-anchor1"></div>
+                        </div>
+                    </div>
+                    <div class="m-gnb-body-btm">
+                        <!--<a href="#" class="btn btn-txt sm">고객센터</a>-->
+                        <div id="mGnbDiv" class='ru-count'></div>
+                    </div>
+                </div>
+                <!--s : 모바일 사이트맵-->
+            </div>
+        </div>
+        <!--e : 모바일 네비게이션-->
+    </header>
+<!-- e : 컨텐츠 메인 구조 > 상단 -->
+        <!-- e // header-->
+
+        <div id="container" class="max-w">
+            <div class="inner in-between">
+                <!-- s : left-->
+                
+
+
+
+
+
+
+
+
+
+
+<!-- s : 컨텐츠 서브 구조 > 좌측 메뉴 -->
+
+
+
+    <div class="left-menu">
+         
+             <div class="left-in">
+                 
+                     
+                         
+                         <h2 class="lnb-tit">
+                             운전면허 시험
+                         </h2>
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                     
+                 
+                 <ul class="acco-list lnb-list" data-action="accordion">
+                     
+                         
+                      
+                         
+                             
+                             
+                                 
+                                  
+                                     <li class="li">
+                                   
+                               
+                               
+                                  <div class="acco-head">
+                               
+                               
+                               
+                                     <button type="button" class="btn btn-ico acco-btn" id="MN-PO-1110" onclick="javascript:fnLeftMenuChg(this.id);" title="열림">
+                                         <span class="tit" style="font-weight:bold;text-align:left; color: #003675;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: calc(100% - 2rem);">면허시험 안내</span>
+                                     </button>
+                               
+                                 </div>
+                                  <div class="acco-body" >
+                                     <div class="acco-in">
+                                          <ul class="sub-ul">
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide17.do','MN-PO-1117');" class="subm" style="outline-offset:-1px;" >면허시험 준비물 가이드</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide01.do','MN-PO-1111');" class="subm" style="outline-offset:-1px;" >면허시험순서</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide02.do','MN-PO-1112');" class="subm" style="outline-offset:-1px;" >시험자격/결격/면제</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide06.do','MN-PO-1113');" class="subm" style="outline-offset:-1px;" >응시 전 교통안전교육</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide08.do','MN-PO-1114');" class="subm" style="outline-offset:-1px;" >학과/기능/도로주행</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide15.do','MN-PO-1115');" class="subm" style="outline-offset:-1px;" >시험장별 응시가능 시험</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/dtGuide/selectDtGuide16.do','MN-PO-1116');" class="subm" style="outline-offset:-1px;" >운전면허의 종류</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                          </ul>
+                                     </div>
+                                 </div>
+                             </li>
+                          
+                      
+                         
+                             
+                             
+                                 
+                                  
+                                     <li class="li">
+                                   
+                               
+                               
+                                  <div class="acco-head">
+                               
+                               
+                               
+                                     <button type="button" class="btn btn-ico acco-btn" id="MN-PO-1120" onclick="javascript:fnLeftMenuChg(this.id);" title="열림">
+                                         <span class="tit" style="font-weight:bold;text-align:left; color: #003675;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: calc(100% - 2rem);">응시 전 교통안전교육</span>
+                                     </button>
+                               
+                                 </div>
+                                  <div class="acco-body" >
+                                     <div class="acco-in">
+                                          <ul class="sub-ul">
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/applyTfcSftEdu/selectApplyTfcSftEduSchedule.do','MN-PO-1121');" class="subm" style="outline-offset:-1px;" >교육 일정 확인</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/applyTfcSftEdu/selectApplyTfcSftEduTerms.do','MN-PO-1122');" class="subm" style="outline-offset:-1px;" >교육 신청</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/applyTfcSftEdu/selectApplyTfcSftEduChgList.do','MN-PO-1123');" class="subm" style="outline-offset:-1px;" >접수 확인 및 변경/취소</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                          </ul>
+                                     </div>
+                                 </div>
+                             </li>
+                          
+                      
+                         
+                             
+                             
+                                 
+                                  
+                                     <li class="li">
+                                   
+                               
+                               
+                                  <div class="acco-head">
+                               
+                               
+                               
+                                     <button type="button" class="btn btn-ico acco-btn" id="MN-PO-1130" onclick="javascript:fnLeftMenuChg(this.id);" title="열림">
+                                         <span class="tit" style="font-weight:bold;text-align:left; color: #003675;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: calc(100% - 2rem);">기능/도로주행 시험접수</span>
+                                     </button>
+                               
+                                 </div>
+                                  <div class="acco-body" >
+                                     <div class="acco-in">
+                                          <ul class="sub-ul">
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/drvLicnsExam/selectDrvLicnsExamSchedule.do','MN-PO-1131');" class="subm" style="outline-offset:-1px;" >시험 일정 확인</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         <!-- 시험 접수 -->
+                                                             <a href="javascript:fnCommonDtSuspend();" class="subm" style="outline-offset:-1px;">시험 접수</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         <!-- 접수 확인 및 변경/취소 -->
+                                                             <a href="javascript:fnCommonDtSuspend();" class="subm" style="outline-offset:-1px;">접수 확인 및 변경/취소</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                          </ul>
+                                     </div>
+                                 </div>
+                             </li>
+                          
+                      
+                         
+                             
+                             
+                                 
+                                  
+                                     <li class="li">
+                                   
+                               
+                               
+                                  <div class="acco-head">
+                               
+                               
+                               
+                                     <button type="button" class="btn btn-ico acco-btn" id="MN-PO-1140" onclick="javascript:fnLeftMenuChg(this.id);" title="열림">
+                                         <span class="tit" style="font-weight:bold;text-align:left; color: #003675;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: calc(100% - 2rem);">연습면허발급</span>
+                                     </button>
+                               
+                                 </div>
+                                  <div class="acco-body" >
+                                     <div class="acco-in">
+                                          <ul class="sub-ul">
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         <!-- 연습면허 발급신청 -->
+                                                             <a href="javascript:fnCommonPlSuspend();" class="subm" style="outline-offset:-1px;">발급신청</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         <!-- 신청 확인 및 결제 -->
+                                                             <a href="javascript:fnCommonPlSuspend();" class="subm" style="outline-offset:-1px;">신청 확인 및 결제</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         <!-- 연습면허증 출력 -->
+                                                             <a href="javascript:fnCommonPlSuspend();" class="subm" style="outline-offset:-1px;">연습면허증 출력</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         <!-- 발급 내역 조회 -->
+                                                             <a href="javascript:fnCommonPlSuspend();" class="subm" style="outline-offset:-1px;">발급 내역 조회</a></li>
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                          </ul>
+                                     </div>
+                                 </div>
+                             </li>
+                          
+                      
+                         
+                             
+                             
+                                 
+                                     
+                                     <li class="li active"><!-- 선택된 대메뉴 클래스 active -->
+                                  
+                                  
+                               
+                               
+                                  <div class="acco-head">
+                               
+                               
+                                     <button type="button" class="btn btn-ico acco-btn" id="MN-PO-1150" onclick="javascript:fnLeftMenuChg(this.id);" title="접기">
+                                         <span class="tit" style="font-weight:bold;text-align:left; color: #003675;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;width: calc(100% - 2rem);">학과시험 문제은행</span>
+                                     </button>
+                               
+                               
+                                 </div>
+                                  <div class="acco-body" >
+                                     <div class="acco-in">
+                                          <ul class="sub-ul">
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                             <li class="active"><!-- 선택된 소메뉴 클래스 active -->
+                                                         
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/subExamBoard/selectSubExamBoardKorList.do','MN-PO-1151');" class="subm" style="outline-offset:-1px;" title="선택됨">학과시험 문제[한국어]</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/subExamBoard/selectSubExamBoardEngList.do','MN-PO-1152');" class="subm" style="outline-offset:-1px;" >학과시험 문제[외국어]</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                                 
+                                                     
+                                                         
+                                                         
+                                                            <li>
+                                                         
+                                                     
+                                                     
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                         
+                                                             <a href="javascript:fnCommonMovePage('/subExamBoard/selectSubExamBoardMovieList.do','MN-PO-1153');" class="subm" style="outline-offset:-1px;" >동영상 문제</a></li>
+                                                         
+                                                     
+                                                 
+                                             
+                                          </ul>
+                                     </div>
+                                 </div>
+                             </li>
+                          
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                         
+                      
+                  </ul>
+            </div>
+        
+        <!--
+        <div class="left-banner">
+           <a href="https://www.koroad.or.kr" target="_blank" title="새창열림" style="outline-offset:7px;"><img src="/resources/img/left-banner.jpg" alt="도로 위 안전을 향한 70년 국민안전을 위한 100년 한국도로교통공단 70주년" ></a>
+        </div>
+        -->
+    </div>
+
+<!-- e : 컨텐츠 서브 구조 > 좌측 메뉴 -->
+
+<!-- s : 컨텐츠 서브 구조 > 좌측 메뉴 script -->
+    <script type="text/javascript">
+        //대메뉴 클릭
+        function fnLeftMenuChg(forcsId){
+            setTimeout(function() {
+                $(".acco-list li").each(function(){
+                    $(this).find("button").each(function(){
+                        if($(this).prop("id") == forcsId){
+                                if($(this).parent().parent().attr("class") == "li"){
+                                    $(this).attr('title', '열림');
+                                }else{
+                                    $(this).attr('title', '접기');
+                                }
+                        }else{
+                            $(this).attr('title', '열림');
+                        }
+                  });
+               });
+           }, 600);
+        }
+    </script>
+<!-- s : 컨텐츠 서브 구조 > 좌측 메뉴 script -->
+                <!-- e : left-->
+                <!-- s : contents-->
+                
+                
+                    <div class="contents">
+                        
+
+
+
+
+
+
+
+
+
+
+<!-- s : 컨텐츠 서브 구조 > 타이틀 -->
+
+    <div class="breadcrumb-wrap">
+        
+            
+            
+            
+            
+            
+            
+                <ol class="breadcrumb">
+                    <li class="home"><a href="/main.do" class="txt" id="subContainer">홈</a></li>
+                    
+                        
+                             
+                             <li><a href="javascript:fnForwardMovePage('/dtGuide/selectDtGuide17.do?menuCd=MN-PO-1117');" class="txt"><input type="hidden" id="oneDepthMenuNm" value='운전면허 시험'>운전면허 시험</a></li>
+                        
+                        
+                        
+                    
+                        
+                        
+                            
+                        
+                        
+                    
+                        
+                        
+                            
+                        
+                        
+                    
+                        
+                        
+                            
+                        
+                        
+                    
+                        
+                        
+                            
+                        
+                        
+                    
+                        
+                        
+                            
+                                
+                                
+                                
+                                    <li><a href="javascript:fnForwardMovePage('/subExamBoard/selectSubExamBoardKorList.do?menuCd=MN-PO-1151');" class="txt"><input type="hidden" id="twoDepthMenuNm" value='학과시험 문제은행'>학과시험 문제은행</a></li>
+                                
+                            
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                    
+                        
+                        
+                        
+                            
+                                <li><a href="javascript:fnCommonMovePage('/subExamBoard/selectSubExamBoardKorList.do','MN-PO-1151');" class="txt"><input type="hidden" id="threeDepthMenuNm" value='학과시험 문제[한국어]'>학과시험 문제[한국어]</a></li>
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                            
+                        
+                    
+                        
+                        
+                        
+                            
+                        
+                    
+                        
+                        
+                        
+                            
+                        
+                    
+                </ol>
+            
+        
+    </div>
+
+
+<!-- s : 컨텐츠 서브 구조 > 타이틀 -->
+
+<!-- s : 컨텐츠 서브 구조 > 타이틀 script -->
+<script type="text/javascript">
+    $(document).ready(function(){
+        var requsetPath = "/subExamBoard/selectSubExamBoardKor.do";
+        var titleNm = "학과시험 문제[한국어] 상세보기";
+        var selectMenu = "MN-PO-1151";
+        var histUrl = "";
+        var currentMenuNm = "";
+
+        if(requsetPath.indexOf("organ") != "-1" || requsetPath.indexOf("bodyInspect") != "-1" || requsetPath.indexOf("adminIntrfcTest") != "-1" || requsetPath.indexOf("testSecondCheck") != "-1" || requsetPath.indexOf("authtest") != "-1") {
+            currentMenuNm = titleNm +" | 홈 | 한국도로교통공단 안전운전 통합민원";
+        }else{
+            if(selectMenu == "MN-PO-1316"  || selectMenu == "MN-PO-1312" || selectMenu == "MN-PO-1314" || selectMenu == "MN-PO-1317" ||
+               selectMenu == "MN-PO-1111"  || selectMenu == "MN-PO-1115" || selectMenu == "MN-PO-1116" ||
+                  selectMenu == "MN-PO-12111" || selectMenu == "MN-PO-1212" || selectMenu == "MN-PO-1214" || selectMenu == "MN-PO-1219" ||  selectMenu == "MN-PO-1216" || selectMenu == "MN-PO-1217" ||
+                  selectMenu == "MN-PO-1412"  || selectMenu == "MN-PO-1713" || selectMenu == "MN-PO-1714" ||
+                  selectMenu == "MN-PO-1521"  || selectMenu == "MN-PO-1522" || selectMenu == "MN-PO-1523" || selectMenu =="MN-PO-1524"  || selectMenu =="MN-PO-1117"){
+                currentMenuNm = $("#threeDepthMenuNm").val()+" | "+$("#twoDepthMenuNm").val()+" | "+$("#oneDepthMenuNm").val()+" | 홈 | 한국도로교통공단 안전운전 통합민원";
+            }else if(selectMenu == "MN-PO-1900"){
+                titleNm = "로그인";
+                currentMenuNm = titleNm +" | 홈 | 한국도로교통공단 안전운전 통합민원";
+            }else{
+                currentMenuNm = titleNm +" | "+ $("#threeDepthMenuNm").val()+" | "+$("#twoDepthMenuNm").val()+" | "+$("#oneDepthMenuNm").val()+" | 홈 | 한국도로교통공단 안전운전 통합민원";
+            }
+        }
+        document.title = currentMenuNm;
+    });
+</script>
+<!-- e : 컨텐츠 서브 구조 > 타이틀 script -->
+                        
+	<form id="listForm" name="listForm" action="/subExamBoard/selectSubExamBoardKor.do" method="post">
+		<input type="hidden" name="menuCd"  id="menuCd"   value="MN-PO-1151" >
+		<input type="hidden" id="pageIndex" name="pageIndex" value="">
+		<input type="hidden" id="searchKeyword" name="searchKeyword" value="">
+		<input type="hidden" id="searchKeyCondition" name="searchKeyCondition" value="">
+	</form>
+    <div class="page-title-wrap" data-type="responsive">
+        <h2 class="h-tit">학과시험 문제[한국어] 상세보기</h2>
+    </div>
+	<!-- s : table list -->
+	<div class="tbl-wrap">
+	    <div class="board-view-box">
+	        <div class="border-view-low">
+	            <span class="view-label">제목</span>
+	            <p class="view-for">[2026년 3월 9일 시행] 1·2종보통, 대형·특수 학과시험 문제은행 (한국어)</p>
+	       </div>
+	       <div class="border-view-low">
+	           <span class="view-label">작성자</span>
+	           <p class="view-for">관리자</p>
+	       </div>
+	       <div class="border-view-low col-4">
+	           <span class="view-label">작성일</span>
+	           <p class="view-for">2026-01-29</p>
+	           <span class="view-label">조회수</span>
+	           <p class="view-for">      24,071</p>
+	       </div>
+	       <div class="border-view-low">
+	           <span class="view-label">첨부파일</span>
+	            
+	           <p></p>
+	       </div>
+	       <div class="border-view-body">
+	          <p style="line-height: 1.8;">2026년 3월 9일부터 </p><p><br></p><p style="line-height: 1.8;">학과시험 문제 내용이 일부 변경되어 출제됩니다.</p><p style="line-height: 1.8;">응시생은 개편된 학과시험 문제로 공부하시기 바랍니다.</p><p><br></p><p style="line-height: 1.8;">※ 총 40문항이 임의 방식으로 출제됩니다. </p><p style="line-height: 1.8;">※ 합격을 기원합니다.</p><p><br></p><p style="line-height: 1.8;"><span style="color: rgb(20, 8, 249);"><b><a href="https://www.koroad.or.kr/file/FileDown.do?atchFileId=FID00137702&fileSn=0" target="_self">▷▷▷▷ 운전면허 학과시험 문제은행[1·2종보통, 대형·특수]다운로드 클릭 ▷▷▷▷</a></b></span></p>
+	        </div>
+	    </div>
+	</div>
+	<!-- e // table list -->
+    <div class="page-btn-wrap center">
+        <a href="javascript:fnBoardList();"  title="목록"  class="btn xlg wide" style="outline-offset:7px;">목록</a>
+    </div>
+
+                    </div>
+                
+                <!-- e : contents-->
+            </div>
+            <div class="float-btn">
+                <a href="#container" class="go-top" aria-label="위로 이동" title="위로 이동">위로 이동</a>
+            </div>
+        </div>
+        <!-- s : footer-->
+        
+
+
+
+
+
+
+
+
+
+<style>
+	.btn-txt.sm[class*=ico-]::before, .btn-txt.sm[class*=ico-]::after {
+	    width: 1.8rem;
+	    height: 1.8rem;
+	}
+</style>
+<!-- s : 컨텐츠 메인 구조 > 하단 script -->
+<script type="text/javascript">
+    $(document).ready(function() {
+
+    });
+</script>
+<!-- e : 컨텐츠 메인 구조 > 하단 script -->
+
+<!-- s : 컨텐츠 메인 구조 > 하단 -->
+	<footer>
+	    <div class="foot-link">
+	        <div class="foot-link-wrap max-w">
+	            <div class="foot-select">
+	                <a href="javascript:;" class="sel" title="열림">운전면허시험장</a>
+	                <ul class="option">
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=61&amp;bcstIdx2=75')" title="새창으로 열림" style="height:2rem;">강남</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=61&amp;bcstIdx2=74')" title="새창으로 열림" style="height:2rem;">도봉</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=61&amp;bcstIdx2=76')" title="새창으로 열림" style="height:2rem;">강서</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=61&amp;bcstIdx2=73')" title="새창으로 열림" style="height:2rem;">서부</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=62&amp;bcstIdx2=77')" title="새창으로 열림" style="height:2rem;">부산남부</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=62&amp;bcstIdx2=78')" title="새창으로 열림" style="height:2rem;">부산북부</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=63&amp;bcstIdx2=79')" title="새창으로 열림" style="height:2rem;">대구</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=64&amp;bcstIdx2=80')" title="새창으로 열림" style="height:2rem;">인천</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=65&amp;bcstIdx2=81')" title="새창으로 열림" style="height:2rem;">용인</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=65&amp;bcstIdx2=82')" title="새창으로 열림" style="height:2rem;">안산</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=65&amp;bcstIdx2=83')" title="새창으로 열림" style="height:2rem;">의정부</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=66&amp;bcstIdx2=84')" title="새창으로 열림" style="height:2rem;">춘천</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=66&amp;bcstIdx2=85')" title="새창으로 열림" style="height:2rem;">강릉</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=66&amp;bcstIdx2=86')" title="새창으로 열림" style="height:2rem;">원주</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=66&amp;bcstIdx2=87')" title="새창으로 열림" style="height:2rem;">태백</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=67&amp;bcstIdx2=88')" title="새창으로 열림" style="height:2rem;">청주</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=67&amp;bcstIdx2=89')" title="새창으로 열림" style="height:2rem;">충주</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=67&amp;bcstIdx2=90')" title="새창으로 열림" style="height:2rem;">예산</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=68&amp;bcstIdx2=91')" title="새창으로 열림" style="height:2rem;">대전</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=69&amp;bcstIdx2=92')" title="새창으로 열림" style="height:2rem;">전북</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=69&amp;bcstIdx2=93')" title="새창으로 열림" style="height:2rem;">전남</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=69&amp;bcstIdx2=94')" title="새창으로 열림" style="height:2rem;">광양</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=70&amp;bcstIdx2=95')" title="새창으로 열림" style="height:2rem;">문경</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=70&amp;bcstIdx2=96')" title="새창으로 열림" style="height:2rem;">포항</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=70&amp;bcstIdx2=97')" title="새창으로 열림" style="height:2rem;">마산</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=71&amp;bcstIdx2=98')" title="새창으로 열림" style="height:2rem;">울산</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/content/view/MN05010523.do?bcstIdx1=72&amp;bcstIdx2=99')" title="새창으로 열림" style="height:2rem;">제주</button></li>
+
+	                </ul>
+	            </div>
+	            <div class="foot-select">
+	                <a href="javascript:;" class="sel" title="열림">TBN</a>
+	                <ul class="option">
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=1')" title="새창으로 열림" style="height:2rem;">TBN 본부</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=2')" title="새창으로 열림" style="height:2rem;">부산FM 94.9</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=3')" title="새창으로 열림" style="height:2rem;">광주FM 97.3</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=4')" title="새창으로 열림" style="height:2rem;">대구FM 103.9</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=5')" title="새창으로 열림" style="height:2rem;">대전FM 102.9</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=6')" title="새창으로 열림" style="height:2rem;">경인FM 100.5</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=7')" title="새창으로 열림" style="height:2rem;">강원FM 105.9</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=8')" title="새창으로 열림" style="height:2rem;">전북FM 102.5</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=9')" title="새창으로 열림" style="height:2rem;">울산FM 104.1</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=10')" title="새창으로 열림" style="height:2rem;">경남FM 95.5</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=11')" title="새창으로 열림" style="height:2rem;">경북FM 103.5</button></li> <!-- 2014.07.09 - 경북 추가 -->
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=12')" title="새창으로 열림" style="height:2rem;">제주FM 105.5</button></li> <!-- 2016.08.16 - 제주 추가 -->
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.tbn.or.kr/main.tbn?area_code=13')" title="새창으로 열림" style="height:2rem;">충북FM 103.3</button></li> <!-- 2021.03.05 - 충북 추가 -->
+	                </ul>
+	            </div>
+	            <div class="foot-select">
+	                <a href="javascript:;" class="sel" title="열림">시도지부</a>
+	                <ul class="option">
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=20')" title="새창으로 열림" style="height:2rem;">서울</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=21')" title="새창으로 열림" style="height:2rem;">부산</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=22')" title="새창으로 열림" style="height:2rem;">대구</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=23')" title="새창으로 열림" style="height:2rem;">인천</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=24')" title="새창으로 열림" style="height:2rem;">경기</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=25')" title="새창으로 열림" style="height:2rem;">강원</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=26')" title="새창으로 열림" style="height:2rem;">충북</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=27')" title="새창으로 열림" style="height:2rem;">대전·세종·충남</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=28')" title="새창으로 열림" style="height:2rem;">전북</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=29')" title="새창으로 열림" style="height:2rem;">광주·전남</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=31')" title="새창으로 열림" style="height:2rem;">경북</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=32')" title="새창으로 열림" style="height:2rem;">울산·경남</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.koroad.or.kr/main/board/8/board_list.do?bcstIdx1=60')" title="새창으로 열림" style="height:2rem;">제주</button></li>
+	                </ul>
+	            </div>
+	            <div class="foot-select">
+	                <a href="javascript:;" class="sel" title="열림">관련사이트 바로가기</a>
+	                <ul class="option">
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('http://www.police.go.kr')" title="새창으로 열림" style="height:2rem;">사이버경찰청</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('http://www.epeople.go.kr')" title="새창으로 열림" style="height:2rem;">국민신문고</button></li>
+	                    <!-- <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('http://sdgreenmom.dgweb.kr')" title="새창으로 열림" style="height:2rem;">녹색어머니 중앙회</button></li> -->
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.ncsc.go.kr:4018')" title="새창으로 열림" style="height:2rem;">국가사이버안보센터</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('http://www.utic.go.kr')" title="새창으로 열림" style="height:2rem;">도시교통정보센터</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.safetyreport.go.kr')" title="새창으로 열림" style="height:2rem;">안전신문고</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.gov.kr')" title="새창으로 열림" style="height:2rem;">정부24</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://www.nhis.or.kr')" title="새창으로 열림" style="height:2rem;">국민건강보험공단</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://taas.koroad.or.kr')" title="새창으로 열림" style="height:2rem;">교통사고분석시스템</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://library.koroad.or.kr')" title="새창으로 열림" style="height:2rem;">전자도서실</button></li>
+	                    <li><button type="button" class="btn sm btn-txt ico-go" onclick="window.open('https://trafficedu.koroad.or.kr:8443')" title="새창으로 열림" style="height:2rem;">교통안전 교육센터</button></li>
+	                </ul>
+	            </div>
+	        </div>
+	    </div>
+	    <div class="footer-wrap max-w">
+
+	        <div class="foot-logo">
+	            <a href="/main.do" style="outline-offset:7px;"><img src="/resources/img/logo-gray.png" alt="한국도로교통공단 안전운전 통합민원"></a>
+	        </div>
+	        <div class="foot-info">
+	            <div class="foot-address">
+	                <address>(26466) 강원특별자치도 원주시 혁신로 2(반곡동) 한국도로교통공단</address>
+	                <p>사업자 등록번호 : 203-82-32086 한국도로교통공단 이사장 김희중</p>
+	                <p><strong>고객센터 1577-1120</strong><span> (수화상담 107) 외국어 상담(채팅) 카카오톡 「한국도로교통공단 고객센터」채널</span><p>
+	            </div>
+	            <div class="foot-cerify" style="padding-top:100px;">
+	                
+	                <span><a href="https://www.wa.or.kr/board/list.asp?BoardID=0006" target="_blank" title="새창열림" class="btnImg"><img style="width: 49px;height: 47px;"src="/resources/img/component/foot_img_certify2.png" alt="웹 접근성 품질마크"></a></span>
+	            </div>
+	        </div>
+	        <!--PC-->
+	        <div class="foot-site-in" id="footSiteWeb">
+                <ul style="width:100%; display:flex;">
+                    <li style="width:10%;"><a href="https://www.koroad.or.kr/main/content/view/MN06010000.do" target="_blank" title="새창열림"><strong>개인정보처리방침</strong></a></li>
+                    <li style="padding-left:7px;width:10%;"><a href="https://www.koroad.or.kr/main/content/view/MN06020000.do" target="_blank" title="새창열림">이메일무단수집거부</a></li>
+                    <li style="padding-left:7px;width:8%;"><a href="https://www.koroad.or.kr/main/content/view/MN05040203.do" target="_blank" title="새창열림">임직원행동강령</a></li>
+                    <li style="padding-left:7px;width:9%;"><a href="javascript:fnCommonMovePage('/etGuide/selectEtGuide04.do','MN-PO-1712');" title="홈페이지 도움말 바로가기">홈페이지 도움말</a></li>
+                    <li style="padding-left:1px;width:5%;">
+                        <a href="#" class="w-link" data-bs-target="#modalPopupDiv"  data-bs-href="/menuManage/selectSitemapPop.do" data-bs-toggle="modal" data-bs-id="sitemapBtnFooter" id="sitemapBtnFooter" title="팝업 열기">사이트맵</a>
+                        <!--s: 모바일 링크-->
+                        <a href="javascript:showMobileHeaderMenuMove();" class="m-link" title="팝업 열기">사이트맵</a>
+                        <!--e: 모바일 링크-->
+                    </li>
+                    <li style="width:59%; text-align:right;">© 2026 KOROAD. All rights reserved.</li>
+                </ul>
+	        </div>
+	        <!--모바일-->
+	        <div class="foot-site-in" id="footSiteMobile">
+                <ul class="site-public">
+                    <li><a href="https://www.koroad.or.kr/main/content/view/MN06010000.do" target="_blank" title="새창열림"><strong>개인정보처리방침</strong></a></li>
+                    <li><a href="https://www.koroad.or.kr/main/content/view/MN06020000.do" target="_blank" title="새창열림">이메일무단수집거부</a></li>
+                    <li><a href="https://www.koroad.or.kr/main/content/view/MN05040203.do" target="_blank" title="새창열림">임직원행동강령</a></li>
+                    <li><a href="javascript:fnCommonMovePage('/etGuide/selectEtGuide04.do','MN-PO-1712');" title="홈페이지 도움말 바로가기">&nbsp;&nbsp;&nbsp;홈페이지 도움말</a></li>
+                    <li>
+                        <a href="#" class="w-link" data-bs-target="#modalPopupDiv"  data-bs-href="/menuManage/selectSitemapPop.do" data-bs-toggle="modal" title="팝업 열기">사이트맵</a>
+                        <!--s: 모바일 링크-->
+                        <a href="javascript:showMobileHeaderMenuMove();" class="m-link" title="팝업 열기">사이트맵</a>
+                        <!--e: 모바일 링크-->
+                    </li>
+                </ul>
+                <p>© 2026 KOROAD. All rights reserved.</p>
+            </div>
+	    </div>
+	</footer>
+<!-- e : 컨텐츠 메인 구조 > 하단 -->
+        <!-- e : footer-->
+    </div>
+
+    <!-- s : 모달팝업 -->
+    <div class="modal fade" id="modalPopupDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered" data-bs-config={backdrop:true}>
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 모달팝업 -->
+
+    <!-- s : 사진적합성결과 팝업 -->
+    <div class="modal fade" id="modalFaceResultDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered" data-bs-config={backdrop:true}>
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 사진적합성결과 팝업 -->
+
+    <!-- s : 알림팝업 -->
+    <div class="modal fade" id="modalAlertDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 알림팝업 -->
+
+    <!-- s : 확인팝업 -->
+    <div class="modal fade" id="modalConfirmDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 확인팝업 -->
+
+    <!-- s : 리턴팝업 -->
+    <div class="modal fade" id="modalReturnDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 리턴팝업 -->
+
+    <!-- s : 리턴홈팝업 -->
+    <div class="modal fade" id="modalReturnHomeDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 리턴홈팝업 -->
+
+    <!-- s : 리턴URL팝업 -->
+    <div class="modal fade" id="modalReturnUrlDiv" data-bs-backdrop="static" data-bs-keyboard="false">
+       <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+    <!-- e : 리턴URL팝업 -->
+
+    <!-- s : 출력폼 -->
+    <form name="ozForm" id="ozForm" method="post">
+        <input type="hidden" name="reportObj" id="reportObj"/>
+        <input type="hidden" name="isMobile" id="isMobile" value="N"/>
+    </form>
+    <!-- e : 출력폼 -->
+
+    <!-- s : 공통폼 -->
+    <form name="commonForm" id="commonForm" method="post" onsubmit="return false">
+        <input type="hidden" name="menuCd" id="menuCds" value="MN-PO-1151"/>
+        <input type="hidden" name="langFlag" id="langFlag"  value=""/>
+        <input type="hidden" name="bbscttSn" id="bbscttSns"/>
+        <input type="hidden" name="reMenuUrl" id="reMenuUrl"/>
+        <input type="hidden" name="reMenuCd" id="reMenuCd"/>
+        <input type="hidden" name="jobType" id="jobType"/>
+        <input type="hidden" name="lcnsNo" id="lcnsNos"/>
+        <input type="hidden" name="netfunnelKey" id="netfunnelKey" value="">
+        <input type="hidden" name="netfunnelYn" id="netfunnelYn" value="N">
+        <input type="hidden" name="actionId" id="actionId" value="">
+    </form>
+    <!-- e : 공통폼 -->
+
+    <!-- s : 슬라이드 스크립트-->
+    <script type="text/javascript">
+        $(function(){
+            //main accordian
+            $(".main-accro-list>li>a").click(function(){
+                $(".main-accro-list>li").removeClass("active");
+                $(this).parent("li").toggleClass("active");
+            });
+            //챗봇
+            $(".chatbot .close").click(function(){
+                $(".chat-wrap").addClass("hide");
+            });
+
+        });
+
+        //슬라이더 시작
+        function mainSlider() {
+            /****** top-banner 슬라이드 ******/
+            var topSlider = new Swiper(".top-banner .swiper-container", {
+                slidesPerView: 1,
+                spaceBetween: 0,
+                loop: false,
+                speed: 700,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                },
+                navigation: {
+                    nextEl: ".top-banner .swiper-button-next",
+                    prevEl: ".top-banner .swiper-button-prev",
+                },
+                on: {
+                    init: function() { updatePagination(this, ".top-banner .slide-num"); },
+                    slideChange: function() { updatePagination(this, ".top-banner .slide-num"); },
+                },
+            });
+
+            /****** 공지 팝업 슬라이드 ******/
+            let notiSlider;
+            const noticeModal = document.querySelector(".notice-modal");
+
+            noticeModal.addEventListener("shown.bs.modal", function() {
+                if (!notiSlider) {
+                notiSlider = new Swiper(".notice-slider .swiper-container", {
+                    slidesPerView: 1,
+                    loop: false,
+                    speed: 700,
+                    /* 초기 정지상태로 주석처리
+                    autoplay: {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                        },
+                    */
+                    pagination: {
+                        el: ".swiper-pagination",
+                    },
+                    observer: true,
+                    observeParents: true,
+                    navigation: {
+                        nextEl: ".notice-modal .swiper-button-next",
+                        prevEl: ".notice-modal .swiper-button-prev",
+                    },
+                    on: {
+                    init: function() {
+                        setTimeout(() => updatePagination(this, ".notice-modal .slide-num"), 50);
+                    },
+                    slideChange: function() {
+                        updatePagination(this, ".notice-modal .slide-num");
+                    },
+                    },
+                });
+
+                // 재생/정지
+                const btn = document.querySelector(".notice-play-btn");
+                if (btn) {
+                    let isPlaying = false;
+                    btn.textContent = "재생";
+                    btn.classList.add("play");
+
+                    btn.addEventListener("click", function () {
+                    if (!notiSlider) return;
+                    if (isPlaying) {
+                        notiSlider.autoplay.stop();
+                        btn.textContent = "재생";
+                        btn.classList.remove("pause");
+                        btn.classList.add("play");
+                    } else {
+                        notiSlider.autoplay.start();
+                        btn.textContent = "정지";
+                        btn.classList.remove("play");
+                        btn.classList.add("pause");
+                    }
+                    isPlaying = !isPlaying;
+                    });
+                }
+
+                } else {
+                notiSlider.update();
+                setTimeout(() => updatePagination(notiSlider, ".notice-modal .slide-num"), 50);
+                }
+            });
+
+            /****** 슬라이드 total 계산 ******/
+            function getRealTotal(swiper) {
+                if (!swiper || !swiper.slides) return 0;
+                if (swiper.params && swiper.params.loop) {
+                return Math.max(0, swiper.slides.length - (swiper.loopedSlides || 0) * 2);
+                }
+                return Array.from(swiper.slides).filter(s => !s.classList.contains("swiper-slide-duplicate")).length;
+            }
+
+            function updatePagination(swiper, selector) {
+                const container = document.querySelector(selector);
+                if (!container) return;
+
+                const current = (swiper && typeof swiper.realIndex === "number") ? swiper.realIndex + 1 : 1;
+                const total = getRealTotal(swiper);
+
+                const curEl = container.querySelector(".current");
+                const totEl = container.querySelector(".total");
+
+                if (curEl) curEl.textContent = current;
+                if (totEl) totEl.textContent = total;
+            }
+
+            /****** top-banner 재생/정지 버튼 ******/
+            const topBtn = document.querySelector(".top-play-btn");
+            if (topBtn) {
+                let isPlaying = true;
+                topBtn.textContent = "정지";
+                topBtn.classList.add("pause");
+
+                topBtn.addEventListener("click", function() {
+                if (isPlaying) {
+                    topSlider.autoplay.stop();
+                    topBtn.textContent = "재생";
+                    topBtn.classList.remove("pause");
+                    topBtn.classList.add("play");
+                } else {
+                    topSlider.autoplay.start();
+                    topBtn.textContent = "정지";
+                    topBtn.classList.remove("play");
+                    topBtn.classList.add("pause");
+                }
+                isPlaying = !isPlaying;
+                });
+            }
+       }
+
+        mainSlider();
+        /*슬라이더 끝*/
+
+        /*탑배너 접고 펼침*/
+        const btn = document.querySelector('.bnr-close');
+        const box = document.querySelector('.top-banner-cont');
+
+        btn.addEventListener('click', () => {
+            if (box.classList.contains('active')) {
+                //배너가 없을경우
+                var subBannerSize = '';
+                if(subBannerSize == "0"){
+                    var param  = {"popUpMsg":"알림팝업이 없습니다."};
+                    fnCommonAlertPopupReturn(param).then(function(result){
+                        if(result){
+                            $("#modalAlertDiv").modal("hide");
+                            setTimeout(function() {document.querySelector('.bnr-close').focus();}, 50);
+                            return;
+                        }
+                    });
+                    return;
+                }
+                // 닫기
+                box.classList.remove('active');
+                btn.textContent = "팝업닫기";
+                btn.classList.remove('active');
+            } else {
+                // 열기
+                box.classList.add('active');
+                btn.textContent = "팝업열기";
+                btn.classList.add('active');
+            }
+
+        });
+    </script>
+    <!-- e : 슬라이드 스크립트-->
+
+    <script defer src="/resources/js/common.js"></script>
+    
+</body>
+<!-- e : 컨텐츠 서브 -->
+</html>

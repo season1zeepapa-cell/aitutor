@@ -1,0 +1,4406 @@
+{
+  "questions": [
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-BLANK-A",
+      "chapter_code": "DSG-IV-01",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · DBMS 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "DBMS 조회 시 SQL 삽입을 막기 위해 Java에서는 JDBC의 {{1}}를 사용하여 ? 바인드 파라미터로 쿼리와 데이터를 분리한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "PreparedStatement"
+          ],
+          "synonyms": [
+            "preparedstatement"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = PreparedStatement\n\n해설:\nSQL 삽입(SQL Injection)은 입력값이 SQL 구문에 그대로 삽입돼 쿼리 구조를 변조하는 공격입니다.\n방어의 원칙은 \"구조와 데이터를 분리\"하는 것으로, Java JDBC의 PreparedStatement는 ? 플레이스홀더에 값을 바인드해 구조 변조를 원천 차단합니다.\nMyBatis에서는 문자열 치환 ${}를 사용하면 동일한 취약점이 발생하므로 반드시 바인드 파라미터 #{} 문법을 사용해야 합니다.",
+      "reference": "진단가이드 §DBMS 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-BLANK-B",
+      "chapter_code": "DSG-IV-01",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · DBMS 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "MyBatis 프레임워크에서는 문자열 치환 {{1}} 대신 바인드 파라미터 {{2}} 문법을 사용해야 SQL 삽입을 방지할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "${}"
+          ],
+          "synonyms": [
+            "${",
+            "달러중괄호"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "#{}"
+          ],
+          "synonyms": [
+            "#{",
+            "샵중괄호"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = ${}\n  #2 = #{}\n\n해설:\nSQL 삽입(SQL Injection)은 입력값이 SQL 구문에 그대로 삽입돼 쿼리 구조를 변조하는 공격입니다.\n방어의 원칙은 \"구조와 데이터를 분리\"하는 것으로, Java JDBC의 PreparedStatement는 ? 플레이스홀더에 값을 바인드해 구조 변조를 원천 차단합니다.\nMyBatis에서는 문자열 치환 ${}를 사용하면 동일한 취약점이 발생하므로 반드시 바인드 파라미터 #{} 문법을 사용해야 합니다.",
+      "reference": "진단가이드 §DBMS 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-02-BLANK-A",
+      "chapter_code": "DSG-IV-02",
+      "weakness_name_ko": "XML 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · XML 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "XPath/XQuery 질의에서 사용자 입력을 문자열로 결합하면 {{1}} 취약점이 발생하므로 매개변수 바인딩을 사용해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "XPath Injection",
+            "XPath 삽입"
+          ],
+          "synonyms": [
+            "xpath injection",
+            "xpath 주입"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = XPath Injection / XPath 삽입\n\n해설:\nXML 조회(XPath/XQuery)에서도 SQL 삽입과 동일한 논리로 입력값이 질의 구조에 삽입되면 XPath Injection이 발생합니다.\nJava에서는 javax.xml.xpath.XPathExpression 과 XPathVariableResolver 를 사용해 변수 바인딩을 수행하면 안전합니다.\n문자열 결합으로 XPath 를 구성하는 코드는 항상 취약하다고 간주해야 합니다.",
+      "reference": "진단가이드 §XML 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-02-BLANK-B",
+      "chapter_code": "DSG-IV-02",
+      "weakness_name_ko": "XML 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · XML 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java에서 안전한 XPath 질의를 위해 javax.xml.xpath의 XPathExpression과 {{1}} 기반 변수 바인딩을 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "XPathVariableResolver"
+          ],
+          "synonyms": [
+            "xpath variable resolver"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = XPathVariableResolver\n\n해설:\nXML 조회(XPath/XQuery)에서도 SQL 삽입과 동일한 논리로 입력값이 질의 구조에 삽입되면 XPath Injection이 발생합니다.\nJava에서는 javax.xml.xpath.XPathExpression 과 XPathVariableResolver 를 사용해 변수 바인딩을 수행하면 안전합니다.\n문자열 결합으로 XPath 를 구성하는 코드는 항상 취약하다고 간주해야 합니다.",
+      "reference": "진단가이드 §XML 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-BLANK-A",
+      "chapter_code": "DSG-IV-03",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[설계 · 디렉토리 서비스 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "LDAP 질의 시 사용자 입력을 그대로 삽입하면 {{1}} 취약점이 발생한다. 특수문자 *, (, ), \\ 등을 이스케이프해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "LDAP Injection",
+            "LDAP 삽입"
+          ],
+          "synonyms": [
+            "ldap injection",
+            "ldap 주입"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = LDAP Injection / LDAP 삽입\n\n해설:\nLDAP Injection 은 LDAP 필터 문자열에 특수문자(*, (, ), \\, NUL)가 삽입돼 필터 구조가 변조되는 공격입니다.\nSpring LDAP 의 LdapEncoder 나 OWASP ESAPI 의 encodeForLDAP 같은 라이브러리로 특수문자를 \\xx 헥사 형식으로 이스케이프해야 합니다.\n화이트리스트 입력 검증과 함께 사용하면 더욱 안전합니다.",
+      "reference": "진단가이드 §디렉토리 서비스 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-BLANK-B",
+      "chapter_code": "DSG-IV-03",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[설계 · 디렉토리 서비스 조회 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "Spring LDAP 에서는 {{1}} 클래스를 사용해 입력값을 안전하게 필터 구성해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "LdapEncoder",
+            "Filter.encode"
+          ],
+          "synonyms": [
+            "ldap encoder"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = LdapEncoder / Filter.encode\n\n해설:\nLDAP Injection 은 LDAP 필터 문자열에 특수문자(*, (, ), \\, NUL)가 삽입돼 필터 구조가 변조되는 공격입니다.\nSpring LDAP 의 LdapEncoder 나 OWASP ESAPI 의 encodeForLDAP 같은 라이브러리로 특수문자를 \\xx 헥사 형식으로 이스케이프해야 합니다.\n화이트리스트 입력 검증과 함께 사용하면 더욱 안전합니다.",
+      "reference": "진단가이드 §디렉토리 서비스 조회 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-BLANK-A",
+      "chapter_code": "DSG-IV-04",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 시스템 자원 접근 및 명령어 수행 입력값 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "Runtime.exec 나 ProcessBuilder 호출 시 외부 입력을 문자열로 연결하면 {{1}} 공격이 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "OS Command Injection",
+            "운영체제 명령어 삽입"
+          ],
+          "synonyms": [
+            "command injection",
+            "명령어 주입"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = OS Command Injection / 운영체제 명령어 삽입\n\n해설:\nOS 명령어 삽입은 Runtime.exec 이나 ProcessBuilder 에 사용자 입력을 셸 해석 가능한 형태로 넘길 때 발생합니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 메타문자(;, |, &, `)가 해석되지 않습니다.\n추가로 화이트리스트 검증, chroot, 최소 권한 계정 등 다층 방어를 권장합니다.",
+      "reference": "진단가이드 §시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-BLANK-B",
+      "chapter_code": "DSG-IV-04",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 시스템 자원 접근 및 명령어 수행 입력값 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "안전한 명령 실행을 위해서는 {{1}}에 인자를 배열로 전달하고 셸 메타문자를 화이트리스트로 검증한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "ProcessBuilder"
+          ],
+          "synonyms": [
+            "process builder"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = ProcessBuilder\n\n해설:\nOS 명령어 삽입은 Runtime.exec 이나 ProcessBuilder 에 사용자 입력을 셸 해석 가능한 형태로 넘길 때 발생합니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 메타문자(;, |, &, `)가 해석되지 않습니다.\n추가로 화이트리스트 검증, chroot, 최소 권한 계정 등 다층 방어를 권장합니다.",
+      "reference": "진단가이드 §시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-BLANK-A",
+      "chapter_code": "DSG-IV-05",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[설계 · 웹 서비스 요청 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버가 외부 URL을 사용자 입력 그대로 호출할 경우 내부망 스캔 등 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "SSRF",
+            "서버사이드 요청 위조"
+          ],
+          "synonyms": [
+            "server-side request forgery"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = SSRF / 서버사이드 요청 위조\n\n해설:\n서버가 외부 URL 을 사용자 입력 그대로 호출하면 내부망 스캔·메타데이터 탈취(AWS 169.254.169.254)가 가능한 SSRF 취약점이 됩니다.\n방어는 허용 도메인 allowlist + private IP 대역(10.x, 172.16-31, 192.168, 169.254) 차단이 기본이며, DNS 리바인딩 방지를 위해 해석된 IP 까지 검증합니다.",
+      "reference": "진단가이드 §웹 서비스 요청 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-BLANK-B",
+      "chapter_code": "DSG-IV-05",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[설계 · 웹 서비스 요청 및 결과 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "SSRF 방어를 위해 외부 요청 대상을 {{1}} 기반으로 제한하고, 메타데이터 서비스(169.254.169.254) 접근을 차단한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "allowlist",
+            "화이트리스트"
+          ],
+          "synonyms": [
+            "allow list",
+            "whitelist"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = allowlist / 화이트리스트\n\n해설:\n서버가 외부 URL 을 사용자 입력 그대로 호출하면 내부망 스캔·메타데이터 탈취(AWS 169.254.169.254)가 가능한 SSRF 취약점이 됩니다.\n방어는 허용 도메인 allowlist + private IP 대역(10.x, 172.16-31, 192.168, 169.254) 차단이 기본이며, DNS 리바인딩 방지를 위해 해석된 IP 까지 검증합니다.",
+      "reference": "진단가이드 §웹 서비스 요청 및 결과 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-06-BLANK-A",
+      "chapter_code": "DSG-IV-06",
+      "weakness_name_ko": "웹 기반 중요기능 수행 요청 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 웹 기반 중요기능 수행 요청 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "세션만으로 중요기능을 승인하면 외부 사이트의 자동 POST에 의해 {{1}} 공격에 노출된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CSRF",
+            "크로스사이트 요청 위조"
+          ],
+          "synonyms": [
+            "cross-site request forgery"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CSRF / 크로스사이트 요청 위조\n\n해설:\nCSRF 는 외부 사이트가 자동 POST 를 유도해 피해자의 세션으로 중요 요청을 발생시키는 공격입니다.\nSpring Security 의 CsrfFilter 는 Synchronizer Token 패턴으로 매 폼 요청에 토큰을 검증하며, 쿠키에 SameSite=Strict/Lax 와 Origin/Referer 검증을 함께 적용하면 효과적입니다.",
+      "reference": "진단가이드 §웹 기반 중요기능 수행 요청 유효성 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-06-BLANK-B",
+      "chapter_code": "DSG-IV-06",
+      "weakness_name_ko": "웹 기반 중요기능 수행 요청 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 웹 기반 중요기능 수행 요청 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "Spring Security는 기본적으로 {{1}} 필터로 토큰을 검증하며, 쿠키에는 {{2}}=Strict 속성을 함께 적용하면 효과적이다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CsrfFilter"
+          ],
+          "synonyms": [
+            "csrf filter"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "SameSite"
+          ],
+          "synonyms": [
+            "same-site"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CsrfFilter\n  #2 = SameSite\n\n해설:\nCSRF 는 외부 사이트가 자동 POST 를 유도해 피해자의 세션으로 중요 요청을 발생시키는 공격입니다.\nSpring Security 의 CsrfFilter 는 Synchronizer Token 패턴으로 매 폼 요청에 토큰을 검증하며, 쿠키에 SameSite=Strict/Lax 와 Origin/Referer 검증을 함께 적용하면 효과적입니다.",
+      "reference": "진단가이드 §웹 기반 중요기능 수행 요청 유효성 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-07-BLANK-A",
+      "chapter_code": "DSG-IV-07",
+      "weakness_name_ko": "HTTP 프로토콜 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · HTTP 프로토콜 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "HTTP 응답 헤더에 사용자 입력이 그대로 삽입되면 {{1}} 공격이 발생한다. 개행문자 CR/LF를 제거해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "HTTP Response Splitting",
+            "HTTP 응답분할"
+          ],
+          "synonyms": [
+            "http response splitting"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = HTTP Response Splitting / HTTP 응답분할\n\n해설:\nHTTP 응답분할은 Location, Set-Cookie 등 응답 헤더에 CR(\\r, 0x0D)/LF(\\n, 0x0A)가 포함된 사용자 입력이 실리면 발생합니다.\n개행문자 제거/거부가 기본 방어이며, 최신 서블릿 API 는 헤더 값 개행을 막지만 커스텀 로직은 반드시 직접 검증해야 합니다.",
+      "reference": "진단가이드 §HTTP 프로토콜 유효성 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-07-BLANK-B",
+      "chapter_code": "DSG-IV-07",
+      "weakness_name_ko": "HTTP 프로토콜 유효성 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · HTTP 프로토콜 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "응답 헤더에 데이터를 실을 때는 {{1}} 유틸로 CR(0x0D)/LF(0x0A) 문자를 제거하거나 거부한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "encodeForHTTP",
+            "escapeHtml"
+          ],
+          "synonyms": [
+            "encode for http"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = encodeForHTTP / escapeHtml\n\n해설:\nHTTP 응답분할은 Location, Set-Cookie 등 응답 헤더에 CR(\\r, 0x0D)/LF(\\n, 0x0A)가 포함된 사용자 입력이 실리면 발생합니다.\n개행문자 제거/거부가 기본 방어이며, 최신 서블릿 API 는 헤더 값 개행을 막지만 커스텀 로직은 반드시 직접 검증해야 합니다.",
+      "reference": "진단가이드 §HTTP 프로토콜 유효성 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-08-BLANK-A",
+      "chapter_code": "DSG-IV-08",
+      "weakness_name_ko": "허용된 범위내 메모리 접근",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[설계 · 허용된 범위내 메모리 접근]\n아래 빈칸을 채우시오.",
+      "blank_template": "배열 인덱스가 허용 범위를 벗어나면 {{1}} 취약점이 발생하여 인접 메모리를 덮어쓸 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Buffer Overflow",
+            "버퍼 오버플로우"
+          ],
+          "synonyms": [
+            "buffer overrun"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Buffer Overflow / 버퍼 오버플로우\n\n해설:\n허용 범위를 벗어난 메모리 접근은 버퍼 오버플로우를 일으켜 인접 데이터를 덮어쓰고 RCE 로 이어질 수 있습니다.\nC/C++ 에서는 strcpy/sprintf 대신 strncpy/strlcpy/snprintf 같은 크기 제한 함수와 함께 인덱스 범위 검증을 수행해야 합니다.",
+      "reference": "진단가이드 §허용된 범위내 메모리 접근",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-08-BLANK-B",
+      "chapter_code": "DSG-IV-08",
+      "weakness_name_ko": "허용된 범위내 메모리 접근",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[설계 · 허용된 범위내 메모리 접근]\n아래 빈칸을 채우시오.",
+      "blank_template": "C/C++에서는 strcpy 대신 {{1}}처럼 크기 제한 함수를 사용하고 인덱스를 검증해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "strncpy",
+            "strlcpy"
+          ],
+          "synonyms": [
+            "strn cpy"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = strncpy / strlcpy\n\n해설:\n허용 범위를 벗어난 메모리 접근은 버퍼 오버플로우를 일으켜 인접 데이터를 덮어쓰고 RCE 로 이어질 수 있습니다.\nC/C++ 에서는 strcpy/sprintf 대신 strncpy/strlcpy/snprintf 같은 크기 제한 함수와 함께 인덱스 범위 검증을 수행해야 합니다.",
+      "reference": "진단가이드 §허용된 범위내 메모리 접근",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-BLANK-A",
+      "chapter_code": "DSG-IV-09",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 보안기능 입력값 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "인증·인가 결정에 사용되는 입력은 반드시 {{1}} 방식으로 검증해야 한다 (허용 목록만 통과).",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "화이트리스트",
+            "allowlist"
+          ],
+          "synonyms": [
+            "allow list",
+            "whitelist"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 화이트리스트 / allowlist\n\n해설:\n인증·인가 판단에 쓰이는 입력은 반드시 화이트리스트(allowlist) 방식으로 검증해야 합니다.\n블랙리스트는 우회 가능성이 높아 권장되지 않으며, 서버 측 검증을 클라이언트 검증으로 대체할 수 없습니다.",
+      "reference": "진단가이드 §보안기능 입력값 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-BLANK-B",
+      "chapter_code": "DSG-IV-09",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 보안기능 입력값 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버 측 검증을 우회 당하지 않으려면 {{1}} 검증만 신뢰해서는 안 되며 반드시 서버 측에서 재검증한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "클라이언트",
+            "client"
+          ],
+          "synonyms": [
+            "client-side",
+            "클라이언트측"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 클라이언트 / client\n\n해설:\n인증·인가 판단에 쓰이는 입력은 반드시 화이트리스트(allowlist) 방식으로 검증해야 합니다.\n블랙리스트는 우회 가능성이 높아 권장되지 않으며, 서버 측 검증을 클라이언트 검증으로 대체할 수 없습니다.",
+      "reference": "진단가이드 §보안기능 입력값 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-10-BLANK-A",
+      "chapter_code": "DSG-IV-10",
+      "weakness_name_ko": "업로드·다운로드 파일 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 업로드·다운로드 파일 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "파일 다운로드 경로에 사용자 입력(../)이 포함되면 {{1}} 공격으로 임의 파일 접근이 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Path Traversal",
+            "경로 조작"
+          ],
+          "synonyms": [
+            "directory traversal"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Path Traversal / 경로 조작\n\n해설:\n업로드 파일은 확장자만 볼 것이 아니라 Magic Number(MIME 시그니처)를 확인하고, 저장 디렉토리에서 실행 권한을 제거해야 합니다.\n다운로드 시 경로에 \"..\" 가 포함되면 Path Traversal 이 발생하므로 getCanonicalPath 로 정규화 후 허용 루트와 비교해야 합니다.",
+      "reference": "진단가이드 §업로드·다운로드 파일 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-10-BLANK-B",
+      "chapter_code": "DSG-IV-10",
+      "weakness_name_ko": "업로드·다운로드 파일 검증",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 업로드·다운로드 파일 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "업로드 파일은 {{1}} 검사로 실제 콘텐츠 타입을 확인하고 실행 가능한 확장자는 저장 전 거부한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Magic Number",
+            "MIME",
+            "매직넘버"
+          ],
+          "synonyms": [
+            "magic bytes",
+            "파일 시그니처"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Magic Number / MIME / 매직넘버\n\n해설:\n업로드 파일은 확장자만 볼 것이 아니라 Magic Number(MIME 시그니처)를 확인하고, 저장 디렉토리에서 실행 권한을 제거해야 합니다.\n다운로드 시 경로에 \"..\" 가 포함되면 Path Traversal 이 발생하므로 getCanonicalPath 로 정규화 후 허용 루트와 비교해야 합니다.",
+      "reference": "진단가이드 §업로드·다운로드 파일 검증",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-01-BLANK-A",
+      "chapter_code": "DSG-SF-01",
+      "weakness_name_ko": "인증대상 및 방식",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 인증대상 및 방식]\n아래 빈칸을 채우시오.",
+      "blank_template": "인증수단을 한 가지 요소만 사용하면 보안이 약해지므로 {{1}} (MFA)를 적용해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "다중 인증",
+            "Multi-Factor Authentication"
+          ],
+          "synonyms": [
+            "mfa",
+            "multi factor",
+            "2fa"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 다중 인증 / Multi-Factor Authentication\n\n해설:\n인증 수단을 하나만 쓰면 비밀번호 탈취 시 즉시 계정이 탈취됩니다. MFA(다중 인증)로 OTP, 생체정보, 보안키를 추가하면 위험이 크게 낮아집니다.\n2차 인증 요소는 저장 시 해시·암호화된 상태로 보관해야 합니다.",
+      "reference": "진단가이드 §인증대상 및 방식",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-01-BLANK-B",
+      "chapter_code": "DSG-SF-01",
+      "weakness_name_ko": "인증대상 및 방식",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 인증대상 및 방식]\n아래 빈칸을 채우시오.",
+      "blank_template": "OTP, 생체정보는 {{1}} 인증의 예시이며, 서버 저장 시에는 해시·암호화된 상태로 보관한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "2차",
+            "second factor"
+          ],
+          "synonyms": [
+            "2단계",
+            "추가"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 2차 / second factor\n\n해설:\n인증 수단을 하나만 쓰면 비밀번호 탈취 시 즉시 계정이 탈취됩니다. MFA(다중 인증)로 OTP, 생체정보, 보안키를 추가하면 위험이 크게 낮아집니다.\n2차 인증 요소는 저장 시 해시·암호화된 상태로 보관해야 합니다.",
+      "reference": "진단가이드 §인증대상 및 방식",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-02-BLANK-A",
+      "chapter_code": "DSG-SF-02",
+      "weakness_name_ko": "인증수행 제한",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 인증수행 제한]\n아래 빈칸을 채우시오.",
+      "blank_template": "로그인 실패 횟수에 제한이 없으면 {{1}} 공격에 취약해진다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Brute Force",
+            "무차별 대입"
+          ],
+          "synonyms": [
+            "brute-force",
+            "브루트포스"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Brute Force / 무차별 대입\n\n해설:\n로그인 API 에 실패 횟수 제한이 없으면 무차별 대입 공격(Brute Force)에 노출됩니다.\nIP+계정 기준 N회 실패 시 일시 잠금, CAPTCHA 제시, 점진적 지연(exponential backoff) 등 복합 방어를 적용합니다.",
+      "reference": "진단가이드 §인증수행 제한",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-02-BLANK-B",
+      "chapter_code": "DSG-SF-02",
+      "weakness_name_ko": "인증수행 제한",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 인증수행 제한]\n아래 빈칸을 채우시오.",
+      "blank_template": "IP·계정 기준 연속 실패 N회 시 임시 잠금이나 {{1}} 제시 등 진행 제한이 필요하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CAPTCHA"
+          ],
+          "synonyms": [
+            "캡차",
+            "캡챠"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CAPTCHA\n\n해설:\n로그인 API 에 실패 횟수 제한이 없으면 무차별 대입 공격(Brute Force)에 노출됩니다.\nIP+계정 기준 N회 실패 시 일시 잠금, CAPTCHA 제시, 점진적 지연(exponential backoff) 등 복합 방어를 적용합니다.",
+      "reference": "진단가이드 §인증수행 제한",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-03-BLANK-A",
+      "chapter_code": "DSG-SF-03",
+      "weakness_name_ko": "비밀번호 관리",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 비밀번호 관리]\n아래 빈칸을 채우시오.",
+      "blank_template": "비밀번호는 평문 저장이 아니라 솔트와 함께 {{1}} 해시로 저장해야 한다 (bcrypt, scrypt, Argon2 등).",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "단방향",
+            "one-way"
+          ],
+          "synonyms": [
+            "일방향"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 단방향 / one-way\n\n해설:\n비밀번호는 평문 저장 불가. 단방향(One-way) 해시와 솔트를 사용해야 하며, bcrypt/scrypt/Argon2/PBKDF2 같은 키 스트레칭 해시를 사용해 brute-force 비용을 올립니다.\n정책은 길이 8자 이상 + 복잡도 조합 + 유출 사전 단어 차단이 권장됩니다.",
+      "reference": "진단가이드 §비밀번호 관리",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-03-BLANK-B",
+      "chapter_code": "DSG-SF-03",
+      "weakness_name_ko": "비밀번호 관리",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 비밀번호 관리]\n아래 빈칸을 채우시오.",
+      "blank_template": "비밀번호 정책은 길이 {{1}}자 이상, 대소문자·숫자·특수문자 조합, 사전공격 단어 금지를 권고한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "8",
+            "10",
+            "12"
+          ],
+          "synonyms": [
+            "여덟",
+            "8자"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 8 / 10 / 12\n\n해설:\n비밀번호는 평문 저장 불가. 단방향(One-way) 해시와 솔트를 사용해야 하며, bcrypt/scrypt/Argon2/PBKDF2 같은 키 스트레칭 해시를 사용해 brute-force 비용을 올립니다.\n정책은 길이 8자 이상 + 복잡도 조합 + 유출 사전 단어 차단이 권장됩니다.",
+      "reference": "진단가이드 §비밀번호 관리",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-04-BLANK-A",
+      "chapter_code": "DSG-SF-04",
+      "weakness_name_ko": "중요자원 접근통제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 중요자원 접근통제]\n아래 빈칸을 채우시오.",
+      "blank_template": "접근통제는 클라이언트가 아닌 {{1}} 측에서 수행해야 하며 매 요청마다 권한을 재확인해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "서버",
+            "server"
+          ],
+          "synonyms": [
+            "server-side",
+            "서버측"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 서버 / server\n\n해설:\n접근 통제는 반드시 서버 측에서 매 요청마다 재확인해야 합니다. 클라이언트 숨김 필드나 localStorage 만으로 권한을 결정하면 변조가 쉽습니다.\n자원 식별자를 URL/파라미터로 직접 노출하고 권한 검증을 누락하면 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.",
+      "reference": "진단가이드 §중요자원 접근통제",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-04-BLANK-B",
+      "chapter_code": "DSG-SF-04",
+      "weakness_name_ko": "중요자원 접근통제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 중요자원 접근통제]\n아래 빈칸을 채우시오.",
+      "blank_template": "URL·파라미터로 자원 식별자를 직접 노출하면 권한 변경 없이 접근되는 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "IDOR",
+            "Insecure Direct Object Reference"
+          ],
+          "synonyms": [
+            "insecure direct object reference",
+            "불안전한 직접 객체 참조"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = IDOR / Insecure Direct Object Reference\n\n해설:\n접근 통제는 반드시 서버 측에서 매 요청마다 재확인해야 합니다. 클라이언트 숨김 필드나 localStorage 만으로 권한을 결정하면 변조가 쉽습니다.\n자원 식별자를 URL/파라미터로 직접 노출하고 권한 검증을 누락하면 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.",
+      "reference": "진단가이드 §중요자원 접근통제",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-BLANK-A",
+      "chapter_code": "DSG-SF-05",
+      "weakness_name_ko": "암호키 관리",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 암호키 관리]\n아래 빈칸을 채우시오.",
+      "blank_template": "암호키를 소스코드에 하드코딩하면 {{1}} 취약점이 된다. 키는 별도 KMS 또는 Secret Manager에 보관해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Hardcoded Credentials",
+            "하드코드된 중요정보"
+          ],
+          "synonyms": [
+            "hardcoded secret",
+            "하드코딩"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Hardcoded Credentials / 하드코드된 중요정보\n\n해설:\n암호키를 소스코드에 박아두는 Hardcoded Credentials 는 디컴파일 또는 저장소 유출 시 즉시 탈취됩니다.\n키는 KMS, AWS Secrets Manager, GCP Secret Manager 등에 보관하고 환경변수로 주입받으며, 대칭키는 최소 AES-128, 비대칭키는 RSA-2048/ECC-256 이상을 사용합니다.",
+      "reference": "진단가이드 §암호키 관리",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-BLANK-B",
+      "chapter_code": "DSG-SF-05",
+      "weakness_name_ko": "암호키 관리",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 암호키 관리]\n아래 빈칸을 채우시오.",
+      "blank_template": "대칭키는 최소 {{1}} bit AES, 비대칭키는 최소 2048bit RSA 또는 256bit ECC를 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "128",
+            "256"
+          ],
+          "synonyms": [
+            "128bit",
+            "128비트"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 128 / 256\n\n해설:\n암호키를 소스코드에 박아두는 Hardcoded Credentials 는 디컴파일 또는 저장소 유출 시 즉시 탈취됩니다.\n키는 KMS, AWS Secrets Manager, GCP Secret Manager 등에 보관하고 환경변수로 주입받으며, 대칭키는 최소 AES-128, 비대칭키는 RSA-2048/ECC-256 이상을 사용합니다.",
+      "reference": "진단가이드 §암호키 관리",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-06-BLANK-A",
+      "chapter_code": "DSG-SF-06",
+      "weakness_name_ko": "암호연산",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 암호연산]\n아래 빈칸을 채우시오.",
+      "blank_template": "DES, MD5, SHA-1은 {{1}} 알고리즘으로 분류되어 사용을 금지한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "취약한",
+            "deprecated"
+          ],
+          "synonyms": [
+            "약한",
+            "weak",
+            "폐기된"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 취약한 / deprecated\n\n해설:\nDES/3DES/RC4/MD5/SHA-1 등은 취약(deprecated) 알고리즘으로 금지되며 AES-256, ChaCha20, SHA-256 이상을 사용해야 합니다.\n블록 암호 모드는 ECB 를 피하고 CBC/CTR 또는 인증 암호화(GCM) 모드를 사용합니다.",
+      "reference": "진단가이드 §암호연산",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-06-BLANK-B",
+      "chapter_code": "DSG-SF-06",
+      "weakness_name_ko": "암호연산",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 암호연산]\n아래 빈칸을 채우시오.",
+      "blank_template": "블록 암호 모드는 ECB 대신 {{1}}나 GCM 같은 인증 암호화 모드를 사용해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CBC",
+            "CTR",
+            "GCM"
+          ],
+          "synonyms": [
+            "cipher block chaining"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CBC / CTR / GCM\n\n해설:\nDES/3DES/RC4/MD5/SHA-1 등은 취약(deprecated) 알고리즘으로 금지되며 AES-256, ChaCha20, SHA-256 이상을 사용해야 합니다.\n블록 암호 모드는 ECB 를 피하고 CBC/CTR 또는 인증 암호화(GCM) 모드를 사용합니다.",
+      "reference": "진단가이드 §암호연산",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-07-BLANK-A",
+      "chapter_code": "DSG-SF-07",
+      "weakness_name_ko": "중요정보 저장",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 중요정보 저장]\n아래 빈칸을 채우시오.",
+      "blank_template": "개인정보·금융정보는 저장 시 반드시 {{1}}되어야 하며, 복호화 키는 데이터와 분리 보관한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "암호화",
+            "encrypt"
+          ],
+          "synonyms": [
+            "encryption",
+            "암호화저장"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 암호화 / encrypt\n\n해설:\n개인정보·금융정보는 저장 시 반드시 암호화되어야 하며 복호화 키는 데이터와 분리 보관합니다.\n비밀번호는 단방향 해시만 저장(bcrypt/Argon2 등)하고, 주민번호는 대체 식별자(CI/DI)나 해시+소금값으로 처리하는 것이 권장됩니다.",
+      "reference": "진단가이드 §중요정보 저장",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-07-BLANK-B",
+      "chapter_code": "DSG-SF-07",
+      "weakness_name_ko": "중요정보 저장",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 중요정보 저장]\n아래 빈칸을 채우시오.",
+      "blank_template": "비밀번호는 solt(소금값)과 함께 {{1}} 같은 키 스트레칭 해시로 저장한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "bcrypt",
+            "scrypt",
+            "Argon2",
+            "PBKDF2"
+          ],
+          "synonyms": [
+            "b crypt",
+            "pbkdf 2"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = bcrypt / scrypt / Argon2 / PBKDF2\n\n해설:\n개인정보·금융정보는 저장 시 반드시 암호화되어야 하며 복호화 키는 데이터와 분리 보관합니다.\n비밀번호는 단방향 해시만 저장(bcrypt/Argon2 등)하고, 주민번호는 대체 식별자(CI/DI)나 해시+소금값으로 처리하는 것이 권장됩니다.",
+      "reference": "진단가이드 §중요정보 저장",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-08-BLANK-A",
+      "chapter_code": "DSG-SF-08",
+      "weakness_name_ko": "중요정보 전송",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 중요정보 전송]\n아래 빈칸을 채우시오.",
+      "blank_template": "중요 정보 전송 시 반드시 {{1}} (HTTPS) 사용해 도청을 방지해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "TLS",
+            "SSL"
+          ],
+          "synonyms": [
+            "transport layer security"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = TLS / SSL\n\n해설:\n중요 정보 전송에는 반드시 TLS(HTTPS)를 사용하며, HSTS 헤더로 다운그레이드 공격을 차단합니다.\n민감 파라미터는 URL 쿼리 대신 요청 body 에 실어 로그/Referer 노출을 피합니다.",
+      "reference": "진단가이드 §중요정보 전송",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-08-BLANK-B",
+      "chapter_code": "DSG-SF-08",
+      "weakness_name_ko": "중요정보 전송",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 중요정보 전송]\n아래 빈칸을 채우시오.",
+      "blank_template": "민감 파라미터는 URL 쿼리 스트링이 아니라 요청 {{1}}에 실어 전송해야 로그/Referer 노출을 피할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "body",
+            "바디"
+          ],
+          "synonyms": [
+            "본문",
+            "request body"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = body / 바디\n\n해설:\n중요 정보 전송에는 반드시 TLS(HTTPS)를 사용하며, HSTS 헤더로 다운그레이드 공격을 차단합니다.\n민감 파라미터는 URL 쿼리 대신 요청 body 에 실어 로그/Referer 노출을 피합니다.",
+      "reference": "진단가이드 §중요정보 전송",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "DSG-EH-01-BLANK-A",
+      "chapter_code": "DSG-EH-01",
+      "weakness_name_ko": "예외처리 설계",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 예외처리 설계]\n아래 빈칸을 채우시오.",
+      "blank_template": "예외 메시지에 {{1}}(스택트레이스)를 그대로 노출하면 시스템 구조와 취약점 정보가 유출된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "stack trace",
+            "스택트레이스"
+          ],
+          "synonyms": [
+            "stacktrace",
+            "호출스택"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = stack trace / 스택트레이스\n\n해설:\n예외 메시지에 스택트레이스, SQL 문, 파일 경로 같은 정보가 노출되면 공격자에게 시스템 구조를 알려주게 됩니다.\n사용자에게는 일반화된 메시지를 보여주고 상세 내용은 서버 로그에만 기록해야 합니다.",
+      "reference": "진단가이드 §예외처리 설계",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "DSG-EH-01-BLANK-B",
+      "chapter_code": "DSG-EH-01",
+      "weakness_name_ko": "예외처리 설계",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[설계 · 예외처리 설계]\n아래 빈칸을 채우시오.",
+      "blank_template": "사용자에게는 일반화된 오류 메시지를 보여주고 상세 오류는 {{1}}에만 기록해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "log",
+            "로그"
+          ],
+          "synonyms": [
+            "logfile",
+            "서버 로그"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = log / 로그\n\n해설:\n예외 메시지에 스택트레이스, SQL 문, 파일 경로 같은 정보가 노출되면 공격자에게 시스템 구조를 알려주게 됩니다.\n사용자에게는 일반화된 메시지를 보여주고 상세 내용은 서버 로그에만 기록해야 합니다.",
+      "reference": "진단가이드 §예외처리 설계",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-BLANK-A",
+      "chapter_code": "DSG-SC-01",
+      "weakness_name_ko": "세션통제 설계",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 세션통제 설계]\n아래 빈칸을 채우시오.",
+      "blank_template": "로그인 성공 후에는 반드시 {{1}} 재발급을 수행하여 세션 고정(Session Fixation) 공격을 방지한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "세션 ID",
+            "session id"
+          ],
+          "synonyms": [
+            "sessionid",
+            "session token"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 세션 ID / session id\n\n해설:\nSession Fixation 공격은 로그인 전후 세션 ID 가 동일한 것을 악용하므로, 로그인 성공 시점에 반드시 세션 ID 를 재발급해야 합니다.\n세션 쿠키에는 HttpOnly, Secure, SameSite 속성을 모두 적용합니다.",
+      "reference": "진단가이드 §세션통제 설계",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-BLANK-B",
+      "chapter_code": "DSG-SC-01",
+      "weakness_name_ko": "세션통제 설계",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[설계 · 세션통제 설계]\n아래 빈칸을 채우시오.",
+      "blank_template": "세션 쿠키에는 {{1}}, HttpOnly, Secure 속성을 함께 설정한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "SameSite"
+          ],
+          "synonyms": [
+            "same-site"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = SameSite\n\n해설:\nSession Fixation 공격은 로그인 전후 세션 ID 가 동일한 것을 악용하므로, 로그인 성공 시점에 반드시 세션 ID 를 재발급해야 합니다.\n세션 쿠키에는 HttpOnly, Secure, SameSite 속성을 모두 적용합니다.",
+      "reference": "진단가이드 §세션통제 설계",
+      "tags": [
+        "blank",
+        "design",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-01-BLANK-A",
+      "chapter_code": "IMP-IV-01",
+      "weakness_name_ko": "SQL 삽입",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · SQL 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java에서 SQL 삽입을 방어하는 표준 API는 {{1}}이며 ? 바인드 파라미터로 쿼리와 데이터를 분리한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "PreparedStatement"
+          ],
+          "synonyms": [
+            "prepared statement"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = PreparedStatement\n\n해설:\nSQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다.",
+      "reference": "진단가이드 §SQL 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-01-BLANK-B",
+      "chapter_code": "IMP-IV-01",
+      "weakness_name_ko": "SQL 삽입",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · SQL 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "MyBatis에서 바인드 파라미터는 {{1}} 문법을 사용하고 문자열 치환 ${} 사용은 피한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "#{}",
+            "#{"
+          ],
+          "synonyms": [
+            "샵중괄호"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = #{} / #{\n\n해설:\nSQL Injection 의 근본 방어는 \"구조와 값을 분리\"하는 것입니다.\nJava 는 PreparedStatement + ? 바인드, MyBatis 는 #{} 바인딩을 사용하며, 문자열 치환 ${} 또는 단순 concat 은 절대 쓰지 않아야 합니다.\nORM 사용 시에도 동적 쿼리 구성에서 취약점이 생길 수 있으니 주의가 필요합니다.",
+      "reference": "진단가이드 §SQL 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-BLANK-A",
+      "chapter_code": "IMP-IV-02",
+      "weakness_name_ko": "코드 삽입",
+      "language": "javascript",
+      "difficulty": "중",
+      "body": "[구현 · 코드 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "eval() 함수에 사용자 입력을 그대로 넘기면 {{1}} 취약점이 되며, 필요 시 JSON.parse 등 안전한 대안을 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Code Injection",
+            "코드 삽입"
+          ],
+          "synonyms": [
+            "code injection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Code Injection / 코드 삽입\n\n해설:\neval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다.",
+      "reference": "진단가이드 §코드 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-BLANK-B",
+      "chapter_code": "IMP-IV-02",
+      "weakness_name_ko": "코드 삽입",
+      "language": "javascript",
+      "difficulty": "중",
+      "body": "[구현 · 코드 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버 사이드 템플릿에서 {{1}} 로 표시되는 영역에 사용자 입력을 그대로 넣으면 SSTI 취약점이 된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "{{ }}",
+            "#{",
+            "${"
+          ],
+          "synonyms": [
+            "이중중괄호"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = {{ }} / #{ / ${\n\n해설:\neval() 이나 서버 사이드 템플릿에 외부 입력을 넣으면 임의 코드 실행(Code Injection, SSTI)이 가능해집니다.\neval 대신 JSON.parse, 템플릿 엔진의 안전한 출력 모드(이스케이프)를 사용해야 합니다.",
+      "reference": "진단가이드 §코드 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-03-BLANK-A",
+      "chapter_code": "IMP-IV-03",
+      "weakness_name_ko": "경로 조작 및 자원 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 경로 조작 및 자원 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "파일 경로에 \"..\"가 포함되면 상위 디렉토리 접근이 가능한 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Path Traversal",
+            "경로 조작"
+          ],
+          "synonyms": [
+            "directory traversal"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Path Traversal / 경로 조작\n\n해설:\nPath Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다.",
+      "reference": "진단가이드 §경로 조작 및 자원 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-03-BLANK-B",
+      "chapter_code": "IMP-IV-03",
+      "weakness_name_ko": "경로 조작 및 자원 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 경로 조작 및 자원 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java 에서는 File.{{1}}() 로 정규화 후 허용 루트로 시작하는지 startsWith 검사로 확인해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "getCanonicalPath",
+            "toRealPath"
+          ],
+          "synonyms": [
+            "canonical path"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = getCanonicalPath / toRealPath\n\n해설:\nPath Traversal 은 경로 문자열에 \"../\" 가 삽입돼 상위 디렉토리 접근을 허용할 때 발생합니다.\nJava 는 File.getCanonicalPath / Path.toRealPath 로 정규화한 뒤 허용 루트로 startsWith 검증을 수행해야 합니다.",
+      "reference": "진단가이드 §경로 조작 및 자원 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-BLANK-A",
+      "chapter_code": "IMP-IV-04",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 크로스사이트 스크립트]\n아래 빈칸을 채우시오.",
+      "blank_template": "HTML 출력 시 사용자 입력을 이스케이프하지 않으면 {{1}} 공격이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "XSS",
+            "Cross-Site Scripting"
+          ],
+          "synonyms": [
+            "xss",
+            "크로스사이트 스크립팅"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = XSS / Cross-Site Scripting\n\n해설:\nXSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다.",
+      "reference": "진단가이드 §크로스사이트 스크립트",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-BLANK-B",
+      "chapter_code": "IMP-IV-04",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 크로스사이트 스크립트]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java/Spring에서는 출력 시 {{1}} 유틸로 <, >, \", ' & 를 이스케이프한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "HtmlUtils.htmlEscape",
+            "StringEscapeUtils.escapeHtml4"
+          ],
+          "synonyms": [
+            "escape html"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = HtmlUtils.htmlEscape / StringEscapeUtils.escapeHtml4\n\n해설:\nXSS 방어의 핵심은 출력 컨텍스트(HTML body, attribute, JS, URL, CSS)별로 적절한 이스케이프를 적용하는 것입니다.\nSpring 은 HtmlUtils.htmlEscape, Apache Commons 는 StringEscapeUtils.escapeHtml4 가 있으며, React/Vue 등 현대 프레임워크는 기본 이스케이프를 제공합니다.",
+      "reference": "진단가이드 §크로스사이트 스크립트",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-BLANK-A",
+      "chapter_code": "IMP-IV-05",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 운영체제 명령어 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "Runtime.getRuntime().exec 에 사용자 입력을 연결하면 {{1}} 공격이 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "OS Command Injection",
+            "명령어 삽입"
+          ],
+          "synonyms": [
+            "command injection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = OS Command Injection / 명령어 삽입\n\n해설:\nRuntime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다.",
+      "reference": "진단가이드 §운영체제 명령어 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-BLANK-B",
+      "chapter_code": "IMP-IV-05",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 운영체제 명령어 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "명령 실행은 {{1}}에 인자를 배열로 전달하고 셸 해석을 피한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "ProcessBuilder"
+          ],
+          "synonyms": [
+            "process builder"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = ProcessBuilder\n\n해설:\nRuntime.getRuntime().exec 에 셸 해석 가능한 문자열을 넘기면 메타문자 ; | & ` 로 명령이 주입됩니다.\nProcessBuilder 에 인자를 배열로 전달하면 셸을 거치지 않아 안전합니다.",
+      "reference": "진단가이드 §운영체제 명령어 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-BLANK-A",
+      "chapter_code": "IMP-IV-06",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 위험한 형식 파일 업로드]\n아래 빈칸을 채우시오.",
+      "blank_template": "업로드된 파일을 실행 가능한 경로에 저장하고 {{1}} 확장자를 허용하면 웹쉘이 업로드될 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            ".jsp",
+            ".php",
+            ".exe"
+          ],
+          "synonyms": [
+            "jsp",
+            "php",
+            "exe"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = .jsp / .php / .exe\n\n해설:\n업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다.",
+      "reference": "진단가이드 §위험한 형식 파일 업로드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-BLANK-B",
+      "chapter_code": "IMP-IV-06",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 위험한 형식 파일 업로드]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버는 {{1}} 매직 바이트로 실제 타입을 확인하고 업로드 디렉토리에서 실행권한을 제거해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Magic Number",
+            "매직넘버",
+            "파일 시그니처"
+          ],
+          "synonyms": [
+            "magic bytes"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Magic Number / 매직넘버 / 파일 시그니처\n\n해설:\n업로드된 파일의 확장자만 검사하면 .jsp, .php 등의 웹쉘 업로드가 가능합니다.\nMagic Number(파일 시그니처)로 실제 타입을 검증하고, 업로드 디렉토리에서 스크립트 실행 권한을 제거하며, 파일명은 서버가 생성한 UUID 로 치환합니다.",
+      "reference": "진단가이드 §위험한 형식 파일 업로드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-07-BLANK-A",
+      "chapter_code": "IMP-IV-07",
+      "weakness_name_ko": "신뢰되지 않는 URL 주소로 자동접속 연결",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 신뢰되지 않는 URL 주소로 자동접속 연결]\n아래 빈칸을 채우시오.",
+      "blank_template": "로그인 후 redirect URL 파라미터를 그대로 사용하면 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Open Redirect",
+            "오픈 리다이렉트"
+          ],
+          "synonyms": [
+            "open redirection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Open Redirect / 오픈 리다이렉트\n\n해설:\n로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다.",
+      "reference": "진단가이드 §신뢰되지 않는 URL 주소로 자동접속 연결",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-07-BLANK-B",
+      "chapter_code": "IMP-IV-07",
+      "weakness_name_ko": "신뢰되지 않는 URL 주소로 자동접속 연결",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 신뢰되지 않는 URL 주소로 자동접속 연결]\n아래 빈칸을 채우시오.",
+      "blank_template": "안전한 리다이렉트를 위해 목적지 URL을 {{1}} 기준으로 제한하고 외부 호스트 이동은 경고한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "allowlist",
+            "화이트리스트"
+          ],
+          "synonyms": [
+            "허용목록"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = allowlist / 화이트리스트\n\n해설:\n로그인 후 redirect 파라미터를 그대로 사용하면 피싱 사이트로 사용자를 유도하는 Open Redirect 에 취약합니다.\n리다이렉트 목적지는 서버 측 allowlist 로 제한하고 외부 도메인 이동 시 경고 페이지를 거치게 합니다.",
+      "reference": "진단가이드 §신뢰되지 않는 URL 주소로 자동접속 연결",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-08-BLANK-A",
+      "chapter_code": "IMP-IV-08",
+      "weakness_name_ko": "부적절한 XML 외부 개체 참조",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 XML 외부 개체 참조]\n아래 빈칸을 채우시오.",
+      "blank_template": "XML 파서가 외부 엔티티를 해석하면 {{1}} 취약점으로 로컬 파일 유출 또는 SSRF가 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "XXE",
+            "XML External Entity"
+          ],
+          "synonyms": [
+            "xxe",
+            "외부 엔티티"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = XXE / XML External Entity\n\n해설:\nXXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다.",
+      "reference": "진단가이드 §부적절한 XML 외부 개체 참조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-08-BLANK-B",
+      "chapter_code": "IMP-IV-08",
+      "weakness_name_ko": "부적절한 XML 외부 개체 참조",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 XML 외부 개체 참조]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java 에서는 DocumentBuilderFactory에 FEATURE {{1}}=false 를 설정해 DTD 처리를 비활성화한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "disallow-doctype-decl",
+            "load-external-dtd",
+            "external-parameter-entities"
+          ],
+          "synonyms": [
+            "dtd"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = disallow-doctype-decl / load-external-dtd / external-parameter-entities\n\n해설:\nXXE 는 XML 파서가 외부 엔티티를 해석해 로컬 파일 유출·SSRF 로 이어지는 취약점입니다.\nJava DocumentBuilderFactory 에 disallow-doctype-decl=true 등 FEATURE 를 설정하거나 XMLConstants.FEATURE_SECURE_PROCESSING 을 활성화합니다.",
+      "reference": "진단가이드 §부적절한 XML 외부 개체 참조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-09-BLANK-A",
+      "chapter_code": "IMP-IV-09",
+      "weakness_name_ko": "XML 삽입",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · XML 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "XML 구조에 사용자 입력이 그대로 삽입되면 구조가 왜곡되어 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "XML Injection",
+            "XML 삽입"
+          ],
+          "synonyms": [
+            "xml injection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = XML Injection / XML 삽입\n\n해설:\nXML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다.",
+      "reference": "진단가이드 §XML 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-09-BLANK-B",
+      "chapter_code": "IMP-IV-09",
+      "weakness_name_ko": "XML 삽입",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · XML 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "XML 구성 시에는 DOM API로 요소·속성을 생성하거나 메타문자 {{1}}, {{2}}를 이스케이프한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "<"
+          ],
+          "synonyms": [
+            "less than"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            ">"
+          ],
+          "synonyms": [
+            "greater than"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = <\n  #2 = >\n\n해설:\nXML Injection 은 사용자 입력이 XML 태그·속성 구조를 왜곡시키는 공격입니다.\nDOM API 로 요소를 구성하거나, < > & \" ' 다섯 특수문자를 엔티티로 이스케이프해야 합니다.",
+      "reference": "진단가이드 §XML 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-BLANK-A",
+      "chapter_code": "IMP-IV-10",
+      "weakness_name_ko": "LDAP 삽입",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · LDAP 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "LDAP 필터에 사용자 입력이 직접 삽입되면 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "LDAP Injection",
+            "LDAP 삽입"
+          ],
+          "synonyms": [
+            "ldap injection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = LDAP Injection / LDAP 삽입\n\n해설:\nLDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다.",
+      "reference": "진단가이드 §LDAP 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-BLANK-B",
+      "chapter_code": "IMP-IV-10",
+      "weakness_name_ko": "LDAP 삽입",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · LDAP 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "LDAP 필터의 특수문자 *, (, ), \\, NUL 을 {{1}} 형식으로 이스케이프해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "\\xx",
+            "백슬래시 헥스"
+          ],
+          "synonyms": [
+            "backslash hex",
+            "hex escape"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = \\xx / 백슬래시 헥스\n\n해설:\nLDAP 필터 특수문자(*, (, ), \\, NUL)는 반드시 \\xx 형식으로 이스케이프해야 LDAP Injection 을 방어할 수 있습니다.\nRFC 4515 준수하는 라이브러리 함수를 사용하는 것이 안전합니다.",
+      "reference": "진단가이드 §LDAP 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-BLANK-A",
+      "chapter_code": "IMP-IV-11",
+      "weakness_name_ko": "크로스사이트 요청 위조",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 크로스사이트 요청 위조]\n아래 빈칸을 채우시오.",
+      "blank_template": "세션만으로 중요 요청을 허용하면 외부 사이트에서 자동 POST를 유도하는 {{1}} 공격이 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CSRF",
+            "크로스사이트 요청 위조"
+          ],
+          "synonyms": [
+            "cross-site request forgery"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CSRF / 크로스사이트 요청 위조\n\n해설:\nCSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다.",
+      "reference": "진단가이드 §크로스사이트 요청 위조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-BLANK-B",
+      "chapter_code": "IMP-IV-11",
+      "weakness_name_ko": "크로스사이트 요청 위조",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 크로스사이트 요청 위조]\n아래 빈칸을 채우시오.",
+      "blank_template": "Spring Security는 {{1}} 패턴의 토큰을 요청마다 검증하며, 쿠키에 SameSite 속성을 함께 권장한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Synchronizer Token",
+            "CSRF Token"
+          ],
+          "synonyms": [
+            "동기화 토큰",
+            "csrf 토큰"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Synchronizer Token / CSRF Token\n\n해설:\nCSRF 방어의 표준은 Synchronizer Token Pattern(STP) 입니다.\nSpring Security 의 CsrfFilter 가 자동으로 토큰 생성·검증하며, 쿠키 SameSite 속성과 Origin/Referer 검증을 함께 적용하면 효과적입니다.",
+      "reference": "진단가이드 §크로스사이트 요청 위조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-BLANK-A",
+      "chapter_code": "IMP-IV-12",
+      "weakness_name_ko": "서버사이드 요청 위조",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 서버사이드 요청 위조]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버가 사용자 입력 URL을 그대로 호출해 내부망·메타데이터 서비스에 접근하는 취약점은 {{1}}이다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "SSRF",
+            "서버사이드 요청 위조"
+          ],
+          "synonyms": [
+            "server-side request forgery"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = SSRF / 서버사이드 요청 위조\n\n해설:\nSSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다.",
+      "reference": "진단가이드 §서버사이드 요청 위조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-BLANK-B",
+      "chapter_code": "IMP-IV-12",
+      "weakness_name_ko": "서버사이드 요청 위조",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 서버사이드 요청 위조]\n아래 빈칸을 채우시오.",
+      "blank_template": "SSRF 방어 시 클라우드 메타데이터 IP {{1}}로의 접근을 차단해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "169.254.169.254"
+          ],
+          "synonyms": [
+            "169.254"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 169.254.169.254\n\n해설:\nSSRF 방어의 핵심은 클라우드 메타데이터 IP(169.254.169.254) 차단과 내부망 IP 대역(10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) 차단입니다.\n외부 요청은 allowlist 로 허용 도메인만 통과시키고 DNS 재조회 방지를 위해 해석된 IP 를 직접 확인합니다.",
+      "reference": "진단가이드 §서버사이드 요청 위조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-BLANK-A",
+      "chapter_code": "IMP-IV-13",
+      "weakness_name_ko": "HTTP 응답분할",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · HTTP 응답분할]\n아래 빈칸을 채우시오.",
+      "blank_template": "응답 헤더에 개행문자 {{1}}/{{2}}를 포함한 입력을 그대로 넣으면 HTTP 응답분할 공격이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CR",
+            "\\r",
+            "0x0D"
+          ],
+          "synonyms": [
+            "carriage return"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "LF",
+            "\\n",
+            "0x0A"
+          ],
+          "synonyms": [
+            "line feed"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CR / \\r / 0x0D\n  #2 = LF / \\n / 0x0A\n\n해설:\n응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다.",
+      "reference": "진단가이드 §HTTP 응답분할",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-BLANK-B",
+      "chapter_code": "IMP-IV-13",
+      "weakness_name_ko": "HTTP 응답분할",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · HTTP 응답분할]\n아래 빈칸을 채우시오.",
+      "blank_template": "응답 헤더 작성 전에는 개행·공백·탭 문자를 {{1}}(제거 또는 거부)해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "필터링",
+            "sanitize"
+          ],
+          "synonyms": [
+            "새니타이징",
+            "필터"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 필터링 / sanitize\n\n해설:\n응답 헤더 작성 시 CR(0x0D)/LF(0x0A) 문자를 포함한 입력을 그대로 실으면 HTTP 응답분할이 발생합니다.\n개행·공백·탭 문자를 필터링(sanitize)하거나, 값 전체를 거부하는 strict 모드가 권장됩니다.",
+      "reference": "진단가이드 §HTTP 응답분할",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-BLANK-A",
+      "chapter_code": "IMP-IV-14",
+      "weakness_name_ko": "정수형 오버플로우",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 정수형 오버플로우]\n아래 빈칸을 채우시오.",
+      "blank_template": "유효 범위를 초과한 정수 연산은 {{1}} 현상을 일으켜 인덱스 계산·길이 검증을 우회할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Integer Overflow",
+            "정수 오버플로우"
+          ],
+          "synonyms": [
+            "wraparound",
+            "wrap-around"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Integer Overflow / 정수 오버플로우\n\n해설:\nInteger Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다.",
+      "reference": "진단가이드 §정수형 오버플로우",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-BLANK-B",
+      "chapter_code": "IMP-IV-14",
+      "weakness_name_ko": "정수형 오버플로우",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 정수형 오버플로우]\n아래 빈칸을 채우시오.",
+      "blank_template": "C에서는 size_t 곱셈 전에 {{1}} 함수로 overflow 체크 후 할당해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "__builtin_mul_overflow",
+            "ckd_mul"
+          ],
+          "synonyms": [
+            "builtin mul overflow"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = __builtin_mul_overflow / ckd_mul\n\n해설:\nInteger Overflow 는 정수 연산이 표현 범위를 초과해 wraparound 가 발생하면서 길이 검증·인덱스 계산을 우회하게 만듭니다.\nC에서는 __builtin_mul_overflow, <stdckdint.h>(C23) ckd_mul 등의 체크 함수로 연산 전 overflow 여부를 확인합니다.",
+      "reference": "진단가이드 §정수형 오버플로우",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-BLANK-A",
+      "chapter_code": "IMP-IV-15",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 보안기능 결정에 사용되는 부적절한 입력값]\n아래 빈칸을 채우시오.",
+      "blank_template": "권한·인증 판단을 {{1}} 입력값에만 의존하면 우회가 가능하므로 서버 측에서 재검증해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "client",
+            "클라이언트"
+          ],
+          "synonyms": [
+            "client-side",
+            "hidden"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = client / 클라이언트\n\n해설:\n권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다.",
+      "reference": "진단가이드 §보안기능 결정에 사용되는 부적절한 입력값",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-BLANK-B",
+      "chapter_code": "IMP-IV-15",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 보안기능 결정에 사용되는 부적절한 입력값]\n아래 빈칸을 채우시오.",
+      "blank_template": "세션이 아닌 {{1}} 값으로 권한을 결정하면 변조 위험이 크다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "cookie",
+            "쿠키"
+          ],
+          "synonyms": [
+            "쿠키값"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = cookie / 쿠키\n\n해설:\n권한·인증 결정을 hidden input, 쿠키, 클라이언트 전송값 같은 사용자 변조 가능한 입력에만 의존하면 우회가 쉽습니다.\n세션 서버 측 상태를 기준으로 판단하고, 모든 보안 결정은 서버에서 재검증해야 합니다.",
+      "reference": "진단가이드 §보안기능 결정에 사용되는 부적절한 입력값",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-BLANK-A",
+      "chapter_code": "IMP-IV-16",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 메모리 버퍼 오버플로우]\n아래 빈칸을 채우시오.",
+      "blank_template": "strcpy, sprintf 같은 {{1}} 검사 없는 함수는 버퍼 오버플로우의 주요 원인이다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "길이",
+            "bounds"
+          ],
+          "synonyms": [
+            "length",
+            "경계"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 길이 / bounds\n\n해설:\n버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다.",
+      "reference": "진단가이드 §메모리 버퍼 오버플로우",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-BLANK-B",
+      "chapter_code": "IMP-IV-16",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 메모리 버퍼 오버플로우]\n아래 빈칸을 채우시오.",
+      "blank_template": "이들을 대체해 strcpy는 {{1}}, sprintf는 snprintf 등 크기 제한 함수를 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "strncpy",
+            "strlcpy"
+          ],
+          "synonyms": [
+            "str n cpy"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = strncpy / strlcpy\n\n해설:\n버퍼 오버플로우 방어는 크기 제한 함수(strncpy, strlcpy, snprintf) 사용과 컴파일러 보호 기능(-fstack-protector, -D_FORTIFY_SOURCE=2) 활성화가 기본입니다.\nASan/Valgrind 로 런타임 체크를 병행하면 효과적입니다.",
+      "reference": "진단가이드 §메모리 버퍼 오버플로우",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-17-BLANK-A",
+      "chapter_code": "IMP-IV-17",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 포맷 스트링 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "printf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 {{1}} 취약점으로 메모리 노출이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Format String",
+            "포맷 스트링"
+          ],
+          "synonyms": [
+            "format string injection"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Format String / 포맷 스트링\n\n해설:\nprintf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput).",
+      "reference": "진단가이드 §포맷 스트링 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-17-BLANK-B",
+      "chapter_code": "IMP-IV-17",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 포맷 스트링 삽입]\n아래 빈칸을 채우시오.",
+      "blank_template": "올바른 사용법은 printf(\"{{1}}\", userInput) 처럼 고정 포맷 문자열을 사용하는 것이다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "%s"
+          ],
+          "synonyms": [
+            "percent s",
+            "문자열 포맷"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = %s\n\n해설:\nprintf(userInput) 처럼 사용자 입력을 포맷 문자열로 쓰면 %s, %n 시퀀스로 메모리 읽기·쓰기가 가능해집니다.\n고정 포맷 문자열을 사용하고 값은 가변인자로 전달해야 안전합니다: printf(\"%s\", userInput).",
+      "reference": "진단가이드 §포맷 스트링 삽입",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-BLANK-A",
+      "chapter_code": "IMP-SF-01",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 적절한 인증 없는 중요기능 허용]\n아래 빈칸을 채우시오.",
+      "blank_template": "인증 없이 접근 가능한 중요 기능은 {{1}} 검증을 서버 측에서 반드시 수행해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "인증",
+            "authentication"
+          ],
+          "synonyms": [
+            "auth",
+            "인증여부"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 인증 / authentication\n\n해설:\n인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다.",
+      "reference": "진단가이드 §적절한 인증 없는 중요기능 허용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-BLANK-B",
+      "chapter_code": "IMP-SF-01",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 적절한 인증 없는 중요기능 허용]\n아래 빈칸을 채우시오.",
+      "blank_template": "Spring Security 에서는 {{1}} 애노테이션으로 메소드 수준 인가 검사를 적용할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "@PreAuthorize"
+          ],
+          "synonyms": [
+            "pre authorize",
+            "preauthorize"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = @PreAuthorize\n\n해설:\n인증 없이 접근 가능한 중요 기능은 API 게이트웨이 설정이나 프레임워크 레벨에서 반드시 보호해야 합니다.\nSpring Security 는 @PreAuthorize(\"isAuthenticated()\") 또는 HttpSecurity.authorizeRequests 로 경로별 인증을 강제합니다.",
+      "reference": "진단가이드 §적절한 인증 없는 중요기능 허용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-02-BLANK-A",
+      "chapter_code": "IMP-SF-02",
+      "weakness_name_ko": "부적절한 인가",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 부적절한 인가]\n아래 빈칸을 채우시오.",
+      "blank_template": "역할은 있으나 리소스 단위 검증을 빠뜨리면 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "IDOR",
+            "Broken Authorization"
+          ],
+          "synonyms": [
+            "insecure direct object reference",
+            "부적절한 인가"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = IDOR / Broken Authorization\n\n해설:\n역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.",
+      "reference": "진단가이드 §부적절한 인가",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-02-BLANK-B",
+      "chapter_code": "IMP-SF-02",
+      "weakness_name_ko": "부적절한 인가",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 부적절한 인가]\n아래 빈칸을 채우시오.",
+      "blank_template": "요청마다 자원 소유자와 현재 사용자 {{1}}를 비교해 인가를 수행한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "ID",
+            "식별자"
+          ],
+          "synonyms": [
+            "user id",
+            "uid"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = ID / 식별자\n\n해설:\n역할(role) 검증만으로는 부족하며, 요청한 자원의 소유자와 현재 사용자 ID 를 비교하는 리소스 단위 인가가 필요합니다.\n누락 시 IDOR(Insecure Direct Object Reference) 취약점이 발생합니다.",
+      "reference": "진단가이드 §부적절한 인가",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-BLANK-A",
+      "chapter_code": "IMP-SF-03",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 중요한 자원에 대한 잘못된 권한 설정]\n아래 빈칸을 채우시오.",
+      "blank_template": "중요 파일·디렉토리는 최소 권한 원칙에 따라 chmod {{1}} 정도로 접근 권한을 제한한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "600",
+            "640",
+            "700"
+          ],
+          "synonyms": [
+            "rw-",
+            "rwx"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 600 / 640 / 700\n\n해설:\n중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다.",
+      "reference": "진단가이드 §중요한 자원에 대한 잘못된 권한 설정",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-BLANK-B",
+      "chapter_code": "IMP-SF-03",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 중요한 자원에 대한 잘못된 권한 설정]\n아래 빈칸을 채우시오.",
+      "blank_template": "리눅스에서는 {{1}} 명령으로 소유자·그룹·기타의 권한을 분리 지정한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "chmod"
+          ],
+          "synonyms": [
+            "change mode"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = chmod\n\n해설:\n중요 파일은 최소 권한 원칙에 따라 chmod 600(소유자만 읽기/쓰기) 또는 640(소유자 쓰기+그룹 읽기)으로 제한하고 umask 027 정도를 기본으로 설정합니다.\n컨테이너 환경에서는 USER 디렉티브로 root 를 피합니다.",
+      "reference": "진단가이드 §중요한 자원에 대한 잘못된 권한 설정",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-04-BLANK-A",
+      "chapter_code": "IMP-SF-04",
+      "weakness_name_ko": "취약한 암호화 알고리즘 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 취약한 암호화 알고리즘 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "DES, 3DES, {{1}}, RC4 등은 금지 대상 알고리즘으로 AES-256 또는 ChaCha20으로 대체해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "MD5",
+            "SHA-1"
+          ],
+          "synonyms": [
+            "sha1",
+            "md 5"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = MD5 / SHA-1\n\n해설:\nDES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다.",
+      "reference": "진단가이드 §취약한 암호화 알고리즘 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-04-BLANK-B",
+      "chapter_code": "IMP-SF-04",
+      "weakness_name_ko": "취약한 암호화 알고리즘 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 취약한 암호화 알고리즘 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java Cipher는 안전한 모드인 AES/{{1}}/NoPadding 또는 AES/GCM 을 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CBC",
+            "CTR",
+            "GCM"
+          ],
+          "synonyms": [
+            "cipher block chaining"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CBC / CTR / GCM\n\n해설:\nDES/3DES/RC4 는 이미 깨진 알고리즘이며, MD5/SHA-1 은 충돌 공격으로 무결성이 보장되지 않습니다.\nAES-128/256, ChaCha20, SHA-256 이상, 인증 암호화(AES-GCM, ChaCha20-Poly1305) 를 사용합니다.",
+      "reference": "진단가이드 §취약한 암호화 알고리즘 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-05-BLANK-A",
+      "chapter_code": "IMP-SF-05",
+      "weakness_name_ko": "암호화되지 않은 중요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 암호화되지 않은 중요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "저장 시 중요정보는 {{1}} 되지 않으면 DB 유출 시 그대로 노출된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "암호화",
+            "encrypt"
+          ],
+          "synonyms": [
+            "encryption"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 암호화 / encrypt\n\n해설:\n저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다.",
+      "reference": "진단가이드 §암호화되지 않은 중요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-05-BLANK-B",
+      "chapter_code": "IMP-SF-05",
+      "weakness_name_ko": "암호화되지 않은 중요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 암호화되지 않은 중요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "전송 구간은 {{1}} (HTTPS) 적용이 필수다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "TLS",
+            "SSL"
+          ],
+          "synonyms": [
+            "https"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = TLS / SSL\n\n해설:\n저장 암호화 미적용 시 DB/백업 유출로 정보가 즉시 노출됩니다. 전송 미암호화 시 네트워크 도청으로 노출됩니다.\n저장은 AES-GCM 대칭 암호화, 전송은 TLS 1.2+ 로 이중 방어합니다.",
+      "reference": "진단가이드 §암호화되지 않은 중요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-BLANK-A",
+      "chapter_code": "IMP-SF-06",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 하드코드된 중요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "API 키·비밀번호를 소스에 박아두면 {{1}} 취약점이 된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Hardcoded Credentials",
+            "하드코드된 중요정보"
+          ],
+          "synonyms": [
+            "hardcoded secret"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Hardcoded Credentials / 하드코드된 중요정보\n\n해설:\nAPI 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다.",
+      "reference": "진단가이드 §하드코드된 중요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-BLANK-B",
+      "chapter_code": "IMP-SF-06",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 하드코드된 중요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "이들은 환경변수, {{1}} (AWS Secrets Manager/GCP Secret Manager 등)로 이관해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Secret Manager",
+            "KMS"
+          ],
+          "synonyms": [
+            "secretmanager",
+            "key management service"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Secret Manager / KMS\n\n해설:\nAPI 키·비밀번호·암호키의 소스코드 하드코딩은 디컴파일, Git 기록 유출, 내부자 유출 위험이 큽니다.\n환경변수, AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault 같은 전용 저장소를 사용합니다.",
+      "reference": "진단가이드 §하드코드된 중요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-07-BLANK-A",
+      "chapter_code": "IMP-SF-07",
+      "weakness_name_ko": "충분하지 않은 키 길이 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 충분하지 않은 키 길이 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "RSA 키는 최소 {{1}} bit, ECC는 256bit, AES 대칭키는 128bit 이상을 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "2048"
+          ],
+          "synonyms": [
+            "2048 bit"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 2048\n\n해설:\nRSA 는 최소 2048 bit, ECC 는 256 bit, AES 대칭키는 128 bit, HMAC-SHA256 키는 256 bit 이상을 권장합니다.\n짧은 키는 양자 이후 시대를 고려하면 더 빨리 상향해야 합니다.",
+      "reference": "진단가이드 §충분하지 않은 키 길이 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-07-BLANK-B",
+      "chapter_code": "IMP-SF-07",
+      "weakness_name_ko": "충분하지 않은 키 길이 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 충분하지 않은 키 길이 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "HMAC SHA-256 등의 경우 키 길이는 최소 출력 길이와 같은 {{1}} bit 이상이 권장된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "256"
+          ],
+          "synonyms": [
+            "256 bit"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 256\n\n해설:\nRSA 는 최소 2048 bit, ECC 는 256 bit, AES 대칭키는 128 bit, HMAC-SHA256 키는 256 bit 이상을 권장합니다.\n짧은 키는 양자 이후 시대를 고려하면 더 빨리 상향해야 합니다.",
+      "reference": "진단가이드 §충분하지 않은 키 길이 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-BLANK-A",
+      "chapter_code": "IMP-SF-08",
+      "weakness_name_ko": "적절하지 않은 난수값 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 적절하지 않은 난수값 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "보안 용도로는 java.util.Random 대신 {{1}} 클래스를 사용해야 예측 불가능한 난수를 얻는다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "SecureRandom"
+          ],
+          "synonyms": [
+            "secure random"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = SecureRandom\n\n해설:\njava.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다.",
+      "reference": "진단가이드 §적절하지 않은 난수값 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-BLANK-B",
+      "chapter_code": "IMP-SF-08",
+      "weakness_name_ko": "적절하지 않은 난수값 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 적절하지 않은 난수값 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "시드로 {{1}}를 사용하면 재현 가능해 보안에 부적합하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "System.currentTimeMillis",
+            "current time",
+            "타임스탬프"
+          ],
+          "synonyms": [
+            "현재 시간"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = System.currentTimeMillis / current time / 타임스탬프\n\n해설:\njava.util.Random 은 선형 합동 PRNG 로 예측 가능하며 보안용으로 부적합합니다.\njava.security.SecureRandom (Linux /dev/urandom 기반) 또는 JDK 17 의 RandomGenerator 의 SecureRandom 사용을 권장합니다.",
+      "reference": "진단가이드 §적절하지 않은 난수값 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-BLANK-A",
+      "chapter_code": "IMP-SF-09",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 취약한 비밀번호 허용]\n아래 빈칸을 채우시오.",
+      "blank_template": "비밀번호 정책은 길이 {{1}}자 이상, 사전 단어·연속 문자 금지 등을 서버에서 검증해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "8",
+            "10",
+            "12"
+          ],
+          "synonyms": [
+            "eight",
+            "여덟"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 8 / 10 / 12\n\n해설:\n취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다.",
+      "reference": "진단가이드 §취약한 비밀번호 허용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-BLANK-B",
+      "chapter_code": "IMP-SF-09",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 취약한 비밀번호 허용]\n아래 빈칸을 채우시오.",
+      "blank_template": "자주 쓰이는 비밀번호는 {{1}} 목록(HaveIBeenPwned 등)과 대조해 거부한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "blocklist",
+            "deny list",
+            "유출"
+          ],
+          "synonyms": [
+            "blacklist",
+            "유출 목록"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = blocklist / deny list / 유출\n\n해설:\n취약한 비밀번호 정책은 사전 공격(dictionary attack)을 쉽게 성공시킵니다.\n길이 8 자 이상, 대소문자+숫자+특수문자 중 3 종 이상 조합, HaveIBeenPwned 같은 유출 목록과의 대조로 필터링합니다.",
+      "reference": "진단가이드 §취약한 비밀번호 허용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-BLANK-A",
+      "chapter_code": "IMP-SF-10",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 전자서명 확인]\n아래 빈칸을 채우시오.",
+      "blank_template": "서명 검증을 생략하거나 {{1}} 알고리즘으로 구현하면 위조 메시지를 수용할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "none",
+            "None"
+          ],
+          "synonyms": [
+            "널 알고리즘",
+            "noop"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = none / None\n\n해설:\n서명 검증 생략이나 alg=none 허용은 JWT/JWS 위조 공격의 원인이 됩니다.\n서버 정책으로 허용 알고리즘(RS256, ES256 등)을 명시하고 헤더의 alg 를 신뢰하지 않아야 합니다.",
+      "reference": "진단가이드 §부적절한 전자서명 확인",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-BLANK-B",
+      "chapter_code": "IMP-SF-10",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 전자서명 확인]\n아래 빈칸을 채우시오.",
+      "blank_template": "JWT 검증 시 헤더의 alg 필드를 신뢰하지 말고 서버 정책으로 {{1}} 알고리즘만 허용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "RS256",
+            "ES256",
+            "HS256"
+          ],
+          "synonyms": [
+            "rsa256",
+            "ecdsa256"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = RS256 / ES256 / HS256\n\n해설:\n서명 검증 생략이나 alg=none 허용은 JWT/JWS 위조 공격의 원인이 됩니다.\n서버 정책으로 허용 알고리즘(RS256, ES256 등)을 명시하고 헤더의 alg 를 신뢰하지 않아야 합니다.",
+      "reference": "진단가이드 §부적절한 전자서명 확인",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-BLANK-A",
+      "chapter_code": "IMP-SF-11",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 인증서 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "TLS 연결 시 인증서 {{1}}과 유효기간·CN/SAN을 반드시 검증해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "체인",
+            "chain"
+          ],
+          "synonyms": [
+            "trust chain",
+            "신뢰 체인"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 체인 / chain\n\n해설:\nTLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다.",
+      "reference": "진단가이드 §부적절한 인증서 유효성 검증",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-BLANK-B",
+      "chapter_code": "IMP-SF-11",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 부적절한 인증서 유효성 검증]\n아래 빈칸을 채우시오.",
+      "blank_template": "인증서 검증을 비활성화한 TrustManager({{1}}=true) 같은 코드는 제거해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "trustAll",
+            "trust-all"
+          ],
+          "synonyms": [
+            "trust all",
+            "항상 신뢰"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = trustAll / trust-all\n\n해설:\nTLS 연결 시 인증서 체인, 유효 기간, CN/SAN, OCSP/CRL 을 모두 검증해야 합니다.\n개발 편의로 TrustManager 를 trust-all 로 구현한 코드는 반드시 제거하고 pinning 을 고려합니다.",
+      "reference": "진단가이드 §부적절한 인증서 유효성 검증",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-BLANK-A",
+      "chapter_code": "IMP-SF-12",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "민감정보를 {{1}} 쿠키로 저장하면 브라우저 종료 후에도 파일로 남아 노출 위험이 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "persistent",
+            "영구"
+          ],
+          "synonyms": [
+            "persistent cookie",
+            "영구 쿠키"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = persistent / 영구\n\n해설:\nMax-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다.",
+      "reference": "진단가이드 §사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-BLANK-B",
+      "chapter_code": "IMP-SF-12",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "세션쿠키는 {{1}} 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly·Secure를 함께 적용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Expires",
+            "Max-Age"
+          ],
+          "synonyms": [
+            "max age",
+            "만료"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Expires / Max-Age\n\n해설:\nMax-Age/Expires 가 있는 persistent 쿠키는 브라우저 종료 후에도 디스크에 남아 평문 노출 위험이 있습니다.\n세션 쿠키는 이 속성 없이 발급해 브라우저 종료 시 삭제되게 하고 HttpOnly/Secure/SameSite 를 함께 적용합니다.",
+      "reference": "진단가이드 §사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-BLANK-A",
+      "chapter_code": "IMP-SF-13",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 주석문 안에 포함된 시스템 주요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "배포 코드의 주석에 남긴 {{1}}, API키, 내부 URL 등은 난독화되어도 추출 가능하므로 제거한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "비밀번호",
+            "password"
+          ],
+          "synonyms": [
+            "credentials",
+            "계정"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 비밀번호 / password\n\n해설:\n소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다.",
+      "reference": "진단가이드 §주석문 안에 포함된 시스템 주요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-BLANK-B",
+      "chapter_code": "IMP-SF-13",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 주석문 안에 포함된 시스템 주요정보]\n아래 빈칸을 채우시오.",
+      "blank_template": "클라이언트 번들(JS)에서는 {{1}} 과정을 거쳐 주석을 제거해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "minify",
+            "minification"
+          ],
+          "synonyms": [
+            "minimize",
+            "압축"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = minify / minification\n\n해설:\n소스 주석의 TODO, 계정정보, 내부 API URL, 디버그 힌트는 배포 번들에 그대로 포함될 수 있습니다.\nJS 는 minify 단계에서 주석을 제거하고, 서버 코드도 빌드 시 주석 검사 도구(ESLint custom rule 등)로 차단합니다.",
+      "reference": "진단가이드 §주석문 안에 포함된 시스템 주요정보",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-BLANK-A",
+      "chapter_code": "IMP-SF-14",
+      "weakness_name_ko": "솔트 없이 일방향 해시함수 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 솔트 없이 일방향 해시함수 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "솔트 없이 MD5/SHA-1 단일 해시를 사용하면 {{1}} 테이블로 역추적 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Rainbow",
+            "레인보우"
+          ],
+          "synonyms": [
+            "rainbow table"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Rainbow / 레인보우\n\n해설:\n솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다.",
+      "reference": "진단가이드 §솔트 없이 일방향 해시함수 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-BLANK-B",
+      "chapter_code": "IMP-SF-14",
+      "weakness_name_ko": "솔트 없이 일방향 해시함수 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 솔트 없이 일방향 해시함수 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "비밀번호 해시는 솔트와 함께 {{1}} 같은 느린 해시(key stretching)을 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "bcrypt",
+            "scrypt",
+            "Argon2",
+            "PBKDF2"
+          ],
+          "synonyms": [
+            "b crypt"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = bcrypt / scrypt / Argon2 / PBKDF2\n\n해설:\n솔트 없는 MD5/SHA-1 해시는 레인보우 테이블로 쉽게 역추적됩니다.\n비밀번호는 고유 솔트 + bcrypt/scrypt/Argon2/PBKDF2 의 키 스트레칭 해시로 저장해 brute-force 비용을 충분히 올립니다.",
+      "reference": "진단가이드 §솔트 없이 일방향 해시함수 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-15-BLANK-A",
+      "chapter_code": "IMP-SF-15",
+      "weakness_name_ko": "무결성 검사없는 코드 다운로드",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 무결성 검사없는 코드 다운로드]\n아래 빈칸을 채우시오.",
+      "blank_template": "외부에서 내려받은 코드는 {{1}} 검사(서명·해시 비교)로 무결성을 확인한 뒤 실행해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "해시",
+            "hash",
+            "서명"
+          ],
+          "synonyms": [
+            "signature",
+            "sha"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 해시 / hash / 서명\n\n해설:\n외부 코드·스크립트 다운로드 시 서명(GPG)이나 해시(SHA-256) 검증 없이 실행하면 변조 공격에 노출됩니다.\nnpm lockfile, Maven checksums, SRI(Subresource Integrity) 로 의존성 무결성을 보장합니다.",
+      "reference": "진단가이드 §무결성 검사없는 코드 다운로드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-15-BLANK-B",
+      "chapter_code": "IMP-SF-15",
+      "weakness_name_ko": "무결성 검사없는 코드 다운로드",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 무결성 검사없는 코드 다운로드]\n아래 빈칸을 채우시오.",
+      "blank_template": "npm·Maven에서는 lockfile 및 {{1}}로 의존성 무결성을 보장할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "SRI",
+            "Subresource Integrity",
+            "checksum"
+          ],
+          "synonyms": [
+            "해시체크",
+            "sha-hash"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = SRI / Subresource Integrity / checksum\n\n해설:\n외부 코드·스크립트 다운로드 시 서명(GPG)이나 해시(SHA-256) 검증 없이 실행하면 변조 공격에 노출됩니다.\nnpm lockfile, Maven checksums, SRI(Subresource Integrity) 로 의존성 무결성을 보장합니다.",
+      "reference": "진단가이드 §무결성 검사없는 코드 다운로드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-BLANK-A",
+      "chapter_code": "IMP-SF-16",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 반복된 인증시도 제한 기능 부재]\n아래 빈칸을 채우시오.",
+      "blank_template": "실패 횟수 제한·지연·{{1}} 없이 로그인 API를 제공하면 무차별 대입에 취약하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "CAPTCHA",
+            "캡차"
+          ],
+          "synonyms": [
+            "캡챠",
+            "reCAPTCHA"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = CAPTCHA / 캡차\n\n해설:\n로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다.",
+      "reference": "진단가이드 §반복된 인증시도 제한 기능 부재",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-BLANK-B",
+      "chapter_code": "IMP-SF-16",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 반복된 인증시도 제한 기능 부재]\n아래 빈칸을 채우시오.",
+      "blank_template": "서버에서는 IP+계정별 {{1}} 알고리즘(Token Bucket/Leaky Bucket)으로 요청률을 제한한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Rate Limit",
+            "rate-limit",
+            "속도 제한"
+          ],
+          "synonyms": [
+            "rate limiting"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Rate Limit / rate-limit / 속도 제한\n\n해설:\n로그인 실패 제한이 없으면 분산 brute-force 에 무력합니다.\nIP+계정 기준 Rate Limiting(Token Bucket, Leaky Bucket)과 CAPTCHA, 점진적 지연을 복합 적용합니다.",
+      "reference": "진단가이드 §반복된 인증시도 제한 기능 부재",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-01-BLANK-A",
+      "chapter_code": "IMP-TS-01",
+      "weakness_name_ko": "경쟁조건: 검사시점과 사용시점",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 경쟁조건: 검사시점과 사용시점]\n아래 빈칸을 채우시오.",
+      "blank_template": "access() 로 검사 후 open() 로 사용하는 사이에 파일이 바뀌면 {{1}} 취약점이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "TOCTOU",
+            "Time-of-Check to Time-of-Use"
+          ],
+          "synonyms": [
+            "toctou",
+            "time of check"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = TOCTOU / Time-of-Check to Time-of-Use\n\n해설:\nTOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다.",
+      "reference": "진단가이드 §경쟁조건: 검사시점과 사용시점",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-01-BLANK-B",
+      "chapter_code": "IMP-TS-01",
+      "weakness_name_ko": "경쟁조건: 검사시점과 사용시점",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 경쟁조건: 검사시점과 사용시점]\n아래 빈칸을 채우시오.",
+      "blank_template": "해결책으로는 {{1}} 시스템 콜을 사용해 파일 디스크립터 기반으로 원자적으로 작업한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "openat",
+            "fchown",
+            "fstat"
+          ],
+          "synonyms": [
+            "open at"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = openat / fchown / fstat\n\n해설:\nTOCTOU(Time-of-Check to Time-of-Use)는 access() 로 검사 후 open() 사이에 파일이 교체되는 경쟁 조건 취약점입니다.\nopenat(O_NOFOLLOW) 같은 원자적 시스템 콜과 파일 디스크립터 기반 연산(fchown, fstat)으로 방어합니다.",
+      "reference": "진단가이드 §경쟁조건: 검사시점과 사용시점",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-BLANK-A",
+      "chapter_code": "IMP-TS-02",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 종료되지 않는 반복문 또는 재귀 함수]\n아래 빈칸을 채우시오.",
+      "blank_template": "외부 입력이 반복 횟수·재귀 깊이를 결정하면 {{1}} (서비스 거부)으로 이어질 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "DoS",
+            "Denial of Service"
+          ],
+          "synonyms": [
+            "서비스거부",
+            "denial-of-service"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = DoS / Denial of Service\n\n해설:\n반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다.",
+      "reference": "진단가이드 §종료되지 않는 반복문 또는 재귀 함수",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-BLANK-B",
+      "chapter_code": "IMP-TS-02",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 종료되지 않는 반복문 또는 재귀 함수]\n아래 빈칸을 채우시오.",
+      "blank_template": "반복·재귀에는 입력 범위 검증과 {{1}} (최대 반복/깊이 제한)를 설정한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "상한",
+            "bound",
+            "limit"
+          ],
+          "synonyms": [
+            "최대치",
+            "max"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 상한 / bound / limit\n\n해설:\n반복·재귀 횟수를 외부 입력이 결정하면 무한 루프나 스택 오버플로우로 DoS 가 발생합니다.\n입력 범위 검증과 최대 반복/재귀 깊이 제한을 설정해야 합니다.",
+      "reference": "진단가이드 §종료되지 않는 반복문 또는 재귀 함수",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-01-BLANK-A",
+      "chapter_code": "IMP-EH-01",
+      "weakness_name_ko": "오류 메시지 정보노출",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 오류 메시지 정보노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "스택트레이스, SQL문, 내부 경로 등이 포함된 {{1}}는 공격자에게 힌트를 준다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "오류 메시지",
+            "error message"
+          ],
+          "synonyms": [
+            "에러 메시지",
+            "exception message"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 오류 메시지 / error message\n\n해설:\n스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다.",
+      "reference": "진단가이드 §오류 메시지 정보노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-01-BLANK-B",
+      "chapter_code": "IMP-EH-01",
+      "weakness_name_ko": "오류 메시지 정보노출",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 오류 메시지 정보노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "운영 환경에서는 상세 예외를 사용자에게 노출하지 말고 {{1}}에만 기록한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "log",
+            "로그"
+          ],
+          "synonyms": [
+            "서버 로그",
+            "logfile"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = log / 로그\n\n해설:\n스택트레이스, SQL 구문, 내부 경로가 노출된 오류 메시지는 공격자의 정찰을 돕습니다.\n운영 환경에서는 일반화된 메시지만 사용자에게 노출하고, 상세 내용은 서버 로그에 기록합니다.",
+      "reference": "진단가이드 §오류 메시지 정보노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-BLANK-A",
+      "chapter_code": "IMP-EH-02",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 오류상황 대응 부재]\n아래 빈칸을 채우시오.",
+      "blank_template": "예외를 {{1}} 블록 없이 그대로 전파하거나 무시하면 자원 유출이나 일관성 파괴가 생긴다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "try-catch",
+            "catch",
+            "예외"
+          ],
+          "synonyms": [
+            "try catch",
+            "try/catch"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = try-catch / catch / 예외\n\n해설:\n예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다.",
+      "reference": "진단가이드 §오류상황 대응 부재",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-BLANK-B",
+      "chapter_code": "IMP-EH-02",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 오류상황 대응 부재]\n아래 빈칸을 채우시오.",
+      "blank_template": "{{1}} 블록에서는 자원 해제를 수행하고 try-with-resources로 자동 해제 패턴을 권장한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "finally"
+          ],
+          "synonyms": [
+            "파이널리"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = finally\n\n해설:\n예외를 try-catch 없이 전파하거나 빈 catch 로 무시하면 자원 유출·일관성 파괴가 발생합니다.\nfinally 블록 또는 try-with-resources(Java 7+) 로 자원 해제를 보장해야 합니다.",
+      "reference": "진단가이드 §오류상황 대응 부재",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-BLANK-A",
+      "chapter_code": "IMP-EH-03",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 부적절한 예외 처리]\n아래 빈칸을 채우시오.",
+      "blank_template": "catch 블록에서 예외를 {{1}} 처리하고 로그도 없으면 문제를 놓친다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "swallow",
+            "무시"
+          ],
+          "synonyms": [
+            "삼킴",
+            "empty catch"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = swallow / 무시\n\n해설:\ncatch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다.",
+      "reference": "진단가이드 §부적절한 예외 처리",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-BLANK-B",
+      "chapter_code": "IMP-EH-03",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 부적절한 예외 처리]\n아래 빈칸을 채우시오.",
+      "blank_template": "의미 있는 로그와 {{1}} (throw) 여부 판단이 필요하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "재전파",
+            "rethrow"
+          ],
+          "synonyms": [
+            "re-throw",
+            "다시 던지기"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 재전파 / rethrow\n\n해설:\ncatch 블록에서 예외를 swallow(무시)하거나 로그 없이 삼키면 장애 원인 추적이 불가능해집니다.\n의미 있는 로그 기록과 재전파(rethrow) 여부의 명확한 판단이 필요합니다.",
+      "reference": "진단가이드 §부적절한 예외 처리",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-BLANK-A",
+      "chapter_code": "IMP-CE-01",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · Null Pointer 역참조]\n아래 빈칸을 채우시오.",
+      "blank_template": "객체가 null인 상태에서 {{1}} 연산을 수행하면 NullPointerException이 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            ".",
+            "dot",
+            "메소드"
+          ],
+          "synonyms": [
+            "도트",
+            "메소드 호출"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = . / dot / 메소드\n\n해설:\nNull Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다.",
+      "reference": "진단가이드 §Null Pointer 역참조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-BLANK-B",
+      "chapter_code": "IMP-CE-01",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · Null Pointer 역참조]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java 에서는 {{1}}.ofNullable 과 ifPresent 로 안전하게 처리하거나 null 체크를 수행한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Optional"
+          ],
+          "synonyms": [
+            "옵셔널"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Optional\n\n해설:\nNull Pointer Dereference 는 NullPointerException 을 발생시켜 서비스 장애의 주 원인이 됩니다.\nJava 에서는 Optional.ofNullable + ifPresent, Objects.requireNonNull, @Nullable 어노테이션 활용이 권장됩니다.",
+      "reference": "진단가이드 §Null Pointer 역참조",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-BLANK-A",
+      "chapter_code": "IMP-CE-02",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 부적절한 자원 해제]\n아래 빈칸을 채우시오.",
+      "blank_template": "파일·DB 커넥션·소켓을 사용 후 {{1}} 하지 않으면 자원 누수가 발생한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "close",
+            "닫기",
+            "해제"
+          ],
+          "synonyms": [
+            "종료",
+            "클로즈"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = close / 닫기 / 해제\n\n해설:\n파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다.",
+      "reference": "진단가이드 §부적절한 자원 해제",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-BLANK-B",
+      "chapter_code": "IMP-CE-02",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 부적절한 자원 해제]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java 7+ 에서는 {{1}} 구문으로 AutoCloseable 자원을 자동 해제한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "try-with-resources"
+          ],
+          "synonyms": [
+            "try with resources",
+            "자동해제"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = try-with-resources\n\n해설:\n파일, DB 커넥션, 소켓 등 AutoCloseable 자원은 사용 후 반드시 close 해야 자원 누수가 없습니다.\nJava 7+ 의 try-with-resources 구문으로 자동 해제하는 것이 가장 안전합니다.",
+      "reference": "진단가이드 §부적절한 자원 해제",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-BLANK-A",
+      "chapter_code": "IMP-CE-03",
+      "weakness_name_ko": "해제된 자원 사용",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 해제된 자원 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "free() 된 포인터를 재사용하면 {{1}} 취약점으로 임의 코드 실행이 가능하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Use After Free",
+            "UAF"
+          ],
+          "synonyms": [
+            "use-after-free",
+            "해제 후 사용"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Use After Free / UAF\n\n해설:\nUse After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다.",
+      "reference": "진단가이드 §해제된 자원 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-BLANK-B",
+      "chapter_code": "IMP-CE-03",
+      "weakness_name_ko": "해제된 자원 사용",
+      "language": "c",
+      "difficulty": "상",
+      "body": "[구현 · 해제된 자원 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "해제 직후 포인터에 {{1}}을 대입해 재사용을 차단하는 게 기본 방어다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "NULL",
+            "0"
+          ],
+          "synonyms": [
+            "널",
+            "nullptr"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = NULL / 0\n\n해설:\nUse After Free(UAF)는 free 된 포인터를 재사용할 때 다른 객체로 재할당된 메모리를 조작할 수 있는 치명적 취약점입니다.\n해제 직후 포인터에 NULL 대입, 또는 스마트 포인터(unique_ptr, shared_ptr) 사용으로 원천 차단합니다.",
+      "reference": "진단가이드 §해제된 자원 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-04-BLANK-A",
+      "chapter_code": "IMP-CE-04",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "language": "c",
+      "difficulty": "중",
+      "body": "[구현 · 초기화되지 않은 변수 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "스택 변수 초기화 없이 읽으면 {{1}} 값이 노출되어 정보 유출이 될 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "garbage",
+            "쓰레기"
+          ],
+          "synonyms": [
+            "임의값",
+            "uninit"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = garbage / 쓰레기\n\n해설:\n초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다.",
+      "reference": "진단가이드 §초기화되지 않은 변수 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-04-BLANK-B",
+      "chapter_code": "IMP-CE-04",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "language": "c",
+      "difficulty": "중",
+      "body": "[구현 · 초기화되지 않은 변수 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "모든 지역 변수는 선언 즉시 {{1}} 으로 초기화하거나 calloc 으로 0-초기화한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "0",
+            "기본값"
+          ],
+          "synonyms": [
+            "zero",
+            "영"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 0 / 기본값\n\n해설:\n초기화되지 않은 스택 변수는 이전 함수 호출의 쓰레기 값을 포함해 정보 유출로 이어질 수 있습니다.\n모든 지역 변수는 선언 즉시 0 또는 기본값으로 초기화하고, 힙은 calloc 또는 memset 으로 0 초기화합니다.",
+      "reference": "진단가이드 §초기화되지 않은 변수 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-BLANK-A",
+      "chapter_code": "IMP-CE-05",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 신뢰할 수 없는 데이터의 역직렬화]\n아래 빈칸을 채우시오.",
+      "blank_template": "외부 입력을 Java {{1}} 로 역직렬화하면 임의 객체 생성으로 RCE에 이를 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "ObjectInputStream",
+            "readObject"
+          ],
+          "synonyms": [
+            "object input stream"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = ObjectInputStream / readObject\n\n해설:\nJava ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다.",
+      "reference": "진단가이드 §신뢰할 수 없는 데이터의 역직렬화",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-BLANK-B",
+      "chapter_code": "IMP-CE-05",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 신뢰할 수 없는 데이터의 역직렬화]\n아래 빈칸을 채우시오.",
+      "blank_template": "대안으로 JSON 파서({{1}}) 같은 데이터 포맷을 사용하고 허용 클래스 화이트리스트를 구성한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "Jackson",
+            "Gson"
+          ],
+          "synonyms": [
+            "jackson",
+            "gson"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = Jackson / Gson\n\n해설:\nJava ObjectInputStream.readObject 는 임의 클래스의 객체 생성을 허용하므로, 외부 입력 역직렬화는 RCE 로 이어질 수 있습니다.\nJSON 같은 안전한 포맷(Jackson, Gson) 으로 대체하거나 ObjectInputFilter 로 허용 클래스를 화이트리스트로 제한합니다.",
+      "reference": "진단가이드 §신뢰할 수 없는 데이터의 역직렬화",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-BLANK-A",
+      "chapter_code": "IMP-EN-01",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 잘못된 세션에 의한 데이터 정보 노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "요청별로 새로 생성해야 하는 데이터를 {{1}} 변수에 저장하면 다른 사용자 세션에 노출될 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "static",
+            "클래스"
+          ],
+          "synonyms": [
+            "스태틱",
+            "정적"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = static / 클래스\n\n해설:\nstatic 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다.",
+      "reference": "진단가이드 §잘못된 세션에 의한 데이터 정보 노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-BLANK-B",
+      "chapter_code": "IMP-EN-01",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · 잘못된 세션에 의한 데이터 정보 노출]\n아래 빈칸을 채우시오.",
+      "blank_template": "요청 데이터는 {{1}} 범위에 유지하고 ThreadLocal 사용 시에는 사용 후 remove 로 정리한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "request",
+            "요청"
+          ],
+          "synonyms": [
+            "요청별",
+            "스코프"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = request / 요청\n\n해설:\nstatic 변수에 요청별 데이터를 저장하면 여러 사용자 세션이 동일 변수를 공유해 정보 유출이 발생합니다.\n요청 스코프 객체(Spring @RequestScope), ThreadLocal(사용 후 remove 필수) 를 활용합니다.",
+      "reference": "진단가이드 §잘못된 세션에 의한 데이터 정보 노출",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-BLANK-A",
+      "chapter_code": "IMP-EN-02",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 제거되지 않고 남은 디버그 코드]\n아래 빈칸을 채우시오.",
+      "blank_template": "배포 전 {{1}} 이나 console.log, 개발자 툴바 설정은 반드시 제거해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "System.out.println",
+            "println",
+            "print"
+          ],
+          "synonyms": [
+            "프린트"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = System.out.println / println / print\n\n해설:\nSystem.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다.",
+      "reference": "진단가이드 §제거되지 않고 남은 디버그 코드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-BLANK-B",
+      "chapter_code": "IMP-EN-02",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "language": "java",
+      "difficulty": "하",
+      "body": "[구현 · 제거되지 않고 남은 디버그 코드]\n아래 빈칸을 채우시오.",
+      "blank_template": "프로파일을 {{1}} 와 dev 로 분리해 디버그 설정이 프로덕션에 들어가지 않게 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "prod",
+            "production"
+          ],
+          "synonyms": [
+            "운영"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = prod / production\n\n해설:\nSystem.out.println, console.log, 개발자 도구 열림 힌트 등 디버그 코드는 프로덕션에 포함되면 정보 노출 또는 성능 문제로 이어집니다.\n빌드 프로파일(prod/dev)을 분리해 디버그 코드를 조건부 컴파일/제거합니다.",
+      "reference": "진단가이드 §제거되지 않고 남은 디버그 코드",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-BLANK-A",
+      "chapter_code": "IMP-EN-03",
+      "weakness_name_ko": "Public 메소드부터 반환된 Private 배열",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · Public 메소드부터 반환된 Private 배열]\n아래 빈칸을 채우시오.",
+      "blank_template": "public 메소드가 내부 private 배열을 그대로 반환하면 호출자가 {{1}} 할 수 있어 캡슐화가 깨진다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "수정",
+            "modify"
+          ],
+          "synonyms": [
+            "변경",
+            "mutate"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 수정 / modify\n\n해설:\npublic 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다.",
+      "reference": "진단가이드 §Public 메소드부터 반환된 Private 배열",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-BLANK-B",
+      "chapter_code": "IMP-EN-03",
+      "weakness_name_ko": "Public 메소드부터 반환된 Private 배열",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · Public 메소드부터 반환된 Private 배열]\n아래 빈칸을 채우시오.",
+      "blank_template": "반환할 때는 Arrays.{{1}} 로 복사본을 돌려주어야 외부 수정으로부터 보호된다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "copyOf",
+            "clone"
+          ],
+          "synonyms": [
+            "copy of"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = copyOf / clone\n\n해설:\npublic 메소드가 내부 private 배열을 그대로 반환하면 호출자가 참조를 유지하며 원본을 수정해 캡슐화가 깨집니다.\nArrays.copyOf 또는 clone 으로 복사본을 반환해 외부 수정으로부터 보호합니다.",
+      "reference": "진단가이드 §Public 메소드부터 반환된 Private 배열",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-BLANK-A",
+      "chapter_code": "IMP-EN-04",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · Private 배열에 Public 데이터 할당]\n아래 빈칸을 채우시오.",
+      "blank_template": "setter 가 외부에서 전달받은 배열을 그대로 저장하면 외부에서 {{1}}을 계속 유지할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "참조",
+            "reference"
+          ],
+          "synonyms": [
+            "레퍼런스"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 참조 / reference\n\n해설:\nsetter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다.",
+      "reference": "진단가이드 §Private 배열에 Public 데이터 할당",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-BLANK-B",
+      "chapter_code": "IMP-EN-04",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · Private 배열에 Public 데이터 할당]\n아래 빈칸을 채우시오.",
+      "blank_template": "setter 에서는 Arrays.{{1}} 로 깊은 복사 후 저장해 내부 상태를 보호한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "copyOf",
+            "clone"
+          ],
+          "synonyms": [
+            "copy of"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = copyOf / clone\n\n해설:\nsetter 가 외부 배열 참조를 그대로 저장하면 외부에서 원본을 계속 수정할 수 있어 내부 불변식이 깨집니다.\nsetter 에서는 Arrays.copyOf / clone 으로 깊은 복사 후 저장합니다.",
+      "reference": "진단가이드 §Private 배열에 Public 데이터 할당",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-BLANK-A",
+      "chapter_code": "IMP-AA-01",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · DNS lookup에 의존한 보안결정]\n아래 빈칸을 채우시오.",
+      "blank_template": "IP 역조회나 DNS 이름으로 권한을 결정하면 {{1}} 스푸핑 공격에 취약하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "DNS",
+            "dns"
+          ],
+          "synonyms": [
+            "도메인"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = DNS / dns\n\n해설:\nIP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다.",
+      "reference": "진단가이드 §DNS lookup에 의존한 보안결정",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-BLANK-B",
+      "chapter_code": "IMP-AA-01",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "language": "java",
+      "difficulty": "상",
+      "body": "[구현 · DNS lookup에 의존한 보안결정]\n아래 빈칸을 채우시오.",
+      "blank_template": "인증은 DNS가 아닌 TLS 인증서·{{1}} 기반 식별로 수행해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "토큰",
+            "token"
+          ],
+          "synonyms": [
+            "JWT",
+            "인증 토큰"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = 토큰 / token\n\n해설:\nIP 역조회(reverse DNS) 나 호스트명으로 권한을 결정하면 DNS 스푸핑·캐시 포이즈닝 공격으로 우회됩니다.\n인증은 TLS 클라이언트 인증서, OAuth/JWT 토큰, 상호 TLS(mTLS) 같이 위조 불가능한 식별자로 수행해야 합니다.",
+      "reference": "진단가이드 §DNS lookup에 의존한 보안결정",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-BLANK-A",
+      "chapter_code": "IMP-AA-02",
+      "weakness_name_ko": "취약한 API 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 취약한 API 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "Java 의 {{1}} 메소드는 플랫폼 기본 문자셋을 사용해 환경에 따라 다르게 동작하므로 사용을 피한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "String.getBytes()",
+            "new String(byte[])"
+          ],
+          "synonyms": [
+            "getbytes"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = String.getBytes() / new String(byte[])\n\n해설:\nString.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다.",
+      "reference": "진단가이드 §취약한 API 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-BLANK-B",
+      "chapter_code": "IMP-AA-02",
+      "weakness_name_ko": "취약한 API 사용",
+      "language": "java",
+      "difficulty": "중",
+      "body": "[구현 · 취약한 API 사용]\n아래 빈칸을 채우시오.",
+      "blank_template": "대신 명시적으로 {{1}}(UTF-8) 처럼 인코딩을 지정해야 한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "StandardCharsets.UTF_8",
+            "UTF-8"
+          ],
+          "synonyms": [
+            "utf8",
+            "utf-8"
+          ]
+        }
+      ],
+      "explanation": "정답:\n  #1 = StandardCharsets.UTF_8 / UTF-8\n\n해설:\nString.getBytes() / new String(byte[]) 같은 플랫폼 기본 문자셋 의존 API 는 환경에 따라 다르게 동작해 데이터 변환 오류를 일으킵니다.\nStandardCharsets.UTF_8 처럼 명시적 인코딩을 항상 지정해야 합니다.",
+      "reference": "진단가이드 §취약한 API 사용",
+      "tags": [
+        "blank",
+        "implementation",
+        "auto-seed"
+      ],
+      "is_active": true
+    }
+  ]
+}

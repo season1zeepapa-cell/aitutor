@@ -1,24 +1,12 @@
 // Vercel 서버리스 함수 - docstore 기출문제 임포트 API
 // docstore의 exam_questions → error의 questions 테이블로 이동
 const { query } = require('./db');
-const { verifyToken, extractToken } = require('./auth');
+const { withAdmin } = require('./middleware');
 
 // 원형 숫자 매핑
 const CIRCLE_NUMS = ['①', '②', '③', '④', '⑤'];
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  // 관리자 인증 필수
-  const token = extractToken(req);
-  const payload = verifyToken(token);
-  if (!payload || !payload.admin) {
-    return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-  }
-
+module.exports = withAdmin(async (req, res) => {
   try {
     // ── GET: 시험 목록 / 문제 미리보기 ──
     if (req.method === 'GET') {
@@ -186,7 +174,7 @@ ${choicesText}
           // Claude API 호출 (HTTPS 직접)
           const https = require('https');
           const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim();
-          if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY 미설정' });
+          if (!apiKey) return res.status(500).json({ error: 'AI 서비스를 사용할 수 없습니다. 관리자에게 문의하세요.' });
           const selectedModel = requestedModel || 'claude-sonnet-4-20250514';
           const body = JSON.stringify({
             model: selectedModel,
@@ -305,4 +293,4 @@ ${choicesText}
     console.error('[ImportDocstore] 에러:', err);
     res.status(500).json({ error: '서버 오류', detail: err.message });
   }
-};
+});

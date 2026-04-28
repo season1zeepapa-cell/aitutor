@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-CE-03,04",
+  "description": "구현단계 — 코드오류 누락 항목 보강 (해제된 자원 사용·초기화 안된 변수)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) §4.5",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-03",
+      "weakness_code": "CWE-416",
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_name_ko": "해제된 자원 사용 (Use After Free)",
+      "language": "java",
+      "difficulty": "중",
+      "body": "아래 Java 코드의 보안약점을 진단하시오. DB 커넥션 사용 패턴이다.",
+      "vulnerable_code": "1  public ResultSet queryAll() throws SQLException {\n2      Connection conn = pool.getConnection();\n3      PreparedStatement ps = null;\n4      try {\n5          ps = conn.prepareStatement(\"SELECT * FROM items\");\n6          return ps.executeQuery();\n7      } finally {\n8          if (ps != null) ps.close();\n9          conn.close();\n10     }\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [6, 8, 9],
+      "rationale_keywords": ["해제된 자원 사용", "ResultSet", "closed statement", "lifecycle"],
+      "fix_keywords": ["try-with-resources", "결과를 먼저 소비", "List 반환"],
+      "safe_code": "1  public List<Item> queryAll() throws SQLException {\n2      List<Item> items = new ArrayList<>();\n3      try (Connection conn = pool.getConnection();\n4           PreparedStatement ps = conn.prepareStatement(\"SELECT id, name FROM items\");\n5           ResultSet rs = ps.executeQuery()) {\n6          while (rs.next()) {\n7              items.add(new Item(rs.getInt(\"id\"), rs.getString(\"name\")));\n8          }\n9      }\n10     return items;\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L6에서 ResultSet을 반환하지만 finally(L8~9)에서 PreparedStatement·Connection을 닫아버려, 호출자가 받은 ResultSet을 순회할 때 이미 해제된 자원을 참조하게 된다.",
+        "fix_description": "try-with-resources로 자원 해제를 보장하고, ResultSet 반환 대신 메서드 내에서 결과를 List로 수집하여 반환한다."
+      },
+      "reference": "KISA 진단가이드 §4.5.3 해제된 자원 사용",
+      "tags": ["use-after-free", "resource", "jdbc", "java"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-04",
+      "weakness_code": "CWE-457",
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "초기화되지 않은 변수(Uninitialized Variable) 사용으로 인한 보안약점 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "C/C++에서 지역 변수는 선언 시 스택 쓰레기 값을 가지므로 명시적 초기화가 필수다"},
+        {"num": 2, "text": "초기화되지 않은 포인터 역참조는 정의되지 않은 동작(undefined behavior)이며 크래시 또는 임의 코드 실행으로 이어질 수 있다"},
+        {"num": 3, "text": "Java는 모든 지역변수가 자동으로 null/0으로 초기화되므로 초기화되지 않은 변수 사용 문제가 발생하지 않는다"},
+        {"num": 4, "text": "정적 분석 도구로 초기화 누락을 컴파일 타임에 검출할 수 있다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 진단가이드 §4.5.4 초기화되지 않은 변수 사용",
+      "tags": ["uninitialized", "undefined-behavior"]
+    }
+  ]
+}

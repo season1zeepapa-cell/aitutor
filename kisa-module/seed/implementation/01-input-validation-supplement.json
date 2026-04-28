@@ -1,0 +1,126 @@
+{
+  "version": "2.0.0",
+  "stage": "implementation",
+  "chapter_code": "IMP-IV-02,09,10,15,16,17",
+  "description": "구현단계 — 입력데이터 검증 및 표현 누락 항목 보강 (코드삽입·XML삽입·LDAP삽입·보안기능결정입력값·메모리버퍼·포맷스트링)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 진단가이드(2021) + 언어별 시큐어코딩 가이드",
+  "questions": [
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-02",
+      "weakness_code": "CWE-94",
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "코드 삽입",
+      "language": "python",
+      "difficulty": "중",
+      "body": "아래 Python 코드의 보안약점을 진단하시오. 사용자 입력을 받아 수식을 계산하는 계산기 API다.",
+      "vulnerable_code": "1  from flask import Flask, request\n2  app = Flask(__name__)\n3\n4  @app.route('/calc')\n5  def calc():\n6      expr = request.args.get('expr', '0')\n7      result = eval(expr)\n8      return f'결과: {result}'",
+      "code_language": "python",
+      "vulnerable_lines": [7],
+      "rationale_keywords": ["코드 삽입", "eval", "임의 코드 실행", "외부입력"],
+      "fix_keywords": ["ast.literal_eval", "안전한 파서", "화이트리스트"],
+      "safe_code": "1  import ast, operator\n2  OPS = {ast.Add: operator.add, ast.Sub: operator.sub,\n3         ast.Mult: operator.mul, ast.Div: operator.truediv}\n4  def safe_eval(node):\n5      if isinstance(node, ast.Num): return node.n\n6      if isinstance(node, ast.BinOp): return OPS[type(node.op)](safe_eval(node.left), safe_eval(node.right))\n7      raise ValueError('지원하지 않는 연산')\n8  @app.route('/calc')\n9  def calc():\n10     tree = ast.parse(request.args.get('expr','0'), mode='eval')\n11     return f'결과: {safe_eval(tree.body)}'",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L7의 eval()은 외부입력 expr을 Python 코드로 직접 해석·실행하여 __import__('os').system('rm -rf /') 같은 임의 코드 실행이 가능하다.",
+        "fix_description": "eval() 제거 후 ast.parse로 AST를 파싱하고 허용된 노드 타입만 평가하거나 ast.literal_eval로 리터럴만 허용한다."
+      },
+      "reference": "KISA 진단가이드 §4.1.2 코드 삽입",
+      "tags": ["code-injection", "eval", "python"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-09",
+      "weakness_code": "CWE-91",
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "XML 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "아래 Java 코드는 사용자 입력으로 XML 문서를 생성하여 저장한다. 보안약점을 진단하시오.",
+      "vulnerable_code": "1  public String buildOrderXml(String userId, String itemId) {\n2      StringBuilder xml = new StringBuilder();\n3      xml.append(\"<order>\");\n4      xml.append(\"<user>\").append(userId).append(\"</user>\");\n5      xml.append(\"<item>\").append(itemId).append(\"</item>\");\n6      xml.append(\"</order>\");\n7      return xml.toString();\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [4, 5],
+      "rationale_keywords": ["XML 삽입", "외부입력", "이스케이프", "태그 조작"],
+      "fix_keywords": ["StringEscapeUtils.escapeXml", "XML 인코딩", "&lt;"],
+      "safe_code": "1  import org.apache.commons.text.StringEscapeUtils;\n2  public String buildOrderXml(String userId, String itemId) {\n3      StringBuilder xml = new StringBuilder();\n4      xml.append(\"<order>\");\n5      xml.append(\"<user>\").append(StringEscapeUtils.escapeXml11(userId)).append(\"</user>\");\n6      xml.append(\"<item>\").append(StringEscapeUtils.escapeXml11(itemId)).append(\"</item>\");\n7      xml.append(\"</order>\");\n8      return xml.toString();\n9  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L4~5에서 외부입력 userId·itemId를 XML 특수문자 인코딩 없이 그대로 삽입하여, </user><admin>true</admin> 같은 태그 조작이 가능하다.",
+        "fix_description": "StringEscapeUtils.escapeXml11 등으로 <, >, &, ', \" 를 엔터티로 인코딩한 후 삽입한다."
+      },
+      "reference": "KISA 진단가이드 §4.1.9 XML 삽입",
+      "tags": ["xml-injection", "escape", "java"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-10",
+      "weakness_code": "CWE-90",
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "LDAP 삽입",
+      "language": "java",
+      "difficulty": "중",
+      "body": "아래 Java LDAP 조회 코드의 보안약점을 진단하시오.",
+      "vulnerable_code": "1  public SearchResult findUser(DirContext ctx, String userId) throws Exception {\n2      String filter = \"(&(uid=\" + userId + \")(status=active))\";\n3      SearchControls sc = new SearchControls();\n4      sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n5      NamingEnumeration<SearchResult> results = ctx.search(\"ou=users,dc=example,dc=com\", filter, sc);\n6      return results.hasMore() ? results.next() : null;\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 5],
+      "rationale_keywords": ["LDAP 삽입", "필터", "이스케이프", "외부입력"],
+      "fix_keywords": ["LDAP 특수문자 이스케이프", "화이트리스트", "encodeForLDAP"],
+      "safe_code": "1  public SearchResult findUser(DirContext ctx, String userId) throws Exception {\n2      if (!userId.matches(\"^[a-zA-Z0-9_]+$\")) throw new IllegalArgumentException();\n3      String safe = escapeLDAPSearchFilter(userId);\n4      String filter = \"(&(uid=\" + safe + \")(status=active))\";\n5      SearchControls sc = new SearchControls();\n6      sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n7      return ctx.search(\"ou=users,dc=example,dc=com\", filter, sc).next();\n8  }\n9  // escapeLDAPSearchFilter: *, (, ), \\, NUL을 \\XX 형태로 이스케이프",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L2에서 외부입력 userId를 검증·이스케이프 없이 LDAP 필터 문자열에 직접 연결하여, admin)(|(uid=* 같은 필터 주입으로 전체 계정이 조회될 수 있다.",
+        "fix_description": "LDAP 특수문자(*, (, ), \\, NUL)를 \\XX 형태로 이스케이프하거나 입력값을 영숫자 화이트리스트로 검증한다."
+      },
+      "reference": "KISA 진단가이드 §4.1.10 LDAP 삽입",
+      "tags": ["ldap-injection", "filter", "java"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-15",
+      "weakness_code": "CWE-807",
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "language": "javascript",
+      "difficulty": "중",
+      "body": "아래 Node.js Express 코드의 보안약점을 진단하시오. 관리자 판별 로직이다.",
+      "vulnerable_code": "1  app.post('/admin-action', (req, res) => {\n2      const isAdmin = req.body.is_admin || req.headers['x-admin'];\n3      if (isAdmin === 'true' || isAdmin === true) {\n4          performAdminAction();\n5          return res.json({ok: true});\n6      }\n7      res.status(403).json({error: '권한 없음'});\n8  });",
+      "code_language": "javascript",
+      "vulnerable_lines": [2, 3, 4],
+      "rationale_keywords": ["신뢰할 수 없는 입력", "권한 결정", "클라이언트 플래그", "우회"],
+      "fix_keywords": ["서버 세션", "DB 조회", "신뢰경계"],
+      "safe_code": "1  app.post('/admin-action', async (req, res) => {\n2      const userId = req.session.userId;\n3      if (!userId) return res.status(401).json({error: '인증 필요'});\n4      const user = await db.users.findById(userId);\n5      if (!user || !user.is_admin) {\n6          return res.status(403).json({error: '권한 없음'});\n7      }\n8      performAdminAction();\n9      res.json({ok: true});\n10 });",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "L2~4에서 클라이언트가 보낸 req.body.is_admin / x-admin 헤더를 권한 결정의 직접 근거로 사용한다. 공격자는 이 값을 임의로 조작해 관리자 기능을 실행할 수 있다.",
+        "fix_description": "서버에서 세션의 사용자 ID를 기준으로 DB를 조회하여 실제 is_admin 여부를 확인한다. 클라이언트 전송값은 권한 판정에 사용하지 않는다."
+      },
+      "reference": "KISA 진단가이드 §4.1.15 보안기능 결정에 사용되는 부적절한 입력값",
+      "tags": ["authorization", "trust-boundary", "javascript"]
+    },
+    {
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-17",
+      "weakness_code": "CWE-134",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "포맷 스트링 삽입(Format String Injection) 취약점을 방지하기 위한 올바른 코드 작성 원칙은?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력을 printf()의 첫 번째 인자(포맷 문자열)로 직접 전달한다"},
+        {"num": 2, "text": "포맷 문자열은 고정 리터럴로 하고, 사용자 입력은 %s 등의 인자로만 전달한다"},
+        {"num": 3, "text": "%n 포맷 지정자를 활용하여 메모리 주소를 자유롭게 제어한다"},
+        {"num": 4, "text": "sprintf 사용 시 버퍼 크기 검증은 필요 없다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 진단가이드 §4.1.17 포맷 스트링 삽입",
+      "tags": ["format-string", "printf"]
+    }
+  ]
+}

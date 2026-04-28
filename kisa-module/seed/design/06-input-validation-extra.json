@@ -1,0 +1,310 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-IV-01~10 (보강)",
+  "description": "설계단계 입력검증 10챕터 보강 문항 (챕터당 +1~2). 기존 문항과 시나리오·난이도 차별화.",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드 §3-3.1",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-01",
+      "weakness_code": "DSG-IV-01-03",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "DBMS 조회 결과 검증 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "DB 조회 결과값을 화면에 출력하는 기능을 설계할 때 고려해야 할 보안 요구사항이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "조회 결과에 HTML/JS 제어문자가 포함될 수 있으므로 출력 시 인코딩 적용"},
+        {"num": 2, "text": "DB에 저장된 값이 신뢰 가능하다고 가정하고 별도 검증 없이 그대로 렌더링"},
+        {"num": 3, "text": "페이지네이션 + 결과 건수 제한으로 대용량 노출 방지"},
+        {"num": 4, "text": "민감 컬럼(주민번호·카드번호)은 마스킹 처리"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.1",
+      "tags": ["dbms", "output-encoding", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-02",
+      "weakness_code": "DSG-IV-02-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "XML 파서 설정 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "XML 파싱 기능을 안전하게 설계할 때 파서 설정 요구사항이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "외부 개체 참조(ENTITY) 비활성화"},
+        {"num": 2, "text": "DOCTYPE 선언 자체를 거부"},
+        {"num": 3, "text": "XML Schema 유효성 검증 수행"},
+        {"num": 4, "text": "성능 향상을 위해 외부 URL 자원 자동 참조 허용"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.1.2",
+      "tags": ["xxe", "xml-parser", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-03",
+      "weakness_code": "DSG-IV-03-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "LDAP 로그인 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "LDAP 기반 로그인 기능 설계 시 권장하지 않는 것은?",
+      "choices": [
+        {"num": 1, "text": "사용자 ID는 영숫자·하이픈 화이트리스트로 제한"},
+        {"num": 2, "text": "LDAP bind용 서비스 계정은 읽기 전용 최소 권한"},
+        {"num": 3, "text": "실패 횟수 제한을 LDAP 서버가 아닌 애플리케이션 레벨에서 관리"},
+        {"num": 4, "text": "ID 입력값을 검증·이스케이프 없이 LDAP 필터에 그대로 삽입"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.1.3",
+      "tags": ["ldap", "login", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-04",
+      "weakness_code": "DSG-IV-04-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "파일 경로 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "파일 저장소 접근 기능 설계 시 경로 조작(Path Traversal) 방지 원칙으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력 파일명은 basename 처리로 경로 구분자 제거"},
+        {"num": 2, "text": "조립된 경로를 realpath로 정규화한 후 허용 디렉토리 prefix 검증"},
+        {"num": 3, "text": "심볼릭 링크 추종은 허용하되 읽기 전용으로 제한"},
+        {"num": 4, "text": "파일 ID를 DB에 매핑해 클라이언트는 ID만 전달"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.4",
+      "tags": ["path-traversal", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-04",
+      "weakness_code": "DSG-IV-04-03",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "OS 명령 실행 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "OS 명령 실행 기능 설계 원칙으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력을 shell 문자열로 조립 실행해 유연성 확보"},
+        {"num": 2, "text": "명령어를 배열 인자로 분리 전달 + 화이트리스트 기반 명령만 허용"},
+        {"num": 3, "text": "최대 권한(root)으로 실행해 오류 없이 동작"},
+        {"num": 4, "text": "system(), eval() 등 편의 API를 활용"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.4",
+      "tags": ["os-command", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-05",
+      "weakness_code": "DSG-IV-05-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "CSP 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "Content Security Policy(CSP)를 통한 XSS 방어 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "script-src 'self' + 신뢰된 CDN만 허용"},
+        {"num": 2, "text": "'unsafe-inline' / 'unsafe-eval' 을 기본으로 설정해 호환성 확보"},
+        {"num": 3, "text": "nonce 기반 인라인 스크립트 허용"},
+        {"num": 4, "text": "CSP 위반 리포트 수집 엔드포인트 구성 (report-uri)"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.5",
+      "tags": ["csp", "xss", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-06",
+      "weakness_code": "DSG-IV-06-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "CSRF 토큰 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "CSRF 토큰 구현 설계 원칙이 아닌 것은?",
+      "choices": [
+        {"num": 1, "text": "토큰은 암호학적 난수로 128bit 이상"},
+        {"num": 2, "text": "세션 ID에서 유도하지 않고 독립 생성"},
+        {"num": 3, "text": "토큰은 URL 쿼리 파라미터로 전송해 공유·로그 보존"},
+        {"num": 4, "text": "중요기능 요청 본문·헤더에 토큰 포함 및 서버 검증"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.6",
+      "tags": ["csrf", "token", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-07",
+      "weakness_code": "DSG-IV-07-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "리다이렉트 URL 검증 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "사용자 리다이렉트 기능 설계 시 오픈 리다이렉트(Open Redirect) 방지 원칙으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "리다이렉트 URL 도메인을 허용 목록(whitelist)으로 제한"},
+        {"num": 2, "text": "모든 http/https URL을 허용하고 경고 없이 이동"},
+        {"num": 3, "text": "Referer 헤더만 검증하고 URL 파라미터는 신뢰"},
+        {"num": 4, "text": "리다이렉트 URL에 사용자 개인정보를 쿼리로 포함해 전달"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.1.7",
+      "tags": ["open-redirect", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-08",
+      "weakness_code": "DSG-IV-08-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "안전한 메모리 함수 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "C/C++ 문자열 처리 함수 선택 설계 원칙으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "strcpy, sprintf, gets 사용 표준화"},
+        {"num": 2, "text": "strncpy_s, snprintf 등 크기 제한 안전 함수 사용 표준"},
+        {"num": 3, "text": "모든 버퍼를 동적 할당해 크기 검증 생략"},
+        {"num": 4, "text": "입력 길이를 신뢰하고 검증 로직 생략"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.8",
+      "tags": ["buffer-overflow", "safe-function", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-09",
+      "weakness_code": "DSG-IV-09-02",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "Mass Assignment 방지 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "REST API에서 요청 객체를 DB 엔티티로 매핑할 때 'Mass Assignment' 취약점 방지 설계로 가장 적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "DTO(Data Transfer Object)로 허용 필드만 명시적으로 매핑"},
+        {"num": 2, "text": "클라이언트가 보낸 모든 필드를 엔티티에 자동 복사"},
+        {"num": 3, "text": "엔티티 필드를 전부 public으로 선언"},
+        {"num": 4, "text": "요청 JSON을 그대로 DB에 저장"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.1.9",
+      "tags": ["mass-assignment", "dto", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-10",
+      "weakness_code": "DSG-IV-10-03",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "업로드 파일 저장 경로 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "업로드된 파일을 저장할 경로·도메인 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "웹 실행 권한이 없는 별도 디렉토리에 저장"},
+        {"num": 2, "text": "원본 파일명 그대로 저장해 사용자 식별 용이"},
+        {"num": 3, "text": "서버에서 파일명을 UUID 등으로 재생성"},
+        {"num": 4, "text": "파일 서빙 전용 서브도메인 또는 CDN 사용"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.10",
+      "tags": ["file-upload", "storage", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-01",
+      "weakness_code": "DSG-IV-01-04",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "ORDER BY 동적 컬럼 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "사용자가 정렬 컬럼을 선택 가능한 목록 조회 기능에서 SQL 삽입을 방지하는 설계는?",
+      "choices": [
+        {"num": 1, "text": "사용자 입력값을 ORDER BY 절에 그대로 문자열 연결"},
+        {"num": 2, "text": "허용 컬럼명 화이트리스트를 서버에 정의하고 매핑 후 사용"},
+        {"num": 3, "text": "컬럼명 앞에 작은따옴표만 이스케이프하면 안전"},
+        {"num": 4, "text": "ORDER BY 절은 PreparedStatement 바인딩으로 파라미터 처리"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.1.1",
+      "tags": ["sql-injection", "order-by", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-05",
+      "weakness_code": "DSG-IV-05-03",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "HTTP 보안 헤더 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "HTTP 응답 보안 헤더 설계 요구사항 중 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "X-Content-Type-Options: nosniff"},
+        {"num": 2, "text": "X-Frame-Options: DENY 또는 SAMEORIGIN"},
+        {"num": 3, "text": "Strict-Transport-Security (HSTS) 설정"},
+        {"num": 4, "text": "Server 헤더에 버전 정보 상세 노출로 디버깅 편의 확보"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.1.5",
+      "tags": ["security-headers", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-09",
+      "weakness_code": "DSG-IV-09-03",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "IDOR 방지 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다른 사용자의 리소스를 URL 파라미터 조작으로 접근 가능한 IDOR(Insecure Direct Object Reference) 취약점을 방지하는 설계로 가장 적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "리소스 요청 시 서버가 세션 사용자 ID와 리소스 소유자 일치 여부 검증"},
+        {"num": 2, "text": "리소스 ID를 순차 정수 대신 UUID 사용으로만 충분"},
+        {"num": 3, "text": "클라이언트 JS에서 권한 체크 후 서버 요청"},
+        {"num": 4, "text": "URL을 복잡하게 인코딩해 추측 방지"}
+      ],
+      "answer_index": 0,
+      "reference": "KISA 개발보안 가이드 §3-3.1.9",
+      "tags": ["idor", "authorization", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-IV-10",
+      "weakness_code": "DSG-IV-10-04",
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_name_ko": "파일 다운로드 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "파일 다운로드 기능 설계 시 고려사항으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "다운로드 권한 검증 (해당 파일을 요청자가 접근 가능한지)"},
+        {"num": 2, "text": "Content-Disposition 헤더로 파일명 설정 시 CRLF 제거"},
+        {"num": 3, "text": "요청에 파일 경로(/var/app/files/xxx.pdf)를 그대로 사용"},
+        {"num": 4, "text": "MIME 타입을 서버에서 확정 (사용자 지정 금지)"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.1.10",
+      "tags": ["file-download", "design"]
+    }
+  ]
+}

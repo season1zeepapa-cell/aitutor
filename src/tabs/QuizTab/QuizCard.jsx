@@ -1,7 +1,11 @@
 // 문제 카드 — Quizlet 스타일 플래시카드
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { useImageModal } from '../../App';
 import { useToast } from '../../components/ui/Toast';
+import AnswerEffect, { isCorrectEffectEnabled, isWrongEffectEnabled } from '../../components/ui/AnswerEffect';
+import { vibrateCorrect, vibrateWrong } from '../../lib/haptics';
+import { apiPost } from '../../lib/api';
 import AiExplanation from './AiExplanation';
 import MemoPanel from './MemoPanel';
 import LawSearchPanel from './LawSearchPanel';
@@ -9,17 +13,83 @@ import LawLinkedText from '../../components/LawLink';
 
 const CIRCLE = ['①', '②', '③', '④', '⑤'];
 
-export default function QuizCard({ question, index, isExpanded, onToggle, categoryName }) {
+export default function QuizCard({ question, index, isExpanded, onToggle, categoryName, initialBookmarked = false }) {
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showImage, setShowImage] = useState(false);
+  const [effectType, setEffectType] = useState(null);
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+  const [bookmarkTag, setBookmarkTag] = useState('default');
+  const [showTagMenu, setShowTagMenu] = useState(false);
+  const longPressRef = useRef(null);
   const openImage = useImageModal();
   const toast = useToast();
+  const clearEffect = useCallback(() => setEffectType(null), []);
+
+  // 북마크 태그 옵션
+  const TAG_OPTIONS = [
+    { tag: 'default', label: '기본', emoji: '⭐' },
+    { tag: 'wrong', label: '틀린 문제', emoji: '🟠' },
+    { tag: 'hard', label: '어려운 문제', emoji: '🔴' },
+    { tag: 'review', label: '다시 볼 문제', emoji: '🔵' },
+    { tag: 'important', label: '중요 문제', emoji: '🟣' },
+  ];
+
+  // 별표 클릭 → 북마크 되어있으면 전체 삭제, 없으면 기본 태그로 추가
+  const toggleBookmark = async (e) => {
+    e.stopPropagation();
+    try {
+      if (bookmarked) {
+        // 해당 문제의 모든 태그 북마크 삭제
+        await apiPost('/api/bookmarks', { action: 'delete', question_id: question.id });
+        setBookmarked(false);
+        toast('북마크 해제', 'info');
+      } else {
+        const data = await apiPost('/api/bookmarks', { action: 'toggle', question_id: question.id, tag: bookmarkTag });
+        setBookmarked(data.bookmarked);
+        toast('북마크 추가', 'info');
+      }
+    } catch { toast('북마크 처리 실패', 'error'); }
+  };
+
+  // 별표 길게 누르기 → 태그 선택 메뉴
+  const onPointerDown = (e) => {
+    e.stopPropagation();
+    longPressRef.current = setTimeout(() => {
+      setShowTagMenu(true);
+      longPressRef.current = null;
+    }, 500);
+  };
+  const onPointerUp = (e) => {
+    e.stopPropagation();
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+      toggleBookmark(e); // 짧은 클릭 → 토글
+    }
+  };
+  const onPointerLeave = () => {
+    if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+  };
+
+  // 태그 선택하여 북마크
+  const bookmarkWithTag = async (tag) => {
+    setShowTagMenu(false);
+    try {
+      // 기존 북마크 삭제 후 새 태그로 추가
+      if (bookmarked) await apiPost('/api/bookmarks', { action: 'delete', question_id: question.id });
+      const data = await apiPost('/api/bookmarks', { action: 'toggle', question_id: question.id, tag });
+      setBookmarked(data.bookmarked);
+      setBookmarkTag(tag);
+      const label = TAG_OPTIONS.find(t => t.tag === tag)?.label || tag;
+      toast(`${label}로 북마크됨`, 'info');
+    } catch { toast('북마크 처리 실패', 'error'); }
+  };
 
   const q = question;
-  // 이미지 URL: 상대경로면 기존 error 사이트를 참조
+  // 이미지 URL: 상대경로면 현재 사이트 기준, 절대경로면 그대로 사용
   const imageUrl = q.image_url
-    ? (q.image_url.startsWith('http') ? q.image_url : `https://error-liart.vercel.app${q.image_url.startsWith('/') ? '' : '/'}${q.image_url}`)
+    ? (q.image_url.startsWith('http') ? q.image_url : q.image_url)
     : null;
   const rawChoices = typeof q.choices === 'string' ? JSON.parse(q.choices) : (q.choices || []);
   // choices가 객체 배열({num, text})일 수 있으므로 텍스트만 추출
@@ -32,12 +102,20 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
     const num = choiceIdx + 1;
     setSelectedChoice(num);
     setShowAnswer(true);
+    // 정답/오답 애니메이션 + 진동 피드백
+    const isCorrect = num === correctAnswer;
+    if ((isCorrect && isCorrectEffectEnabled()) || (!isCorrect && isWrongEffectEnabled())) {
+      setEffectType(isCorrect ? 'correct' : 'wrong');
+    }
+    // 진동 피드백 (네이티브/웹)
+    if (isCorrect) vibrateCorrect(); else vibrateWrong();
   };
 
   // 카드 리셋
   const resetCard = () => {
     setSelectedChoice(null);
     setShowAnswer(false);
+    setEffectType(null);
   };
 
   // 선택지 스타일 결정
@@ -57,7 +135,8 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
 
   return (
     <div className={`bg-card-bg border rounded-2xl overflow-hidden transition-all duration-300 shadow-card
-      ${isExpanded ? 'border-primary/30 shadow-md' : 'border-border'}`}>
+      ${isExpanded ? 'border-primary/30 shadow-md' : 'border-border'}
+      ${effectType === 'wrong' ? 'ans-shake' : ''}`}>
 
       {/* 카드 헤더 — 클릭으로 펼치기/접기 */}
       <button
@@ -75,8 +154,48 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
           {(q.body || '').substring(0, 50)}{(q.body || '').length > 50 ? '...' : ''}
         </span>
 
-        {/* 상태 배지 */}
+        {/* 북마크 + 상태 배지 */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="relative">
+            <button
+              onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
+              className="p-0.5 transition-all touch-target flex items-center justify-center select-none"
+              aria-label={bookmarked ? '북마크 해제 (길게 눌러 태그 변경)' : '북마크 추가 (길게 눌러 태그 선택)'}>
+              {bookmarked ? (
+                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-text-secondary/40 hover:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+              )}
+            </button>
+            {/* 태그 선택 팝업 (길게 누르면 표시) */}
+            {showTagMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setShowTagMenu(false); }} />
+                <div className="absolute right-0 top-8 z-50 bg-card-bg border border-border rounded-xl shadow-lg py-1 w-40 fade-in">
+                  {TAG_OPTIONS.map(opt => (
+                    <button key={opt.tag} onClick={(e) => { e.stopPropagation(); bookmarkWithTag(opt.tag); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-text hover:bg-badge-bg transition-colors text-left">
+                      <span>{opt.emoji}</span>
+                      <span className="font-medium">{opt.label}</span>
+                    </button>
+                  ))}
+                  {bookmarked && (
+                    <>
+                      <div className="border-t border-border my-1" />
+                      <button onClick={(e) => { e.stopPropagation(); setShowTagMenu(false); toggleBookmark(e); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-danger hover:bg-red-50 transition-colors text-left">
+                        <span>✕</span><span className="font-medium">북마크 해제</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           {(question.memo_count > 0) && (
             <span className="text-[10px] font-semibold text-warning bg-warning/10 px-1.5 py-0.5 rounded-md">
               메모 {question.memo_count}
@@ -125,22 +244,24 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
           )}
 
           {/* 문제 본문 + 복사 버튼 */}
-          <div className="relative group">
-            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap"><LawLinkedText text={q.body} /></p>
+          <div className="flex items-start gap-2">
+            <p className="flex-1 text-sm text-text leading-relaxed whitespace-pre-wrap"><LawLinkedText text={q.body} /></p>
             <button onClick={() => {
-              const text = `#${q.question_number || index}\n${q.body}\n${choices.map((c,i) => `${CIRCLE[i]} ${c}`).join('\n')}\n정답: ${CIRCLE[correctAnswer-1]}`;
+              const text = `#${q.question_number || index}\n${q.body}\n${choices.map((c,i) => `${CIRCLE[i]} ${c}`).join('\n')}`;
               navigator.clipboard.writeText(text).then(() => toast('문제가 복사되었습니다.', 'info'));
             }}
-              className="absolute top-0 right-0 p-1 text-text-secondary hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
-              title="문제 복사">
+              className="flex-shrink-0 p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-primary-light transition-all"
+              title="문제 복사 (정답 미포함)"
+              aria-label="문제 내용 복사">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </button>
           </div>
 
-          {/* 선택지 */}
-          <div className="space-y-2">
+          {/* 선택지 (애니메이션 효과는 이 영역 기준으로 표시) */}
+          <div className="relative space-y-2">
+            {effectType && <AnswerEffect type={effectType} onComplete={clearEffect} />}
             {choices.map((choice, i) => (
               <button
                 key={i}
@@ -181,7 +302,7 @@ export default function QuizCard({ question, index, isExpanded, onToggle, catego
                   <p className="text-xs font-bold text-text-secondary mb-2">해설</p>
                   {q.explanation.includes('<') ? (
                     <div className="text-sm text-text leading-relaxed explanation-html"
-                      dangerouslySetInnerHTML={{ __html: q.explanation }} />
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(q.explanation) }} />
                   ) : (
                     <p className="text-sm text-text leading-relaxed whitespace-pre-wrap"><LawLinkedText text={q.explanation} /></p>
                   )}

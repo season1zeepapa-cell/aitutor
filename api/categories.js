@@ -1,13 +1,11 @@
-// Vercel 서버리스 함수 - 카테고리 CRUD API
+// AWS Lambda Express 핸들러 - 카테고리 CRUD API
 // 최상위 카테고리 관리 (영상정보관리사, 네트워크관리사 등)
 const { query } = require('./db');
 const { verifyToken, extractToken } = require('./auth');
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const { withCors } = require('./middleware');
+
+module.exports = withCors(async (req, res) => {
 
   try {
     // ── GET: 카테고리 + 과목 목록 (공개) ──
@@ -140,4 +138,4 @@ module.exports = async (req, res) => {
     }
     res.status(500).json({ error: '서버 오류', detail: err.message });
   }
-};
+});

@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "stage": "implementation",
+  "description": "구현단계 MCQ 기본 해설 (전 카테고리)",
+  "explanations": [
+    {
+      "weakness_code": "CWE-91",
+      "explanation": "정답: ① (XML 특수문자를 엔터티로 인코딩)\n\nXML 삽입 방지는 외부 입력의 XML 메타문자(<, >, &, ', \")를 엔터티(&lt; &gt; &amp; &apos; &quot;)로 인코딩해야 합니다. 공격자가 </user><admin>true</admin> 같은 태그를 주입해 XML 구조를 조작할 수 없도록 합니다.\n\n② Base64는 인코딩일 뿐 보안 기능 아님, ③ 주석은 내부 내용이 여전히 파싱될 수 있음, ④ XML 파서는 자동 이스케이프 안 함입니다."
+    },
+    {
+      "weakness_code": "CWE-90",
+      "explanation": "정답: ④ (@ 기호)\n\nLDAP 필터 구성 시 이스케이프해야 하는 특수문자는 LDAPv3 표준상 *, (, ), \\, NUL(\\00), /입니다. @ 기호는 LDAP 필터 문법에서 특별한 의미가 없어 이스케이프 대상이 아닙니다(단 이메일 형식 검증은 별도).\n\n나머지 *(와일드카드), ()(그룹화), \\(이스케이프 문자)는 모두 반드시 이스케이프해야 인증 우회 공격을 방지할 수 있습니다."
+    },
+    {
+      "weakness_code": "CWE-352",
+      "explanation": "정답: ① (서버 세션 토큰 일치 검증)\n\nCSRF 방어의 정석은 'Synchronizer Token Pattern': 서버가 세션에 토큰을 저장하고, 클라이언트가 전송한 토큰과 일치하는지 검증합니다.\n\n② 쿠키 자동 보호 주장은 틀림(쿠키가 자동 전송되는 것이 CSRF의 원인), ③ GET은 Safe 메서드라 상태 변경 없어야 함(CSRF 토큰 불필요), ④ 클라이언트 JS는 변조 가능해 서버 검증 필수입니다."
+    },
+    {
+      "weakness_code": "CWE-113",
+      "explanation": "정답: ① (CR/LF 제거)\n\nHTTP 응답분할의 근본 원인은 헤더 값에 개행 문자(\\r\\n)가 들어가 응답을 분할해 추가 헤더·본문 주입이 가능해지는 것입니다. 반드시 외부 입력의 CR/LF를 제거하거나 거부해야 합니다.\n\n② URL 인코딩만으로는 응답 전 디코딩되면 그대로 개행 삽입, ③ Base64는 무관, ④ 프레임워크 자동 보호 주장은 틀림(어떤 라이브러리는 여전히 취약)."
+    },
+    {
+      "weakness_code": "CWE-134",
+      "explanation": "정답: ③ (포맷 리터럴 + 인자 분리)\n\n포맷 스트링 공격 방어는 '포맷 문자열은 고정 리터럴로, 외부 입력은 %s 등의 인자로만 전달'이 철칙입니다.\n\n① printf(user_input)은 %x %s %n 페이로드로 메모리 열람·쓰기 공격 가능, ② printf(\"%s\", x)가 이미 안전한 패턴, ③은 더 명확한 예시(리터럴 +%s), ④ Shell 대체는 부적절합니다."
+    },
+    {
+      "weakness_code": "CWE-120",
+      "explanation": "정답: ④ (gets)\n\ngets() 함수는 입력 길이 검증이 전혀 없어 스택 버퍼를 무한히 덮어쓸 수 있어, C11 표준에서 공식적으로 폐기(deprecated)되었습니다. 반드시 fgets()로 대체해야 합니다.\n\n①② strncpy_s / strcpy_s / snprintf는 크기 제한 안전 함수, ③ fgets는 표준 안전 대체 함수입니다."
+    },
+    {
+      "weakness_code": "CWE-732",
+      "explanation": "정답: ④ (CPU 점유율 상승)\n\nchmod 777은 파일 권한 문제로 ①파일 마음대로 생성/삭제 ②웹쉘 업로드·실행 ③권한 승격 같은 '접근 제어 위반'을 일으키지만, CPU 점유율과는 무관합니다.\n\nCPU 점유율 상승은 무한 루프(CWE-835)나 DoS 공격의 결과입니다."
+    },
+    {
+      "weakness_code": "CWE-285",
+      "explanation": "정답: ① (세션 사용자 vs 소유자 DB 검증)\n\nIDOR(Insecure Direct Object Reference) 방어의 근본은 '요청마다 서버가 세션 사용자와 리소스 소유자 일치 여부 검증'입니다.\n\n② UUID는 추측 공격만 어렵게 할 뿐 권한 우회는 가능, ③ 클라이언트 체크는 변조 가능, ④ 암호화는 URL 파라미터 난독화에 불과합니다."
+    },
+    {
+      "weakness_code": "CWE-311",
+      "explanation": "정답: ② (AES-256 + 안전한 키 관리)\n\n주민등록번호는 개인정보보호법 제24조의2에 따라 반드시 암호화 저장해야 하며, KISA 권고는 AES-256 + HSM/KMS 같은 안전한 키 관리 시스템입니다.\n\n① 평문 + 접근 제한은 DB 유출 시 즉시 노출, ③ MD5 해시는 주민번호 구조상 쉽게 역산 가능(레인보우 테이블), ④ Base64는 암호화 아닙니다."
+    },
+    {
+      "weakness_code": "CWE-326",
+      "explanation": "정답: ③ (2048bit 이상, 3072bit 권장)\n\n2026년 NIST/KISA 기준 RSA 안전 키 길이는 2048bit 이상이며, 장기 기밀 보호에는 3072bit 권장입니다. 2030년 이후는 3072bit가 기본이 될 전망.\n\n① 512bit는 수 시간 내 분해 가능, ② 1024bit는 국가급 공격으로 분해됨, ④ 256bit는 ECC 기준이며 RSA와 다른 체계입니다."
+    },
+    {
+      "weakness_code": "CWE-521",
+      "explanation": "정답: ④ (최대 6자로 제한)\n\n비밀번호 '최대 길이 제한'은 엔트로피를 의도적으로 낮추는 치명적 실수입니다. 8자 이상 최소를 두되 최대는 64자 이상 허용이 원칙(bcrypt도 72자 지원).\n\n① 최소 8자, ② 조합 복잡도, ③ 개인정보 포함 여부 검증은 모두 올바른 정책입니다."
+    },
+    {
+      "weakness_code": "CWE-347",
+      "explanation": "정답: ① (허용 알고리즘 화이트리스트 명시)\n\nJWT 라이브러리 일부는 alg 헤더 값을 그대로 신뢰해 'none'이나 혼동(RS256→HS256) 공격이 가능합니다. 서버가 허용 알고리즘 목록을 명시적으로 지정해야 합니다.\n\n② alg 신뢰는 공격 허용, ③ 공개키·비밀키 혼용은 혼동 공격 근원, ④ alg=none 허용은 서명 검증 자체 무력화입니다."
+    },
+    {
+      "weakness_code": "CWE-614",
+      "explanation": "정답: ① (Max-Age/Expires 미설정)\n\nMax-Age 또는 Expires를 설정하지 않으면 브라우저가 세션 종료 시(창 닫힘) 쿠키를 자동 삭제하는 '세션 쿠키'가 됩니다. 하드디스크 저장 X, 타인 노출 위험 감소.\n\n② 1년 Max-Age는 하드디스크 저장 + 타인 공용 PC 노출 위험, ③④는 쿠키 수명과 무관한 속성입니다."
+    },
+    {
+      "weakness_code": "CWE-615",
+      "explanation": "정답: ④ (개발 편의 위해 주석에 테스트 계정·API 키 명시)\n\n주석에 민감 정보 기록은 소스 유출·프론트 번들 노출 시 즉시 자격증명 탈취로 이어지는 치명적 실수입니다. 절대 금지.\n\n① 시크릿 스캔, ② 빌드 단계 주석 제거, ③ 코드리뷰 검토는 모두 예방 프로세스입니다."
+    },
+    {
+      "weakness_code": "CWE-494",
+      "explanation": "정답: ④ (typosquatting 무시)\n\n공급망 공격 방어는 ①버전 고정·해시 검증 ②SRI ③취약 의존성 자동 탐지 3중 방어입니다. typosquatting(유사 이름 패키지)는 공격자의 주요 수법이므로 반드시 의심해야 합니다(예: lodash vs lodahs, urllib3 vs urllib5).\n\n①②③은 모두 올바른 방어 기법입니다."
+    },
+    {
+      "weakness_code": "CWE-307",
+      "explanation": "정답: ④ (ID 존재 여부 노출)\n\n'비밀번호가 틀렸습니다' vs '존재하지 않는 ID입니다'처럼 구체적 피드백은 공격자에게 유효한 ID 목록을 알려주는 정보 누출입니다. '아이디 또는 비밀번호가 올바르지 않습니다'로 일반화해야 합니다.\n\n① 레이트 리미트, ② 계정 잠금·알림, ③ CAPTCHA는 모두 브루트포스 방어 필수 대책입니다."
+    },
+    {
+      "weakness_code": "CWE-404",
+      "explanation": "정답: ② (try-with-resources / with 구문)\n\nJava는 try-with-resources, Python은 with 구문이 자원 해제를 컴파일러·인터프리터가 보장합니다. finally 블록보다 누락 위험이 훨씬 적습니다.\n\n나머지 선택지들은 정확한 방어책은 아닙니다. 자원 풀(DB 커넥션 풀 등) 사용 시에도 반드시 사용 후 반환해야 고갈을 방지할 수 있습니다."
+    },
+    {
+      "weakness_code": "CWE-457",
+      "explanation": "정답: ③ (Java 자동 초기화 주장)\n\nJava '지역 변수'는 자동 초기화되지 않습니다. 멤버 필드만 기본값(null/0/false)으로 초기화되며, 지역 변수는 명시적 초기화 없이 사용하면 컴파일 오류가 발생합니다.\n\n① C/C++ 지역 변수 쓰레기값 주의, ② 포인터 역참조 UB, ④ 정적 분석 도구는 모두 맞는 설명입니다."
+    },
+    {
+      "weakness_code": "CWE-703",
+      "explanation": "정답: 모든 예외 처리 + 시스템 호출 반환값 확인 + fail-secure 복구\n\n오류 상황 대응 부재는 예외를 catch하지 않거나 시스템 호출 반환값을 확인하지 않아 프로그램이 비정상 종료되거나 보안 경계가 무너지는 약점입니다.\n\n대응: ①모든 가능한 예외 catch ②시스템 호출 반환값 반드시 확인 ③에러 시 안전 상태로 복구(fail-secure) ④에러 핸들링 표준 수립이 원칙입니다."
+    },
+    {
+      "weakness_code": "CWE-489",
+      "explanation": "정답: ③ (DEBUG=false + 로그 INFO)\n\n③은 올바른 프로덕션 배포 프로세스로, 남은 디버그 코드의 '부재'를 보여주는 예시입니다. 나머지 ①②④는 모두 제거되지 않은 디버그 코드의 전형적인 예시입니다.\n\n① /debug/dump 엔드포인트 노출, ② 스택 트레이스 + SQL 노출, ④ admin/admin 테스트 계정은 모두 배포 전에 제거되어야 할 치명적 디버그 흔적입니다."
+    },
+    {
+      "weakness_code": "CWE-495",
+      "explanation": "정답: 방어적 복사 (Arrays.copyOf / Collections.unmodifiableList)\n\nPublic 메소드가 Private 배열 참조를 그대로 반환하면 외부에서 해당 배열을 수정해 내부 상태를 조작할 수 있습니다(캡슐화 파괴).\n\n방어 방법: ①반환 시 Arrays.copyOf 또는 clone()으로 방어적 복사 ②Collections.unmodifiableList로 불변 뷰 제공 ③Record/Immutable 클래스 사용 ④배열 대신 불변 List 반환 중 선택합니다."
+    }
+  ]
+}

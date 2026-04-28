@@ -1,4 +1,4 @@
-// Vercel 서버리스 함수 - 국가법령정보 API 프록시
+// AWS Lambda Express 핸들러 - 국가법령정보 API 프록시
 const https = require('https');
 const http = require('http');
 
@@ -17,20 +17,16 @@ function fetchLawAPI(url) {
   });
 }
 
-module.exports = async (req, res) => {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const { withCors } = require('./middleware');
+
+module.exports = withCors(async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST만 허용' });
 
   const OC = (process.env.LAW_API_OC || '').trim();
-  if (!OC) return res.status(500).json({ error: 'LAW_API_OC가 설정되지 않았습니다.' });
+  if (!OC) return res.status(500).json({ error: '법령 검색 서비스를 사용할 수 없습니다. 관리자에게 문의하세요.' });
 
   const { action, query, lawId } = req.body;
 
-  try {
     // 1) 법령 검색
     if (action === 'search') {
       if (!query) return res.status(400).json({ error: '검색어(query)가 필요합니다.' });
@@ -83,9 +79,5 @@ module.exports = async (req, res) => {
       return res.json({ info: null, articles: [], raw: data });
     }
 
-    return res.status(400).json({ error: 'action은 search 또는 detail이어야 합니다.' });
-  } catch (err) {
-    console.error('법령 API 에러:', err);
-    res.status(500).json({ error: err.message });
-  }
-};
+  return res.status(400).json({ error: 'action은 search 또는 detail이어야 합니다.' });
+});

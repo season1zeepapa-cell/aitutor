@@ -1,0 +1,32 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.vercel
+.env
+.env.*
+test-results
+playwright-report
+tests
+playwright.config.js
+*.md
+!package.json
+!package-lock.json
+Dockerfile
+.dockerignore
+# 로컬 배치/개발 스크립트
+pool
+scripts
+generate-answers.js
+pool-import.js
+pool-import-v2.js
+pool-explain.js
+pool-patch-visual.js
+pool-repatch.js
+pool-repatch-batch.js
+register-network-questions.js
+# 네이티브 앱 소스
+ios
+android
+capacitor.config.json
+# 빌드/설정 (빌드 스테이지에서만 쓰고 런타임 불필요하지만 Dockerfile이 COPY . 시 사용)

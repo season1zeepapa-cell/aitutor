@@ -1,21 +1,10 @@
-// API 클라이언트 — fetch 래퍼 + 토큰 관리
+// API 클라이언트 — fetch 래퍼 + 인증 관리
+// 토큰은 HttpOnly 쿠키로 서버가 관리 (XSS 탈취 방지)
+// 사용자 정보(이름, 관리자 여부)만 localStorage에 저장
 
-const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
 
-// 토큰 저장/조회/삭제
-export function setAuthToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-export function getAuthToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
-export function clearAuthToken() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-}
-
-// 사용자 정보 저장/조회
+// 사용자 정보 저장/조회/삭제
 export function setAuthUser(user) {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
@@ -26,23 +15,27 @@ export function getAuthUser() {
     return null;
   }
 }
+export function clearAuth() {
+  localStorage.removeItem(USER_KEY);
+}
 
-// 인증 헤더 포함 fetch
+// 로그인 상태 확인 (사용자 정보 존재 여부로 판단)
+export function isLoggedIn() {
+  return !!getAuthUser();
+}
+
+// 인증 포함 fetch — 쿠키 자동 전송 (credentials: 'include')
 export async function apiFetch(url, options = {}) {
-  const token = getAuthToken();
   const headers = {
     ...options.headers,
   };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
   if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
     options.body = JSON.stringify(options.body);
   }
-  const res = await fetch(url, { ...options, headers });
-  if (res.status === 401 || res.status === 403) {
-    clearAuthToken();
+  const res = await fetch(url, { ...options, headers, credentials: 'include' });
+  if (res.status === 401) {
+    clearAuth();
     window.location.reload();
     throw new Error('인증이 만료되었습니다.');
   }

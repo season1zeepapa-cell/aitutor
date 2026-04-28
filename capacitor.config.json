@@ -1,0 +1,15 @@
+{
+  "appId": "com.aitutortwo.app",
+  "appName": "AI TutorTwo",
+  "webDir": "dist",
+  "server": {
+    "url": "https://d2dcsdi9b1j2rf.cloudfront.net",
+    "cleartext": false
+  },
+  "ios": {
+    "scheme": "AITutorTwo"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

@@ -1,8 +1,8 @@
 // 2단계 테스트: 문제풀이 탭
 const { test, expect } = require('@playwright/test');
 
-// 로그인 시뮬레이션 헬퍼
-async function loginAndGo(page, path = '/quiz') {
+// 로그인 시뮬레이션 헬퍼 (/quiz → LearnHub, /quiz/category → QuizTab)
+async function loginAndGo(page, path = '/quiz/category') {
   await page.goto(path);
   await page.evaluate(() => {
     localStorage.setItem('token', 'test-token');

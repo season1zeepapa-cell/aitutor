@@ -1,0 +1,40 @@
+{
+  "name": "AI TutorTwo — 영상정보관리사 · KISA 진단원",
+  "short_name": "AI TutorTwo",
+  "description": "자격증 시험 학습 + KISA 소프트웨어 보안약점 진단원 이수시험 대비",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#4255ff",
+  "background_color": "#ffffff",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

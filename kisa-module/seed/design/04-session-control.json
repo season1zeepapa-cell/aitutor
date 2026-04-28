@@ -1,0 +1,70 @@
+{
+  "version": "2.0.0",
+  "stage": "design",
+  "chapter_code": "DSG-SC-01",
+  "description": "설계단계 — 세션통제 (세션 관리 설계 1개 항목, 3문항)",
+  "generated_at": "2026-04-23",
+  "source": "KISA 개발보안 가이드 §3-3.4",
+  "questions": [
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SC-01",
+      "weakness_code": "DSG-SC-01-01",
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_name_ko": "세션통제 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "세션 관리 설계 원칙으로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "세션 ID는 예측 불가능한 난수로 충분한 길이(128bit 이상)로 생성한다"},
+        {"num": 2, "text": "사용자 로그인 성공 시 기존 세션 ID를 무효화하고 새로운 세션 ID를 발급한다"},
+        {"num": 3, "text": "세션 ID를 URL 쿼리 파라미터로 전달하여 북마크·공유가 가능하도록 한다"},
+        {"num": 4, "text": "세션 만료 시간을 설정하고, 중요 작업 후에는 재인증을 요구한다"}
+      ],
+      "answer_index": 2,
+      "reference": "KISA 개발보안 가이드 §3-3.4.1 세션통제",
+      "tags": ["session", "session-fixation", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SC-01",
+      "weakness_code": "DSG-SC-01-02",
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_name_ko": "세션 쿠키 설계",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "세션 쿠키 속성 설계 요구사항으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "HttpOnly 속성을 적용하여 JavaScript에서 쿠키 접근을 차단한다"},
+        {"num": 2, "text": "Secure 속성을 적용하여 HTTPS 채널로만 쿠키를 전송한다"},
+        {"num": 3, "text": "SameSite=Strict 또는 Lax로 설정하여 크로스사이트 요청 시 쿠키 전송을 제한한다"},
+        {"num": 4, "text": "Path를 `/`로 두고 Domain을 `.example.com`으로 넓게 설정해 모든 서브도메인과 공유한다"}
+      ],
+      "answer_index": 3,
+      "reference": "KISA 개발보안 가이드 §3-3.4.1",
+      "tags": ["cookie", "httponly", "secure", "samesite", "design"]
+    },
+    {
+      "stage": "design",
+      "chapter_code": "DSG-SC-01",
+      "weakness_code": "DSG-SC-01-03",
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_name_ko": "세션 공유 및 격리 설계",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다중 사용자 환경에서 세션 데이터 격리 설계로 부적절한 것은?",
+      "choices": [
+        {"num": 1, "text": "각 사용자 세션별 독립된 저장 공간을 할당하고 다른 사용자가 접근할 수 없도록 설계한다"},
+        {"num": 2, "text": "프로세스 전역 정적 변수에 사용자별 요청 상태를 저장하여 빠르게 공유한다"},
+        {"num": 3, "text": "로그아웃 시 서버측 세션 데이터를 즉시 폐기한다"},
+        {"num": 4, "text": "세션 하이재킹 방지를 위해 IP 주소·User-Agent 변화를 감지하면 세션을 재검증한다"}
+      ],
+      "answer_index": 1,
+      "reference": "KISA 개발보안 가이드 §3-3.4.1",
+      "tags": ["session-isolation", "race-condition", "design"]
+    }
+  ]
+}

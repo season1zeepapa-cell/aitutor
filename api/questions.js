@@ -1,12 +1,10 @@
-// Vercel 서버리스 함수 - 문제 관리 API
+// AWS Lambda Express 핸들러 - 문제 관리 API
 const { query } = require('./db');
 const { verifyToken, extractToken } = require('./auth');
 
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+const { withCors } = require('./middleware');
+
+module.exports = withCors(async (req, res) => {
 
   const { action } = req.body || req.query || {};
 
@@ -51,8 +49,16 @@ module.exports = async (req, res) => {
       const params = [];
       let idx = 1;
 
-      if (exam_id) { where += ` AND q.exam_id = $${idx++}`; params.push(exam_id); }
-      else if (category_id) { where += ` AND q.exam_id IN (SELECT id FROM exams WHERE category_id = $${idx++})`; params.push(parseInt(category_id)); }
+      // 다중 선택 지원: exam_id=1,2,3 또는 category_id=1,2
+      if (exam_id) {
+        const ids = String(exam_id).split(',').map(Number).filter(n => n > 0);
+        if (ids.length === 1) { where += ` AND q.exam_id = $${idx++}`; params.push(ids[0]); }
+        else if (ids.length > 1) { where += ` AND q.exam_id = ANY($${idx++})`; params.push(ids); }
+      } else if (category_id) {
+        const cids = String(category_id).split(',').map(Number).filter(n => n > 0);
+        if (cids.length === 1) { where += ` AND q.exam_id IN (SELECT id FROM exams WHERE category_id = $${idx++})`; params.push(cids[0]); }
+        else if (cids.length > 1) { where += ` AND q.exam_id IN (SELECT id FROM exams WHERE category_id = ANY($${idx++}))`; params.push(cids); }
+      }
       if (subject_id) { where += ` AND q.subject_id = $${idx++}`; params.push(subject_id); }
 
       const countResult = await query(`SELECT COUNT(*) as total FROM questions q ${where}`, params);
@@ -72,16 +78,16 @@ module.exports = async (req, res) => {
       return res.json({ questions: result.rows, total, page: parseInt(page), limit: parseInt(limit) });
     }
 
-    // ── 이하 관리자 전용 ──
-    if (!payload.admin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-
-    // ── 과목/시험 목록 ──
+    // ── 과목/시험 목록 (모든 로그인 사용자) ──
     if (action === 'meta') {
       const subjects = await query('SELECT * FROM subjects ORDER BY sort_order');
       const exams = await query('SELECT e.*, c.name as category_name FROM exams e LEFT JOIN categories c ON e.category_id = c.id ORDER BY e.sort_order');
       const categories = await query('SELECT * FROM categories ORDER BY sort_order');
       return res.json({ subjects: subjects.rows, exams: exams.rows, categories: categories.rows });
     }
+
+    // ── 이하 관리자 전용 ──
+    if (!payload.admin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
 
     // ── 문제 상세 조회 ──
     if (action === 'get') {
@@ -155,4 +161,4 @@ module.exports = async (req, res) => {
     console.error('[Questions] 에러:', err);
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
-};
+});

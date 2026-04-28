@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "description": "구현단계 MCQ 보강 문항 해설 (-B 접미사 및 CWE-190/835)",
+  "explanations": [
+    {
+      "weakness_code": "CWE-190",
+      "explanation": "정답: 정수형 오버플로우 방지를 위한 안전 연산 함수 사용\n\n정수형 오버플로우는 int/long 최대값을 넘어가면 음수로 wrap-around되어 버퍼 크기 계산, 결제 금액 계산 등에서 치명적 오류를 일으킵니다.\n\n방어: Java는 Math.addExact/multiplyExact(오버플로우 시 ArithmeticException), C/C++은 __builtin_add_overflow, 또는 BigInteger/BigDecimal 사용. 연산 전 범위 검증도 필수입니다."
+    },
+    {
+      "weakness_code": "CWE-285-B",
+      "explanation": "정답: ① (세션 사용자와 소유자 DB 검증)\n\nIDOR(Insecure Direct Object Reference) 방어의 정답은 서버에서 요청마다 세션 사용자 ID와 리소스 소유자 일치 여부를 검증하는 것입니다.\n\n② UUID는 추측 공격만 어렵게 할 뿐 권한 문제 해결 X, ③ 클라이언트 체크는 변조 가능, ④ 암호화는 난독화일 뿐 권한 우회는 그대로 가능합니다."
+    },
+    {
+      "weakness_code": "CWE-732-B",
+      "explanation": "정답: ④ (CPU 점유율 상승)\n\nchmod 777 권한 문제는 ①타인이 파일 임의 생성/삭제 ②웹쉘 업로드 실행 ③권한 승격 공격 가능성을 만듭니다. 이는 모두 '접근제어' 문제입니다.\n\nCPU 점유율 상승은 무한 루프(CWE-835)·DoS 공격과 연관된 별개의 현상입니다."
+    },
+    {
+      "weakness_code": "CWE-311-B",
+      "explanation": "정답: ② (AES-256 + 안전한 키 관리)\n\n개인정보(주민등록번호)는 개인정보보호법 제24조의2에 따라 안전한 암호화 저장이 의무입니다. AES-256 이상 + HSM/KMS 같은 키 관리 시스템이 표준입니다.\n\n① 평문 + 접근 제한은 DB 유출 시 즉시 노출, ③ MD5 해시는 충돌/역산 가능 + 주민번호는 탐색공간이 좁음, ④ Base64는 암호화 아닌 단순 인코딩입니다."
+    },
+    {
+      "weakness_code": "CWE-326-B",
+      "explanation": "정답: ③ (2048bit 이상, 3072bit 권장)\n\n2026년 NIST/KISA 기준 RSA 최소 안전 키 길이는 2048bit이며, 장기 기밀 보호에는 3072bit 권장입니다.\n\n① 512bit는 수 시간 내, ② 1024bit는 국가급 공격에 분해 가능, ④ 256bit는 ECC(타원곡선) 기준으로 RSA와 다른 체계입니다."
+    },
+    {
+      "weakness_code": "CWE-521-B",
+      "explanation": "정답: ④ (최대 6자 제한)\n\n비밀번호 최대 길이를 제한하면 엔트로피를 의도적으로 낮추는 치명적 실수입니다. 최대는 64자 이상 허용해야 하며(bcrypt 72자 지원), 최소만 8자 이상 두는 것이 원칙.\n\n① 최소 8자, ② 조합 복잡도, ③ 개인정보·ID 포함 차단은 모두 KISA 권장 정책입니다."
+    },
+    {
+      "weakness_code": "CWE-347-B",
+      "explanation": "정답: ① (허용 알고리즘 화이트리스트)\n\nJWT 'alg' 혼동 공격은 2015년 공개 이후 유명한 취약점입니다. 서버가 alg 헤더를 그대로 신뢰하면 공격자가 'none'(서명 없음) 또는 RS256→HS256 혼동으로 공개키를 HMAC 시크릿으로 악용해 토큰을 위조합니다.\n\n방어: 서버가 허용 알고리즘 목록을 명시적으로 지정하고 나머지는 거부해야 합니다."
+    },
+    {
+      "weakness_code": "CWE-614-B",
+      "explanation": "정답: ① (Max-Age/Expires 미설정)\n\nMax-Age/Expires 속성이 없으면 '세션 쿠키'가 되어 브라우저 종료 시 자동 삭제됩니다. 하드디스크에 저장되지 않으므로 공용 PC에서 타인 노출 위험이 크게 감소합니다.\n\n② 1년 Max-Age는 디스크 영구 저장, ③ Path와 ④ Domain은 쿠키 범위만 제어할 뿐 수명과 무관합니다."
+    },
+    {
+      "weakness_code": "CWE-615-B",
+      "explanation": "정답: ④ (주석에 테스트 계정·API 키 명시)\n\n주석에 민감 정보를 남기는 것은 가장 흔한 자격증명 유출 실수입니다. 소스 유출(실수 public push)이나 프론트엔드 번들을 통해 브라우저에 그대로 노출됩니다.\n\n① 커밋 훅 시크릿 스캔, ② 빌드 단계 주석 제거(minifier), ③ 코드리뷰 검토는 모두 예방 프로세스입니다."
+    },
+    {
+      "weakness_code": "CWE-494-B",
+      "explanation": "정답: ④ (typosquatting 무시)\n\n공급망 공격에서 typosquatting(유사 이름 패키지 등록)은 핵심 수법입니다. 예: lodash → lodahs, urllib3 → urllib5 같이 비슷한 이름으로 악성 패키지를 올리는 공격. 반드시 패키지 이름 검증과 해시 확인이 필요합니다.\n\n① 버전 고정 + 해시 검증, ② SRI(Subresource Integrity), ③ Dependabot/Snyk는 모두 효과적인 방어 기법입니다."
+    },
+    {
+      "weakness_code": "CWE-307-B",
+      "explanation": "정답: ④ (ID 존재 여부 노출 응답)\n\n'비밀번호가 틀렸습니다'처럼 구체적 실패 이유는 공격자에게 'ID가 존재한다'는 정보를 제공합니다. 반드시 '아이디 또는 비밀번호가 올바르지 않습니다'로 일반화해야 합니다.\n\n① IP+계정 레이트 리미트, ② 계정 잠금 + 알림, ③ CAPTCHA는 모두 브루트포스 방어 필수 대책입니다."
+    },
+    {
+      "weakness_code": "CWE-835",
+      "explanation": "정답: 종료 조건 명확화 + 최대 반복 제한 + 타임아웃\n\n종료되지 않는 반복문(while(true) break 누락)이나 재귀 함수(기저 조건 누락)는 CPU 100% 소모, 스택 오버플로우, 서비스 거부(DoS)로 이어집니다.\n\n방어: ①모든 루프에 명확한 종료 조건 ②최대 반복 횟수 제한(방어선) ③재귀는 반복문 변환 또는 꼬리재귀 ④타임아웃 설정으로 무한 실행 차단입니다."
+    }
+  ]
+}
