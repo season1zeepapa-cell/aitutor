@@ -230,6 +230,111 @@ WebSearch + 공식 문서 정밀 조사 결과 (출처는 § 2.8):
 
 → **같은 코어를 환경별 최적 layer 로 사용**. 단순 통일 (한 가지로) 하면 환경 불일치 발생.
 
+### 2.9 제로베이스 최적 3 엔진 추천 (사용자 요청 2026-04-29 후속)
+
+> 사용자 요청: "추론엔진 서버를 분리했을때의 최적 추론엔진 3가지 추천 (해당 서버 gpu 유무 관련있나요?). 일심동체도 제로베이스에서 일심동체시 가장 적합한 추론 엔진 3개로 추천. (gpu 유무도 관련 있나요?)"
+
+#### 2.9.1 ⚠ 핵심 발견 — GPU 유무가 엔진 카탈로그를 결정함
+
+| 엔진 분류 | GPU 필수 | CPU only 가능 | 둘 다 |
+|---|---|---|---|
+| **vLLM** | ✅ 사실상 필수 | ❌ CPU 지원 약함, 매우 느림 | - |
+| **SGLang** | ✅ 사실상 필수 | ❌ 동일 | - |
+| **TensorRT-LLM** | ✅ 필수 (NVIDIA) | ❌ 작동 X | - |
+| **Ollama** | ⭐ GPU 활용 | ⭐ CPU 가능 (느림) | ✅ 둘 다 |
+| **llama-server (C++)** | ⭐ GPU 활용 | ⭐ CPU 가장 빠름 (GGUF) | ✅ 둘 다 |
+| **llama-cpp-python** | ⭐ GPU 활용 | ⭐ CPU 가장 빠름 (Python) | ✅ 둘 다 |
+| **onnxruntime-genai** | ⭐ GPU 활용 | ⭐ CPU 가능 (int4 느림 보고) | ✅ 둘 다 |
+| **transformers (PyTorch)** | ⭐ GPU 빠름 | ⚠ CPU 매우 느림 (데모용) | ✅ 둘 다 |
+
+→ **격리 server-infer 의 CPU only 시점 (Phase 7-1)** 에서는 **vLLM/SGLang 사용 불가**. GPU 추가 (Phase 7-2) 후에야 산업 표준 vLLM/SGLang 활용 가능.
+→ **일심동체 local-gcp** 는 메인 service 의 GPU L4 활성 → vLLM 사용 가능.
+
+#### 2.9.2 4가지 시나리오별 최적 3 엔진
+
+##### 시나리오 ① — 일심동체 local-gcp (**GPU 활성**, 현재 환경) ⭐ 사용자 채택안
+
+| # | 엔진 | 컨셉 | 검증 |
+|---|---|---|---|
+| 1 | **Ollama** | 개발자 편의 + 자동 모델 관리 + OpenAI 호환 | 현재 active, 데스크탑 표준 |
+| 2 | **vLLM** | **2026 산업 표준**, PagedAttention, GPU 최강 | Amazon/LinkedIn/Stripe 프로덕션, Google Cloud Run 공식 codelab |
+| 3 | **llama-server** (C++) | Ollama 의 raw 코어, 동시 요청 시 Ollama 대비 3x throughput | NVIDIA L4 검증됨 |
+
+→ Phase 5 채택 그대로. **2026 산업 표준에 정확히 부합**.
+
+##### 시나리오 ② — 일심동체 local-gcp (가설: GPU 없을 때)
+
+| # | 엔진 | 컨셉 |
+|---|---|---|
+| 1 | **Ollama** (자동 관리, CPU 가능) | 변경 없음 |
+| 2 | **llama-server** (C++ GGUF, CPU 최강) | 변경 없음 (GPU 없으면 더 가치 ↑) |
+| 3 | **onnxruntime-genai** (Microsoft 다양 hardware) | vLLM 자리 대체 — vLLM 은 CPU 거의 안 됨 |
+
+→ 우리 환경은 GPU 있음 → 시나리오 ①. 가설 ② 는 백업 reference.
+
+##### 시나리오 ③ — 격리 server-infer (**CPU only**, Phase 7-1) ⭐ 사용자 채택안
+
+| # | 엔진 | 컨셉 | CPU 추론 적합도 |
+|---|---|---|---|
+| 1 | **llama-cpp-python** | GGUF Q4_K_M Python binding | ⭐⭐⭐⭐⭐ (CPU 최강) |
+| 2 | **onnxruntime-genai** | Microsoft, ONNX, 다양 hardware | ⭐⭐ (int4 CPU 느림 보고) |
+| 3 | **transformers (PyTorch CPU)** | HuggingFace 표준, 가장 다양한 모델 | ⭐ (매우 느림, 데모용) |
+
+→ Phase 7-1 채택 그대로. **CPU 환경에서 GGUF (llama-cpp-python) 가 압도적**.
+
+##### 시나리오 ④ — 격리 server-infer (**GPU 추가**, Phase 7-2)
+
+###### 옵션 4-A : 일심동체와 호환 비교 우선
+| # | 엔진 | 비고 |
+|---|---|---|
+| 1 | **vLLM** | 산업 표준 (일심동체와 중복) |
+| 2 | **SGLang** | 부상, RadixAttention prefix cache |
+| 3 | **transformers (PyTorch GPU)** | 다양 모델 |
+
+###### 옵션 4-B : 일심동체와 차별화 우선 ⭐ 권장
+| # | 엔진 | 비고 |
+|---|---|---|
+| 1 | **SGLang** | vLLM 대안, 8B 모델에서 vLLM 대비 +29% 빠름 |
+| 2 | **transformers (PyTorch GPU)** | HuggingFace 표준, BitsAndBytes 양자화 |
+| 3 | **(Phase 7-1 의 onnxruntime-genai 또는 llama-cpp-python 유지)** | ONNX 또는 GGUF 컨셉 보존 |
+
+→ 옵션 4-B 가 4 실험실 (hf-playground/local-ai/local-gcp/server-infer) 의 **진정한 차별화** 달성.
+
+#### 2.9.3 GPU 유무 영향 종합 답
+
+| 질문 | 답 |
+|---|---|
+| 격리 server-infer 의 GPU 유무 영향? | **결정적**. CPU only 면 vLLM/SGLang 불가, GGUF 계열 (llama-cpp-python) 위주. GPU 추가 시 SGLang/vLLM 진가 발휘 |
+| 일심동체 local-gcp 의 GPU 유무 영향? | **결정적**. GPU 없으면 vLLM 빼고 Ollama+llama-server+onnxruntime-genai 로 변경. 우리 환경은 GPU 활성 → vLLM 가능 |
+
+#### 2.9.4 사용자 시나리오 적합성 점검 (영상정보관리사 = 2명 가끔 호출)
+
+| 엔진 | 적합도 | 사유 |
+|---|---|---|
+| Ollama | ⭐⭐⭐⭐⭐ | 자동 관리 가장 편리 |
+| vLLM | ⭐⭐⭐⭐ | 산업 표준, 단발 호출에도 적합 |
+| llama-server / llama-cpp-python | ⭐⭐⭐⭐ | CPU/GPU 모두 빠름 |
+| SGLang | ⭐⭐⭐ | RadixAttention 은 multi-turn/RAG 시너지 — 단발 시나리오엔 효과 작음 |
+| TensorRT-LLM | ⭐⭐ | 28분 컴파일 + 가끔 호출 = 비효율 |
+| transformers | ⭐⭐⭐ | 다양 모델 비교 가치, 속도는 다른 엔진 대비 떨어짐 |
+| onnxruntime-genai | ⭐⭐⭐ | ONNX 컨셉 가치 있음, int4 CPU 는 느림 |
+
+→ 우리 시나리오에 가장 부합 = **Ollama + vLLM + llama-server (일심동체)** + **llama-cpp-python + onnxruntime-genai + transformers (격리 CPU)**
+
+#### 2.9.5 결론
+
+✅ **사용자 원안 (방향) = 2026 산업 표준 + 우리 시나리오에 정확히 부합**:
+- 일심동체: **Ollama / vLLM / llama-server**
+- 격리 CPU only: **llama-cpp-python / onnxruntime-genai / transformers**
+- 격리 GPU 추가 후: 그대로 유지 또는 transformers → SGLang 교체 옵션
+
+⚠ **GPU 유무는 엔진 선택의 결정적 요인**:
+- vLLM/SGLang/TensorRT-LLM 은 사실상 GPU 필수
+- llama.cpp 계열 (GGUF) 은 CPU/GPU 모두 강력
+- onnxruntime-genai 는 다양 hardware 호환 (다만 int4 CPU 약점)
+
+---
+
 ### 2.8 출처 (2026년 4월 검증)
 
 본 § 2.6 의 동향 분석은 다음 공식 문서 + 산업 분석 종합:
@@ -629,3 +734,4 @@ module.exports = withCors(async (req, res) => {
 | 2026-04-29 | REBUILD25.md 최초 작성 — 4 실험실 최종 컨셉 정리 + 통합 server-infer service 설계 + Phase 5/6/7 계획 |
 | 2026-04-29 (오후) | **Q2 결정 반영: CPU only 로 시작** — Phase 7 을 **Phase 7-1 (CPU only, 즉시)** + **Phase 7-2 (GPU 추가, quota 배정 후)** 로 분리. § 0.2 GPU 정책 추가, § 3.3.1 CPU only 명세 + GPU update 1줄 명령, § 3.3.7 비용 분리 (CPU $0.10/월 vs GPU $0.50/월), § 5 Q2 채택 표시. 누적 마이그 비용 영향 0 (Phase 7-1 시점에 빌드 1회 ~$0.30 추가 발생 예정, 사용자 사전 승인 필요). |
 | 2026-04-29 (오후) | **2026 산업 동향 검증 + 추론 엔진 명확화** — WebSearch 5종 + 공식 문서 정밀 조사. § 2.6 (2026 산업 동향 — TGI 폐기, vLLM 산업 표준, SGLang 부상, Cloud Run + L4 + vLLM 공식 codelab), § 2.7 (llama-server vs llama-cpp-python 같은 코어 다른 layer 명확화), § 2.8 (출처 12종 인용) 신규. § 3.1.0 (Phase 5 엔진 검증 근거), § 3.3.2-1 (Phase 7 3번째 엔진 transformers 권장 근거) 추가. § 5 Q1 갱신 (TGI ❌ maintenance mode, transformers ⭐ 권장, SGLang Phase 7-2 옵션). 사용자 원안 (Ollama / llama-server / vLLM) 가 2026 산업 표준에 정확히 부합 → 그대로 진행 검증. |
+| 2026-04-29 (오후) | **§ 2.9 제로베이스 최적 3 엔진 추천 + GPU 유무 영향 명확화** — 사용자 요청 후속. 4가지 시나리오 분석: ① 일심동체 GPU 활성 (Ollama/vLLM/llama-server), ② 일심동체 GPU 없음 가설 (Ollama/llama-server/onnxruntime-genai), ③ 격리 CPU only (llama-cpp-python/onnxruntime-genai/transformers), ④ 격리 GPU 추가 (옵션 4-A 호환 또는 4-B 차별화). § 2.9.1 GPU 유무가 엔진 카탈로그 결정 (vLLM/SGLang/TensorRT-LLM 은 GPU 필수, llama.cpp 계열은 CPU/GPU 모두 강함). § 2.9.4 영상정보관리사 시나리오 적합도 매트릭스. 결론: 사용자 원안 = 2026 산업 표준 + 시나리오 적합 ✅. |
