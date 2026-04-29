@@ -142,17 +142,25 @@ module.exports = withCors(async (req, res) => {
 
     const prompt = buildPrompt(question);
 
-    // Qwen 3 thinking mode 비활성 + 한국어 강제 (사용자 결정 2026-04-29)
+    // Qwen 3 thinking mode 비활성 + 한국어 3중 강제 (사용자 결정 2026-04-29)
     const isQwen = meta.ollama.startsWith('qwen3');
     const sysMsg = isQwen
       ? '당신은 한국어 자격증 시험 전문 강사입니다. 정답을 정확히 설명하고 관련 법령을 인용하세요.\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.'
       : '당신은 한국어 자격증 시험 전문 강사입니다. 정답을 정확히 설명하고 관련 법령을 인용하세요.';
+    const userMsg = isQwen
+      ? prompt + '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.'
+      : prompt;
+    const baseMessages = [
+      { role: 'system', content: sysMsg },
+      { role: 'user', content: userMsg },
+    ];
+    // Qwen 만 assistant prefix 시드 추가 (한국어 흐름 강제)
+    const finalMessages = isQwen
+      ? [...baseMessages, { role: 'assistant', content: '네, 한국어로 답변드리겠습니다.\n\n' }]
+      : baseMessages;
     const reqBody = {
       model: meta.ollama,
-      messages: [
-        { role: 'system', content: sysMsg },
-        { role: 'user', content: prompt },
-      ],
+      messages: finalMessages,
       stream: true,
       options: { num_predict: maxTokens, temperature },
     };

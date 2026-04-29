@@ -88,24 +88,41 @@ async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
   // 모델 없으면 자동 pull 후 재시도
   await ensureModelLoaded(ollamaModel);
 
-  // Qwen 3 thinking mode 비활성 + 한국어 강제 (사용자 결정 2026-04-29)
-  // 이유 1: thinking 토큰이 max_tokens 다 소비해서 실제 답변 빈 응답 발생
-  // 이유 2: thinking 비활성 후 한국어 system prompt 무시하고 default 영어로 가버림 (Qwen 다국어 특성)
+  // Qwen 3 thinking mode 비활성 + 한국어 3중 강제 (사용자 결정 2026-04-29)
+  // Qwen 3 4B 가 system prompt 만으로 한국어 따르지 않아서 user/assistant 까지 강화.
+  // 1) system: '한국어로만 답변' 명시
+  // 2) user prompt 끝에 한국어 cue 추가
+  // 3) assistant prefix 시드 — 모델이 한국어 흐름 이어가게
   const isQwen = ollamaModel.startsWith('qwen3');
   let finalMessages = messages;
   if (isQwen) {
     const koreanForce = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
+    const userTail   = '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.';
+    const assistantSeed = '네, 한국어로 답변드리겠습니다.\n\n';
+
+    // (1) system 강화
+    let withSystem;
     if (messages[0]?.role === 'system') {
-      finalMessages = [
+      withSystem = [
         { role: 'system', content: messages[0].content + koreanForce },
         ...messages.slice(1),
       ];
     } else {
-      finalMessages = [
+      withSystem = [
         { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다.' + koreanForce },
         ...messages,
       ];
     }
+    // (2) 마지막 user 메시지에 한국어 cue 추가
+    const reversedIdx = [...withSystem].reverse().findIndex(m => m.role === 'user');
+    if (reversedIdx >= 0) {
+      const lastUserIdx = withSystem.length - 1 - reversedIdx;
+      withSystem = withSystem.map((m, i) =>
+        i === lastUserIdx ? { ...m, content: m.content + userTail } : m
+      );
+    }
+    // (3) assistant prefix 시드 (모델이 이 흐름 이어감)
+    finalMessages = [...withSystem, { role: 'assistant', content: assistantSeed }];
   }
 
   const body = {
