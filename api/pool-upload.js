@@ -1,40 +1,35 @@
-// api/pool-upload.js — 웹에서 소량 문제 파일 업로드 → Gemini Vision 추출 → DB 등록
+// api/pool-upload.js — 웹에서 소량 문제 파일 업로드 → Gemini Vision 추출 → DB 등록  [REBUILD23 §17: S3 → GCS]
 // 방안 3: 웹 UI에서 PDF/이미지 파일을 업로드하여 문제를 추출·등록
 // 기존 API에 영향 없이 독립 동작
 const { query } = require('./db');
 const { withAdmin } = require('./middleware');
 const gemini = require('./_llm/gemini');
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { Storage } = require('@google-cloud/storage');
 
-// REBUILD16 §8 — @google/generative-ai SDK 의존 제거, 공통 fetch 헬퍼 사용
-const s3 = new S3Client({ region: process.env.AWS_REGION || 'ap-northeast-2' });
-const BUCKET = process.env.S3_FILES_BUCKET;
-
-// S3 스트림을 Buffer로 수집
-async function streamToBuffer(stream) {
-  const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  return Buffer.concat(chunks);
-}
+// 인증: Cloud Run service account ADC (env 키 불필요)
+const storage = new Storage();
+const BUCKET_NAME = process.env.GCS_FILES_BUCKET;
+const bucket = BUCKET_NAME ? storage.bucket(BUCKET_NAME) : null;
 
 module.exports = withAdmin(async (req, res) => {
   const { action } = req.body || req.query || {};
 
-  // ── action: extract — S3에 업로드된 파일에서 문제 추출 (미리보기) ──
+  // ── action: extract — GCS 에 업로드된 파일에서 문제 추출 (미리보기) ──
   if (action === 'extract') {
     const { s3_key, file_name } = req.body;
     if (!s3_key) return res.status(400).json({ error: 's3_key가 필요합니다.' });
-    if (!BUCKET) return res.status(500).json({ error: 'S3 버킷이 설정되지 않았습니다.' });
+    if (!bucket) return res.status(500).json({ error: 'GCS 버킷이 설정되지 않았습니다.' });
 
-    // 경로 접두사로 간단 검증 (upload-sign이 생성한 경로만 허용)
+    // 경로 접두사로 간단 검증 (upload-sign 이 생성한 경로만 허용)
     if (!s3_key.startsWith('uploads/pool/')) {
       return res.status(400).json({ error: '유효하지 않은 s3_key' });
     }
 
     try {
-      const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3_key }));
-      const buffer = await streamToBuffer(obj.Body);
-      const mime_type = obj.ContentType || 'application/octet-stream';
+      const file = bucket.file(s3_key);
+      const [meta] = await file.getMetadata();
+      const [buffer] = await file.download();
+      const mime_type = meta.contentType || 'application/octet-stream';
 
       const ALLOWED_MIMES = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif'];
       if (!ALLOWED_MIMES.includes(mime_type)) {

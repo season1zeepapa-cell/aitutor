@@ -92,10 +92,11 @@ module.exports = withCors(async (req, res) => {
     TOKEN_SECRET,
     '7d'
   );
-  // Lambda/Vercel/Production 환경에서는 Secure 플래그 필수 (HTTPS 전제)
+  // Cloud Run/Vercel/Production 환경에서는 Secure 플래그 필수 (HTTPS 전제)
+  // K_SERVICE = Cloud Run, VERCEL = Vercel
   const isProduction = process.env.NODE_ENV === 'production'
     || process.env.VERCEL
-    || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    || process.env.K_SERVICE;
   res.setHeader('Set-Cookie', [
     `token=${token}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax${isProduction ? '; Secure' : ''}`,
   ]);

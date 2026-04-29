@@ -1,13 +1,17 @@
-// api/memo-files.js — 메모 첨부파일 메타데이터 CRUD
-// 실제 파일은 S3에 저장하며, 본 API는 s3_key만 관리한다.
-// 업로드: 클라이언트가 /api/upload-sign(action=upload)에서 presigned POST 획득 → S3 직접 업로드 → /api/memo-files(action=confirm)로 메타 저장
-// 다운로드: /api/memo-files(action=download)로 파일 메타 조회 → /api/upload-sign(action=download&id=...)로 presigned GET 획득
+// api/memo-files.js — 메모 첨부파일 메타데이터 CRUD (REBUILD23: S3 → GCS)
+//
+// 실제 파일은 GCS 버킷에 저장하며, 본 API 는 object key (DB 컬럼명은 s3_key 그대로 유지) 만 관리한다.
+// 업로드: 클라이언트가 /api/upload-sign(action=upload) 에서 V4 signed PUT URL 획득 → GCS 직접 업로드 → /api/memo-files(action=confirm) 로 메타 저장
+// 다운로드: /api/memo-files(action=download) 로 메타 조회 → /api/upload-sign(action=download&id=...) 로 V4 signed GET 획득
+//
+// 인증: Cloud Run service account ADC (env 키 불필요)
 const { query } = require('./db');
 const { withCors } = require('./middleware');
-const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { Storage } = require('@google-cloud/storage');
 
-const s3 = new S3Client({ region: process.env.AWS_REGION || 'ap-northeast-2' });
-const BUCKET = process.env.S3_FILES_BUCKET;
+const storage = new Storage();
+const BUCKET_NAME = process.env.GCS_FILES_BUCKET;
+const bucket = BUCKET_NAME ? storage.bucket(BUCKET_NAME) : null;
 
 module.exports = withCors(async (req, res) => {
   const action = req.query?.action || req.body?.action;
@@ -54,7 +58,7 @@ module.exports = withCors(async (req, res) => {
     return res.json(result.rows[0]);
   }
 
-  // ── S3 업로드 완료 후 메타데이터 DB 저장 ──
+  // ── GCS 업로드 완료 후 메타데이터 DB 저장 ──
   if (req.method === 'POST' && action === 'confirm') {
     const { memo_id, files } = req.body;
     if (!memo_id || !Array.isArray(files) || files.length === 0) {
@@ -63,12 +67,14 @@ module.exports = withCors(async (req, res) => {
 
     const saved = [];
     for (const f of files) {
-      if (!f.s3_key || !f.filename || !f.mime_type || typeof f.size !== 'number') continue;
+      // 클라이언트가 보내는 키 이름은 s3_key 그대로 유지 (호환성)
+      const objectKey = f.s3_key || f.gcs_key;
+      if (!objectKey || !f.filename || !f.mime_type || typeof f.size !== 'number') continue;
       const result = await query(
         `INSERT INTO memo_files (memo_id, filename, mime_type, s3_key, size)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id, memo_id, filename, mime_type, s3_key, size, created_at`,
-        [memo_id, f.filename, f.mime_type, f.s3_key, f.size]
+        [memo_id, f.filename, f.mime_type, objectKey, f.size]
       );
       saved.push(result.rows[0]);
     }
@@ -76,7 +82,7 @@ module.exports = withCors(async (req, res) => {
     return res.json({ files: saved, message: `${saved.length}개 파일이 등록되었습니다.` });
   }
 
-  // ── 파일 삭제 (DB 메타 + S3 객체) ──
+  // ── 파일 삭제 (DB 메타 + GCS 객체) ──
   if (req.method === 'POST' && action === 'delete') {
     const { id } = req.body;
     if (!id) return res.status(400).json({ error: '파일 ID가 필요합니다.' });
@@ -87,13 +93,13 @@ module.exports = withCors(async (req, res) => {
     );
     if (result.rows.length === 0) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' });
 
-    // S3에서도 삭제 (실패해도 DB는 이미 삭제됨 — 고아 객체는 Lifecycle로 정리 가능)
-    const s3Key = result.rows[0].s3_key;
-    if (s3Key && BUCKET) {
+    // GCS 에서도 삭제 (실패해도 DB 는 이미 삭제됨 — 고아 객체는 Lifecycle 로 정리 가능)
+    const objectKey = result.rows[0].s3_key;
+    if (objectKey && bucket) {
       try {
-        await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: s3Key }));
+        await bucket.file(objectKey).delete({ ignoreNotFound: true });
       } catch (err) {
-        console.warn('[memo-files] S3 삭제 실패(무시):', err.message);
+        console.warn('[memo-files] GCS 삭제 실패(무시):', err.message);
       }
     }
 

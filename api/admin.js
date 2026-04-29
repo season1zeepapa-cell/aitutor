@@ -10,6 +10,7 @@ const ALLOWED_SETTING_KEYS = new Set([
   'lab_server_ai_enabled',       // /lab/server-ai 진입 허용 여부 (REBUILD20)
   'lab_server_ai_gguf_enabled',  // /lab/server-ai-gguf 진입 허용 여부 (REBUILD21)
   'lab_hf_enabled',              // /lab/hf 진입 허용 여부 (REBUILD22 §x)
+  'lab_local_lambda_enabled',    // /lab/local-lambda 진입 허용 여부 (REBUILD22 §x — 일심동체)
   // LLM 프로바이더 활성화 토글 (REBUILD18 §11 후속)
   // 외부 3개 비활성 시 비용 절감 / 로컬 비활성 시 온디바이스 AI 버튼 숨김
   'provider_gemini_enabled',

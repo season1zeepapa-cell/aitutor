@@ -54,6 +54,8 @@ const ServerAiGgufLab = lazy(() => import('./labs/server-ai-gguf'));
 const HfLab = lazy(() => import('./labs/hf-playground'));
 // REBUILD22 §x Phase 4a — HF 비교 모드 (다중 모델 동시 호출)
 const HfCompareLab = lazy(() => import('./labs/hf-playground/CompareIndex'));
+// REBUILD23 — Cloud Run 일심동체 추론 (앱+모델 같은 컨테이너, 추론 엔진 교체 가능)
+const LocalGcpLab = lazy(() => import('./labs/local-gcp'));
 
 function LoadingFallback() {
   return (
@@ -118,6 +120,9 @@ function AppLayout({ onLogout, theme, onToggleTheme, categoryId, onCategoryChang
             <Route path="/lab/server-ai-gguf/*" element={<ServerAiGgufLab />} />
             <Route path="/lab/hf/compare" element={<HfCompareLab />} />
             <Route path="/lab/hf/*" element={<HfLab />} />
+            <Route path="/lab/local-gcp" element={<LocalGcpLab />} />
+            {/* REBUILD23 — 구 라우트 호환: 기존 즐겨찾기/북마크 유저를 위해 redirect */}
+            <Route path="/lab/local-lambda" element={<Navigate to="/lab/local-gcp" replace />} />
             <Route path="*" element={<Navigate to="/quiz" replace />} />
           </Routes>
         </Suspense>

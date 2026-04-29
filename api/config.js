@@ -24,6 +24,8 @@ module.exports = withCors(async (req, res) => {
   const labServerAiGguf = await getSetting('lab_server_ai_gguf_enabled', 'false');
   // REBUILD22 §x — HF Inference Providers 실험실 토글
   const labHf = await getSetting('lab_hf_enabled', 'false');
+  // REBUILD22 §x — Lambda 일심동체 추론 (앱+모델 같은 Lambda)
+  const labLocalLambda = await getSetting('lab_local_lambda_enabled', 'false');
   // REBUILD18 — LLM 프로바이더 활성화 (default: 모두 ON)
   const providerGemini = await getSetting('provider_gemini_enabled', 'true');
   const providerOpenai = await getSetting('provider_openai_enabled', 'true');
@@ -36,6 +38,7 @@ module.exports = withCors(async (req, res) => {
     lab_server_ai_enabled: labServerAi === 'true',
     lab_server_ai_gguf_enabled: labServerAiGguf === 'true',
     lab_hf_enabled: labHf === 'true',
+    lab_local_lambda_enabled: labLocalLambda === 'true',
     provider_gemini_enabled: providerGemini === 'true',
     provider_openai_enabled: providerOpenai === 'true',
     provider_claude_enabled: providerClaude === 'true',

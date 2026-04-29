@@ -32,6 +32,8 @@ const apiFiles = [
   'hf',
   // HF 모델 카탈로그 (router /v1/models 동적 fetch + 1h 메모리 캐시)
   'hf-models',
+  // Lambda 내부 GGUF 추론 (REBUILD22 §x — 일심동체, 외부 API 0)
+  'local-infer',
   // 디바이스 AI 사용량 기록 (REBUILD18 §3.4) — 프론트가 전송
   'usage-log',
   // 서버 추론 프록시 (REBUILD21) — Raw HTTP + SigV4 (의존성 0)

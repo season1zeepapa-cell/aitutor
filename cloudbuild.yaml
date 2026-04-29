@@ -1,0 +1,84 @@
+# AI TutorTwo — Cloud Build 자동화 (REBUILD23)
+#
+# 호출:
+#   gcloud builds submit --config cloudbuild.yaml --project=aifactory-494108
+#
+# 동작:
+#   1) Docker image 빌드 (Dockerfile multi-stage — Vite 빌드 + CUDA runtime)
+#   2) Artifact Registry 에 푸시 (asia-northeast3)
+#   3) Cloud Run 서비스 배포 (GPU L4, min=0, max=5)
+#
+# 배포 후:
+#   - Cloud Run URL 출력 → capacitor.config.json 갱신
+#   - 첫 호출 콜드 스타트 ~30~60s (GPU + Ollama 모델 다운로드)
+
+substitutions:
+  _SERVICE_NAME: aitutor
+  _AR_REGION: asia-northeast3      # Artifact Registry (이미지 저장소) — 한국 가까움 + 비용 ↓
+  _RUN_REGION: us-central1         # Cloud Run (GPU L4 가용 리전) — REBUILD23 § 21 결정
+  _REPO: aitutor
+  _SA_EMAIL: aitutor-run@aifactory-494108.iam.gserviceaccount.com
+  _GCS_BUCKET: aitutor-files-aifactory-494108
+  _TAG: latest    # 호출 시 --substitutions=_TAG=v$(date +%Y%m%d-%H%M%S) 로 override 권장
+
+steps:
+  # 1) Docker 이미지 빌드 (multi-stage — vite build + CUDA runtime)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args:
+      - 'build'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # 2) Artifact Registry 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-sha'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}']
+    waitFor: ['docker-build']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-latest'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest']
+    waitFor: ['docker-build']
+
+  # 3) Cloud Run 배포 (GPU L4 + min=0)
+  #    ※ 첫 배포 후 capacitor.config.json 의 server.url 을 출력된 *.run.app 으로 갱신할 것
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'cloud-run-deploy'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}
+      - --region=${_RUN_REGION}
+      - --service-account=${_SA_EMAIL}
+      - --memory=16Gi
+      - --cpu=4
+      - --gpu=1
+      - --gpu-type=nvidia-l4
+      - --timeout=600
+      - --concurrency=10
+      - --min-instances=0
+      - --max-instances=5
+      - --port=8080
+      - --no-cpu-throttling
+      - --set-env-vars=GCS_FILES_BUCKET=${_GCS_BUCKET},NODE_ENV=production
+      - --update-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,AUTH_TOKEN_SECRET=AUTH_TOKEN_SECRET:latest,DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,HF_API_KEY=HF_API_KEY:latest,LAW_API_OC=LAW_API_OC:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,RESEND_API_KEY=RESEND_API_KEY:latest
+      - --allow-unauthenticated
+    waitFor: ['docker-push-sha']
+
+images:
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+
+# Cloud Build 머신 — Docker build 가 큰 컨테이너라 E2_HIGHCPU_8 추천
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 100
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 3600s

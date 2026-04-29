@@ -18,13 +18,9 @@
     "pool:explain": "node pool-explain.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1034.0",
-    "@aws-sdk/client-ssm": "^3.1034.0",
-    "@aws-sdk/s3-presigned-post": "^3.1034.0",
-    "@aws-sdk/s3-request-presigner": "^3.1034.0",
     "@capacitor/core": "^8.2.0",
     "@capacitor/network": "^8.0.1",
-    "@codegenie/serverless-express": "^5.0.0",
+    "@google-cloud/storage": "^7.14.0",
     "@google/generative-ai": "^0.21.0",
     "@huggingface/transformers": "^4.2.0",
     "@mediapipe/tasks-genai": "^0.10.27",

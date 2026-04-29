@@ -1,9 +1,10 @@
 {
+  "_comment": "REBUILD23 Phase 4 (2026-04-29): Cloud Run 첫 배포 완료. region=us-central1 (asia-northeast3 GPU 미지원으로 변경). 이전 URL: https://d2dcsdi9b1j2rf.cloudfront.net (AWS CloudFront, 1~2주 병렬 운영 후 폐기).",
   "appId": "com.aitutortwo.app",
   "appName": "AI TutorTwo",
   "webDir": "dist",
   "server": {
-    "url": "https://d2dcsdi9b1j2rf.cloudfront.net",
+    "url": "https://aitutor-z2ppabmtxa-uc.a.run.app",
     "cleartext": false
   },
   "ios": {

@@ -636,6 +636,8 @@ function LabsSection() {
         toast(newValue ? '☁️ 실험실(서버 추론)이 활성화되었습니다.' : '실험실(서버 추론)이 비활성화되었습니다.', 'success');
       } else if (key === 'lab_hf_enabled') {
         toast(newValue ? '🤗 실험실(HF Inference)이 활성화되었습니다.' : '실험실(HF Inference)이 비활성화되었습니다.', 'success');
+      } else if (key === 'lab_local_lambda_enabled') {
+        toast(newValue ? '🏠 실험실(Lambda 일심동체)이 활성화되었습니다.' : '실험실(Lambda 일심동체)이 비활성화되었습니다.', 'success');
       }
     } catch (err) {
       toast('변경 실패: ' + err.message, 'error');
@@ -652,6 +654,8 @@ function LabsSection() {
   const isSavingGguf = saving === 'lab_server_ai_gguf_enabled';
   const labHfEnabled = getBoolValue('lab_hf_enabled');
   const isSavingHf = saving === 'lab_hf_enabled';
+  const labLocalLambdaEnabled = getBoolValue('lab_local_lambda_enabled');
+  const isSavingLocalLambda = saving === 'lab_local_lambda_enabled';
 
   return (
     <Card>
@@ -795,6 +799,40 @@ function LabsSection() {
               <div
                 className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
                   labHfEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* 🏠 Lambda 일심동체 (REBUILD22 §x — 앱+모델 같은 컨테이너) */}
+          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
+            <div className="min-w-0 flex-1 mr-3">
+              <p className="text-sm text-text font-medium">🏠 Lambda 일심동체 (앱+모델 같은 컨테이너)</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {labLocalLambdaEnabled
+                  ? '🟢 활성화됨 — Gemma 4 E2B Q4 GGUF, 외부 API 0, AWS 내부만 처리'
+                  : '🔴 비활성 — 활성화 시 admin 만 접근 가능, 콜드 스타트 30~90s 주의'}
+              </p>
+              {labLocalLambdaEnabled && (
+                <a
+                  href="/lab/local-lambda"
+                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  → 테스트 페이지 열기 (/lab/local-lambda)
+                </a>
+              )}
+            </div>
+            <button
+              onClick={() => toggleBool('lab_local_lambda_enabled')}
+              disabled={isSavingLocalLambda}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
+                labLocalLambdaEnabled ? 'bg-primary' : 'bg-border'
+              }`}
+              aria-label={labLocalLambdaEnabled ? 'Lambda 일심동체 실험실 비활성화' : 'Lambda 일심동체 실험실 활성화'}
+            >
+              <div
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                  labLocalLambdaEnabled ? 'translate-x-5' : 'translate-x-0.5'
                 }`}
               />
             </button>

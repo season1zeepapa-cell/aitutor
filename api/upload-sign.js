@@ -1,15 +1,21 @@
-// api/upload-sign.js — S3 presigned URL 발급 (업로드 POST / 다운로드 GET)
-// Lambda Function URL의 6MB 요청 페이로드 제한을 우회하기 위해
-// 클라이언트가 S3에 직접 업로드/다운로드하도록 서명 URL을 발급한다.
+// api/upload-sign.js — GCS V4 signed URL 발급 (업로드 PUT / 다운로드 GET)  [REBUILD23 §17]
+//
+// Cloud Run 의 6MB request payload 한도를 우회하기 위해 클라이언트가 GCS 에 직접 PUT 한다.
+//
+// 변경 (vs S3 시절):
+//   - presigned POST (multipart) → V4 signed PUT (단일 PUT 으로 단순화)
+//   - 클라이언트는 fetch(url, { method: 'PUT', body: file, headers: {Content-Type} }) 한 번
+//   - 다운로드는 동일 (V4 signed GET)
+//
+// 인증: Cloud Run service account ADC (env 키 불필요)
 const crypto = require('crypto');
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
-const { createPresignedPost } = require('@aws-sdk/s3-presigned-post');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { Storage } = require('@google-cloud/storage');
 const { query } = require('./db');
 const { withAuth } = require('./middleware');
 
-const s3 = new S3Client({ region: process.env.AWS_REGION || 'ap-northeast-2' });
-const BUCKET = process.env.S3_FILES_BUCKET;
+const storage = new Storage();
+const BUCKET_NAME = process.env.GCS_FILES_BUCKET;
+const bucket = BUCKET_NAME ? storage.bucket(BUCKET_NAME) : null;
 
 // MIME 화이트리스트 (신뢰 가능한 유형만 업로드 허용)
 const ALLOWED_MIMES = new Set([
@@ -24,17 +30,17 @@ const ALLOWED_MIMES = new Set([
 
 module.exports = withAuth(async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST만 허용됩니다.' });
-  if (!BUCKET) return res.status(500).json({ error: 'S3 버킷이 설정되지 않았습니다.' });
+  if (!bucket) return res.status(500).json({ error: 'GCS 버킷이 설정되지 않았습니다.' });
 
   const { action, purpose, filename, mime_type, size, s3_key, id } = req.body || {};
 
-  // ── 업로드 URL 발급 ──
+  // ── 업로드 URL 발급 (V4 signed PUT) ──
   if (action === 'upload') {
     if (!purpose || !filename || !mime_type || typeof size !== 'number') {
       return res.status(400).json({ error: 'purpose, filename, mime_type, size 필수' });
     }
 
-    // pool은 관리자 전용
+    // pool 은 관리자 전용
     if (purpose === 'pool' && !req.user.admin) {
       return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     }
@@ -59,23 +65,32 @@ module.exports = withAuth(async (req, res) => {
     const prefix = purpose === 'memo' ? `memos/${req.user.uid}` : `uploads/pool/${req.user.uid}`;
     const key = `${prefix}/${uuid}.${ext}`;
 
-    const presigned = await createPresignedPost(s3, {
-      Bucket: BUCKET,
-      Key: key,
-      Conditions: [
-        ['content-length-range', 0, MAX_SIZE],
-        ['eq', '$Content-Type', mime_type],
-      ],
-      Fields: { 'Content-Type': mime_type },
-      Expires: 300,
+    // V4 signed URL (PUT) — 클라이언트는 한 번의 fetch(PUT) 로 업로드
+    const [url] = await bucket.file(key).getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + 5 * 60 * 1000,   // 5분
+      contentType: mime_type,
+      extensionHeaders: {
+        'x-goog-content-length-range': `0,${MAX_SIZE}`,  // 크기 강제
+      },
     });
 
-    return res.json({ key, ...presigned });
+    // 클라이언트가 사용할 PUT 요청 명세 — { url, method, headers }
+    return res.json({
+      key,
+      url,
+      method: 'PUT',
+      headers: {
+        'Content-Type': mime_type,
+        'x-goog-content-length-range': `0,${MAX_SIZE}`,
+      },
+    });
   }
 
-  // ── 다운로드 URL 발급 ──
+  // ── 다운로드 URL 발급 (V4 signed GET) ──
   if (action === 'download') {
-    // id로 조회 시 DB에서 소유권 검증 후 s3_key 획득
+    // id 로 조회 시 DB 에서 소유권 검증 후 object key 획득
     let targetKey = s3_key;
     if (!targetKey && id) {
       const row = await query('SELECT memo_id, s3_key FROM memo_files WHERE id = $1', [id]);
@@ -91,9 +106,11 @@ module.exports = withAuth(async (req, res) => {
       return res.status(403).json({ error: '접근 권한이 없습니다.' });
     }
 
-    const url = await getSignedUrl(s3,
-      new GetObjectCommand({ Bucket: BUCKET, Key: targetKey }),
-      { expiresIn: 60 });
+    const [url] = await bucket.file(targetKey).getSignedUrl({
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 60 * 1000,   // 1분
+    });
     return res.json({ url, key: targetKey });
   }
 
