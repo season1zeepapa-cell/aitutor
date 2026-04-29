@@ -17,17 +17,26 @@
 | `server-ai` (ONNX) | 🔄 **server-ai-gguf 와 통합** | server-ai-gguf 와 합쳐서 1개 실험실로 |
 | `server-ai-gguf` (GGUF) | 🔄 **server-ai 와 통합** | 위와 동일 |
 
-### 0.2 통합 서버 추론 service 의 컨셉 (3가지 동시 수용)
+### 0.2 통합 서버 추론 service 의 컨셉 (전수 엔진 구현 — 사용자 최종 결정)
 
-> 사용자 결정 (그대로 인용):
-> "기본 서비스와 추론서버를 분리하여 **3가지 추론 엔진을 변경가능**하고 **모델도 변경로드하도록 (여러모델)** 구현"
+> 사용자 최종 결정 (2026-04-29 오후, "고민하지말고 각각 모든 추론 엔진을 구현해서 누락없이 테스트"):
 
 | 컨셉 | 구현 |
 |---|---|
-| **격리** (메인 앱과 분리) | 별도 Cloud Run service (예: `aitutor-inference`) |
-| **3 엔진 비교** | 같은 컨테이너 안에 3 daemon 동거 (onnxruntime-genai / llama-cpp-python / + 1) |
+| **격리** (메인 앱과 분리) | 별도 Cloud Run service `aitutor-inference` |
+| **전수 엔진 비교** | 같은 컨테이너 안에 5 daemon 동거 (llama-cpp-python / onnxruntime-genai / transformers / vLLM / SGLang) + TensorRT-LLM (Phase 8 옵션) |
 | **여러 모델** | 모델 드롭다운으로 런타임 변경 가능 |
-| **GPU 정책** ⭐ | **CPU only 로 시작** — GPU quota 추가 신청 X. 나중에 quota 배정 받으면 1줄 명령으로 GPU 추가 (사용자 결정 2026-04-29) |
+| **GPU 정책** ⭐ | **CPU only 로 시작 (Phase 7-1)** — vLLM/SGLang 은 'planned' 상태로 UI 노출. 나중에 GPU quota 배정 후 (Phase 7-2) 1줄 명령으로 활성 |
+
+#### 0.2.1 일심동체 (local-gcp) 도 전수 구현 — Phase 5 확장
+
+| 엔진 | 상태 | 컨셉 |
+|---|---|---|
+| **Ollama** | ⭐ active | 개발자 편의, 자동 모델 관리 |
+| **llama-server** (C++) | Phase 5 추가 | Ollama raw 코어, GPU 최적 |
+| **vLLM** | Phase 5 추가 | 2026 산업 표준, PagedAttention |
+| **SGLang** | Phase 5 추가 | 부상, RadixAttention prefix cache |
+| **TensorRT-LLM** | Phase 8 옵션 | 28분 컴파일 부담 — 별도 단계 |
 
 ### 0.3 4 실험실 최종 운영도
 
@@ -360,11 +369,20 @@ WebSearch + 공식 문서 정밀 조사 결과 (출처는 § 2.8):
 
 ## 3. 앞으로 할 계획 — Phase 5 + Phase 6 + Phase 7
 
-### 3.1 Phase 5 — local-gcp 추론 엔진 3종 완성
+### 3.1 Phase 5 — local-gcp 추론 엔진 **4종 + 1 옵션 (전수)** 완성
 
-**현재**: Ollama (active) only. llama.cpp + vLLM 은 'planned' 상태.
+**현재**: Ollama (active) only.
 
-**목표**: 3 엔진 동시 동거 + UI 드롭다운 모두 active
+**목표**: **4 엔진 동시 동거 + UI 드롭다운 모두 active** (TensorRT-LLM 은 Phase 8 옵션)
+
+```
+일심동체 메인 컨테이너 (Cloud Run, GPU L4)
+├─ Ollama daemon         (port 11434) ⭐ active
+├─ llama-server (C++)    (port 11435) Phase 5 active
+├─ vLLM (Python)         (port 11436) Phase 5 active
+├─ SGLang (Python)       (port 11437) Phase 5 active
+└─ TensorRT-LLM          (port 11438) Phase 8 옵션 (28분 컴파일)
+```
 
 #### 3.1.0 검증된 3 엔진 선택 근거 (§ 2.6 조사 결과)
 
