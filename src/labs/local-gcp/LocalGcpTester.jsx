@@ -17,11 +17,13 @@ const ENGINES = [
   { key: 'vllm',      label: 'vLLM',      status: 'planned', note: 'Phase 5 — 가장 빠름, PagedAttention' },
 ];
 
+// Ollama 공식 라이브러리 태그 (ollama.com/library)
 const MODELS = [
-  { key: 'qwen3-4b',    name: 'Qwen 3 4B Instruct', org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천' },
-  { key: 'qwen3-1.7b',  name: 'Qwen 3 1.7B',        org: 'Alibaba', size: '~1GB',   note: '경량 / 콜드 스타트 짧음' },
-  { key: 'gemma3n-e2b', name: 'Gemma 3n E2B',       org: 'Google',  size: '~2GB',   note: '효율 멀티모달' },
-  { key: 'gemma3n-e4b', name: 'Gemma 3n E4B',       org: 'Google',  size: '~3.5GB', note: 'Gemma 패밀리 / 안정' },
+  { key: 'qwen3-4b',    name: 'Qwen 3 4B',    org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천' },
+  { key: 'qwen3-1.7b',  name: 'Qwen 3 1.7B',  org: 'Alibaba', size: '~1.4GB', note: '경량 / 콜드 스타트 짧음' },
+  { key: 'qwen3-0.6b',  name: 'Qwen 3 0.6B',  org: 'Alibaba', size: '~523MB', note: '초경량 / 빠른 응답' },
+  { key: 'gemma3n-e2b', name: 'Gemma 3n E2B', org: 'Google',  size: '~5.6GB', note: '효율적 멀티모달' },
+  { key: 'gemma3n-e4b', name: 'Gemma 3n E4B', org: 'Google',  size: '~7.5GB', note: 'Gemma 패밀리 / 안정' },
 ];
 
 function buildPromptPreview(question) {

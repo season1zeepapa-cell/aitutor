@@ -22,13 +22,13 @@ const { extractToken, verifyToken } = require('./auth');
 
 const OLLAMA_URL = `http://127.0.0.1:${process.env.OLLAMA_PORT || 11434}`;
 
-// model_key → Ollama 모델 매핑
+// model_key → Ollama 모델 매핑 (Ollama 공식 라이브러리 태그)
 const MODEL_MAP = {
-  'e2b':       { ollama: 'gemma3n:e2b',        label: 'Gemma 3n E2B',        family: 'gemma' },
-  'e4b':       { ollama: 'gemma3n:e4b',        label: 'Gemma 3n E4B',        family: 'gemma' },
-  'qwen35-4b': { ollama: 'qwen3:4b-instruct',  label: 'Qwen 3 4B Instruct',  family: 'qwen'  },
-  'e2b-gguf':  { ollama: 'gemma3n:e2b',        label: 'Gemma 3n E2B (GGUF)', family: 'gemma' },
-  'e4b-gguf':  { ollama: 'gemma3n:e4b',        label: 'Gemma 3n E4B (GGUF)', family: 'gemma' },
+  'e2b':       { ollama: 'gemma3n:e2b', label: 'Gemma 3n E2B',        family: 'gemma' },
+  'e4b':       { ollama: 'gemma3n:e4b', label: 'Gemma 3n E4B',        family: 'gemma' },
+  'qwen35-4b': { ollama: 'qwen3:4b',    label: 'Qwen 3 4B',           family: 'qwen'  },
+  'e2b-gguf':  { ollama: 'gemma3n:e2b', label: 'Gemma 3n E2B (GGUF)', family: 'gemma' },
+  'e4b-gguf':  { ollama: 'gemma3n:e4b', label: 'Gemma 3n E4B (GGUF)', family: 'gemma' },
 };
 
 // 자격증 시험 해설용 프롬프트 (LocalLambdaTester / ServerAiTester 와 동일 형식)

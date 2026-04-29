@@ -34,13 +34,14 @@ const ENGINES = {
   'vllm':      { label: 'vLLM',           status: 'planned' },
 };
 
-// 모델 카탈로그 (model_key → Ollama 모델 이름)
+// 모델 카탈로그 (model_key → Ollama 모델 이름) — Ollama 공식 라이브러리 태그 (ollama.com/library)
 // 첫 호출 시 Ollama 가 자동 pull (수 분 소요 — 추후 startup pre-pull 로 단축)
 const MODEL_MAP = {
-  'qwen3-4b':    { ollama: 'qwen3:4b-instruct',  name: 'Qwen 3 4B Instruct', org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천' },
-  'qwen3-1.7b':  { ollama: 'qwen3:1.7b',         name: 'Qwen 3 1.7B',        org: 'Alibaba', size: '~1GB',   note: '경량 / 콜드 스타트 짧음' },
-  'gemma3n-e2b': { ollama: 'gemma3n:e2b',        name: 'Gemma 3n E2B',       org: 'Google',  size: '~2GB',   note: '효율적 멀티모달' },
-  'gemma3n-e4b': { ollama: 'gemma3n:e4b',        name: 'Gemma 3n E4B',       org: 'Google',  size: '~3.5GB', note: 'Gemma 패밀리 / 안정' },
+  'qwen3-4b':    { ollama: 'qwen3:4b',    name: 'Qwen 3 4B',    org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천' },
+  'qwen3-1.7b':  { ollama: 'qwen3:1.7b',  name: 'Qwen 3 1.7B',  org: 'Alibaba', size: '~1.4GB', note: '경량 / 콜드 스타트 짧음' },
+  'qwen3-0.6b':  { ollama: 'qwen3:0.6b',  name: 'Qwen 3 0.6B',  org: 'Alibaba', size: '~523MB', note: '초경량 / 빠른 응답' },
+  'gemma3n-e2b': { ollama: 'gemma3n:e2b', name: 'Gemma 3n E2B', org: 'Google',  size: '~5.6GB', note: '효율적 멀티모달' },
+  'gemma3n-e4b': { ollama: 'gemma3n:e4b', name: 'Gemma 3n E4B', org: 'Google',  size: '~7.5GB', note: 'Gemma 패밀리 / 안정' },
 };
 const DEFAULT_MODEL_KEY = 'qwen3-4b';
 const DEFAULT_ENGINE = 'ollama';
