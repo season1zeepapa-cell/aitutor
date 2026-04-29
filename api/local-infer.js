@@ -88,14 +88,29 @@ async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
   // 모델 없으면 자동 pull 후 재시도
   await ensureModelLoaded(ollamaModel);
 
-  // Qwen 3 thinking mode 비활성 (사용자 결정 2026-04-29)
-  // 이유: thinking 토큰이 max_tokens 다 소비해서 실제 답변 빈 응답 발생.
-  // Qwen 3 만 영향받음 (Gemma 등 다른 모델은 think 옵션 무시).
+  // Qwen 3 thinking mode 비활성 + 한국어 강제 (사용자 결정 2026-04-29)
+  // 이유 1: thinking 토큰이 max_tokens 다 소비해서 실제 답변 빈 응답 발생
+  // 이유 2: thinking 비활성 후 한국어 system prompt 무시하고 default 영어로 가버림 (Qwen 다국어 특성)
   const isQwen = ollamaModel.startsWith('qwen3');
+  let finalMessages = messages;
+  if (isQwen) {
+    const koreanForce = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
+    if (messages[0]?.role === 'system') {
+      finalMessages = [
+        { role: 'system', content: messages[0].content + koreanForce },
+        ...messages.slice(1),
+      ];
+    } else {
+      finalMessages = [
+        { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다.' + koreanForce },
+        ...messages,
+      ];
+    }
+  }
 
   const body = {
     model: ollamaModel,
-    messages,
+    messages: finalMessages,
     stream: false,
     options: { num_predict: maxTokens, temperature },
   };
