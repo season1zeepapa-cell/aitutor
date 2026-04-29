@@ -1615,6 +1615,49 @@ done
 
 ---
 
+## 21. 사용자 결정 — 실험실 5개 영구 유지 + 컨셉 차이 보존 (2026-04-29 오후, 입장 변경)
+
+### 21.1 결정 변경 이력
+
+| 시점 | 결정 |
+|---|---|
+| 2026-04-29 오전 | "마이그 완료되면 즉시 삭제 예정" |
+| 2026-04-29 오후 (REBUILD24 분석 후) | **5개 모두 영구 유지** — 컨셉이 다르므로 각자 유지 가치 있음. 충분한 실험실 검증 후 검증된 모델/엔진을 메인 AI 해설 시스템으로 promote |
+
+### 21.2 5개 실험실 컨셉 차이 (모두 의미 있음)
+
+| 실험실 | 고유 컨셉 |
+|---|---|
+| `hf-playground` | **외부 다중 provider 비교** — 14 providers, 122 모델 동시 비교 |
+| `local-ai` | **클라이언트 측 추론** — 브라우저 WebGPU, 오프라인 가능 |
+| `local-gcp` | **서버 일심동체** — Cloud Run 단일 컨테이너 + 엔진 교체 가능 (Ollama / llama.cpp / vLLM) |
+| `server-ai` | **서버 ONNX 추론** — onnxruntime-genai (Python) 컨셉 |
+| `server-ai-gguf` | **서버 GGUF 추론** — llama-cpp-python (Python) 컨셉 |
+
+### 21.3 추가 작업 — 컨셉 차이 보존을 위해
+
+| 실험실 | 1차 마이그 후 상태 | 추가 작업 |
+|---|---|---|
+| hf-playground | ✅ 그대로 | 없음 |
+| local-ai | ✅ 그대로 | 없음 (선택: 모델 호스팅 GCS 미러로 한국 latency ↓) |
+| local-gcp | 🚧 Ollama only (CPU) | GPU quota 승인 + **Phase 5: llama.cpp + vLLM 추가** (multi-stage devel base) |
+| **server-ai** | ⚠ **컨셉 변형** — ONNX → Ollama 매핑 | **컨셉 복원**: onnxruntime-genai Python 추가 (같은 Cloud Run 컨테이너 OR 별도 service) |
+| server-ai-gguf | ✅ 컨셉 일치 (Ollama=GGUF 기반) | Phase 5 의 llama.cpp server 활성 시 llama-cpp-python 컨셉에 더 정확 (Ollama 와 직접 비교 가능) |
+
+### 21.4 실험실의 prod promotion 정책
+
+> 사용자 의도: 실험실에서 충분히 검증된 모델/엔진만 메인 AI 해설 시스템 default 로 promote.
+
+- 실험실 = R&D 도구 (영구 운영)
+- 메인 AI 해설 = 검증 끝난 default + 사용자 선택 가능 (선택지 점진 확장)
+
+### 21.5 자세한 분석은 별도 문서
+
+- **`workspace/aitutor/REBUILD24.md`** — 5 실험실 정밀 분석 + 4 path 비교 + GCP native 활용 제안
+- 본 결정 이후 REBUILD24 의 "시나리오 D — 5개 모두 유지 + 컨셉 차이 보존" 가 채택됨
+
+---
+
 ## 20. 변경 이력
 
 | 날짜 | 변경 |
@@ -1626,3 +1669,6 @@ done
 | 2026-04-29 | **Storage 결정: A 옵션 (GCS 마이그)** — 신규 §17 추가. AWS 완전 폐기 원칙에 따라 S3 → GCS 마이그 (`@google-cloud/storage`, V4 signed URL, 데이터 복사 스크립트, IAM, 검증). § 13 결정 표에 Storage / 실험실 / billing 항목 추가. |
 | 2026-04-29 | **§ 19 AWS↔GCP 서비스 상세 매핑 추가** — 19개 서비스별 마이그 작업 내역 (실제 리소스 ID/이름 + 마이그 명령 + 코드 변경). § 19.4 에 신규 GCP 리소스 일람표. § 18 변경이력 → § 20 으로 이동. |
 | 2026-04-29 | **Phase 4 Cloud Run 라이브 + Stage 1 sanity check 통과** — 빌드 4차 시도 끝에 성공 (1차 `$COMMIT_SHA` 빈값 / 2차 zstd 누락 / 3차 nvcc 없음 → llama.cpp 제거 / 4차 GPU quota 0 → GPU 없이 배포). asia-northeast3 → **us-central1 리전 변경** (asia-northeast3/southeast1 GPU L4 미지원). 라이브 URL `https://aitutor-z2ppabmtxa-uc.a.run.app`. 검증: `/api/config` JSON / `/` SPA / `/api/questions` 401 / 콜드 스타트 1초. capacitor.config.json server.url 갱신. § 13, § 19.1 갱신. GPU quota 승인 대기 (실험실 추론에만 영향, 메인 앱 100% 작동). |
+| 2026-04-29 | **Git 커밋 + push 성공 + 모바일 앱 재빌드** — commit `b2bdde4` (38 파일, 4826/4759 줄), GitHub Secret Scanner false positive 발견 (KISA 학습 자료의 의도된 가짜 API 키 패턴 — unblock 후 push 성공). `npm run cap:build` 통과 (Vite 2.45s + Capacitor sync iOS+Android). S3 → GCS 데이터 마이그 검토 — **메인 S3 버킷 비어있어 마이그 작업 0**, Phase 6 에서 빈 버킷 그대로 폐기. |
+| 2026-04-29 | **Phase 4 보강 — q-images 이미지 누락 발견** — 사용자가 운영 SPA 에서 문제 이미지 못 불러옴 보고. 원인: 첫 작성한 `.gcloudignore` 의 `public/q-images` 패턴 (Write 도구 차단으로 수정 안 됨) → Cloud Build 컨텍스트에서 244개 학습 이미지 누락 → dist/q-images 빈 채로 빌드. 수정: `.gcloudignore` 에서 `public/q-images` 제거 + kisa-pool 등 큰 디렉토리 추가. cloudbuild.yaml 의 GPU 옵션 임시 주석화 (quota 0). 5차 빌드 시작 (Build ID `53713486-cf57-4fbd-a6a5-8753e3c9ff7e`, 880 파일 143.6 MiB). 사용자 결정 (실험실 폐기 예정) 메모리에 추가. |
+| 2026-04-29 | **§ 21 신규 — 실험실 폐기 결정 + REBUILD24 작성 trigger** — 사용자 결정: 실험실 5개 (hf-playground / local-ai / local-gcp / server-ai / server-ai-gguf) GCP 마이그 완전 안정 후 즉시 폐기. 폐기 전 깊이 있는 분석 + GCP native 활용 검토 + 4 path 비교 + 폐기 영향 정량화를 별도 문서 **`REBUILD24.md`** 로 분리 작성. § 21 에 본 결정 + REBUILD24 위치 안내. |

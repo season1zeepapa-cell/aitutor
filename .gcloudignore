@@ -1,3 +1,4 @@
+# Cloud Build 업로드 제외 — 빌드에 불필요한 큰 파일/폴더
 .git
 .gitignore
 .gcloudignore
@@ -12,7 +13,11 @@ tests
 *.md
 *.log
 .env*
-public/q-images
+# KISA 자료 (운영 SPA 에 직접 포함 X — 필요 시 별도 importer 가 DB 에 등록함)
+kisa-pool
+kisa-module
+kisa-module-v1.zip
+# 관리자 임포트 스크립트 (런타임 미사용)
 pool
 pool-explain.js
 pool-import.js
@@ -22,3 +27,4 @@ pool-repatch-batch.js
 pool-repatch.js
 generate-answers.js
 register-network-questions.js
+# ⚠ public/q-images 는 절대 ignore 금지 — Vite 가 dist/q-images 로 복사하는 학습 이미지 244개
