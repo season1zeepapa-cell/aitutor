@@ -1,10 +1,10 @@
 {
-  "_comment": "REBUILD23 Phase 4 (2026-04-29): Cloud Run 첫 배포 완료. region=us-central1 (asia-northeast3 GPU 미지원으로 변경). 이전 URL: https://d2dcsdi9b1j2rf.cloudfront.net (AWS CloudFront, 1~2주 병렬 운영 후 폐기).",
+  "_comment": "REBUILD23 Phase 4 (2026-04-29): Cloud Run 라이브. region=us-east4 (NVIDIA L4 GPU 활성). 변경 이력: us-central1 (GPU 없이) → us-east4 (GPU L4). 이전 URL 들: AWS CloudFront `d2dcsdi9b1j2rf.cloudfront.net` (Phase 6 폐기 예정), us-central1 `aitutor-z2ppabmtxa-uc.a.run.app` (1~2일 병렬 운영 후 폐기).",
   "appId": "com.aitutortwo.app",
   "appName": "AI TutorTwo",
   "webDir": "dist",
   "server": {
-    "url": "https://aitutor-z2ppabmtxa-uc.a.run.app",
+    "url": "https://aitutor-z2ppabmtxa-uk.a.run.app",
     "cleartext": false
   },
   "ios": {

@@ -15,7 +15,7 @@
 substitutions:
   _SERVICE_NAME: aitutor
   _AR_REGION: asia-northeast3      # Artifact Registry (이미지 저장소) — 한국 가까움 + 비용 ↓
-  _RUN_REGION: us-central1         # Cloud Run (GPU L4 가용 리전) — REBUILD23 § 21 결정
+  _RUN_REGION: us-east4            # Cloud Run (GPU L4 quota 승인된 리전, 2026-04-29) — REBUILD23 § 21 결정
   _REPO: aitutor
   _SA_EMAIL: aitutor-run@aifactory-494108.iam.gserviceaccount.com
   _GCS_BUCKET: aitutor-files-aifactory-494108
@@ -58,14 +58,14 @@ steps:
       - --service-account=${_SA_EMAIL}
       - --memory=16Gi
       - --cpu=4
-      # GPU L4 옵션은 quota 승인 후 활성화 (현재 us-central1 quota=0):
-      # - --gpu=1
-      # - --gpu-type=nvidia-l4
-      # - --no-cpu-throttling
+      - --gpu=1
+      - --gpu-type=nvidia-l4
+      - --no-gpu-zonal-redundancy
+      - --no-cpu-throttling
       - --timeout=600
       - --concurrency=10
       - --min-instances=0
-      - --max-instances=3
+      - --max-instances=1
       - --port=8080
       - --set-env-vars=GCS_FILES_BUCKET=${_GCS_BUCKET},NODE_ENV=production
       - --update-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,AUTH_TOKEN_SECRET=AUTH_TOKEN_SECRET:latest,DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,HF_API_KEY=HF_API_KEY:latest,LAW_API_OC=LAW_API_OC:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,RESEND_API_KEY=RESEND_API_KEY:latest
