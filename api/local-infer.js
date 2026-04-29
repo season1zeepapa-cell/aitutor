@@ -88,15 +88,23 @@ async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
   // 모델 없으면 자동 pull 후 재시도
   await ensureModelLoaded(ollamaModel);
 
+  // Qwen 3 thinking mode 비활성 (사용자 결정 2026-04-29)
+  // 이유: thinking 토큰이 max_tokens 다 소비해서 실제 답변 빈 응답 발생.
+  // Qwen 3 만 영향받음 (Gemma 등 다른 모델은 think 옵션 무시).
+  const isQwen = ollamaModel.startsWith('qwen3');
+
+  const body = {
+    model: ollamaModel,
+    messages,
+    stream: false,
+    options: { num_predict: maxTokens, temperature },
+  };
+  if (isQwen) body.think = false;
+
   const resp = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: ollamaModel,
-      messages,
-      stream: false,
-      options: { num_predict: maxTokens, temperature },
-    }),
+    body: JSON.stringify(body),
   });
   if (!resp.ok) {
     const errBody = await resp.text();

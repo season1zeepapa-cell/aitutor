@@ -142,19 +142,24 @@ module.exports = withCors(async (req, res) => {
 
     const prompt = buildPrompt(question);
 
+    // Qwen 3 thinking mode 비활성 (사용자 결정 2026-04-29)
+    const isQwen = meta.ollama.startsWith('qwen3');
+    const reqBody = {
+      model: meta.ollama,
+      messages: [
+        { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다. 정답을 정확히 설명하고 관련 법령을 인용하세요.' },
+        { role: 'user', content: prompt },
+      ],
+      stream: true,
+      options: { num_predict: maxTokens, temperature },
+    };
+    if (isQwen) reqBody.think = false;
+
     // Ollama stream API 호출 (NDJSON)
     const upstream = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: meta.ollama,
-        messages: [
-          { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다. 정답을 정확히 설명하고 관련 법령을 인용하세요.' },
-          { role: 'user', content: prompt },
-        ],
-        stream: true,
-        options: { num_predict: maxTokens, temperature },
-      }),
+      body: JSON.stringify(reqBody),
     });
 
     if (!upstream.ok) {
