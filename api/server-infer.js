@@ -106,6 +106,40 @@ module.exports = withCors(async (req, res) => {
   let outputTokens = 0;
 
   try {
+    // 모델 자동 pull (없으면) — 첫 호출 시 ~30s~7분 (모델 사이즈에 따라)
+    const tagsResp = await fetch(`${OLLAMA_URL}/api/tags`);
+    const { models = [] } = tagsResp.ok ? await tagsResp.json() : { models: [] };
+    const has = models.some(m => m.name === meta.ollama || m.model === meta.ollama);
+    if (!has) {
+      res.write(`data: ${JSON.stringify({
+        type: 'pull',
+        message: `모델 다운로드 중: ${meta.ollama} (~수십초~수분)`,
+      })}\n\n`);
+      if (typeof res.flush === 'function') res.flush();
+
+      const pullT0 = Date.now();
+      const pullResp = await fetch(`${OLLAMA_URL}/api/pull`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: meta.ollama, stream: false }),
+      });
+      if (!pullResp.ok) {
+        const errText = await pullResp.text();
+        clearInterval(keepAlive);
+        res.write(`data: ${JSON.stringify({
+          error: 'ollama_pull_failed',
+          model: meta.ollama,
+          body: errText.slice(0, 300),
+        })}\n\n`);
+        return res.end();
+      }
+      res.write(`data: ${JSON.stringify({
+        type: 'pull_done',
+        ms: Date.now() - pullT0,
+      })}\n\n`);
+      if (typeof res.flush === 'function') res.flush();
+    }
+
     const prompt = buildPrompt(question);
 
     // Ollama stream API 호출 (NDJSON)

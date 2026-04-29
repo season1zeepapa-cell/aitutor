@@ -46,8 +46,48 @@ const MODEL_MAP = {
 const DEFAULT_MODEL_KEY = 'qwen3-4b';
 const DEFAULT_ENGINE = 'ollama';
 
+// ─── Ollama 모델 존재 확인 + 자동 pull ───────────────────────
+// Ollama 의 /api/chat 은 모델 없으면 404 응답하고 자동 pull 안 함.
+// 호출 전에 /api/tags 로 보유 확인 → 없으면 /api/pull 로 다운로드 (블로킹).
+// 첫 호출 시 모델 다운로드 시간:
+//   qwen3:0.6b   523MB  ~30s
+//   qwen3:1.7b   1.4GB  ~1~2분
+//   qwen3:4b     2.5GB  ~2~3분
+//   gemma3n:e2b  5.6GB  ~5분
+//   gemma3n:e4b  7.5GB  ~7분
+// Cloud Run timeout 600s 안에 들어가야 함 (e4b 는 위험 — 첫 호출만)
+async function ensureModelLoaded(ollamaModel) {
+  // 1) /api/tags 로 현재 보유 모델 조회
+  const tagsResp = await fetch(`${OLLAMA_URL}/api/tags`);
+  if (!tagsResp.ok) {
+    throw new Error(`Ollama /api/tags 실패: HTTP ${tagsResp.status}`);
+  }
+  const { models = [] } = await tagsResp.json();
+  const has = models.some(m => m.name === ollamaModel || m.model === ollamaModel);
+  if (has) return { pulled: false, ms: 0 };
+
+  // 2) 없으면 /api/pull (stream:false 로 블로킹 다운로드)
+  console.log(`[local-infer] 모델 자동 pull 시작: ${ollamaModel}`);
+  const t0 = Date.now();
+  const pullResp = await fetch(`${OLLAMA_URL}/api/pull`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: ollamaModel, stream: false }),
+  });
+  if (!pullResp.ok) {
+    const err = await pullResp.text();
+    throw new Error(`Ollama /api/pull 실패 (HTTP ${pullResp.status}): ${err.slice(0, 200)}`);
+  }
+  const ms = Date.now() - t0;
+  console.log(`[local-infer] 모델 pull 완료: ${ollamaModel} (${ms}ms)`);
+  return { pulled: true, ms };
+}
+
 // ─── Ollama 호출 (native /api/chat 형식) ──────────────────────
 async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
+  // 모델 없으면 자동 pull 후 재시도
+  await ensureModelLoaded(ollamaModel);
+
   const resp = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
