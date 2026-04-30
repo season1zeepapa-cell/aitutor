@@ -6,7 +6,9 @@ const { withCors } = require('./middleware');
 
 module.exports = withCors(async (req, res) => {
 
-  const { action } = req.body || req.query || {};
+  // REBUILD30 §17 fix — req.body 가 {} (truthy) 라 req.query 로 fallback 못 하던 버그.
+  // body?.action 이 undefined 면 query?.action 으로 자동 fallback (GET/POST 모두 호환).
+  const action = req.body?.action || req.query?.action;
 
   // ── 공개 문제 조회 (비인증, DB 문제풀이 페이지용) ──
   if (req.method === 'GET' && action === 'public') {
