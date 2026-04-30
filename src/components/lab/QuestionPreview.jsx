@@ -13,9 +13,13 @@ export default function QuestionPreview({ question, onClear, compact = false }) 
     );
   }
 
-  const choices = Array.isArray(question.choices)
+  // REBUILD30 §17 — choices 가 [{num,text}] 형태일 수도 있어 string 으로 정규화.
+  const rawChoices = Array.isArray(question.choices)
     ? question.choices
     : (() => { try { return JSON.parse(question.choices || '[]'); } catch { return []; } })();
+  const choices = rawChoices.map(c =>
+    (c && typeof c === 'object') ? String(c.text ?? c.num ?? '') : String(c ?? '')
+  );
   const answer = question.answer;
 
   return (

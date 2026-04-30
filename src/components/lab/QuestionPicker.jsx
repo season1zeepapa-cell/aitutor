@@ -75,10 +75,18 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
     fetch(`/api/questions?action=public&exam_id=${examId}`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
-        const list = (d.questions || []).map(q => ({
-          ...q,
-          choices: Array.isArray(q.choices) ? q.choices : (() => { try { return JSON.parse(q.choices || '[]'); } catch { return []; } })(),
-        }));
+        // REBUILD30 §17 — DB 의 choices 가 [{num, text}, ...] 객체 배열이라 React error #31 발생.
+        // 모든 lab 의 통일 형식 = string[] 으로 정규화 (paste 모드와 일치).
+        const list = (d.questions || []).map(q => {
+          let arr = q.choices;
+          if (!Array.isArray(arr)) {
+            try { arr = JSON.parse(arr || '[]'); } catch { arr = []; }
+          }
+          const choices = arr.map(c =>
+            (c && typeof c === 'object') ? String(c.text ?? c.num ?? '') : String(c ?? '')
+          );
+          return { ...q, choices };
+        });
         setQuestions(list);
       })
       .catch(e => setDbError(`문항 로드 실패: ${e.message}`))
