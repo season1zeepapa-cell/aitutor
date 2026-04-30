@@ -1,0 +1,852 @@
+# REBUILD30 — AI TutorTwo 프로젝트 현황 + 아키텍처 + 실험실 리팩토링 제안
+
+> 작성: 2026-04-30
+> 선행: REBUILD26 (8 엔진 결정) → REBUILD27 (AWS 폐기) → REBUILD28 (6 엔진 축소) → REBUILD29 (Qwen + UI 재구성 + Playwright) → **REBUILD30 (본 문서, 현황 + 아키텍처 + 리팩토링 제안)**
+> 목적: REBUILD23~29 누적 결과를 단일 진실 소스로 정리 + 코드베이스 깊이 분석 결과 + 실험실 중심 리팩토링 후보 제시
+
+---
+
+## 0. TL;DR
+
+### 0.1 현황 한 줄
+
+> **AI TutorTwo = 영상정보관리사/운전면허/KISA 자격증 학습 도구. Cloud Run + L4 GPU 기반 6 엔진 × 4 모델 × 5 실험실 lab + DB 문제풀이 + Capacitor 모바일.**
+
+### 0.2 누적 작업 (REBUILD23~29)
+
+| 영역 | 상태 |
+|---|---|
+| AWS → GCP 마이그 | ✅ Cloud Run + L4 GPU + Cloud SQL + GCS (REBUILD23~25) |
+| AWS 폐기 | ✅ 41개 인프라 + Route53 hosted zone (REBUILD27) |
+| 8 엔진 → 6 엔진 결정 | ✅ SGLang/TensorRT-LLM deferred (REBUILD28) |
+| 격리 service (aitutor-inference) | ✅ 6 엔진 동거 (REBUILD28~29) |
+| Qwen 한국어 강제 | ✅ 3중 패턴 + chat_template_kwargs (REBUILD29 §16~22) |
+| 5 실험실 lab UI | ✅ /lab 메인 + 카드 + admin 토글 + 직관적 용어 (REBUILD28~29) |
+| WebLLM 통합 | ✅ Qwen 2.5 7B / DeepSeek R1 / Llama 3.1 8B (REBUILD28 §11) |
+| Ollama bridge | ✅ DB 연동 + select dropdown + 도움말 6단계 (REBUILD28~29) |
+| QuestionPicker | ✅ DB 카테고리→시험→문제 카드 + 붙여넣기 파싱 (REBUILD29 §19/§25) |
+| PromptEditor | ✅ 시스템/사용자 메시지 섹션별 편집 + 최종 전송 (REBUILD29 §26) |
+| 모델 통일 | ✅ Qwen 3.5 + Gemma 4 (3 lab × 4 모델 비교) (REBUILD29 §24) |
+| Playwright 스모크 | ✅ 15/15 통과 (REBUILD29 §21/§27) |
+
+### 0.3 발견된 핵심 이슈 (REBUILD30 신규)
+
+| # | 우선도 | 이슈 | 위치 |
+|---|---|---|---|
+| 1 | 🔴 P0 | `applyQwenStrict()` 누락 — LocalGcpTester / ServerInferTester 의 messages 빌드는 `buildLabMessages` 만 사용 → Qwen 영어 응답 위험 잔존 가능 | `src/labs/local-gcp/LocalGcpTester.jsx:91`, `src/labs/server-infer/ServerInferTester.jsx:127` |
+| 2 | 🔴 P0 | API 스키마 불일치 — `maxTokens` (camelCase) vs `max_tokens` (snake_case) 혼재 | `LocalGcpTester` POST body 와 `ServerInferTester` POST body |
+| 3 | 🟧 P1 | 코드 중복 — `buildPromptPreview()` 동일 함수 3 lab 에 반복 정의 | LocalGcpTester:35 / ServerInferTester:35 / OllamaBridgeTester:48 |
+| 4 | 🟧 P1 | `MODELS` 상수 중복 — LocalGcpTester / ServerInferTester 동일 정의 2회 | LocalGcpTester:28 / ServerInferTester:28 |
+| 5 | 🟨 P2 | Props drilling — LocalAiExplanation 의 13 state 가 7 자식으로 전파 | LocalAiExplanation.jsx |
+| 6 | 🟨 P2 | `disposePipe()` 에러 무시 — 메모리 누수 가능 | LocalAiExplanation.jsx:136 |
+| 7 | 🟨 P2 | `_daemons` 캐시 TTL 없음 — stale daemon 가능 | api/local-infer.js |
+| 8 | 🟦 P3 | local-infer.js 단일 핸들러 비대 (392줄) | api/local-infer.js |
+
+### 0.4 권장 리팩토링 (실험실 중심, 7개 후보)
+
+| 작업 | 효과 | 라인 감축 | 시간 |
+|---|---|---|---|
+| **buildLabPromptPreview 통합** ⭐ | 중복 제거 + 한 곳 변경 시 3 lab 자동 반영 | -51 | 30분 |
+| **src/lib/lab/models.js 신규** ⭐ | LAB_MODELS / LAB_ENGINES 중앙화 | -34 | 30분 |
+| **buildLabMessages 자동 Qwen 강제** ⭐ | applyQwenStrict 누락 방지 (P0 fix) | 0 (버그 픽스) | 20분 |
+| ParamSliders.jsx 재사용 컴포넌트 | maxTokens/temperature 슬라이더 4곳 통합 | -80 | 1시간 |
+| ResponsePanel.jsx 추상화 | 에러/응답 렌더링 표준화 | -40 | 45분 |
+| coldStartRetry.js 유틸 | 429 retry 재사용 | -15 | 30분 |
+| LocalAiContext (Context API) | Props drilling 해결 | -30 | 1.5시간 |
+| **합계** | — | **-250 라인** | **5~6시간** |
+
+---
+
+## 1. 프로젝트 컨텍스트
+
+### 1.1 도메인
+
+**AI TutorTwo** = 한국 자격증 학과시험 학습 도구
+- **트랙**: 영상정보관리사 / 운전면허 / KISA 진단원 이수시험
+- **사용자**: 학습자 (수십 명 추정) + admin (운영자)
+- **주 기능**: 기출문제 풀이 / AI 해설 생성 / 메모 / 북마크 / 시험 기록
+
+### 1.2 REBUILD23~29 작업 흐름
+
+```
+REBUILD23 (AWS→GCP)        : Cloud Run + L4 GPU + Cloud SQL + GCS 마이그
+REBUILD24~25               : 실험실 4~5 lab 설계 + 격리 service 컨셉
+REBUILD26 (8 엔진 결정)     : 양쪽 8 엔진 동거 + 옵션 C 하이브리드 + 일정
+REBUILD27 (AWS 폐기)        : 41개 인프라 + Route53 폐기 → AWS 청구 $0
+REBUILD28 (6 엔진 축소)     : SGLang/TensorRT-LLM deferred + UI 재구성
+                            + WebLLM 통합 + Ollama bridge 신규
+                            + QuestionPicker 공통
+REBUILD29 (Qwen + UI)       : Qwen 한국어 강제 (3중 패턴) + 카드 타이틀
+                            + 모델 통일 (Qwen 3.5 + Gemma 4)
+                            + DB 계층 선택 + PromptEditor + Playwright 15/15
+REBUILD30 (본 문서)         : 현황 + 아키텍처 + 리팩토링 제안
+```
+
+### 1.3 사용자 패턴
+
+- **단발 호출** — 1 문제 → 1 해설 (multi-turn 거의 없음)
+- **동시 1~2 사용자** — max-instances=1 충분
+- **모델 교체 빈번** — 학습자가 UI 에서 비교 비교
+- **응답 SLA** — 5~30초 인내 가능
+
+---
+
+## 2. 전체 아키텍처
+
+### 2.1 시스템 다이어그램
+
+```
+[사용자 브라우저 / Capacitor 모바일 앱]
+  │
+  │ HTTPS
+  ▼
+[Cloud Run: aitutor (us-east4, GPU L4 24GB, 32Gi RAM)]
+  ├─ Express server.js (port 8080)         ⭐ 메인 진입점
+  │   ├─ /api/* (52 엔드포인트)
+  │   ├─ /assets/* (Vite dist, 1년 immutable cache)
+  │   └─ /* SPA 폴백
+  │
+  ├─ Ollama daemon (port 11434)            ⭐ always-on
+  ├─ llama-server (port 11435)             ⭐ lazy spawn (첫 호출)
+  ├─ vLLM (port 11436)                     ⭐ lazy spawn
+  ├─ Python sub-server (port 11442)        ⭐ FastAPI uvicorn
+  │   ├─ llama-cpp-python (CUDA wheel)
+  │   ├─ onnxruntime-genai-cuda
+  │   └─ transformers (HF PyTorch CUDA)
+  │
+  └─ /var/cache/huggingface/ (모델 lazy 다운로드 캐시)
+        │
+        │ (vllm/llama-server 호출 시 격리로 forward 옵션)
+        ▼
+[Cloud Run: aitutor-inference (us-east4, GPU L4)]  ← REBUILD28 §3.2
+  ├─ FastAPI uvicorn (port 8080)
+  ├─ PROCESS_MODE=isolated 분기
+  │   └─ Ollama always-on (port 11434)
+  ├─ engines/ (sync 마스터)
+  │   ├─ catalog.py (Qwen 3.5 + Gemma 4)
+  │   ├─ ollama.py / llama-server.py / vllm_engine.py
+  │   ├─ llama-cpp-python.py / onnx.py / transformers_engine.py
+  │   ├─ _daemon.py (lazy spawn 헬퍼)
+  │   └─ qwen_helpers.py (한국어 강제 + no_think)
+  └─ server.py (FastAPI 라우팅)
+
+────────────────────────────────────────────────────
+
+[외부 의존]
+  ├─ Cloud SQL (PostgreSQL 14) — 메인 DB
+  │   ├─ users / questions / explanations / exam_results
+  │   ├─ memos / bookmarks / aitutor_settings
+  │   ├─ user_lab_settings (Ollama bridge URL/모델)
+  │   └─ kisa_* (진단원 이수시험)
+  │
+  ├─ GCS Bucket (aitutor-files-aifactory-494108)
+  │   └─ memo-files / pool-upload (서명 URL)
+  │
+  ├─ Secret Manager
+  │   ├─ ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY
+  │   ├─ HF_API_KEY / RESEND_API_KEY / LAW_API_OC
+  │   └─ AUTH_TOKEN_SECRET / DATABASE_URL
+  │
+  ├─ Artifact Registry (asia-northeast3)
+  │   └─ aitutor:* tags (~7~8GB compressed)
+  │
+  └─ Cloud Build (asia-northeast3)
+      └─ trigger: gcloud builds submit (수동)
+```
+
+### 2.2 데이터 흐름 (추론 호출)
+
+```
+사용자 → POST /api/local-infer { engine, model_key, messages, maxTokens, temperature }
+  ↓
+api/local-infer.js (392줄)
+  ↓ (engine 분기)
+  ├─ ollama         → Ollama 11434 /api/chat (한국어 강제 직접)
+  ├─ llama-server   → ensureLlamaServer() lazy spawn → /v1/chat/completions
+  ├─ vllm           → ensureVllm() lazy spawn → /v1/chat/completions
+  └─ llama-cpp-python / onnx / transformers
+                    → callPySubserver() → port 11442 /infer
+
+(applyQwenStrict 적용: messages 변환 + chat_template_kwargs)
+  ↓
+응답 { answer, meta: { engine, infer_ms, total_ms, warm } }
+```
+
+### 2.3 격리 forward 흐름
+
+```
+사용자 → POST /api/iso-infer { ... }
+  ↓
+api/iso-infer.js (124줄)
+  ├─ getIdToken(audience) — Cloud Run metadata server (50분 TTL 캐시)
+  ├─ forward(method, path, body) — Bearer Token + IAM
+  ├─ 429 retry 3회 (지수 backoff 2s/4s/8s) ← cold start 대응
+  └─ 격리 service POST /infer
+        ↓
+      inference-py/server.py (FastAPI)
+        ├─ apply_qwen_strict (dispatch 직전)
+        ├─ engines/ 의 dispatch[engine] → infer()
+        └─ 응답 { answer, meta }
+```
+
+---
+
+## 3. 실험실 5 lab 상세
+
+### 3.1 코드베이스 규모 (REBUILD30 측정)
+
+| Lab | 핵심 파일 | line | 주요 책임 |
+|---|---|---|---|
+| 📱 온디바이스 모델 | `src/labs/local-ai/LocalAiExplanation.jsx` | 372 | transformers.js (ONNX) + WebLLM 분기, 다운로드 락, WakeLock |
+| 🤗 외부 추론 라우팅 | `src/labs/hf-playground/HfPlayground.jsx` | 470 | HF Inference 단일 모드 + 자유 프롬프트 |
+| 🤗 비교 모드 | `src/labs/hf-playground/HfCompare.jsx` | 536 | 2~6 모델 동시 호출 + 자동 분석 |
+| ☁️ 서버 통합 (일심동체) | `src/labs/local-gcp/LocalGcpTester.jsx` | 321 | 6 엔진 × 4 모델, lazy spawn 호출 |
+| 🧪 서버 분리 (격리) | `src/labs/server-infer/ServerInferTester.jsx` | 323 | 동일 6 엔진, iso-infer forward |
+| 🖥️ 사용자 PC 추론 | `src/labs/ollama-bridge/OllamaBridgeTester.jsx` | 474 | 외부 Ollama localhost:11434 직접 |
+| WebLLM 패널 | `src/labs/local-ai/components/WebllmPanel.jsx` | (포함) | Qwen 2.5 7B / DeepSeek / Llama 3.1 8B |
+| **합계** | 6 핵심 + 보조 | **2,496 LOC** | — |
+
+### 3.2 공통 컴포넌트 + 헬퍼 (735 LOC)
+
+| 파일 | line | 역할 |
+|---|---|---|
+| `src/components/lab/QuestionPicker.jsx` | 346 | DB 계층 선택 + 붙여넣기 파싱 (REBUILD29 §19/§25) |
+| `src/components/lab/QuestionPreview.jsx` | ~70 | 선택된 문항 미리보기 |
+| `src/components/lab/PromptEditor.jsx` | ~150 | 시스템/사용자 섹션별 편집 + 전송 (REBUILD29 §26) |
+| `src/components/lab/EngineSwitcher.jsx` (local-ai) | ~80 | transformers ↔ WebLLM 토글 |
+| `src/lib/lab/promptBuilder.js` | 52 | STANDARD_SYSTEM_PROMPT + buildLabMessages |
+| `src/lib/lab/parseQuestion.js` | 109 | 보기 ①②③④ + 정답 자동 파싱 |
+| `src/lib/qwen.js` | 83 | applyQwenNoThink + applyQwenKoreanLock + applyQwenStrict |
+
+### 3.3 lab 별 호출 패턴 비교
+
+| Lab | API 엔드포인트 | 인증 | 추론 위치 | 응답 처리 |
+|---|---|---|---|---|
+| 온디바이스 | (브라우저) | localStorage | WebGPU (사용자 디바이스) | streaming (TextStreamer) |
+| HF Inference | `POST /api/hf` | JWT | 외부 (Together / SambaNova / Groq 등) | SSE 스트리밍 |
+| 일심동체 | `POST /api/local-infer` | JWT | Cloud Run aitutor | non-stream JSON |
+| 격리 | `POST /api/iso-infer` | JWT (메인 SA forward) | Cloud Run aitutor-inference | non-stream JSON |
+| Ollama bridge | `POST localhost:11434/api/chat` | (CORS) | 사용자 PC | non-stream JSON |
+
+### 3.4 lab 별 발견된 코드 스멜
+
+#### 3.4.1 LocalGcpTester (321줄)
+- ✅ QuestionPicker / PromptEditor 통합 완료 (REBUILD29 §25/§26)
+- ❌ `buildPromptPreview()` 함수 — 자체 정의 (`L35`), ServerInfer/OllamaBridge 와 동일 중복
+- ❌ `MODELS` 상수 — LAB_MODELS 중앙화 누락 (`L28`)
+- ❌ `applyQwenStrict()` UI 직접 적용 안 됨 — 백엔드 의존 (api/local-infer.js 의 callOpenAICompat 가 처리)
+- ⚠ `maxTokens` (camelCase) — POST body 키 불일치
+
+#### 3.4.2 ServerInferTester (323줄)
+- ✅ FALLBACK_ENGINES 모두 active (REBUILD29 §17)
+- ✅ 429 retry 로직 (L82~)
+- ❌ 동일 `buildPromptPreview()` 중복 (`L35`)
+- ❌ 동일 `MODELS` 중복 (`L28`)
+- ⚠ `max_tokens` (snake_case) — POST body 키 LocalGcpTester 와 다름 ⚠️
+
+#### 3.4.3 OllamaBridgeTester (474줄)
+- ✅ DB user_lab_settings 연동 (REBUILD28 §11)
+- ✅ 도움말 6단계 + select dropdown (REBUILD29 §16)
+- ✅ applyQwenStrict 직접 호출 (`L142`)
+- ⚠ `runInfer` 가 messages 인자 받게 변경됨 (REBUILD29 §26) — 동일 패턴
+- ❌ 동일 `buildPromptPreview()` 중복 (`L48`)
+
+#### 3.4.4 LocalAiExplanation (372줄)
+- 🔴 **Props drilling** — 13 state → 7 자식 (DeviceCheckBadge / ModelDownloadCard / MemoryStatus 등)
+- 🔴 **disposePipe() 에러 무시** (`L136`) — 메모리 누수 가능
+- ✅ wakeLock 제어 (배터리/발열 방지)
+- ✅ 다운로드 중 페이지 락
+- ⚠ 13 state 중 9개가 download/load 진행 추적용 — Reducer 패턴 적용 후보
+
+#### 3.4.5 HfPlayground (470줄)
+- ✅ 동적 카탈로그 로드 (1h 캐시)
+- ✅ 시험/자유 모드 탭
+- ❌ `messages` 빌드 인라인 (`L106~`) — buildLabMessages 미사용 (자유 모드라 다른 패턴)
+- ⚠ `tab === 'exam'` 분기 + `tab === 'prompt'` 분기 = 두 모드 코드 혼재
+
+#### 3.4.6 HfCompare (536줄, 가장 김)
+- ✅ 2~6 모델 동시 호출 (Promise.allSettled)
+- ✅ 자동 분석 (TTFT / total / cost / 정답 일치)
+- ⚠ 가장 큰 lab 파일 — 분석 로직만 100+ 라인. 별도 헬퍼로 추출 가능
+
+### 3.5 lab 별 props 패턴
+
+| Lab | useState 수 | useEffect 수 | useRef 수 | 자식 컴포넌트 |
+|---|---|---|---|---|
+| LocalAiExplanation | 13 | 4 | 1 | 7 |
+| LocalGcpTester | 9 | 1 | 1 | 2 (QuestionPicker, PromptEditor) |
+| ServerInferTester | 11 | 2 | 1 | 2 |
+| OllamaBridgeTester | 14 | 2 | 1 | 3 (QuestionPicker, PromptEditor, CodeBlock) |
+| HfPlayground | 16 | 4 | 4 | 3 |
+| HfCompare | 14 | 3 | 1 | 3 |
+
+→ LocalAiExplanation 의 props drilling 가장 심각 (13 state × 7 자식).
+
+---
+
+## 4. 백엔드 API 구조
+
+### 4.1 API 엔드포인트 표 (52개 등록)
+
+| 경로 | 메서드 | 인증 | 책임 | line |
+|---|---|---|---|---|
+| `/api/login` | POST | 공개 | JWT 토큰 발급 (HMAC-SHA256) | 146 |
+| `/api/signup` | POST | 공개 | 회원가입 (signup_disabled 토글) | 165+ |
+| `/api/auth` | POST | 공개 | 토큰 검증 | - |
+| `/api/config` | GET | 공개 | 5 lab 토글 + 회원가입 차단 상태 | 50 |
+| `/api/user-settings` | GET/POST | 필수 | Ollama bridge URL/모델 (whitelist) | 73 |
+| `/api/local-infer` | POST/GET | 필수 | 일심동체 6 엔진 추론 | **392** |
+| `/api/iso-infer` | POST/GET | 필수 | 격리 service forward (ID Token) | 124 |
+| `/api/hf` | POST | 필수 | HuggingFace Inference API 프록시 | 126 |
+| `/api/hf-models` | GET | 필수 | HF 모델 카탈로그 (1h 캐시) | ~80 |
+| `/api/questions` | GET | 공개 | 기출문제 + categories + exams 조회 | 164 |
+| `/api/explanations` | GET | 공개 | 문제 해설 조회 | - |
+| `/api/categories` | GET | 공개 | 카테고리 목록 | 141 |
+| `/api/memos` / `/api/memo-files` | GET/POST | 필수 | 메모 + 첨부파일 (base64) | - |
+| `/api/bookmarks` | GET/POST | 필수 | 북마크 | - |
+| `/api/exam-results` | GET/POST | 필수 | 시험 기록 | - |
+| `/api/kisa-*` (5개) | GET/POST | 필수 | KISA 진단원 이수시험 | 213~642 |
+| `/api/admin` | POST | 관리자 | 시스템 설정 + 회원 관리 | 129 |
+| `/api/usage-log` | POST | 필수 | LLM 사용량 기록 | - |
+| `/api/upload-sign` | POST | 필수 | GCS 서명 URL | - |
+| `/api/import-docstore` | POST | 관리자 | 문제 대량 임포트 | 296 |
+| `/api/pool-upload` | POST | 필수 | 기출문제 파일 업로드 (20MB) | 196 |
+| `/api/law` | GET | 필수 | 법제처 법령 API 프록시 | - |
+| `/api/forgot-password` / `/api/send-verification` | POST | 공개 | 이메일 인증 (Resend) | - |
+| `/api/delete-account` | POST | 필수 | 회원 탈퇴 | - |
+| `/api/cors` | OPTIONS | 공개 | CORS preflight | - |
+| `/api/claude` / `/api/openai` / `/api/gemini` | POST | 필수 | 외부 LLM 프록시 (SSE) | - |
+
+### 4.2 인증 3단계
+
+| 미들웨어 | 동작 | 사용처 |
+|---|---|---|
+| `withCors(handler)` | CORS 헤더만 | /api/config, /api/questions, /api/auth, /api/signup |
+| `withAuth(handler)` | JWT 토큰 검증 → req.user.uid 설정 | 추론 API, 사용자 데이터 (memos, bookmarks 등) |
+| `withAdmin(handler)` | JWT + admin 권한 | /api/admin, /api/import-docstore |
+
+JWT 구현:
+- HMAC-SHA256 직접 (jsonwebtoken 의존성 제거)
+- 토큰 추출: HttpOnly 쿠키 우선 → Authorization 헤더 폴백
+- AUTH_TOKEN_SECRET 32자 이상 필수 (Secret Manager 주입)
+
+### 4.3 추론 호출 흐름 (api/local-infer.js, 392줄)
+
+```javascript
+모듈 구조:
+  ├─ ENGINES catalog (8 항목, 6 active + 2 deferred placeholder)
+  ├─ MODEL_MAP (4 모델: qwen35-2b/4b + gemma4-e2b/e4b)
+  ├─ ensureOllamaModel() — auto pull
+  ├─ ensureLlamaServer() — lazy spawn + GGUF 다운로드
+  ├─ ensureVllm() — lazy spawn + venv-vllm 사용
+  ├─ callOllama() — /api/chat + 한국어 강제 system + assistant seed
+  ├─ callOpenAICompat() — /v1/chat/completions (llama-server / vLLM 공통)
+  ├─ callPySubserver() — port 11442 /infer (HTTP proxy)
+  └─ withAuth(handler) — engine 분기 + 응답 조립
+
+엔진별 호출 분기:
+  if (engine === 'ollama')        → callOllama()
+  else if (engine === 'llama-server') → ensureLlamaServer + callOpenAICompat
+  else if (engine === 'vllm')         → ensureVllm + callOpenAICompat
+  else if (engine === 'llama-cpp-python' / 'onnx' / 'transformers')
+                                       → callPySubserver
+```
+
+### 4.4 격리 forward (api/iso-infer.js, 124줄)
+
+```javascript
+forward(method, path, body):
+  1. ISO_INFER_URL 환경변수 확인
+  2. getIdToken(audience) — metadata server 호출 (50분 TTL 캐시)
+  3. fetch(url, { Authorization: Bearer, X-Internal-Token (옵션) })
+  4. 429 retry 3회 (지수 backoff 2s/4s/8s)
+  5. 응답 파싱 (JSON 또는 raw)
+
+ID Token 흐름:
+  메인 service SA (aitutor-run)
+    → http://metadata.google.internal/.../identity?audience={ISO_INFER_URL}
+    → Bearer Token 받음
+    → 격리 service IAM Invoker 검증 통과
+```
+
+### 4.5 sync 마스터 패턴
+
+```
+workspace/aitutor-inference/  (sync 마스터)
+  ├─ engines/*.py (9 파일)
+  ├─ server.py (FastAPI)
+  └─ requirements.txt
+        │ sync-from-isolated.sh
+        ↓
+workspace/aitutor/inference-py/  (mirror)
+  └─ Dockerfile 빌드 시 image 에 포함
+
+격리 service 운영:
+  PROCESS_MODE=isolated 환경변수
+  → start.sh 가 isolated 분기 → uvicorn 직접 실행
+  → 같은 image 재사용 (REBUILD28 §3.1)
+```
+
+---
+
+## 5. 인프라
+
+### 5.1 Cloud Run service
+
+| Service | Region | GPU | RAM | CPU | maxScale | concurrency |
+|---|---|---|---|---|---|---|
+| **aitutor** (메인) | us-east4 | L4 1장 | 32Gi | 8 | 1 | 10 |
+| **aitutor-inference** (격리) | us-east4 | L4 1장 | 32Gi | 8 | 1 | 10 |
+
+→ GPU quota 3 (REBUILD26 변경 이력) 으로 양쪽 운영. 동시 deploy 시 일시 quota 초과 가능 (REBUILD29 §27).
+
+### 5.2 Cloud Build 파이프라인
+
+```
+gcloud builds submit --tag asia-northeast3-docker.pkg.dev/.../aitutor:tagN
+  ↓
+[Stage 1] frontend-builder (Node 22 + Vite) — ~2분
+[Stage 2] llamacpp-builder (CUDA devel + cmake + git clone) — ~7분 ⚠️ 무거움
+[Stage 3] runtime (CUDA runtime + Node + Ollama + venv-vllm + binaries 복사) — ~10분
+[Push]    Artifact Registry asia-northeast3 — ~5~10분 (image 7~8GB)
+  ↓
+~17~28분 (이번 세션 평균)
+```
+
+### 5.3 Storage / Secret
+
+| 항목 | 위치 |
+|---|---|
+| Cloud SQL (PostgreSQL 14) | (region 별도, max=2 pool) |
+| GCS Bucket | aitutor-files-aifactory-494108 |
+| Artifact Registry | asia-northeast3 (compressed 한도 10GB) |
+| Secret Manager | 8 시크릿 (DB / JWT / API keys) |
+
+### 5.4 모바일 빌드 (Capacitor)
+
+```
+capacitor.config.json (17줄):
+  appId: com.aitutortwo.app
+  webDir: dist
+  server.url: https://aitutor-z2ppabmtxa-uk.a.run.app
+  ios.scheme: AITutorTwo
+  android.allowMixedContent: false
+  ↓
+npx cap sync → iOS / Android native project 생성
+  ↓
+Xcode / Android Studio 빌드
+```
+
+---
+
+## 6. 코드베이스 통계
+
+### 6.1 디렉토리 별 LOC
+
+```
+workspace/aitutor/
+├─ src/                 ~10,000 LOC (Vite + React)
+│  ├─ labs/            ~2,496 (5 lab 핵심)
+│  ├─ components/lab/    ~735 (REBUILD29 신규 공통)
+│  ├─ tabs/            ~3,000 (Quiz / Settings / Manage / KISA)
+│  ├─ pages/           ~1,500 (Login / Quiz pages / 시험 모드)
+│  ├─ tracks/            ~150 (KISA 트랙 라우팅)
+│  ├─ components/      ~1,500 (BottomNav / Header / Toast 등)
+│  ├─ lib/               ~500 (api / qwen / capacitor / lab/)
+│  └─ App.jsx + main.jsx  ~200
+├─ api/                ~3,500 (52 엔드포인트)
+│  ├─ local-infer.js     392 ⚠️ 가장 김
+│  ├─ iso-infer.js       124
+│  ├─ hf.js              126
+│  ├─ _runtime/          ~310 (qwen / settings / hf-catalog)
+│  └─ 다른 핸들러
+├─ inference-py/         ~700 (Python sub-server)
+└─ tests/                ~600 (Playwright 7 spec)
+```
+
+### 6.2 의존성
+
+```json
+"dependencies": {
+  "@anthropic-ai/sdk": "...",
+  "@huggingface/transformers": "^4",
+  "@mlc-ai/web-llm": "^0.2.83",          ← REBUILD28 §11 (~6MB 번들)
+  "express", "react", "react-router-dom",
+  "react-markdown", "highlight.js",
+  "@capacitor/core", "@capacitor/ios", "@capacitor/android"
+},
+"devDependencies": {
+  "@playwright/test": "^1.58.2",          ← REBUILD29 §21
+  "vite", "tailwindcss"
+}
+```
+
+---
+
+## 7. 발견된 이슈 + 리팩토링 후보 (실험실 중심)
+
+### 7.1 P0 (시급 — 잠재적 버그)
+
+#### Issue 1 — `applyQwenStrict()` UI 측 누락
+
+**현재 상태**:
+- `LocalGcpTester.jsx:91` 의 `messages = buildLabMessages(question)` — `applyQwenStrict` 호출 안 함
+- `ServerInferTester.jsx:127` — 동일
+- 백엔드 (`api/local-infer.js`, `api/iso-infer.js`) 가 `applyQwenStrict` 호출 → 작동은 함
+
+**문제**:
+- 백엔드 의존 — 백엔드 헬퍼 변경 시 모든 lab 영향
+- UI 단에서 디버깅 시 "최종 메시지" 미리보기에 한국어 강제 안 보임 (PromptEditor 의 미리보기가 부정확)
+- 사용자가 PromptEditor 에서 system 직접 편집 시 한국어 강제 사라짐
+
+**해결**:
+- `buildLabMessages()` 가 model 인자 받아 자동 `applyQwenStrict` 적용
+- 또는 PromptEditor 가 항상 적용
+
+```js
+// src/lib/lab/promptBuilder.js (수정)
+import { applyQwenStrict } from '../qwen';
+
+export function buildLabMessages(question, opts = {}) {
+  const { systemOverride, model } = opts;
+  const system = systemOverride || STANDARD_SYSTEM_PROMPT;
+  const messages = [
+    { role: 'system', content: system },
+    { role: 'user',   content: buildUserPrompt(question) },
+  ];
+  return model ? applyQwenStrict(messages, model) : messages;  // ← 자동 적용
+}
+```
+
+호출처:
+```js
+// LocalGcpTester:91
+const messages = buildLabMessages(question, { model: modelKey });
+```
+
+→ 백엔드 의존 제거 + PromptEditor 미리보기 정확.
+
+#### Issue 2 — API 스키마 불일치 (`maxTokens` vs `max_tokens`)
+
+```js
+// LocalGcpTester (camelCase)
+body: JSON.stringify({ engine, model_key, messages, maxTokens, temperature })
+
+// ServerInferTester (snake_case)
+body: JSON.stringify({ engine, model_key, messages, max_tokens: maxTokens, temperature })
+```
+
+→ 백엔드 처리 시 헷갈림. 통일 필요.
+
+**해결**:
+- 한 쪽으로 통일 (snake_case 권장 — Python sub-server 와 격리 service 모두 snake_case)
+- 백엔드도 통일 (api/local-infer.js 의 `req.body.maxTokens` → `req.body.max_tokens` 또는 fallback 둘 다 받기)
+
+### 7.2 P1 (코드 중복)
+
+#### Issue 3 — `buildPromptPreview()` 중복 정의 (3 lab)
+
+```js
+// LocalGcpTester:35, ServerInferTester:35, OllamaBridgeTester:48
+function buildPromptPreview(question) {
+  const choices = question.choices || [];
+  const choicesText = choices.map((c, i) => `${CIRCLE[i]} ${c}`).join('\n');
+  // ... 거의 동일 ...
+}
+```
+
+**해결**: `src/lib/lab/promptBuilder.js` 에 `buildLabPromptPreview` 추출. 3 lab 에서 import.
+
+→ -51 라인 감축, 한 곳 변경 시 3 lab 자동 반영.
+
+#### Issue 4 — `MODELS` 상수 중복
+
+```js
+// LocalGcpTester:28, ServerInferTester:28
+const MODELS = [
+  { key: 'qwen35-2b', name: 'Qwen 3.5 2B', ... },
+  // ... 4 항목 동일 ...
+];
+```
+
+**해결**: `src/lib/lab/models.js` 에 `LAB_MODELS` 단일 정의 + `LAB_ENGINES` 도 추가.
+
+```js
+// src/lib/lab/models.js (신규)
+export const LAB_MODELS = [...];
+export const LAB_ENGINES_LOCAL_GCP = [...];
+export const LAB_ENGINES_SERVER_INFER = [...];
+```
+
+→ -34 라인 감축 + 중앙 관리.
+
+### 7.3 P2 (구조 개선)
+
+#### Issue 5 — Props drilling (LocalAiExplanation)
+
+13 state → 7 자식 (DeviceCheckBadge / ModelDownloadCard / ModelManagerPanel / MemoryStatus / MemoryHelpCard / EngineSwitcher / WebllmPanel)
+
+**해결**: `LocalAiContext` Provider 도입 (Context API).
+
+```jsx
+// LocalAiContext.jsx (신규)
+const LocalAiContext = createContext({});
+export function LocalAiProvider({ children }) {
+  const [device, setDevice] = useState(null);
+  const [pipeReady, setPipeReady] = useState(false);
+  // ...
+  return <LocalAiContext.Provider value={{ device, pipeReady, ... }}>{children}</LocalAiContext.Provider>;
+}
+export const useLocalAi = () => useContext(LocalAiContext);
+```
+
+→ -30 라인, 자식이 직접 useLocalAi() 호출.
+
+#### Issue 6 — `disposePipe()` 에러 무시
+
+```js
+// LocalAiExplanation:136
+disposePipe(...).catch(() => {});  // ← 에러 무시
+```
+
+→ 메모리 누수 시 발견 어려움. 최소 console.warn 또는 telemetry.
+
+#### Issue 7 — `_daemons` 캐시 TTL 없음
+
+`api/local-infer.js` 의 `_daemons` 객체가 process 수명 내 무한 유지. spawn 한 daemon 이 죽어도 cache 갱신 없으면 stale 호출.
+
+**해결**: TTL + heartbeat (proc.exitCode 체크) 추가.
+
+### 7.4 P3 (스타일 / 문서)
+
+#### Issue 8 — `local-infer.js` 비대 (392줄)
+
+- 엔진별 호출 로직이 한 파일에 모임
+- `engines/` 디렉토리로 분리 가능 (TS 클래스 패턴 권장)
+
+```
+api/engines/
+├─ index.js          // 엔진 레지스트리
+├─ ollama.js         // OllamaEngine.call(messages, opts)
+├─ llamaserver.js    // LlamaServerEngine
+├─ vllm.js           // VLLMEngine
+└─ pysubserver.js    // PySubServerEngine
+
+api/local-infer.js   // 392줄 → 150줄 (engine.call 만)
+```
+
+→ 신규 엔진 추가 비용 ~150줄 → ~40줄/엔진.
+
+### 7.5 ParamSliders / ResponsePanel / coldStartRetry (재사용)
+
+`maxTokens` 슬라이더 + `temperature` 슬라이더 가 4 lab 에서 거의 동일하게 반복:
+
+```jsx
+// 4 lab × ~20줄 = 80줄
+<div>
+  <label>Temperature {temperature.toFixed(2)}</label>
+  <input type="range" min={0} max={2} ... />
+</div>
+<div>
+  <label>Max Tokens {maxTokens}</label>
+  <input type="range" min={64} max={1024} ... />
+</div>
+```
+
+**해결**:
+```jsx
+<ParamSliders
+  temperature={temperature} onTemperatureChange={setTemperature}
+  maxTokens={maxTokens} onMaxTokensChange={setMaxTokens}
+  maxTokensRange={[64, 4096]}  // GCP 는 4096, 외부 1024
+/>
+```
+
+→ -80 라인 + 일관성.
+
+---
+
+## 8. 우선순위 작업 매트릭스
+
+### 8.1 작업 정량 비교
+
+| # | 작업 | 우선도 | 효과 | 라인 감축 | 시간 |
+|---|---|---|---|---|---|
+| 1 | buildLabMessages 자동 Qwen 강제 | 🔴 P0 | UI 미리보기 정확 + 백엔드 의존 제거 | 0 (버그 픽스) | 20분 |
+| 2 | maxTokens / max_tokens 통일 | 🔴 P0 | API 스키마 일관 | 0 | 30분 |
+| 3 | buildLabPromptPreview 추출 | 🟧 P1 | 3 lab 중복 제거 | -51 | 30분 |
+| 4 | LAB_MODELS / LAB_ENGINES 중앙화 | 🟧 P1 | 2 lab 중복 + 미래 추가 모델 한 곳 | -34 | 30분 |
+| 5 | ParamSliders 재사용 컴포넌트 | 🟨 P2 | 4 lab 슬라이더 통합 | -80 | 1시간 |
+| 6 | ResponsePanel 추상화 | 🟨 P2 | 에러/응답 렌더링 표준 | -40 | 45분 |
+| 7 | coldStartRetry 유틸 | 🟨 P2 | 429 retry 재사용 | -15 | 30분 |
+| 8 | LocalAiContext (Context API) | 🟨 P2 | Props drilling 해결 | -30 | 1.5시간 |
+| 9 | disposePipe 에러 처리 강화 | 🟨 P2 | 메모리 누수 추적 | 0 | 15분 |
+| 10 | _daemons 캐시 TTL + heartbeat | 🟨 P2 | stale daemon 방지 | 0 | 1시간 |
+| 11 | engines/ 디렉토리 분리 | 🟦 P3 | local-infer.js 392→150줄 | -240 (재구성) | 3~4시간 |
+| 12 | HfCompare 분석 로직 분리 | 🟦 P3 | 가독성 | -100 | 1시간 |
+| **합계** | — | — | — | **-590 라인** | **~12시간** |
+
+### 8.2 권장 작업 패키지
+
+#### 🥇 패키지 A — P0 fix only (50분)
+1. buildLabMessages 자동 Qwen 강제 (20분)
+2. maxTokens / max_tokens 통일 (30분)
+
+→ **잠재적 버그 차단**. 다음 빌드에 합쳐 배포.
+
+#### 🥈 패키지 B — P0 + P1 (~2시간)
+패키지 A + 3, 4 (중복 제거).
+
+→ **-85 라인** + 한 곳 변경 시 3 lab 자동 반영. 가성비 최고.
+
+#### 🥉 패키지 C — P0 + P1 + P2 (~6시간)
+패키지 B + 5, 6, 7, 8, 9, 10.
+
+→ **-250 라인**. 본격 리팩토링.
+
+#### 패키지 D — 완전 (~12시간)
+모든 12 작업.
+
+→ engines/ 디렉토리 분리 (P3 의 큰 작업).
+
+---
+
+## 9. 기존 작업과 연계
+
+### 9.1 REBUILD29 §6 옵션 A 하이브리드 와의 관계
+
+REBUILD29 의 미진행 결정사항: **옵션 A 하이브리드** (메인 image 에서 vLLM venv + llama.cpp 제거).
+
+**REBUILD30 의 P3 (engines/ 분리)** 와 **옵션 A 하이브리드** 가 결합 시:
+- engines/ 분리 → 각 엔진이 격리 로 forward 또는 메인 직접 처리 분기 명확
+- 옵션 A 하이브리드 진행 시 메인 image 다이어트 + 격리만 무거운 엔진
+
+→ P3 작업은 옵션 A 결정 후 진행이 자연스러움.
+
+### 9.2 REBUILD30 → REBUILD31 흐름
+
+```
+REBUILD30 (본 문서)
+  ↓
+패키지 A (P0 fix, 50분) → 빌드 + deploy
+  ↓
+패키지 B (P0 + P1, 2시간) → 다음 빌드
+  ↓
+[옵션 A 하이브리드 결정]
+  ↓
+REBUILD31 (옵션 A + 패키지 C/D, 8~12시간)
+```
+
+---
+
+## 10. 위험 + 완화
+
+| 위험 | 가능성 | 영향 | 완화 |
+|---|---|---|---|
+| 백엔드 applyQwenStrict 변경 시 5 lab 동시 영향 | 중간 | UX | UI 단에서도 적용 (Issue 1 fix) |
+| API 스키마 불일치 (maxTokens) → 새 lab 추가 시 혼란 | 높음 | 개발 비용 | snake_case 통일 + 문서화 |
+| 코드 중복 (buildPromptPreview) → 한 곳만 수정 시 lab 별 차이 | 높음 | 버그 잠재 | 헬퍼 추출 (P1) |
+| Props drilling → LocalAiExplanation 변경 어려움 | 낮음 | 개발 비용 | Context API (P2) |
+| _daemons stale → 추론 실패 | 낮음 | UX | TTL + heartbeat (P2) |
+| Cloud Build 27분 → 빌드 빈도 부담 | 중간 | 시간 | 옵션 A 하이브리드 + 로컬 빌드 (REBUILD29 §6) |
+
+---
+
+## 11. 검증 / 테스트 현황
+
+### 11.1 Playwright (REBUILD29 §27 결과)
+
+- 7 spec, 19 테스트 (`tests/step1~7-*.spec.js`)
+- step7 (REBUILD29 §21) — 옵션 A 스모크
+- 결과: **15 passed / 0 failed / 4 skipped**
+
+### 11.2 미커버 영역
+
+| 영역 | 미커버 사유 | 보완 권장 |
+|---|---|---|
+| admin 토글 동작 | production admin 인증 필요 | 사용자 직접 검증 또는 dev 서버 + fake 토큰 |
+| 추론 실 호출 (6 엔진 × 4 모델) | cold start + 비용 | 옵션 B (가벼운 호출 1~2 케이스) |
+| QuestionPicker DB 카드 클릭 | lab 활성 의존 | mock API 또는 dev 서버 |
+| PromptEditor 편집 + 전송 | UI 인터랙션 다단계 | step 추가 필요 |
+| WebLLM 다운로드 (~5GB) | 데스크톱 + WebGPU | 사용자 직접 |
+| Ollama bridge 사용자 PC 호출 | 외부 환경 | 사용자 직접 |
+
+→ 옵션 B (가벼운 호출 검증) 진행 시 +30~60초 / +$0.10 비용으로 추론 작동 확인 가능.
+
+---
+
+## 12. 결정 의제 (사용자 결정 필요)
+
+### 12.1 즉시 결정 가능
+
+1. **패키지 A/B/C/D 중 어떤 것부터 진행?**
+   - 권장: **패키지 B** (P0 + P1, 2시간, -85 라인)
+2. **API 스키마 통일 — camelCase vs snake_case?**
+   - 권장: **snake_case** (Python sub-server / 격리 service / vLLM / Ollama 모두 snake_case)
+3. **HfPlayground / LocalAiExplanation 의 PromptEditor 통합 (REBUILD29 §26 미적용)**
+   - HfPlayground 는 자유 프롬프트 모드라 별도 설계
+   - LocalAiExplanation 은 transformers.js 의 explainQuestion 내부 chat template 변경 필요
+
+### 12.2 중기 결정
+
+1. **옵션 A 하이브리드 진행 여부** (REBUILD29 §6, 메인 image 다이어트)
+2. **engines/ 디렉토리 분리** (P3, 옵션 A 와 결합 권장)
+3. **추가 사용자 검증** (라이브 환경, REBUILD29 §27.6 의 7 항목)
+
+---
+
+## 13. 변경 이력
+
+| 날짜 | 변경 |
+|---|---|
+| 2026-04-30 | REBUILD30.md 최초 작성 — REBUILD23~29 누적 결과 + 전체 아키텍처 + 5 lab 상세 분석 (2,496 LOC) + 백엔드 API 표 (52 엔드포인트) + 인프라 다이어그램 + 발견된 이슈 8개 (P0~P3) + 리팩토링 후보 12개 (-590 라인) + 작업 패키지 A/B/C/D + 우선순위 결정 의제 |
+| 2026-04-30 | **§0.3 이슈 1~7 코드 재검증** — 사용자 의사결정 의제 |
+
+---
+
+## 14. 이슈 재검증 결과 (사용자 의사결정 후 진행)
+
+### 14.1 검증 사실 (코드 기준)
+
+| # | 원 진단 | 재검증 결과 |
+|---|---|---|
+| 1 | applyQwenStrict UI 누락 P0 | ❌ **오진단** — `api/local-infer.js:250,277` + `api/iso-infer.js:104` 백엔드 측 이미 적용. UI(LocalGcp/ServerInfer) 는 백엔드 경유라 재호출 불필요. Ollama bridge / WebLLM 은 브라우저 직접 호출이라 이미 UI 호출 ✓ |
+| 2 | maxTokens vs max_tokens P0 | ⚠️ **부분참** — 양쪽 백엔드 호환 처리됨 (`iso-infer.js:102 max_tokens \|\| maxTokens`). 그러나 **진짜 버그 발견**: slider `max=1024` 인데 default=2048 → UI 깨짐 |
+| 3 | buildPromptPreview 3중복 P1 | ✅ **참 + α** — 동일 27줄 함수 3 lab 반복. 추가 **semantic bug**: 미리보기 prompt ≠ 실제 전송 prompt (STANDARD_SYSTEM_PROMPT 와 불일치) |
+| 4 | MODELS 상수 중복 P1 | ⚠️ **참 — 단 의도** — ServerInfer `FALLBACK_MODELS` 는 fallback 용도 |
+| 5 | LocalAiExplanation props drilling P2 | ✅ **참 — 가성비 낮음** — useState 14개 확인. Context API 1.5h vs 효과 미미 |
+| 6 | disposePipe 에러 무시 P2 | ⚠️ **의도된 패턴** — cleanup hook 의 빈 catch 는 React 표준 |
+| 7 | _daemons 캐시 TTL 없음 P2 | ❌ **오진단** — `d.proc.exitCode === null` 자체 self-healing + 모델 변경 시 `_killDaemon()`. Cloud Run scale-to-zero 가 실질 TTL |
+
+### 14.2 진행 결정 (사용자 옵션 A 선택)
+
+| 작업 | 근거 | 상태 |
+|---|---|---|
+| **slider max 1024→4096** | 슬라이더 default 2048 표시 못함 | ✅ 완료 |
+| **buildPromptPreview 통합 (promptBuilder.js)** | 3 중복 + semantic bug 동시 해결 | ✅ 완료 |
+| **src/lib/lab/models.js 신규** | LAB_MODELS 중앙화, 두 lab import | ✅ 완료 |
+| ⏸ Context API 도입 | 가성비 낮아 보류 | 후순위 |
+| ❌ applyQwenStrict UI 보완 | 오진단 — 백엔드 처리 확인 | 작업 불필요 |
+| ❌ _daemons TTL 추가 | 오진단 — self-healing 확인 | 작업 불필요 |
+
+### 14.3 코드 변경 요약
+
+```
+변경 파일 7개:
+  + src/lib/lab/models.js                   (신규, 19줄, LAB_MODELS 중앙화)
+  M src/lib/lab/promptBuilder.js            (+18줄, buildPromptPreview 추가 + safeParseChoices)
+  M src/labs/local-gcp/LocalGcpTester.jsx   (-32줄, 로컬 buildPromptPreview/MODELS 제거)
+  M src/labs/server-infer/ServerInferTester.jsx  (-32줄, 동일)
+  M src/labs/ollama-bridge/OllamaBridgeTester.jsx (-19줄, 로컬 buildPromptPreview 제거)
+  M src/labs/local-gcp/LocalGcpTester.jsx (slider max 1024→4096)
+  M src/labs/server-infer/ServerInferTester.jsx (slider max 1024→4096)
+
+순감: -66 라인
+빌드: ✓ vite build 성공 (2.56s)
+```
+
+---
+
+## 15. 한 줄 요약
+
+**REBUILD30 §0.3 이슈 7건 재검증 → 2건 오진단 / 3건 즉시 수정 완료 / 2건 보류. 옵션 A (slider + buildPromptPreview 통합 + models.js) 적용으로 -66 라인 + 미리보기 정합성 + UI 슬라이더 버그 해결.**

@@ -1,48 +1,29 @@
-// REBUILD23 — Cloud Run 일심동체 추론 테스터 (앱+모델 같은 컨테이너, 추론 엔진 교체 가능)
+// REBUILD23~26 / REBUILD28 — Cloud Run 일심동체 추론 테스터 (앱+모델 같은 컨테이너, 6 엔진 동거)
 //
 // /api/local-infer 호출 + model_key + engine 선택.
-// MVP (Phase 4) : Ollama 만 활성. llama.cpp / vLLM 은 Phase 5 에서 활성화 예정 (UI 노출 + 비활성 표시).
+// REBUILD28 (2026-04-30) — 6 엔진 전수 (Ollama / llama-server / vLLM / llama-cpp-python / onnxruntime-genai / transformers).
+// SGLang / TensorRT-LLM 은 사용 패턴 미스매치로 deferred (placeholder 완전 제거).
 //
-// 컨테이너 안의 daemon 들이 항상 살아있으므로 Lambda 시절의 cold/warm swap 개념 X.
-// 인스턴스 idle 종료 시에만 첫 호출이 GPU+모델 mount cold (~30~60s).
+// Cloud Run 인스턴스 안의 daemon 은 살아있는 동안 warm. min-instances=0 이라 idle 5분 후 종료 →
+// 다시 첫 호출 cold (~30~60s, GPU+모델 mount 시간).
 
 import { useState, useEffect, useRef } from 'react';
+import QuestionPicker from '../../components/lab/QuestionPicker';
+import PromptEditor from '../../components/lab/PromptEditor';
+import { buildLabMessages, buildPromptPreview } from '../../lib/lab/promptBuilder';
+import { LAB_MODELS } from '../../lib/lab/models';
 
-const CIRCLE = ['①','②','③','④','⑤'];
-
-// 추론 엔진 (REBUILD23 §3.4)
+// 추론 엔진 (REBUILD28 §0.3 — 일심동체 6 엔진 전수)
 const ENGINES = [
-  { key: 'ollama',    label: 'Ollama',    status: 'active',  note: '안정 / OpenAI 호환 / 모델 자동관리 ⭐' },
-  { key: 'llama-cpp', label: 'llama.cpp', status: 'planned', note: 'Phase 5 — GGUF 직접, 단일 batch' },
-  { key: 'vllm',      label: 'vLLM',      status: 'planned', note: 'Phase 5 — 가장 빠름, PagedAttention' },
+  { key: 'ollama',            label: 'Ollama',            status: 'active',  note: 'Go wrapper, 모델 자동관리 ⭐' },
+  { key: 'llama-server',      label: 'llama-server',      status: 'active',  note: 'C++ native, GGUF 가장 빠름' },
+  { key: 'vllm',              label: 'vLLM',              status: 'active',  note: 'GPU 최강, PagedAttention' },
+  { key: 'llama-cpp-python',  label: 'llama-cpp-python',  status: 'active',  note: 'Python CUDA wheel (sub-server)' },
+  { key: 'onnxruntime-genai', label: 'onnxruntime-genai', status: 'active',  note: 'Microsoft ONNX CUDA' },
+  { key: 'transformers',      label: 'transformers',      status: 'active',  note: 'HF PyTorch (sub-server)' },
 ];
 
-// Ollama 공식 라이브러리 태그 (ollama.com/library)
-const MODELS = [
-  { key: 'qwen3-4b',    name: 'Qwen 3 4B',    org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천' },
-  { key: 'qwen3-1.7b',  name: 'Qwen 3 1.7B',  org: 'Alibaba', size: '~1.4GB', note: '경량 / 콜드 스타트 짧음' },
-  { key: 'qwen3-0.6b',  name: 'Qwen 3 0.6B',  org: 'Alibaba', size: '~523MB', note: '초경량 / 빠른 응답' },
-  { key: 'gemma3n-e2b', name: 'Gemma 3n E2B', org: 'Google',  size: '~5.6GB', note: '효율적 멀티모달' },
-  { key: 'gemma3n-e4b', name: 'Gemma 3n E4B', org: 'Google',  size: '~7.5GB', note: 'Gemma 패밀리 / 안정' },
-];
-
-function buildPromptPreview(question) {
-  const choices = question.choices || [];
-  const choicesText = choices.map((c, i) => `${CIRCLE[i]} ${c}`).join('\n');
-  const answerLabel = CIRCLE[(question.answer || 1) - 1] || '①';
-  return `자격증 시험 강사로서 한국어로 정답 해설.
-「법령명」 인용. 보기별 한 줄 설명.
-
-[문제]
-${question.body || ''}
-
-[보기]
-${choicesText}
-
-[정답] ${answerLabel}
-
-각 보기가 왜 맞고 틀린지 한 줄씩 설명해주세요.`;
-}
+const MODELS = LAB_MODELS;
 
 export default function LocalGcpTester() {
   const [engineKey, setEngineKey] = useState('ollama');
@@ -56,37 +37,25 @@ export default function LocalGcpTester() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [history, setHistory] = useState([]);
-  const [maxTokens, setMaxTokens] = useState(256);
+  const [maxTokens, setMaxTokens] = useState(2048);  // REBUILD29 — Qwen 한국어 해설은 256 으로 잘림 사례 (2026-04-30)
   const [temperature, setTemperature] = useState(0.3);
   const t0Ref = useRef(0);
 
   const currentEngine = ENGINES.find(e => e.key === engineKey) || ENGINES[0];
   const currentModel  = MODELS.find(m => m.key === modelKey)   || MODELS[0];
 
-  const fetchRandomQuestion = async () => {
-    setLoadingQ(true);
-    setError('');
+  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당. 자체 fetchRandomQuestion 폐기.
+  // 문항 변경 시 응답 클리어
+  const handleQuestionChange = (q) => {
+    setQuestion(q);
     setAnswer('');
     setMeta(null);
+    setError('');
     setShowAnswer(false);
-    try {
-      const r = await fetch('/api/questions?action=public&exam_id=161');
-      const data = await r.json();
-      const list = data.questions || [];
-      if (list.length === 0) throw new Error('문항 없음');
-      const random = list[Math.floor(Math.random() * list.length)];
-      const choices = Array.isArray(random.choices) ? random.choices : JSON.parse(random.choices || '[]');
-      setQuestion({ ...random, choices });
-    } catch (e) {
-      setError(`문항 로드 실패: ${e.message}`);
-    } finally {
-      setLoadingQ(false);
-    }
   };
 
-  useEffect(() => { fetchRandomQuestion(); }, []);
-
-  const handleRun = async () => {
+  // REBUILD29 §26 — PromptEditor 가 customMessages 전달 시 우선 사용, 없으면 기본 빌드
+  const handleRun = async (customMessages = null) => {
     if (!question) return;
     setAnswer('');
     setMeta(null);
@@ -94,11 +63,9 @@ export default function LocalGcpTester() {
     setRunning(true);
     t0Ref.current = Date.now();
 
-    const promptText = buildPromptPreview(question);
-    const messages = [
-      { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다. 정답을 정확히 설명하고 관련 법령을 인용하세요.' },
-      { role: 'user', content: promptText },
-    ];
+    // REBUILD29 §22 / §26 — 통합 promptBuilder (강력한 system + 보기별 해설 형식)
+    // PromptEditor 가 사용자 편집 messages 전달 시 그것 우선 (system/user 사용자 정의)
+    const messages = customMessages || buildLabMessages(question);
 
     try {
       const res = await fetch('/api/local-infer', {
@@ -139,13 +106,13 @@ export default function LocalGcpTester() {
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">☁️ Cloud Run 일심동체 추론</h1>
-        <a href="/" className="text-xs text-primary hover:underline">← 홈</a>
+        <h1 className="text-lg font-bold text-text">☁️ 서버 통합 (서비스+추론엔진+모델)</h1>
+        <a href="/lab" className="text-xs text-primary hover:underline">← 실험실</a>
       </header>
 
       {/* 안내 배너 */}
       <div className="rounded-lg border border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-900/30 px-3 py-2 text-[11px] text-cyan-900 dark:text-cyan-200 leading-relaxed">
-        ☁️ <b>앱 + 모델 같은 Cloud Run 컨테이너</b> — 외부 API 0, GPU L4 24GB. 추론 엔진 3종 비교 모드.
+        ☁️ <b>일심동체 — 앱 + 모델 같은 Cloud Run 컨테이너</b> — 외부 API 0, GPU L4 24GB. 8 엔진 동거 (Phase 5-2: 6 active, 2 planned).
       </div>
 
       {/* 추론 엔진 선택 (REBUILD23 §3.4) */}
@@ -212,34 +179,9 @@ export default function LocalGcpTester() {
         ⚠️ <b>첫 호출은 콜드</b> — Cloud Run 인스턴스 spawn + GPU mount + 모델 다운로드. min-instances=0 이므로 idle 5분 후 다시 cold.
       </div>
 
-      {/* 문항 카드 */}
-      {loadingQ ? (
-        <p className="text-center text-sm text-text-secondary py-8">문항 로드 중…</p>
-      ) : question ? (
-        <div className="rounded-xl border border-border bg-card-bg p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-text-secondary">운전면허 #{question.question_number}</span>
-            <button onClick={fetchRandomQuestion} disabled={running}
-              className="text-xs text-primary hover:underline disabled:opacity-40">
-              다음 문항 ↻
-            </button>
-          </div>
-          <p className="text-sm font-medium leading-relaxed text-text">{question.body}</p>
-          <ul className="space-y-1.5">
-            {question.choices.map((c, i) => (
-              <li key={i} className={`flex gap-2 text-sm ${
-                showAnswer && (i + 1 === question.answer || i + 1 === question.answer_extra)
-                  ? 'text-success font-bold' : 'text-text'}`}>
-                <span>{CIRCLE[i]}</span>
-                <span className="flex-1">{c}</span>
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => setShowAnswer(s => !s)} className="text-xs text-primary hover:underline">
-            {showAnswer ? '정답 숨기기' : '정답 보기'}
-          </button>
-        </div>
-      ) : null}
+      {/* REBUILD29 §19 — 문항 입력 (DB 선택 + 외부 붙여넣기 통합) */}
+      <QuestionPicker question={question} onChange={handleQuestionChange} />
+
 
       {/* 파라미터 */}
       <div className="rounded-xl border border-border bg-card-bg p-3 grid grid-cols-2 gap-3">
@@ -254,18 +196,28 @@ export default function LocalGcpTester() {
           <label className="block text-[11px] font-bold text-text-secondary mb-1">
             Max Tokens <span className="text-primary font-mono">{maxTokens}</span>
           </label>
-          <input type="range" min={64} max={1024} step={64} value={maxTokens}
+          <input type="range" min={64} max={4096} step={64} value={maxTokens}
             onChange={e => setMaxTokens(parseInt(e.target.value, 10))} disabled={running} className="w-full" />
         </div>
       </div>
 
-      {/* 추론 시작 */}
+      {/* REBUILD29 §26 — PromptEditor (섹션별 편집 + 최종 메시지 미리보기, 펼침 기본 접힘) */}
       {question && (
-        <button onClick={handleRun} disabled={running}
+        <PromptEditor
+          question={question}
+          model={modelKey}
+          running={running}
+          onSubmit={(messages) => handleRun(messages)}
+        />
+      )}
+
+      {/* 추론 시작 (default 빠른 호출) */}
+      {question && (
+        <button onClick={() => handleRun()} disabled={running}
           className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-bold">
           {running
             ? `☁️ ${currentEngine.label} × ${currentModel.name} 추론 중…`
-            : `✨ ${currentEngine.label} × ${currentModel.name} 로 해설 생성`}
+            : `✨ ${currentEngine.label} × ${currentModel.name} 로 해설 생성 (default)`}
         </button>
       )}
 
@@ -337,7 +289,7 @@ export default function LocalGcpTester() {
       )}
 
       <p className="text-[11px] text-text-secondary text-center pt-4">
-        REBUILD23 — Cloud Run 일심동체 (Ollama active / llama.cpp + vLLM Phase 5 예정)
+        REBUILD29 §22 — 서버 통합 (서비스+추론엔진+모델 한 Cloud Run 컨테이너, 6 엔진)
       </p>
     </div>
   );
