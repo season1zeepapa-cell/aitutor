@@ -18,6 +18,7 @@
 const { withAuth } = require('./middleware');
 const hf = require('./_llm/hf-chat');
 const { getAllowedIds } = require('./_runtime/hf-catalog');
+const { applyQwenStrict } = require('./_runtime/qwen');
 
 // 카탈로그 fetch 실패 시 fallback default
 const DEFAULT_MODEL = 'google/gemma-4-31B-it';
@@ -53,6 +54,11 @@ module.exports = withAuth(async (req, res) => {
     const tokens = (maxTokens && parseInt(maxTokens, 10) > 0) ? parseInt(maxTokens, 10) : 1024;
     const actionTag = ALLOWED_ACTIONS.has(action) ? action : 'lab_hf_chat';
 
+    // REBUILD29 §13 — Qwen 모델은 thinking 모드 강제 비활성 (HF model_id 가 'Qwen/...' 으로 시작)
+    // 모델 식별자에서 organization 떼고 모델 이름만 매칭 (예: Qwen/Qwen2.5-7B-Instruct → Qwen2.5...)
+    const modelNameOnly = (selectedModel.split('/').pop() || selectedModel);
+    const finalMessages = applyQwenStrict(messages, modelNameOnly);
+
     if (useStream) {
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
@@ -64,7 +70,7 @@ module.exports = withAuth(async (req, res) => {
       let hasContent = false;
       await hf.chatStream({
         model: selectedModel,
-        messages,
+        messages: finalMessages,
         maxTokens: tokens,
         temperature,
         userId: req.user?.uid,
@@ -99,7 +105,7 @@ module.exports = withAuth(async (req, res) => {
     console.log('[HF] 일반:', selectedModel);
     const { text: answer, finish, usage } = await hf.chat({
       model: selectedModel,
-      messages,
+      messages: finalMessages,
       maxTokens: tokens,
       temperature,
       userId: req.user?.uid,

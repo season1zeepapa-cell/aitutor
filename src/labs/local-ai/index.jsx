@@ -29,13 +29,13 @@ export default function LocalAiLab() {
       <div className="max-w-md mx-auto p-8 space-y-4">
         <h1 className="text-lg font-bold">🧪 실험실 — 비활성</h1>
         <p className="text-sm text-gray-600">
-          현재 실험실(디바이스 AI) 기능이 비활성 상태입니다.
+          현재 실험실(온디바이스 모델) 기능이 비활성 상태입니다.
         </p>
         <p className="text-xs text-gray-500">
           관리자가 설정 → 회원관리 → 시스템 설정에서 활성화할 수 있습니다.
         </p>
-        <a href="/" className="block text-center py-2.5 rounded-xl border border-gray-300 text-sm">
-          홈으로
+        <a href="/lab" className="block text-center py-2.5 rounded-xl border border-gray-300 text-sm">
+          ← 실험실로
         </a>
       </div>
     );

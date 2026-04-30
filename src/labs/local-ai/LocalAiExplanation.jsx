@@ -12,7 +12,10 @@ import ModelDownloadCard from './components/ModelDownloadCard';
 import ModelManagerPanel from './components/ModelManagerPanel';
 import MemoryStatus from './components/MemoryStatus';
 import MemoryHelpCard from './components/MemoryHelpCard';
-import { checkDeviceAi } from './lib/deviceCheck';
+import EngineSwitcher from './components/EngineSwitcher';
+import WebllmPanel from './components/WebllmPanel';
+import QuestionPicker from '../../components/lab/QuestionPicker';
+import { checkDeviceAi, getMemoryInfo } from './lib/deviceCheck';
 import { loadPipe, explainQuestion, disposePipe, getLastUsedDevice, MODEL_META } from './lib/inference';
 import { buildSinglePrompt } from './lib/prompts';
 import { activateWakeLock, releaseWakeLock, attachVisibilityRetry } from './lib/wakeLock';
@@ -20,6 +23,8 @@ import { activateWakeLock, releaseWakeLock, attachVisibilityRetry } from './lib/
 const CIRCLE = ['①','②','③','④','⑤'];
 
 export default function LocalAiExplanation() {
+  const [engine, setEngine] = useState('transformers'); // REBUILD28 §11 — 엔진 선택 (transformers / webllm)
+  const [mem, setMem] = useState(null);                 // 메모리 정보 — WebLLM 적합성 판정용
   const [device, setDevice] = useState(null);     // {supported, recommendedSize, reason}
   const [question, setQuestion] = useState(null);
   const [loadingQ, setLoadingQ] = useState(false);
@@ -47,7 +52,15 @@ export default function LocalAiExplanation() {
   // 디바이스 점검
   useEffect(() => {
     checkDeviceAi().then(setDevice);
+    getMemoryInfo().then(setMem);
   }, []);
+
+  // WebLLM 적합성 — 데스크톱 + WebGPU + RAM 8GB+ (REBUILD28 §11)
+  const webllmEligible = !!(
+    device?.supported &&
+    mem?.gpu?.adapter === 'requested' &&
+    (typeof mem?.ram?.total !== 'number' || mem.ram.total >= 8)
+  );
 
   // 페이지 visibility 감지 — 백그라운드 진입 시 사용자 경고 표시
   useEffect(() => {
@@ -102,27 +115,13 @@ export default function LocalAiExplanation() {
     return () => window.removeEventListener('popstate', handler);
   }, [isDownloading]);
 
-  // 운전면허 문항 무작위 1건 로드
-  const fetchRandomQuestion = async () => {
-    setLoadingQ(true);
+  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당
+  const handleQuestionChange = (q) => {
+    setQuestion(q);
     setError('');
     setExplanation('');
     setShowAnswer(false);
-    try {
-      const r = await fetch('/api/questions?action=public&exam_id=161');
-      const data = await r.json();
-      const list = data.questions || [];
-      if (list.length === 0) throw new Error('문항이 없습니다.');
-      const random = list[Math.floor(Math.random() * list.length)];
-      setQuestion(random);
-    } catch (e) {
-      setError(`문항 로드 실패: ${e.message}`);
-    } finally {
-      setLoadingQ(false);
-    }
   };
-
-  useEffect(() => { fetchRandomQuestion(); }, []);
 
   // 모델 활성화 (다운로드 + 로드) — sizeOverride 지정 시 그 모델 사용
   const activate = async (sizeOverride) => {
@@ -191,7 +190,7 @@ export default function LocalAiExplanation() {
         answer: question.answer,
         answer_extra: question.answer_extra,
       }, {
-        maxTokens: 512,    // 보기 4개 × 한 줄 + 정답 명시 + 여유 마진 (이전 256 으로 잘림)
+        maxTokens: 2048,   // REBUILD29 — 사용자 디바이스 추론 (브라우저 WebGPU, 외부 비용 0). 잘림 방지
         temperature: 0.3,
         onToken: (t) => setExplanation(prev => prev + t),
       });
@@ -206,14 +205,14 @@ export default function LocalAiExplanation() {
   if (device && !device.supported) {
     return (
       <div className="max-w-md mx-auto p-4 space-y-3">
-        <h1 className="text-lg font-bold text-text">🧪 디바이스 AI 시범</h1>
+        <h1 className="text-lg font-bold text-text">📱 온디바이스 모델</h1>
         <DeviceCheckBadge />
         <MemoryStatus />
         <MemoryHelpCard activeSize={null} onActivate={() => {}} onAfterChange={() => setRefreshKey(k => k + 1)} />
         <p className="text-xs text-text-secondary">
           WebGPU 지원 브라우저(Chrome, Edge 등)에서 동작합니다. Safari/Firefox 는 미지원.
         </p>
-        <a href="/" className="block text-center py-2 rounded-xl border border-border text-sm text-text hover:bg-card-bg-hover">홈으로</a>
+        <a href="/lab" className="block text-center py-2 rounded-xl border border-border text-sm text-text hover:bg-card-bg-hover">← 실험실로</a>
       </div>
     );
   }
@@ -225,11 +224,11 @@ export default function LocalAiExplanation() {
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">🧪 디바이스 AI 시범</h1>
+        <h1 className="text-lg font-bold text-text">📱 온디바이스 모델</h1>
         {isDownloading ? (
           <span className="text-xs text-text-secondary cursor-not-allowed" title="다운로드 중에는 이동할 수 없습니다">🔒 잠김</span>
         ) : (
-          <a href="/" className="text-xs text-primary hover:underline">← 홈</a>
+          <a href="/lab" className="text-xs text-primary hover:underline">← 실험실</a>
         )}
       </header>
 
@@ -246,72 +245,63 @@ export default function LocalAiExplanation() {
       {/* 메모리 현황 — 항상 노출 (펼침 기본) */}
       <MemoryStatus />
 
-      {/* 메모리 부족·주의 모델이 있을 때만 노출 — 액션 단축 + 디바이스별 가이드 */}
-      <MemoryHelpCard
-        activeSize={pipeReady ? activeSize : null}
-        onActivate={(s) => activate(s)}
-        onAfterChange={() => setRefreshKey(k => k + 1)}
-        disabled={isDownloading}
+      {/* REBUILD28 §11 — 엔진 선택 (transformers.js vs WebLLM) */}
+      <EngineSwitcher
+        engine={engine}
+        onChange={setEngine}
+        webllmEligible={webllmEligible}
+        disabled={isDownloading || generating}
       />
 
-      {/* 모델 관리 패널 — 항상 노출 (접힘 상태가 기본) */}
-      {device?.supported && (
-        <ModelManagerPanel
-          key={refreshKey}
-          activeSize={pipeReady ? activeSize : null}
-          pipeReady={pipeReady}
-          onActivate={(s) => activate(s)}
-          onUnload={unload}
-          onAfterChange={() => setRefreshKey(k => k + 1)}
-          disabled={isDownloading}
-        />
+      {/* 엔진 별 패널 분기 ─────────────────────────────────────── */}
+      {engine === 'webllm' ? (
+        <WebllmPanel question={question} />
+      ) : (
+        <>
+          {/* 메모리 부족·주의 모델이 있을 때만 노출 — 액션 단축 + 디바이스별 가이드 */}
+          <MemoryHelpCard
+            activeSize={pipeReady ? activeSize : null}
+            onActivate={(s) => activate(s)}
+            onAfterChange={() => setRefreshKey(k => k + 1)}
+            disabled={isDownloading}
+          />
+
+          {/* 모델 관리 패널 — 항상 노출 (접힘 상태가 기본) */}
+          {device?.supported && (
+            <ModelManagerPanel
+              key={refreshKey}
+              activeSize={pipeReady ? activeSize : null}
+              pipeReady={pipeReady}
+              onActivate={(s) => activate(s)}
+              onUnload={unload}
+              onAfterChange={() => setRefreshKey(k => k + 1)}
+              disabled={isDownloading}
+            />
+          )}
+
+          {/* 모델 활성화 / 진행률 / 에러 카드 — pipeReady 되기 전까지 표시 */}
+          {!pipeReady && device?.supported && (
+            <ModelDownloadCard
+              size={activeSize || device.recommendedSize}
+              progress={progress}
+              onActivate={() => activate()}
+              onSelectSize={(s) => setActiveSize(s)}
+              onRetry={() => { setProgress(null); setError(''); activate(); }}
+              errorMessage={error}
+              isLoading={activating}
+              isHidden={isHidden}
+              wakeLockActive={wakeLockActive}
+            />
+          )}
+        </>
       )}
 
-      {/* 모델 활성화 / 진행률 / 에러 카드 — pipeReady 되기 전까지 표시 */}
-      {!pipeReady && device?.supported && (
-        <ModelDownloadCard
-          size={activeSize || device.recommendedSize}
-          progress={progress}
-          onActivate={() => activate()}
-          onSelectSize={(s) => setActiveSize(s)}
-          onRetry={() => { setProgress(null); setError(''); activate(); }}
-          errorMessage={error}
-          isLoading={activating}
-          isHidden={isHidden}
-          wakeLockActive={wakeLockActive}
-        />
-      )}
+      {/* REBUILD29 §19 — 문항 입력 (DB 선택 + 외부 붙여넣기 통합) */}
+      <QuestionPicker question={question} onChange={handleQuestionChange} />
 
-      {/* 문항 카드 */}
-      {loadingQ ? (
-        <p className="text-center text-sm text-text-secondary py-8">문항 로드 중…</p>
-      ) : question ? (
-        <div className="rounded-xl border border-border bg-card-bg p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-text-secondary">운전면허 #{question.question_number}</span>
-            <button onClick={fetchRandomQuestion} disabled={isDownloading}
-              className="text-xs text-primary hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline">다음 문항 ↻</button>
-          </div>
-          <p className="text-sm font-medium leading-relaxed text-text">{question.body}</p>
-          <ul className="space-y-1.5">
-            {choices.map((c, i) => (
-              <li key={i} className={`flex gap-2 text-sm ${
-                showAnswer && (i + 1 === question.answer || i + 1 === question.answer_extra)
-                  ? 'text-success font-bold' : 'text-text'}`}>
-                <span>{CIRCLE[i]}</span>
-                <span className="flex-1">{c}</span>
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => setShowAnswer(s => !s)}
-            className="text-xs text-primary hover:underline">
-            {showAnswer ? '정답 숨기기' : '정답 보기'}
-          </button>
-        </div>
-      ) : null}
 
-      {/* AI 해설 생성 버튼 */}
-      {pipeReady && question && (
+      {/* AI 해설 생성 버튼 — transformers.js 엔진일 때만 (WebLLM 은 WebllmPanel 자체 버튼 사용) */}
+      {engine === 'transformers' && pipeReady && question && (
         <button onClick={generate} disabled={generating}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
           {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성`}
@@ -358,16 +348,16 @@ export default function LocalAiExplanation() {
         </div>
       )}
 
-      {/* 해설 출력 */}
-      {explanation && (
+      {/* 해설 출력 — transformers.js 엔진의 결과만 (WebLLM 은 WebllmPanel 안에서 자체 출력) */}
+      {engine === 'transformers' && explanation && (
         <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
-          <p className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-2">📝 디바이스 AI 해설</p>
+          <p className="text-xs font-bold text-blue-900 dark:text-blue-200 mb-2">📝 온디바이스 해설</p>
           <p className="text-sm text-blue-900 dark:text-blue-100 whitespace-pre-wrap leading-relaxed">{explanation}</p>
         </div>
       )}
 
-      {/* 에러 */}
-      {error && (
+      {/* 에러 — transformers.js 만 (WebLLM 은 WebllmPanel 안에서 표시) */}
+      {engine === 'transformers' && error && (
         <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-3 text-xs text-red-900 dark:text-red-200">
           {error}
         </div>
@@ -375,7 +365,7 @@ export default function LocalAiExplanation() {
 
       {/* 안내 */}
       <p className="text-[11px] text-text-secondary text-center pt-4">
-        REBUILD17 §5 — WebGPU 디바이스 AI 시범 (Gemma 4 + Qwen 3.5)
+        REBUILD17 §5 / REBUILD28 §11 — WebGPU 디바이스 AI 시범 · 엔진 2종 (transformers.js + WebLLM)
       </p>
     </div>
   );

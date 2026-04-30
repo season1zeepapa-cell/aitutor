@@ -34,7 +34,7 @@ export default function LocalGcpLab() {
     return (
       <div className="max-w-md mx-auto p-6 mt-12 text-center">
         <p className="text-sm text-text-secondary">
-          Cloud Run 일심동체 실험실이 비활성화되어 있습니다.
+          서버 통합 실험실이 비활성화되어 있습니다.
         </p>
         <p className="text-[11px] text-text-secondary mt-2">
           관리자가 <code className="px-1 bg-card-bg rounded">lab_local_lambda_enabled</code> 설정을 켜야 표시됩니다.
@@ -46,7 +46,7 @@ export default function LocalGcpLab() {
     return (
       <div className="max-w-md mx-auto p-6 mt-12 text-center">
         <p className="text-sm text-text-secondary">관리자 전용 페이지입니다.</p>
-        <a href="/" className="inline-block mt-3 text-xs text-primary hover:underline">← 홈</a>
+        <a href="/lab" className="inline-block mt-3 text-xs text-primary hover:underline">← 실험실</a>
       </div>
     );
   }

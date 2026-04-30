@@ -143,7 +143,7 @@ export default function ModelDownloadCard({ size = 'e2b', progress, onActivate, 
 
   return (
     <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
-      <p className="text-sm font-bold text-amber-900 dark:text-amber-200 mb-3">📱 디바이스 AI 활성화</p>
+      <p className="text-sm font-bold text-amber-900 dark:text-amber-200 mb-3">📱 온디바이스 모델 활성화</p>
 
       <div className="mb-3">
         <p className="text-[11px] text-amber-900 dark:text-amber-200 font-semibold mb-1.5">모델 선택</p>

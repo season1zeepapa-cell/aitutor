@@ -400,8 +400,9 @@ src/pages/LoginPage/
 2. `onnxruntime-node` 사용 여부 확인 — 미사용 시 제거 (210MB 절감!)
 
 ```bash
-grep -rn "onnxruntime-node" src/ api/ server.js lambda.js
+grep -rn "onnxruntime-node" src/ api/ server.js
 ```
+> 2026-04-29 갱신: lambda.js 폐기 (REBUILD23 Cloud Run 마이그). grep 대상에서 제거.
 
 ### 4.2 보안 권고
 

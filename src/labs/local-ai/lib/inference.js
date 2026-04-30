@@ -3,6 +3,7 @@
 
 import * as tf from '@huggingface/transformers';
 import { buildMessages } from './prompts';
+import { applyQwenStrict } from '../../../lib/qwen';
 
 const { AutoProcessor, AutoTokenizer, TextStreamer } = tf;
 const Gemma4ForConditionalGeneration = tf.Gemma4ForConditionalGeneration;
@@ -234,7 +235,9 @@ export async function explainQuestion(pipe, question, opts = {}) {
     topK = 20,
   } = opts;
 
-  const messages = buildMessages(question);
+  const baseMessages = buildMessages(question);
+  // REBUILD29 §13 / §16 — Qwen 한국어 강제 + thinking 비활성 (family 'qwen3.5' / 'qwen2.5' 모두 매칭)
+  const messages = applyQwenStrict(baseMessages, family);
   // tokenize: false 명시 — Qwen tokenizer.apply_chat_template 은 기본값이 tokenize=true 라서
   //                       토큰 array 가 반환되면 다음 단계에서 빈 input_ids ("Array must not be empty") 발생
   let prompt = processor.apply_chat_template(messages, {

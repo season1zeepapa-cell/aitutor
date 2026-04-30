@@ -1,16 +1,19 @@
-// AWS Lambda Express 핸들러 - 관리자 API
+// 관리자 API (REBUILD23 이후 Cloud Run Express 핸들러)
 const { query } = require('./db');
 const { withAdmin } = require('./middleware');
 const { getAllSettings, setSetting } = require('./_runtime/settings');
 
 // 토글 가능한 설정 키 화이트리스트 — 임의 키 set 차단
+// REBUILD26 §7-1: lab_server_ai_enabled / lab_server_ai_gguf_enabled 제거
+//   (server-ai/server-ai-gguf 실험실 폐기, DB row 는 history 보존, 토글 차단).
 const ALLOWED_SETTING_KEYS = new Set([
   'signup_disabled',
-  'lab_local_ai_enabled',   // /lab/local-ai 진입 허용 여부 (REBUILD17)
-  'lab_server_ai_enabled',       // /lab/server-ai 진입 허용 여부 (REBUILD20)
-  'lab_server_ai_gguf_enabled',  // /lab/server-ai-gguf 진입 허용 여부 (REBUILD21)
-  'lab_hf_enabled',              // /lab/hf 진입 허용 여부 (REBUILD22 §x)
-  'lab_local_lambda_enabled',    // /lab/local-lambda 진입 허용 여부 (REBUILD22 §x — 일심동체)
+  'lab_local_ai_enabled',     // /lab/local-ai 진입 허용 여부 (REBUILD17)
+  'lab_hf_enabled',           // /lab/hf 진입 허용 여부 (REBUILD22 §x)
+  'lab_local_lambda_enabled', // /lab/local-gcp 진입 허용 여부 (REBUILD23~26 — Cloud Run 일심동체.
+                              //                                DB key 는 마이그 부담으로 lambda 명 유지)
+  'lab_server_infer_enabled', // /lab/server-infer 진입 허용 여부 (REBUILD26 §3.2 — 격리 추론 service)
+  'lab_ollama_bridge_enabled',// /lab/ollama-bridge 진입 허용 여부 (REBUILD28 §11 — 외부 Ollama bridge)
   // LLM 프로바이더 활성화 토글 (REBUILD18 §11 후속)
   // 외부 3개 비활성 시 비용 절감 / 로컬 비활성 시 온디바이스 AI 버튼 숨김
   'provider_gemini_enabled',

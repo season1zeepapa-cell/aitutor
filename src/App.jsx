@@ -44,11 +44,9 @@ const ExamMode = lazy(() => import('./pages/ExamMode'));
 // REBUILD17 — 격리 모듈: 디바이스 AI(Gemma 4) 시범. lazy 라 메인 번들 영향 0
 const LocalAiLab = lazy(() => import('./labs/local-ai'));
 
-// REBUILD20 — 격리 모듈: 서버 추론(Lambda Container) 시범
-const ServerAiLab = lazy(() => import('./labs/server-ai'));
-
-// REBUILD21 §17.x — 격리 모듈: 서버 추론 GGUF (llama-cpp-python) 시범
-const ServerAiGgufLab = lazy(() => import('./labs/server-ai-gguf'));
+// REBUILD20/21 server-ai / server-ai-gguf 실험실 폐기 (REBUILD26 §7-1):
+// 백엔드가 일심동체 Ollama forward 만 하던 legacy → /lab/server-infer (격리) 또는
+// /lab/local-gcp (일심동체) 로 redirect. 디렉토리는 git rm.
 
 // REBUILD22 §x — 격리 모듈: HF Inference Providers 실험실 (오픈 모델 라우팅)
 const HfLab = lazy(() => import('./labs/hf-playground'));
@@ -56,6 +54,15 @@ const HfLab = lazy(() => import('./labs/hf-playground'));
 const HfCompareLab = lazy(() => import('./labs/hf-playground/CompareIndex'));
 // REBUILD23 — Cloud Run 일심동체 추론 (앱+모델 같은 컨테이너, 추론 엔진 교체 가능)
 const LocalGcpLab = lazy(() => import('./labs/local-gcp'));
+
+// REBUILD26 §3.2 — Cloud Run 격리 추론 service (aitutor-inference, 6 엔진 동거)
+const ServerInferLab = lazy(() => import('./labs/server-infer'));
+
+// REBUILD28 §11 — /lab 실험실 메인 (5 lab 카탈로그)
+const LabsHome = lazy(() => import('./labs'));
+
+// REBUILD28 §11 — 외부 Ollama bridge (사용자 PC localhost:11434 직접 호출)
+const OllamaBridgeLab = lazy(() => import('./labs/ollama-bridge'));
 
 function LoadingFallback() {
   return (
@@ -114,13 +121,19 @@ function AppLayout({ onLogout, theme, onToggleTheme, categoryId, onCategoryChang
                 </TrackProvider>
               } />
             ))}
+            {/* REBUILD28 §11 — /lab 실험실 메인 (5 lab 카탈로그) */}
+            <Route path="/lab" element={<LabsHome />} />
             {/* REBUILD17 — 디바이스 AI 시범 (격리 모듈, DB 플래그로 ON/OFF) */}
             <Route path="/lab/local-ai/*" element={<LocalAiLab />} />
-            <Route path="/lab/server-ai/*" element={<ServerAiLab />} />
-            <Route path="/lab/server-ai-gguf/*" element={<ServerAiGgufLab />} />
+            {/* REBUILD26 §7-1 — server-ai/server-ai-gguf 폐기. 라우트 entry 제거됨,
+                옛 URL 진입 시 catch-all `*` 가 /quiz 로 보냄. */}
             <Route path="/lab/hf/compare" element={<HfCompareLab />} />
             <Route path="/lab/hf/*" element={<HfLab />} />
             <Route path="/lab/local-gcp" element={<LocalGcpLab />} />
+            {/* REBUILD26 — 격리 추론 service (메인과 별도 Cloud Run, 6 엔진 동거 비교) */}
+            <Route path="/lab/server-infer" element={<ServerInferLab />} />
+            {/* REBUILD28 §11 — 외부 Ollama bridge (사용자 PC localhost:11434 직접) */}
+            <Route path="/lab/ollama-bridge" element={<OllamaBridgeLab />} />
             {/* REBUILD23 — 구 라우트 호환: 기존 즐겨찾기/북마크 유저를 위해 redirect */}
             <Route path="/lab/local-lambda" element={<Navigate to="/lab/local-gcp" replace />} />
             <Route path="*" element={<Navigate to="/quiz" replace />} />

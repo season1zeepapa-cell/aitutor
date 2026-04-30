@@ -1,0 +1,41 @@
+# 격리 추론 service (workspace/aitutor-inference) — Python 의존성 (REBUILD26 §3.2 / §5.1 / REBUILD28 §0.2)
+#
+# Phase 7-1 (CPU only, Day 1~2):
+#   - FastAPI + uvicorn  : HTTP 라우터
+#   - httpx              : 내부 daemon 호출 (llama-cpp-python OpenAI 호환 API)
+#   - llama-cpp-python   : GGUF 추론 (Python wrapper, OpenAI 호환 server 모드)
+#   - onnxruntime-genai  : ONNX 추론 (Microsoft 공식, CPU FP16 빠름)
+#   - transformers       : HuggingFace PyTorch 추론 (CPU, 데모급 속도)
+#   - torch (CPU build)  : transformers 의존
+#
+# Phase 7-2 (GPU 활성, Ollama 라이브 / llama-server·vLLM 계획):
+#   - vllm 추가 예정 (Phase 7-2c, GPU L4 — 일심동체 image 재사용으로 image 자체엔 이미 포함)
+#
+# REBUILD28 (2026-04-30) — SGLang / TensorRT-LLM 은 사용 패턴 미스매치로 deferred,
+# placeholder 완전 제거. 미래 부활 시 별도 의사결정.
+
+# ─── HTTP 라우터 ──────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+httpx==0.28.1
+
+# ─── 추론 엔진 (CPU) ─────────────────────────────────────
+# llama-cpp-python: Metal/CUDA/CPU 자동 감지. CPU only로 설치 (Phase 7-2에서 CUDA 빌드로 교체 가능)
+llama-cpp-python==0.3.4
+
+# onnxruntime-genai: Microsoft 공식 ONNX generative AI 런타임
+onnxruntime-genai==0.5.2
+
+# transformers + torch (CPU): 데모급 속도, 가장 다양한 모델 호환
+transformers==4.46.3
+# torch CPU only — Dockerfile에서 --index-url 로 명시 (PyTorch CPU wheel)
+# torch==2.5.1 는 Dockerfile 의 별도 pip install 명령으로 설치
+sentencepiece==0.2.0
+accelerate==1.1.1
+
+# HuggingFace 모델 다운로드 (lazy)
+# REBUILD28 P0 fix (2026-04-30): 0.26.3 → 0.25.2 다운그레이드.
+# huggingface_hub 0.26 부터 `is_offline_mode` export 가 제거되어
+# transformers 4.46.3 / vllm 0.6.5 가 모두 ImportError 로 즉시 종료됨.
+huggingface-hub==0.25.2
