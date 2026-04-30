@@ -12,6 +12,8 @@ import {
 import { chat as hfChat, fetchModelCatalog } from './lib/hfClient';
 import { COMPARE_PRESETS, resolvePreset, extractAnswer } from './lib/comparePresets';
 import ModelCatalog from './components/ModelCatalog';
+import QuestionPicker from '../../components/lab/QuestionPicker';
+import ParamSliders from '../../components/lab/ParamSliders';
 
 const TABS = [
   { id: 'exam', label: '🎓 시험' },
@@ -36,7 +38,7 @@ export default function HfCompare() {
   const [systemMsg, setSystemMsg] = useState('');
   const [userMsg, setUserMsg] = useState('');
   const [temperature, setTemperature] = useState(0.3);
-  const [maxTokens, setMaxTokens] = useState(1024);
+  const [maxTokens, setMaxTokens] = useState(1024);  // REBUILD29 — 외부 API (HF Inference) 토큰당 과금 → 보수적 유지
 
   // 호출 상태 (모델별 컬럼)
   const [columns, setColumns] = useState({});  // { [modelId]: { stream, meta, done, error, status, t0, firstTokenAt } }
@@ -60,28 +62,11 @@ export default function HfCompare() {
     [selectedIds, catalog]
   );
 
-  // 시험 모드 자동 문항 로드
-  useEffect(() => {
-    if (tab === 'exam' && !question) fetchRandomQuestion();
-  }, [tab]);
-
-  const fetchRandomQuestion = async () => {
-    setLoadingQ(true);
+  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당
+  const handleQuestionChange = (q) => {
+    setQuestion(q);
     setShowAnswer(false);
-    try {
-      const r = await fetch('/api/questions?action=public&exam_id=161');
-      const data = await r.json();
-      const list = data.questions || [];
-      if (list.length === 0) return;
-      const random = list[Math.floor(Math.random() * list.length)];
-      const choices = Array.isArray(random.choices) ? random.choices : JSON.parse(random.choices || '[]');
-      setQuestion({ ...random, choices });
-      setColumns({});  // 문항 바뀌면 응답 초기화
-    } catch (e) {
-      console.error('[compare] 문항 로드 실패:', e);
-    } finally {
-      setLoadingQ(false);
-    }
+    setColumns({});  // 문항 바뀌면 응답 초기화
   };
 
   // 슬롯 토글
@@ -249,7 +234,7 @@ export default function HfCompare() {
         <div className="flex items-center gap-2">
           <Link to="/lab/hf" className="text-xs text-primary hover:underline">단일 모드</Link>
           <span className="text-text-secondary">·</span>
-          <a href="/" className="text-xs text-primary hover:underline">홈</a>
+          <a href="/lab" className="text-xs text-primary hover:underline">← 실험실</a>
         </div>
       </header>
 
@@ -354,34 +339,9 @@ export default function HfCompare() {
         ))}
       </div>
 
+      {/* REBUILD29 §19 — 시험 모드: 통합 QuestionPicker */}
       {tab === 'exam' && (
-        loadingQ ? (
-          <p className="text-center text-sm text-text-secondary py-8">문항 로드 중…</p>
-        ) : question ? (
-          <div className="rounded-xl border border-border bg-card-bg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-secondary">운전면허 #{question.question_number}</span>
-              <button onClick={fetchRandomQuestion} disabled={running}
-                className="text-xs text-primary hover:underline disabled:opacity-40">
-                다음 문항 ↻
-              </button>
-            </div>
-            <p className="text-sm font-medium leading-relaxed text-text">{question.body}</p>
-            <ul className="space-y-1.5">
-              {question.choices.map((c, i) => (
-                <li key={i} className={`flex gap-2 text-sm ${
-                  showAnswer && (i + 1 === question.answer || i + 1 === question.answer_extra)
-                    ? 'text-success font-bold' : 'text-text'}`}>
-                  <span>{CIRCLE[i]}</span>
-                  <span className="flex-1">{c}</span>
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => setShowAnswer(s => !s)} className="text-xs text-primary hover:underline">
-              {showAnswer ? '정답 숨기기' : '정답 보기'}
-            </button>
-          </div>
-        ) : null
+        <QuestionPicker question={question} onChange={handleQuestionChange} />
       )}
 
       {tab === 'prompt' && (
@@ -423,23 +383,14 @@ export default function HfCompare() {
         </div>
       )}
 
-      {/* 5. 파라미터 */}
-      <div className="rounded-xl border border-border bg-card-bg p-3 grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Temperature <span className="text-primary font-mono">{temperature.toFixed(2)}</span>
-          </label>
-          <input type="range" min={0} max={2} step={0.05} value={temperature}
-            onChange={e => setTemperature(parseFloat(e.target.value))} disabled={running} className="w-full" />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Max Tokens <span className="text-primary font-mono">{maxTokens}</span>
-          </label>
-          <input type="range" min={64} max={4096} step={64} value={maxTokens}
-            onChange={e => setMaxTokens(parseInt(e.target.value, 10))} disabled={running} className="w-full" />
-        </div>
-      </div>
+      {/* 5. 파라미터 — REBUILD30 §0.4 #4 ParamSliders 통합 */}
+      <ParamSliders
+        temperature={temperature}
+        onTemperatureChange={setTemperature}
+        maxTokens={maxTokens}
+        onMaxTokensChange={setMaxTokens}
+        disabled={running}
+      />
 
       {/* 6. 실행 / 중지 */}
       {running ? (

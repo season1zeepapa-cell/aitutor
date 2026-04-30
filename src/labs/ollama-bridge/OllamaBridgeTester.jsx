@@ -12,6 +12,7 @@ import { applyQwenStrict, isQwenModel } from '../../lib/qwen';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
 import { buildLabMessages } from '../../lib/lab/promptBuilder';
+import ErrorBanner from '../../components/lab/ErrorBanner';
 
 const DEFAULT_URL = 'http://localhost:11434';
 const DEFAULT_MODEL = 'qwen3:4b';
@@ -439,12 +440,8 @@ curl -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'htt
         </div>
       )}
 
-      {/* 에러 */}
-      {error && (
-        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-3 text-xs text-red-900 dark:text-red-200">
-          {error}
-        </div>
-      )}
+      {/* 에러 — REBUILD30 §0.4 #5 ErrorBanner 통합 */}
+      <ErrorBanner message={error} icon={null} />
 
       <p className="text-[11px] text-text-secondary text-center pt-4">
         REBUILD28 §11 — 외부 Ollama bridge (사용자 PC 의 Ollama 직접 호출)

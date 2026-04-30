@@ -9,6 +9,8 @@
 import { useState, useEffect, useRef } from 'react';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
+import ParamSliders from '../../components/lab/ParamSliders';
+import ErrorBanner from '../../components/lab/ErrorBanner';
 import { buildLabMessages } from '../../lib/lab/promptBuilder';
 import { LAB_MODELS } from '../../lib/lab/models';
 
@@ -228,23 +230,14 @@ export default function ServerInferTester() {
       <QuestionPicker question={question} onChange={handleQuestionChange} />
 
 
-      {/* 파라미터 */}
-      <div className="rounded-xl border border-border bg-card-bg p-3 grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Temperature <span className="text-primary font-mono">{temperature.toFixed(2)}</span>
-          </label>
-          <input type="range" min={0} max={2} step={0.05} value={temperature}
-            onChange={e => setTemperature(parseFloat(e.target.value))} disabled={running} className="w-full" />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Max Tokens <span className="text-primary font-mono">{maxTokens}</span>
-          </label>
-          <input type="range" min={64} max={4096} step={64} value={maxTokens}
-            onChange={e => setMaxTokens(parseInt(e.target.value, 10))} disabled={running} className="w-full" />
-        </div>
-      </div>
+      {/* 파라미터 — REBUILD30 §0.4 #4 ParamSliders 통합 */}
+      <ParamSliders
+        temperature={temperature}
+        onTemperatureChange={setTemperature}
+        maxTokens={maxTokens}
+        onMaxTokensChange={setMaxTokens}
+        disabled={running}
+      />
 
       {/* REBUILD29 §26 — PromptEditor (섹션별 편집) */}
       {question && (
@@ -265,11 +258,8 @@ export default function ServerInferTester() {
         </button>
       )}
 
-      {error && (
-        <div className="rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/30 px-3 py-2 text-[11px] text-rose-900 dark:text-rose-200">
-          ❌ {error}
-        </div>
-      )}
+      {/* REBUILD30 §0.4 #5 ErrorBanner 통합 (compact variant) */}
+      <ErrorBanner message={error} icon="❌" variant="compact" />
 
       {answer && (
         <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-4 space-y-2">

@@ -10,6 +10,8 @@
 import { useState, useEffect, useRef } from 'react';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
+import ParamSliders from '../../components/lab/ParamSliders';
+import ErrorBanner from '../../components/lab/ErrorBanner';
 import { buildLabMessages, buildPromptPreview } from '../../lib/lab/promptBuilder';
 import { LAB_MODELS } from '../../lib/lab/models';
 
@@ -183,23 +185,14 @@ export default function LocalGcpTester() {
       <QuestionPicker question={question} onChange={handleQuestionChange} />
 
 
-      {/* 파라미터 */}
-      <div className="rounded-xl border border-border bg-card-bg p-3 grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Temperature <span className="text-primary font-mono">{temperature.toFixed(2)}</span>
-          </label>
-          <input type="range" min={0} max={2} step={0.05} value={temperature}
-            onChange={e => setTemperature(parseFloat(e.target.value))} disabled={running} className="w-full" />
-        </div>
-        <div>
-          <label className="block text-[11px] font-bold text-text-secondary mb-1">
-            Max Tokens <span className="text-primary font-mono">{maxTokens}</span>
-          </label>
-          <input type="range" min={64} max={4096} step={64} value={maxTokens}
-            onChange={e => setMaxTokens(parseInt(e.target.value, 10))} disabled={running} className="w-full" />
-        </div>
-      </div>
+      {/* 파라미터 — REBUILD30 §0.4 #4 ParamSliders 통합 */}
+      <ParamSliders
+        temperature={temperature}
+        onTemperatureChange={setTemperature}
+        maxTokens={maxTokens}
+        onMaxTokensChange={setMaxTokens}
+        disabled={running}
+      />
 
       {/* REBUILD29 §26 — PromptEditor (섹션별 편집 + 최종 메시지 미리보기, 펼침 기본 접힘) */}
       {question && (
@@ -263,12 +256,8 @@ export default function LocalGcpTester() {
         </div>
       )}
 
-      {/* 에러 */}
-      {error && (
-        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-3 text-xs text-red-900 dark:text-red-200">
-          ⚠ {error}
-        </div>
-      )}
+      {/* 에러 — REBUILD30 §0.4 #5 ErrorBanner 통합 */}
+      <ErrorBanner message={error} icon="⚠" />
 
       {/* 호출 이력 */}
       {history.length > 0 && (

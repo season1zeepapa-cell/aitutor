@@ -801,6 +801,9 @@ REBUILD31 (옵션 A + 패키지 C/D, 8~12시간)
 |---|---|
 | 2026-04-30 | REBUILD30.md 최초 작성 — REBUILD23~29 누적 결과 + 전체 아키텍처 + 5 lab 상세 분석 (2,496 LOC) + 백엔드 API 표 (52 엔드포인트) + 인프라 다이어그램 + 발견된 이슈 8개 (P0~P3) + 리팩토링 후보 12개 (-590 라인) + 작업 패키지 A/B/C/D + 우선순위 결정 의제 |
 | 2026-04-30 | **§0.3 이슈 1~7 코드 재검증** — 사용자 의사결정 의제 |
+| 2026-04-30 | **§0.4 후보 7건 코드 재검증** — #4 ParamSliders + #5 ErrorBanner 진행, #3/#6/#7 보류 또는 불필요 |
+| 2026-04-30 | **옵션 A 적용 완료** — buildPromptPreview 통합 / models.js 신규 / slider 1024→4096 |
+| 2026-04-30 | **옵션 B (§0.4 #4+#5) 적용 완료** — ParamSliders 4 lab 통합 / ErrorBanner 3 lab 통합 |
 
 ---
 
@@ -847,6 +850,50 @@ REBUILD31 (옵션 A + 패키지 C/D, 8~12시간)
 
 ---
 
-## 15. 한 줄 요약
+## 15. §0.4 리팩토링 후보 재검증 + 적용 결과
 
-**REBUILD30 §0.3 이슈 7건 재검증 → 2건 오진단 / 3건 즉시 수정 완료 / 2건 보류. 옵션 A (slider + buildPromptPreview 통합 + models.js) 적용으로 -66 라인 + 미리보기 정합성 + UI 슬라이더 버그 해결.**
+### 15.1 7건 후보 재검증 (코드 기준)
+
+| # | 후보 | 판정 | 근거 |
+|---|---|---|---|
+| 1 | buildLabPromptPreview 통합 | ✅ 옵션 A 완료 | 7bd78de |
+| 2 | src/lib/lab/models.js | ✅ 옵션 A 완료 | 7bd78de |
+| 3 | buildLabMessages 자동 Qwen 강제 | ❌ 불필요 | §0.3 이슈 1 — 백엔드(api/local-infer.js + iso-infer.js) 자동 적용 확인 |
+| 4 | ParamSliders.jsx | ✅ 옵션 B 완료 | 4 lab 동일 마크업 통합 (LocalGcp/ServerInfer/HfPlayground/HfCompare) |
+| 5 | ResponsePanel.jsx | ⚠️ 부분 적용 | 응답 박스는 lab 색상 식별 보존 → 에러 박스만 ErrorBanner 통합 (3 lab) |
+| 6 | coldStartRetry.js | ⏸ 보류 | 격리 service 한정. 브라우저 fetch + Node fetch 환경 달라 직접 공유 어려움. 격리 확장 시 재검토 |
+| 7 | LocalAiContext (Context API) | ⏸ 보류 | useState 14개지만 자식별 props 2~5개. 1.5h vs 효과 미미. 추가 lab 늘면 재검토 |
+
+### 15.2 옵션 B 적용 코드 변경
+
+```
+신규 파일:
+  + src/components/lab/ParamSliders.jsx   (62 lines, 4 lab 슬라이더 통합)
+  + src/components/lab/ErrorBanner.jsx    (24 lines, 3 lab 에러 박스 통합, default+compact 변형)
+
+수정 파일:
+  M src/labs/local-gcp/LocalGcpTester.jsx
+  M src/labs/server-infer/ServerInferTester.jsx
+  M src/labs/ollama-bridge/OllamaBridgeTester.jsx
+  M src/labs/hf-playground/HfPlayground.jsx
+  M src/labs/hf-playground/HfCompare.jsx
+
+라인 변동: lab 측 -110 라인 (50 ins vs 160 del), 컴포넌트 +86 라인 → 순감 ~24 라인
+   ★ 라인 수치보다 의미: 슬라이더 max 변경 시 5곳 → 1곳 / 에러 스타일 통일 시 3곳 → 1곳
+
+빌드 검증: ✓ vite build 성공 (2.52s)
+```
+
+### 15.3 보류 후보 재진입 조건
+
+| 후보 | 재진입 트리거 |
+|---|---|
+| #3 자동 Qwen 강제 | UI 측 직접 (브라우저) Qwen 호출 lab 가 추가될 때 |
+| #6 coldStartRetry | 격리 service 외부 또 다른 cold start 도메인 발생 시 |
+| #7 LocalAiContext | LocalAi lab 가 자식 컴포넌트 10+ 또는 props 30+ 에 도달 시 |
+
+---
+
+## 16. 한 줄 요약
+
+**REBUILD30 §0.3 이슈 7건 + §0.4 후보 7건 모두 재검증 완료. 옵션 A (slider + buildPromptPreview + models.js) + 옵션 B (ParamSliders + ErrorBanner) 적용. 5 lab 의 슬라이더/에러 마크업이 단일 출처로 통일되어 향후 변경 1곳 수정으로 5 lab 자동 반영.**
