@@ -1069,6 +1069,122 @@ HTTP 200 ✓
 
 ---
 
-## 17. 한 줄 요약
+## 17. §18 사후 작업 — PromptEditor 통일 + Qwen 강제 가시화 (2026-05-01)
 
-**REBUILD30 §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB 회수, ~$22/월 절감) + 영구 cleanup policy + 2건 핫픽스 (401 / React #31). 5 commit / 3 deploy / 모든 작업 origin/main + Cloud Run aitutor-00021-nkc 까지 sync 완료.**
+### 17.1 동기
+
+옵션 B 까지 완료한 후 사용자 추가 요청:
+1. **일관성** — PromptEditor 가 4 lab (LocalGcp / ServerInfer / OllamaBridge / WebLLM) 만 적용 → 6 lab 모두 통일
+2. **투명성 + 편집** — Qwen 자동 주입 강제 프롬프트 (KOREAN_FORCE_*, /no_think) 가 화면에 안 보임 → 노출 + 편집 가능
+
+### 17.2 6 Phase 작업 결과
+
+| Phase | 내용 | 결과 |
+|---|---|---|
+| 1 | qwen.js (src + api) KOREAN_FORCE_SYSTEM/USER, ASSISTANT_SEED, NO_THINK_TOKEN export | ✅ |
+| 2 | PromptEditor 확장 — 기본 펼침, Qwen 4 섹션 (편집 가능), 미리보기 = 실제 모델 입력 | ✅ |
+| 3 | LocalGcp / LocalAi 의 read-only "🔍 최종 입력 프롬프트 보기" 제거 (중복 정리) | ✅ |
+| 4 | LocalAi (transformers) 에 PromptEditor 추가 — explainQuestion(customMessages) | ✅ |
+| 5 | HfPlayground / HfCompare exam 모드에 PromptEditor 추가 — handleRun(customMessages) | ✅ |
+| 6 | 빌드 → 배포 → Playwright 전수 → 커밋/푸시 → 문서 갱신 | ✅ |
+
+### 17.3 PromptEditor 신규 구조
+
+```
+[🎯 프롬프트 편집기] (기본 펼침 ▲)
+├── 1️⃣ 시스템 메시지 (페르소나)              ← 편집
+├── 2️⃣ 사용자 메시지 (문제+보기+정답)        ← 편집
+├── 🔶 Qwen 한국어 강제 (Qwen 모델일 때만)
+│   ├── 3️⃣ System tail (KOREAN_FORCE_SYSTEM)  ← 편집
+│   ├── 4️⃣ User tail (KOREAN_FORCE_USER)      ← 편집
+│   ├── 5️⃣ Assistant Seed                     ← 편집
+│   └── 6️⃣ /no_think 토글                     ← thinking 차단/허용
+├── 📨 최종 메시지 미리보기 (실제 모델 입력)
+└── ✨ [이 프롬프트로 전송]
+```
+
+핵심:
+- 백엔드 / 프론트의 `applyQwenStrict` 는 idempotent (`includes('CRITICAL: 반드시 한국어')` 검출 시 skip)
+- PromptEditor 가 미리 적용한 messages 보내도 백엔드에서 중복 추가 안 됨
+- KOREAN_FORCE_* 비우면 영어 응답 실험 가능
+
+### 17.4 영향 lab (6 lab 통일)
+
+| Lab | PromptEditor | 비고 |
+|---|---|---|
+| LocalGcp (일심동체) | ✓ | read-only 미리보기 제거 |
+| ServerInfer (격리) | ✓ | (기존) |
+| OllamaBridge | ✓ | (기존) |
+| LocalAi transformers | ✓ NEW | inference.js customMessages 추가 |
+| LocalAi WebLLM | ✓ | (기존, WebllmPanel 안에서 사용) |
+| HfPlayground exam 모드 | ✓ NEW | 자유 prompt 모드는 그대로 |
+| HfCompare exam 모드 | ✓ NEW | 첫 선택 모델 ID 로 isQwen 판정 |
+
+### 17.5 Playwright 검증 결과
+
+```
+$ PLAYWRIGHT_BASE_URL=https://aitutor-z2ppabmtxa-uk.a.run.app \
+  npx playwright test tests/step7-labs-smoke.spec.js
+
+Running 19 tests using 1 worker
+  ✓ 19 tests/step7-labs-smoke.spec.js
+  
+  4 skipped (admin 인증 필요 / DB 모드 — 의도적 skip)
+  15 passed (33.2s)
+  0 failed
+```
+
+검증 통과 항목:
+- 실험실 메인 (/lab) — 5 카드 + 헤더 + 홈 링크
+- 디바이스 AI (/lab/local-ai) — EngineSwitcher + 실험실 링크
+- Cloud Run 일심동체 (/lab/local-gcp) — 6 엔진 + 모델 카드
+- 격리 추론 (/lab/server-infer) — 6 엔진 fallback
+- HF Inference (/lab/hf) — 탭 + 비교 모드
+- Ollama bridge (/lab/ollama-bridge) — 도움말 6 단계
+- 헤더 통일 (5 lab) — "← 실험실" 링크 모두 동작
+
+### 17.6 변경 파일 (8개)
+
+| 파일 | 변경 |
+|---|---|
+| src/lib/qwen.js | export 4 상수 추가 |
+| api/_runtime/qwen.js | sync (CommonJS) export 추가 |
+| src/components/lab/PromptEditor.jsx | Qwen 4 섹션 + 기본 펼침 (+90 lines) |
+| src/labs/local-gcp/LocalGcpTester.jsx | showPrompt 제거 (-22 lines) |
+| src/labs/local-ai/LocalAiExplanation.jsx | PromptEditor 추가 + showPrompt 제거 (-37 lines + 8 lines) |
+| src/labs/local-ai/lib/inference.js | customMessages opts 추가 |
+| src/labs/hf-playground/HfPlayground.jsx | PromptEditor 추가 (exam 모드) |
+| src/labs/hf-playground/HfCompare.jsx | PromptEditor 추가 (exam 모드, 첫 선택 모델) |
+
+순 변동: +187 / -111 = 76 라인 증가 (확장 기능 대비 합리적)
+
+### 17.7 변경 이력 종합 (REBUILD30 누적)
+
+| 날짜 | 커밋 | 작업 |
+|---|---|---|
+| 2026-04-30 | 7bd78de | 옵션 A — slider + promptBuilder + models.js |
+| 2026-04-30 | eec2610 | 옵션 B — ParamSliders + ErrorBanner |
+| 2026-04-30 | e78851b | REBUILD27~30 누적 트리 정리 (58 files) |
+| 2026-04-30 | edb1c25 | action=public 라우트 401 버그 fix |
+| 2026-05-01 | 914c93f | React error #31 choices 객체 정규화 |
+| 2026-05-01 | 0d0896b | docs §16~17 사후 작업 추가 |
+| 2026-05-01 | 744918a | 빈 카테고리 fallback fix + 시험 갯수 표시 |
+| 2026-05-01 | d3f69d6 | §18 PromptEditor 6 lab 통일 + Qwen 강제 가시화 |
+
+### 17.8 Cloud Run 배포 이력
+
+| 날짜 | Revision | TAG | 빌드 시간 |
+|---|---|---|---|
+| 2026-04-30 09:08 | aitutor-00019-k92 | rebuild30-20260430-173811 | 34분 44초 |
+| 2026-04-30 (later) | aitutor-00020-h5x | rebuild30-fix-20260501-082038 | 32분 38초 |
+| 2026-05-01 00:28 | aitutor-00021-nkc | rebuild30-react31-fix-20260501-085943 | 28분 11초 |
+| 2026-05-01 (later) | aitutor-00022-xd4 | rebuild30-empty-cat-fix-20260501-094454 | 27분 53초 |
+| 2026-05-01 (later) | aitutor-00023-xct | rebuild30-prompt-editor-20260501-102105 | 35분 39초 |
+
+현재 active: **aitutor-00023-xct** (us-east4, 100% traffic)
+
+---
+
+## 18. 한 줄 요약
+
+**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 4건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화) + PromptEditor 6 lab 통일. 8 commit / 5 deploy / Playwright 15/15 통과 / origin/main + aitutor-00023-xct 까지 sync.**
