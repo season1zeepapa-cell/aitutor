@@ -13,6 +13,7 @@ import { chat as hfChat, fetchModelCatalog } from './lib/hfClient';
 import ModelCatalog from './components/ModelCatalog';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import ParamSliders from '../../components/lab/ParamSliders';
+import PromptEditor from '../../components/lab/PromptEditor';
 
 const TABS = [
   { id: 'exam', label: '🎓 시험 문제 모드', desc: '운전면허 무작위 문항으로 추론 비교' },
@@ -90,7 +91,9 @@ export default function HfPlayground() {
     setUserMsg(preset.user);
   }
 
-  const handleRun = async () => {
+  // REBUILD30 §18 — handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
+  // exam 모드에서 PromptEditor 가 messages 보내면 그대로 사용, 아니면 기존 build.
+  const handleRun = async (customMessages = null) => {
     setStream('');
     setMeta(null);
     setDone(null);
@@ -100,7 +103,9 @@ export default function HfPlayground() {
     firstTokenAtRef.current = 0;
 
     let messages;
-    if (tab === 'exam') {
+    if (customMessages) {
+      messages = customMessages;
+    } else if (tab === 'exam') {
       if (!question) { setRunning(false); return; }
       const built = buildExamMessages(question);
       messages = [
@@ -286,6 +291,16 @@ export default function HfPlayground() {
       {/* === 시험 문제 모드 — REBUILD29 §19 통합 QuestionPicker === */}
       {tab === 'exam' && (
         <QuestionPicker question={question} onChange={handleQuestionChange} />
+      )}
+
+      {/* REBUILD30 §18 — exam 모드에서 PromptEditor (Qwen 강제 4 섹션 + 미리보기) */}
+      {tab === 'exam' && question && (
+        <PromptEditor
+          question={question}
+          model={selectedId}
+          running={running}
+          onSubmit={(messages) => handleRun(messages)}
+        />
       )}
 
       {/* === 자유 프롬프트 모드 === */}

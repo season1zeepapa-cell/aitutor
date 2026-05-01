@@ -12,7 +12,7 @@ import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
 import ParamSliders from '../../components/lab/ParamSliders';
 import ErrorBanner from '../../components/lab/ErrorBanner';
-import { buildLabMessages, buildPromptPreview } from '../../lib/lab/promptBuilder';
+import { buildLabMessages } from '../../lib/lab/promptBuilder';
 import { LAB_MODELS } from '../../lib/lab/models';
 
 // 추론 엔진 (REBUILD28 §0.3 — 일심동체 6 엔진 전수)
@@ -37,7 +37,6 @@ export default function LocalGcpTester() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
   const [showAnswer, setShowAnswer] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
   const [history, setHistory] = useState([]);
   const [maxTokens, setMaxTokens] = useState(2048);  // REBUILD29 — Qwen 한국어 해설은 256 으로 잘림 사례 (2026-04-30)
   const [temperature, setTemperature] = useState(0.3);
@@ -214,26 +213,7 @@ export default function LocalGcpTester() {
         </button>
       )}
 
-      {/* 프롬프트 보기 */}
-      {question && (
-        <div className="rounded-xl border border-border bg-card-bg">
-          <button type="button" onClick={() => setShowPrompt(s => !s)}
-            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-text">
-            <span>🔍 최종 입력 프롬프트 보기</span>
-            <span className="text-text-secondary">{showPrompt ? '접기 ▲' : '펼치기 ▼'}</span>
-          </button>
-          {showPrompt && (() => {
-            const promptText = buildPromptPreview(question);
-            return (
-              <div className="px-4 pb-3 border-t border-border">
-                <pre className="text-[11px] bg-bg p-2 rounded whitespace-pre-wrap break-words leading-relaxed text-text max-h-72 overflow-y-auto border border-border mt-2">
-{promptText}
-                </pre>
-              </div>
-            );
-          })()}
-        </div>
-      )}
+      {/* REBUILD30 §18 — read-only "🔍 최종 입력 프롬프트 보기" 제거. PromptEditor 의 미리보기로 대체. */}
 
       {/* 메트릭 */}
       {meta && (

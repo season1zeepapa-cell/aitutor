@@ -13,9 +13,11 @@
 
 const QWEN_REGEX = /^qwen/i;
 
+// REBUILD30 §18 — sync master-copy with src/lib/qwen.js (PromptEditor 가 사용자에게 노출/편집).
 const KOREAN_FORCE_SYSTEM = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
 const KOREAN_FORCE_USER   = '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.';
 const KOREAN_ASSISTANT_SEED = '네, 한국어로 답변드리겠습니다.\n\n';
+const NO_THINK_TOKEN = '/no_think';
 
 /**
  * 모델 식별자가 Qwen 계열인지 판정.
@@ -101,4 +103,7 @@ function applyQwenStrict(messages, modelKeyOrId) {
   return applyQwenKoreanLock(applyQwenNoThink(messages, modelKeyOrId), modelKeyOrId);
 }
 
-module.exports = { isQwenModel, applyQwenNoThink, applyQwenKoreanLock, applyQwenStrict };
+module.exports = {
+  isQwenModel, applyQwenNoThink, applyQwenKoreanLock, applyQwenStrict,
+  KOREAN_FORCE_SYSTEM, KOREAN_FORCE_USER, KOREAN_ASSISTANT_SEED, NO_THINK_TOKEN,
+};

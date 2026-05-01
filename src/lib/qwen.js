@@ -10,9 +10,13 @@
 
 const QWEN_REGEX = /^qwen/i;
 
-const KOREAN_FORCE_SYSTEM = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
-const KOREAN_FORCE_USER   = '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.';
-const KOREAN_ASSISTANT_SEED = '네, 한국어로 답변드리겠습니다.\n\n';
+// REBUILD30 §18 — PromptEditor 가 사용자에게 노출 + 편집 가능하게 export.
+// 백엔드 / 프론트의 applyQwenStrict 는 idempotent (이미 추가되어있으면 skip) 라
+// 사용자가 PromptEditor 에서 미리 편집 적용해도 백엔드 측 자동 주입이 중복되지 않음.
+export const KOREAN_FORCE_SYSTEM = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
+export const KOREAN_FORCE_USER   = '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.';
+export const KOREAN_ASSISTANT_SEED = '네, 한국어로 답변드리겠습니다.\n\n';
+export const NO_THINK_TOKEN = '/no_think';
 
 export function isQwenModel(modelKeyOrId) {
   if (!modelKeyOrId) return false;

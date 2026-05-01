@@ -14,6 +14,7 @@ import { COMPARE_PRESETS, resolvePreset, extractAnswer } from './lib/comparePres
 import ModelCatalog from './components/ModelCatalog';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import ParamSliders from '../../components/lab/ParamSliders';
+import PromptEditor from '../../components/lab/PromptEditor';
 
 const TABS = [
   { id: 'exam', label: '🎓 시험' },
@@ -96,12 +97,15 @@ export default function HfCompare() {
   }
 
   // ─── 동시 호출 ───
-  const handleRun = async () => {
+  // REBUILD30 §18 — handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
+  const handleRun = async (customMessages = null) => {
     if (selectedIds.size === 0) return;
 
     // 메시지 구성
     let messages;
-    if (tab === 'exam') {
+    if (customMessages) {
+      messages = customMessages;
+    } else if (tab === 'exam') {
       if (!question) return;
       const built = buildExamMessages(question);
       messages = [
@@ -342,6 +346,18 @@ export default function HfCompare() {
       {/* REBUILD29 §19 — 시험 모드: 통합 QuestionPicker */}
       {tab === 'exam' && (
         <QuestionPicker question={question} onChange={handleQuestionChange} />
+      )}
+
+      {/* REBUILD30 §18 — 비교 모드 PromptEditor.
+          여러 모델 호출이지만 messages 는 1개 → 첫 선택 모델 ID 로 isQwen 판정.
+          비-Qwen 모델도 한국어 강제 system 받지만 무해. */}
+      {tab === 'exam' && question && selectedIds.size > 0 && (
+        <PromptEditor
+          question={question}
+          model={Array.from(selectedIds)[0]}
+          running={running}
+          onSubmit={(messages) => handleRun(messages)}
+        />
       )}
 
       {tab === 'prompt' && (

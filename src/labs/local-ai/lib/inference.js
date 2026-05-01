@@ -224,7 +224,10 @@ export async function loadPipe(size = 'e2b', onProgress = () => {}) {
 /**
  * @param {{processor, model, family}} pipe
  * @param {object} question - { body, choices, answer, answer_extra }
- * @param {object} opts - { onToken, maxTokens, temperature, topK }
+ * @param {object} opts - { onToken, maxTokens, temperature, topK, customMessages }
+ *
+ * REBUILD30 §18 — opts.customMessages 가 있으면 PromptEditor 가 이미 적용한
+ * messages 그대로 사용 (applyQwenStrict idempotent guard 유지).
  */
 export async function explainQuestion(pipe, question, opts = {}) {
   const { processor, model, family } = pipe;
@@ -233,9 +236,10 @@ export async function explainQuestion(pipe, question, opts = {}) {
     maxTokens = 512,
     temperature = 0.3,
     topK = 20,
+    customMessages = null,
   } = opts;
 
-  const baseMessages = buildMessages(question);
+  const baseMessages = customMessages || buildMessages(question);
   // REBUILD29 §13 / §16 — Qwen 한국어 강제 + thinking 비활성 (family 'qwen3.5' / 'qwen2.5' 모두 매칭)
   const messages = applyQwenStrict(baseMessages, family);
   // tokenize: false 명시 — Qwen tokenizer.apply_chat_template 은 기본값이 tokenize=true 라서

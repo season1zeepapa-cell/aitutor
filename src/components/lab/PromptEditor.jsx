@@ -1,28 +1,41 @@
-// 프롬프트 섹션별 편집기 (REBUILD29 §26 — 사용자 요청 2026-04-30)
+// 프롬프트 섹션별 편집기 (REBUILD29 §26 + REBUILD30 §18 — 사용자 결정 2026-05-01)
 //
 // lab 의 추론 호출 직전 프롬프트 구조를 사용자에게 노출 + 편집 가능:
-//   - 시스템 / 페르소나 (편집 가능, default = STANDARD_SYSTEM_PROMPT)
+//   - 시스템 메시지 (편집 가능, default = STANDARD_SYSTEM_PROMPT)
 //   - 사용자 메시지 (편집 가능, default = buildUserPrompt(question))
-//   - Assistant Seed (Qwen 한국어 강제, 자동 적용 안내)
-//   - 최종 메시지 미리보기 (read-only)
-//   - "이 프롬프트로 전송" 버튼 → 부모 콜백
+//   - Qwen 모델 시 추가 4 섹션 (REBUILD30 §18):
+//       · System tail KOREAN_FORCE_SYSTEM (편집 가능)
+//       · User tail KOREAN_FORCE_USER (편집 가능)
+//       · Assistant Seed KOREAN_ASSISTANT_SEED (편집 가능)
+//       · /no_think 토큰 (토글)
+//   - 최종 메시지 미리보기 (실제 모델 입력 그대로)
+//   - "이 프롬프트로 전송" 버튼
+//
+// 백엔드 / 프론트의 applyQwenStrict 는 idempotent — PromptEditor 가 미리 적용된
+// messages 를 보내도 키워드 검출(`includes('CRITICAL: 반드시 한국어')`) 로 중복 추가 차단.
 //
 // 사용:
-//   <PromptEditor
-//     question={question}
-//     model={modelKey}
-//     running={running}
-//     onSubmit={(messages) => handleRun(messages)}
-//   />
+//   <PromptEditor question={question} model={modelKey} running={running}
+//                 onSubmit={(messages) => handleRun(messages)} />
 
 import { useState, useEffect } from 'react';
 import { STANDARD_SYSTEM_PROMPT, buildUserPrompt } from '../../lib/lab/promptBuilder';
-import { isQwenModel } from '../../lib/qwen';
+import {
+  isQwenModel,
+  KOREAN_FORCE_SYSTEM, KOREAN_FORCE_USER, KOREAN_ASSISTANT_SEED, NO_THINK_TOKEN,
+} from '../../lib/qwen';
 
 export default function PromptEditor({ question, model, running, onSubmit, disabled }) {
+  // ─── 기본 2 섹션 (모든 모델) ───────────────────────────
   const [system, setSystem] = useState(STANDARD_SYSTEM_PROMPT);
   const [user, setUser] = useState('');
-  const [open, setOpen] = useState(false);  // 기본 접힘 — 사용자가 펼침 클릭 시 노출
+  const [open, setOpen] = useState(true);  // REBUILD30 §18 — 기본 펼침 (사용자 발견성 ↑)
+
+  // ─── Qwen 추가 4 섹션 (Qwen 모델만 노출) ────────────────
+  const [qSysTail, setQSysTail] = useState(KOREAN_FORCE_SYSTEM);
+  const [qUserTail, setQUserTail] = useState(KOREAN_FORCE_USER);
+  const [qSeed, setQSeed] = useState(KOREAN_ASSISTANT_SEED);
+  const [qNoThink, setQNoThink] = useState(true);
 
   const isQwen = isQwenModel(model);
 
@@ -34,12 +47,25 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
     }
   }, [question, userTouched]);
 
-  // ─── 최종 messages 조립 ──────────────────
-  const finalMessages = [
-    { role: 'system', content: system },
-    { role: 'user',   content: user },
-  ];
-  // Assistant seed 는 applyQwenStrict 가 호출처에서 자동 추가 (이중 안전망)
+  // ─── 최종 messages 조립 ─────────────────────────────────
+  // Qwen 모델: 사용자 편집된 강제 텍스트를 미리 합쳐 보냄. 백엔드 idempotent guard 가
+  //          중복 검출하면 다시 추가하지 않음 (qSysTail 비우면 영어 응답 실험 가능).
+  function buildFinalMessages() {
+    const sysContent = isQwen ? (system + qSysTail) : system;
+    const userContent = isQwen
+      ? (user + qUserTail + (qNoThink ? `\n\n${NO_THINK_TOKEN}` : ''))
+      : user;
+    const msgs = [
+      { role: 'system', content: sysContent },
+      { role: 'user',   content: userContent },
+    ];
+    if (isQwen && qSeed.trim()) {
+      msgs.push({ role: 'assistant', content: qSeed });
+    }
+    return msgs;
+  }
+
+  const finalMessages = buildFinalMessages();
 
   const handleSubmit = () => {
     if (!question || !user.trim() || running) return;
@@ -51,6 +77,12 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
     setUser(buildUserPrompt(question));
     setUserTouched(false);
   };
+  const handleResetQwen = () => {
+    setQSysTail(KOREAN_FORCE_SYSTEM);
+    setQUserTail(KOREAN_FORCE_USER);
+    setQSeed(KOREAN_ASSISTANT_SEED);
+    setQNoThink(true);
+  };
 
   return (
     <div className="rounded-xl border border-border bg-card-bg">
@@ -60,7 +92,7 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
         onClick={() => setOpen(s => !s)}
         className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold text-text"
       >
-        <span>🎯 프롬프트 편집기 {open && <span className="text-text-secondary font-normal">— 섹션별 수정 가능</span>}</span>
+        <span>🎯 프롬프트 편집기 {open && <span className="text-text-secondary font-normal">— 시스템 / 사용자 / {isQwen ? 'Qwen 강제 (4)' : '기본'}</span>}</span>
         <span className="text-text-secondary">{open ? '접기 ▲' : '펼치기 ▼'}</span>
       </button>
 
@@ -86,7 +118,7 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
               className="w-full rounded px-2 py-1.5 border border-border bg-bg text-text text-[11px] font-mono leading-relaxed"
             />
             <p className="text-[10px] text-text-secondary opacity-70 mt-0.5">
-              모델의 역할/제약 정의. Qwen 호출 시 한국어 강제 자동 추가됨.
+              모델 역할/제약 정의. {isQwen && '아래 Qwen System tail 이 자동으로 뒤에 붙음.'}
             </p>
           </div>
 
@@ -112,32 +144,82 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
             />
           </div>
 
-          {/* 3) Assistant Seed (Qwen 자동) */}
+          {/* 3) Qwen 강제 4 섹션 (Qwen 모델만) — REBUILD30 §18 */}
           {isQwen && (
-            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-2 text-[10.5px] text-emerald-900 dark:text-emerald-200">
-              <p className="font-bold">3️⃣ Assistant Seed (자동 적용)</p>
-              <p className="font-mono mt-0.5">"네, 한국어로 답변드리겠습니다."</p>
-              <p className="opacity-80 mt-0.5">Qwen 모델 한국어 강제 + thinking false (`/no_think`) 자동 추가됨.</p>
+            <div className="rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 p-2.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-emerald-900 dark:text-emerald-200">
+                  🔶 Qwen 한국어 강제 + 추론 모드 (편집 가능)
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetQwen}
+                  className="text-[10px] text-emerald-700 dark:text-emerald-300 hover:underline"
+                >
+                  Qwen 기본값으로
+                </button>
+              </div>
+              <p className="text-[10px] text-emerald-800 dark:text-emerald-300 opacity-80">
+                비우면 한국어 강제 해제됨 (영어 응답 실험 등). 백엔드 자동 주입은 idempotent.
+              </p>
+
+              {/* 3-1) System tail */}
+              <div>
+                <p className="text-[10.5px] font-bold text-emerald-900 dark:text-emerald-200 mb-0.5">3️⃣ System tail (KOREAN_FORCE_SYSTEM)</p>
+                <textarea
+                  value={qSysTail}
+                  onChange={e => setQSysTail(e.target.value)}
+                  rows={2}
+                  className="w-full rounded px-2 py-1 border border-emerald-200 dark:border-emerald-800 bg-bg text-text text-[10.5px] font-mono leading-relaxed"
+                />
+              </div>
+
+              {/* 3-2) User tail */}
+              <div>
+                <p className="text-[10.5px] font-bold text-emerald-900 dark:text-emerald-200 mb-0.5">4️⃣ User tail (KOREAN_FORCE_USER)</p>
+                <textarea
+                  value={qUserTail}
+                  onChange={e => setQUserTail(e.target.value)}
+                  rows={2}
+                  className="w-full rounded px-2 py-1 border border-emerald-200 dark:border-emerald-800 bg-bg text-text text-[10.5px] font-mono leading-relaxed"
+                />
+              </div>
+
+              {/* 3-3) Assistant Seed */}
+              <div>
+                <p className="text-[10.5px] font-bold text-emerald-900 dark:text-emerald-200 mb-0.5">5️⃣ Assistant Seed (KOREAN_ASSISTANT_SEED)</p>
+                <textarea
+                  value={qSeed}
+                  onChange={e => setQSeed(e.target.value)}
+                  rows={2}
+                  className="w-full rounded px-2 py-1 border border-emerald-200 dark:border-emerald-800 bg-bg text-text text-[10.5px] font-mono leading-relaxed"
+                />
+              </div>
+
+              {/* 3-4) /no_think 토글 */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={qNoThink}
+                  onChange={e => setQNoThink(e.target.checked)}
+                />
+                <span className="text-[10.5px] font-bold text-emerald-900 dark:text-emerald-200">
+                  6️⃣ /no_think 토큰 활성화 ({qNoThink ? 'thinking 차단' : 'thinking 허용'})
+                </span>
+              </label>
             </div>
           )}
 
           {/* 4) 최종 메시지 미리보기 */}
           <div>
-            <p className="text-[11px] font-bold text-text mb-1">📨 최종 메시지 (조합 미리보기)</p>
-            <div className="rounded border border-border bg-bg p-2 text-[10px] font-mono text-text leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+            <p className="text-[11px] font-bold text-text mb-1">📨 최종 메시지 (실제 모델 입력)</p>
+            <div className="rounded border border-border bg-bg p-2 text-[10px] font-mono text-text leading-relaxed max-h-56 overflow-y-auto whitespace-pre-wrap">
               {finalMessages.map((m, i) => (
                 <div key={i} className={i > 0 ? 'mt-2 pt-2 border-t border-border/50' : ''}>
                   <span className="text-primary font-bold">[{m.role}]</span>
                   {'\n'}{m.content}
                 </div>
               ))}
-              {isQwen && (
-                <div className="mt-2 pt-2 border-t border-border/50 opacity-60">
-                  <span className="text-emerald-600 font-bold">[assistant]</span>
-                  {'\n'}네, 한국어로 답변드리겠습니다.
-                  {'\n'}<span className="text-text-secondary opacity-70">(Qwen 자동 추가)</span>
-                </div>
-              )}
             </div>
           </div>
 

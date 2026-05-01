@@ -15,9 +15,9 @@ import MemoryHelpCard from './components/MemoryHelpCard';
 import EngineSwitcher from './components/EngineSwitcher';
 import WebllmPanel from './components/WebllmPanel';
 import QuestionPicker from '../../components/lab/QuestionPicker';
+import PromptEditor from '../../components/lab/PromptEditor';
 import { checkDeviceAi, getMemoryInfo } from './lib/deviceCheck';
 import { loadPipe, explainQuestion, disposePipe, getLastUsedDevice, MODEL_META } from './lib/inference';
-import { buildSinglePrompt } from './lib/prompts';
 import { activateWakeLock, releaseWakeLock, attachVisibilityRetry } from './lib/wakeLock';
 
 const CIRCLE = ['①','②','③','④','⑤'];
@@ -38,7 +38,6 @@ export default function LocalAiExplanation() {
   const [isHidden, setIsHidden] = useState(false);     // 페이지 백그라운드 진입 감지
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [activeSize, setActiveSize] = useState(null);  // 사용자 수동 선택한 모델 size
-  const [showPrompt, setShowPrompt] = useState(false); // 최종 입력 프롬프트 미리보기 토글
   const [refreshKey, setRefreshKey] = useState(0);     // 모델 관리 패널 새로고침
   const pipeRef = useRef(null);
 
@@ -176,8 +175,8 @@ export default function LocalAiExplanation() {
     setRefreshKey(k => k + 1);
   };
 
-  // 해설 생성
-  const generate = async () => {
+  // 해설 생성 — REBUILD30 §18: PromptEditor 가 customMessages 전달 시 우선 사용
+  const generate = async (customMessages = null) => {
     if (!pipeRef.current || !question) return;
     setGenerating(true);
     setExplanation('');
@@ -193,6 +192,7 @@ export default function LocalAiExplanation() {
         maxTokens: 2048,   // REBUILD29 — 사용자 디바이스 추론 (브라우저 WebGPU, 외부 비용 0). 잘림 방지
         temperature: 0.3,
         onToken: (t) => setExplanation(prev => prev + t),
+        customMessages,    // PromptEditor 가 보낸 messages 우선
       });
     } catch (e) {
       setError(`해설 생성 실패: ${e.message}`);
@@ -302,50 +302,20 @@ export default function LocalAiExplanation() {
 
       {/* AI 해설 생성 버튼 — transformers.js 엔진일 때만 (WebLLM 은 WebllmPanel 자체 버튼 사용) */}
       {engine === 'transformers' && pipeReady && question && (
-        <button onClick={generate} disabled={generating}
+        <button onClick={() => generate()} disabled={generating}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
-          {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성`}
+          {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성 (default)`}
         </button>
       )}
 
-      {/* 최종 입력 프롬프트 미리보기 — 디버깅/투명성 (접힘 기본) */}
-      {question && (
-        <div className="rounded-xl border border-border bg-card-bg">
-          <button
-            type="button"
-            onClick={() => setShowPrompt(s => !s)}
-            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-text"
-          >
-            <span>🔍 최종 입력 프롬프트 보기</span>
-            <span className="text-text-secondary">{showPrompt ? '접기 ▲' : '펼치기 ▼'}</span>
-          </button>
-          {showPrompt && (() => {
-            const previewQ = {
-              body: question.body,
-              choices: Array.isArray(question.choices) ? question.choices : JSON.parse(question.choices || '[]'),
-              answer: question.answer,
-              answer_extra: question.answer_extra,
-            };
-            const promptText = buildSinglePrompt(previewQ);
-            return (
-              <div className="px-4 pb-3 border-t border-border">
-                <div className="flex items-center justify-between mt-2 mb-1">
-                  <span className="text-[10px] text-text-secondary">{promptText.length}자 — 모델에 그대로 전달됩니다</span>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard?.writeText(promptText)}
-                    className="text-[10px] text-primary hover:underline"
-                  >
-                    📋 복사
-                  </button>
-                </div>
-                <pre className="text-[11px] bg-bg p-2 rounded whitespace-pre-wrap break-words leading-relaxed text-text max-h-72 overflow-y-auto border border-border">
-{promptText}
-                </pre>
-              </div>
-            );
-          })()}
-        </div>
+      {/* REBUILD30 §18 — PromptEditor 통합 (transformers 엔진일 때만, WebLLM 은 WebllmPanel 안에 자체) */}
+      {engine === 'transformers' && pipeReady && question && (
+        <PromptEditor
+          question={question}
+          model={MODEL_META[activeSize]?.family || activeSize}
+          running={generating}
+          onSubmit={(messages) => generate(messages)}
+        />
       )}
 
       {/* 해설 출력 — transformers.js 엔진의 결과만 (WebLLM 은 WebllmPanel 안에서 자체 출력) */}
