@@ -140,20 +140,31 @@ async function ensureLlamaServer(ollamaModelTag, ggufInfo) {
   await _killDaemon('llama-server');
 
   // GGUF 모델 path: HF Hub 캐시 또는 Ollama blob 활용
-  // 가장 단순: huggingface-cli 로 다운로드 (HF_HOME 캐시)
+  // REBUILD30 §22 — 2 GiB 이상 파일 stream 다운로드 (이전: arrayBuffer() 한계 2^31-1 bytes 초과 → throw)
   const cacheDir = process.env.HF_HOME || '/var/cache/huggingface';
   const modelPath = `${cacheDir}/llama-cpp/${ggufInfo.file}`;
   const fs = require('fs');
   if (!fs.existsSync(modelPath)) {
     fs.mkdirSync(`${cacheDir}/llama-cpp`, { recursive: true });
     const url = `https://huggingface.co/${ggufInfo.repo}/resolve/main/${ggufInfo.file}`;
-    console.log(`[local-infer] GGUF 다운로드: ${url} → ${modelPath}`);
+    console.log(`[local-infer] GGUF 다운로드 (stream): ${url} → ${modelPath}`);
     const t0 = Date.now();
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`GGUF 다운로드 실패: HTTP ${resp.status}`);
-    const buf = Buffer.from(await resp.arrayBuffer());
-    fs.writeFileSync(modelPath, buf);
-    console.log(`[local-infer] GGUF 다운로드 완료 (${Date.now() - t0}ms, ${buf.length} bytes)`);
+
+    // Web ReadableStream → fs writeStream pipeline (메모리 점유 chunk 단위, 큰 파일 OK)
+    const { pipeline } = require('stream/promises');
+    const { Readable } = require('stream');
+    const tmpPath = modelPath + '.partial';
+    try {
+      await pipeline(Readable.fromWeb(resp.body), fs.createWriteStream(tmpPath));
+      fs.renameSync(tmpPath, modelPath);  // atomic rename — 중간 실패 시 부분 파일 남지 않음
+    } catch (err) {
+      try { fs.unlinkSync(tmpPath); } catch {}
+      throw err;
+    }
+    const stat = fs.statSync(modelPath);
+    console.log(`[local-infer] GGUF 다운로드 완료 (${Date.now() - t0}ms, ${stat.size} bytes)`);
   }
 
   console.log(`[local-infer] llama-server spawn: ${modelPath}`);
