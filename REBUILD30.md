@@ -1280,6 +1280,90 @@ Playwright 19 tests / 15 passed / 4 skipped (의도) / 0 failed
 
 ---
 
-## 19. 한 줄 요약
+## 19. §20 HF 회귀 fix — circular JSON (2026-05-01)
 
-**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 5건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화 / SettingsTab Labs 통일) + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화. 9 commit / 6 deploy / Playwright 15/15 통과 / origin/main + aitutor-00024-jhf 까지 sync.**
+### 19.1 증상
+
+HfPlayground / HfCompare 의 exam 모드 "✨ 해설 생성" 버튼 클릭 시:
+```
+⚠ Converting circular structure to JSON --> starting at object with constructor
+'HTMLButtonElement' | property '__reactFiber$xxx' -> object with constructor 'td'
+--- property 'stateNode' closes the circle
+```
+
+### 19.2 원인 — REBUILD30 §18 회귀
+
+§18 PromptEditor 통합 시 `handleRun` 시그니처를 변경:
+```js
+const handleRun = async (customMessages = null) => {
+  if (customMessages) { messages = customMessages; }
+  ...
+};
+```
+
+그러나 `<button onClick={handleRun}>` 그대로 두어 React SyntheticEvent 가
+첫 인자로 자동 전달:
+```
+onClick(syntheticEvent) → handleRun(syntheticEvent)
+                         → customMessages = syntheticEvent (truthy!)
+                         → messages = syntheticEvent (DOM Fiber 포함)
+                         → fetch body JSON.stringify(messages)
+                         → DOM circular ref → throw
+```
+
+LocalGcp / ServerInfer / LocalAi / WebllmPanel 은 이미
+`onClick={() => handleRun()}` / `onClick={() => generate()}` 패턴 사용해서 영향 없었음.
+HF 만 회귀 발생.
+
+### 19.3 수정
+
+| 파일 | Before | After |
+|---|---|---|
+| HfPlayground.jsx:374 | `onClick={handleRun}` | `onClick={() => handleRun()}` |
+| HfCompare.jsx:418 | `onClick={handleRun}` | `onClick={() => handleRun()}` |
+
+### 19.4 검증
+
+```
+Cloud Build SUCCESS — 28분 28초
+   Build ID: 56992633-b4a1-4af9-865d-dcad4c909d59
+   Revision: aitutor-00025-m2h ⭐ 100% traffic
+   TAG: rebuild30-hf-circular-fix-20260501-130612
+
+curl /lab/hf → HTTP 200 ✓
+```
+
+### 19.5 누적 변경 이력 (REBUILD30, 11 commit)
+
+| 날짜 | 커밋 | 작업 |
+|---|---|---|
+| 2026-04-30 | 7bd78de | 옵션 A — slider + promptBuilder + models.js |
+| 2026-04-30 | eec2610 | 옵션 B — ParamSliders + ErrorBanner |
+| 2026-04-30 | e78851b | REBUILD27~30 누적 트리 정리 (58 files) |
+| 2026-04-30 | edb1c25 | action=public 401 fix |
+| 2026-05-01 | 914c93f | React #31 choices 정규화 |
+| 2026-05-01 | 0d0896b | docs §16~17 |
+| 2026-05-01 | 744918a | 빈 카테고리 fallback fix |
+| 2026-05-01 | d3f69d6 | §18 PromptEditor 6 lab 통일 + Qwen 가시화 |
+| 2026-05-01 | 844cb7e | docs §17~18 |
+| 2026-05-01 | eb71141 | §19 SettingsTab Labs 탭 제거 |
+| 2026-05-01 | 9bfc5a9 | docs §18~19 |
+| 2026-05-01 | 23c93f8 | §20 HF circular JSON 회귀 fix |
+
+### 19.6 누적 배포 이력 (7 revision, 현재 -00025-m2h)
+
+| Revision | TAG | 빌드 |
+|---|---|---|
+| -00019-k92 | rebuild30 | 34분 44초 |
+| -00020-h5x | rebuild30-fix | 32분 38초 |
+| -00021-nkc | react31-fix | 28분 11초 |
+| -00022-xd4 | empty-cat-fix | 27분 53초 |
+| -00023-xct | prompt-editor | 35분 39초 |
+| -00024-jhf | settings-labs-removal | 29분 5초 |
+| -00025-m2h | hf-circular-fix | 28분 28초 |
+
+---
+
+## 20. 한 줄 요약
+
+**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 6건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화 / SettingsTab Labs 통일 / HF circular JSON) + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화. 12 commit / 7 deploy / Playwright 15/15 통과 / origin/main + aitutor-00025-m2h 까지 sync.**
