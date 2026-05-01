@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from engines import (
     dispatch,
+    cleanup_all,
     ENGINES,
     DEFAULT_ENGINE,
     DEFAULT_MODEL_KEY,
@@ -153,6 +154,19 @@ async def post_infer(req: InferRequest, x_internal_token: Optional[str] = Header
             "total_ms":   total_ms,
         },
     )
+
+
+@app.post("/cleanup")
+async def post_cleanup(x_internal_token: Optional[str] = Header(default=None)):
+    """REBUILD30 §21 — 메모리 정리 endpoint.
+
+    모든 lazy 엔진의 모델 unload + PyTorch CUDA cache 비우기.
+    api/local-infer.js 의 cross-engine cleanup 또는 UI "🧹 메모리 정리" 버튼이 호출.
+    """
+    _check_token(x_internal_token)
+    result = cleanup_all()
+    log.info(f"cleanup: {result}")
+    return {"ok": True, **result}
 
 
 # ─── uvicorn 직접 실행 (start.sh 가 호출) ──────────────────

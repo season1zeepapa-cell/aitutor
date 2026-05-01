@@ -102,3 +102,10 @@ async def infer(*, model_key: str, messages: list, max_tokens: int, temperature:
         "answer": answer,
         "infer_ms": int((time.time() - t0) * 1000),
     }
+
+
+
+def unload_all():
+    """REBUILD30 §21 — 로드된 ONNX session 해제."""
+    global _loaded
+    _loaded.clear()

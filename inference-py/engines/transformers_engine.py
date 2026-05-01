@@ -88,3 +88,9 @@ async def infer(*, model_key: str, messages: list, max_tokens: int, temperature:
         "answer": answer,
         "infer_ms": int((time.time() - t0) * 1000),
     }
+
+
+def unload_all():
+    """REBUILD30 §21 — 메모리 정리. 로드된 모든 model/tokenizer 해제."""
+    global _loaded
+    _loaded.clear()

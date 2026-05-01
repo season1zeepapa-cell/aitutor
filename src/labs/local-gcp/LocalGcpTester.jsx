@@ -12,6 +12,7 @@ import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
 import ParamSliders from '../../components/lab/ParamSliders';
 import ErrorBanner from '../../components/lab/ErrorBanner';
+import { getAuthUser } from '../../lib/api';
 import { buildLabMessages } from '../../lib/lab/promptBuilder';
 import { LAB_MODELS } from '../../lib/lab/models';
 
@@ -104,16 +105,46 @@ export default function LocalGcpTester() {
     }
   };
 
+  // REBUILD30 §21 — admin 메모리 정리 버튼
+  const isAdmin = getAuthUser()?.admin === true;
+  const [cleaning, setCleaning] = useState(false);
+  const handleCleanup = async () => {
+    if (!confirm('현재 컨테이너의 모든 daemon + 로드된 모델을 unload 합니다. 계속?')) return;
+    setCleaning(true);
+    try {
+      const r = await fetch('/api/local-infer?action=cleanup', { method: 'POST', credentials: 'include' });
+      const data = await r.json();
+      alert(r.ok ? `🧹 메모리 정리 완료: ${(data.cleaned || []).join(', ')}` : `실패: ${data.error}`);
+    } catch (e) {
+      alert(`에러: ${e.message}`);
+    } finally {
+      setCleaning(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
       <header className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-text">☁️ 서버 통합 (서비스+추론엔진+모델)</h1>
-        <a href="/lab" className="text-xs text-primary hover:underline">← 실험실</a>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={handleCleanup}
+              disabled={cleaning}
+              className="text-[10px] px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900/50 disabled:opacity-50"
+              title="모든 daemon + 모델 unload (admin)"
+            >
+              {cleaning ? '🧹 정리 중…' : '🧹 메모리 정리'}
+            </button>
+          )}
+          <a href="/lab" className="text-xs text-primary hover:underline">← 실험실</a>
+        </div>
       </header>
 
       {/* 안내 배너 */}
       <div className="rounded-lg border border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-900/30 px-3 py-2 text-[11px] text-cyan-900 dark:text-cyan-200 leading-relaxed">
         ☁️ <b>일심동체 — 앱 + 모델 같은 Cloud Run 컨테이너</b> — 외부 API 0, GPU L4 24GB. 8 엔진 동거 (Phase 5-2: 6 active, 2 planned).
+        엔진 변경 시 자동 cross-engine cleanup → OOM 방지 (REBUILD30 §21).
       </div>
 
       {/* 추론 엔진 선택 (REBUILD23 §3.4) */}

@@ -105,3 +105,17 @@ async def infer(*, model_key: str, messages: list, max_tokens: int, temperature:
         "answer": data["choices"][0]["message"]["content"],
         "infer_ms": int((time.time() - t0) * 1000),
     }
+
+
+
+def unload_all():
+    """REBUILD30 §21 — daemon kill + 모델 unload."""
+    global _current_model_key, _daemon_proc
+    if _daemon_proc and _daemon_proc.returncode is None:
+        _daemon_proc.terminate()
+        try:
+            _daemon_proc.wait(timeout=2)
+        except Exception:
+            _daemon_proc.kill()
+    _daemon_proc = None
+    _current_model_key = None

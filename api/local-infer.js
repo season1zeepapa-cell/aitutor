@@ -190,6 +190,58 @@ async function ensureVllm(ollamaModelTag, hfRepo) {
   d.model = ollamaModelTag;
 }
 
+// ─── REBUILD30 §21 — Cross-engine cleanup ──────────────
+// 호출되는 active 엔진 외 다른 엔진의 GPU/메모리 점유를 자동 회수.
+// 사용자가 lab UI 에서 엔진 변경 시 OOM 방지.
+async function cleanupOtherEngines(activeEngine) {
+  const tasks = [];
+
+  // 1) Ollama: active 가 아니면 로드된 모든 모델 unload (keep_alive: 0)
+  if (activeEngine !== 'ollama') {
+    tasks.push((async () => {
+      try {
+        const r = await fetch('http://127.0.0.1:11434/api/ps').catch(() => null);
+        if (!r || !r.ok) return;
+        const data = await r.json();
+        const loaded = (data.models || []).map(m => m.name);
+        for (const name of loaded) {
+          await fetch('http://127.0.0.1:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: name, keep_alive: 0, prompt: '' }),
+          }).catch(() => {});
+        }
+        if (loaded.length) console.log(`[cleanup] Ollama unload: ${loaded.join(', ')}`);
+      } catch (err) {
+        console.warn('[cleanup] Ollama unload 실패:', err?.message);
+      }
+    })());
+  }
+
+  // 2) llama-server lazy daemon: active 가 아니면 kill
+  if (activeEngine !== 'llama-server') {
+    tasks.push(_killDaemon('llama-server').catch(() => {}));
+  }
+
+  // 3) vLLM lazy daemon: active 가 아니면 kill
+  if (activeEngine !== 'vllm') {
+    tasks.push(_killDaemon('vllm').catch(() => {}));
+  }
+
+  // 4) Python sub-server (3 engines 공유): active 가 sub-server 엔진이 아니면 cleanup 신호
+  const pySubEngines = ['llama-cpp-python', 'onnxruntime-genai', 'transformers'];
+  if (!pySubEngines.includes(activeEngine)) {
+    tasks.push((async () => {
+      try {
+        await fetch('http://127.0.0.1:11442/cleanup', { method: 'POST' }).catch(() => {});
+        console.log('[cleanup] Python sub-server cleanup 신호 발송');
+      } catch {}
+    })());
+  }
+
+  await Promise.allSettled(tasks);
+}
+
 // ─── Ollama 호출 (기존 한국어 강제 로직 유지) ──────────────
 async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
   await ensureOllamaModel(ollamaModel);
@@ -305,6 +357,14 @@ module.exports = withAuth(async (req, res) => {
     });
   }
 
+  // REBUILD30 §21 — 모든 엔진 메모리 정리 (admin 전용)
+  // UI "🧹 메모리 정리" 버튼이 호출. 모든 daemon kill + Ollama unload + Python cleanup.
+  if (req.method === 'POST' && req.query?.action === 'cleanup') {
+    if (!req.user?.admin) return res.status(403).json({ error: 'admin 권한 필요' });
+    await cleanupOtherEngines(null).catch(() => {});  // null = 어떤 엔진도 보존 안 함
+    return res.json({ ok: true, cleaned: ['ollama', 'llama-server', 'vllm', 'python-sub-server'] });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST 만 허용 (GET ?action=models 가능)' });
   }
@@ -345,6 +405,12 @@ module.exports = withAuth(async (req, res) => {
 
   const t0 = Date.now();
   try {
+    // REBUILD30 §21 — 엔진 변경 시 자동 cross-engine cleanup
+    // 호출 엔진 외 다른 엔진의 GPU/메모리 점유를 자동 회수해 OOM 방지.
+    await cleanupOtherEngines(engine).catch(err => {
+      console.warn('[local-infer] cleanupOtherEngines 일부 실패 (무시):', err?.message);
+    });
+
     let answer = '';
     if (engine === 'ollama') {
       answer = await callOllama({ ollamaModel: meta.ollama, messages, maxTokens, temperature });
