@@ -1185,6 +1185,101 @@ Running 19 tests using 1 worker
 
 ---
 
-## 18. 한 줄 요약
+## 18. §19 SettingsTab "🧪 실험실" 탭 제거 — /lab 단일 진입점 통일 (2026-05-01)
 
-**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 4건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화) + PromptEditor 6 lab 통일. 8 commit / 5 deploy / Playwright 15/15 통과 / origin/main + aitutor-00023-xct 까지 sync.**
+### 18.1 증상
+
+사용자 보고: "실험실 메인 페이지가 두 가지인 듯, 왔다 갔다"
+스크린샷 확인 결과 진짜로 **두 다른 lab 메인 페이지가 동시 존재**:
+
+| 화면 | 위치 | 컴포넌트 |
+|---|---|---|
+| 목록형 | `/settings` 의 "🧪 실험실" 탭 | `src/tabs/SettingsTab/index.jsx:600-` `LabsSection` |
+| 그리드형 (컬러) | `/lab` | `src/labs/index.jsx` `LabsHome` |
+
+### 18.2 원인 (코드 히스토리)
+
+```
+REBUILD17 (옛)        : SettingsTab 안에 LabsSection 추가 (목록형)
+REBUILD28 §11 (신규)  : /lab 페이지 + LabsHome 그리드 신규 도입
+                      → 그러나 SettingsTab LabsSection 제거 안 함
+결과                  : 두 lab 메인 페이지 공존 → 사용자 혼란
+```
+
+### 18.3 깊이 검증한 옵션 1+ 리스크 (모두 0)
+
+| 검증 | 결과 |
+|---|---|
+| 일반 사용자 영향 | 0 (Labs 탭은 admin 전용이었음) |
+| 데이터 손실 | 0 (DB 동일 `lab_*_enabled` key, /lab 에서 동일 토글) |
+| 기능 손실 | 0 (/lab LabsHome 이 5 카드 + admin 토글 + 가드 모두 제공) |
+| 외부 deeplink | 0 (`/settings?tab=labs` 사용 안 됨) |
+| Playwright 의존 | 0 (LabsSection 미검증) |
+| Capacitor 영향 | 0 |
+
+### 18.4 수정 내용
+
+```
+src/tabs/SettingsTab/index.jsx:
+  - sections 배열에서 'labs' 제거
+  - activeSection==='labs' 핸들러 제거
+  - LabsSection 함수 251 라인 통째 제거
+  + GeneralSection 에 admin 전용 안내 카드 추가
+    "🧪 실험실 → /lab 으로 이동" 1 버튼
+
+순감: -253 / +21 = 232 라인 감소
+```
+
+### 18.5 admin 동선 변경
+
+```
+Before: BottomNav [설정] → "🧪 실험실" 탭 → 5 lab 토글
+After:  BottomNav [설정] → "일반" 탭 → "→ /lab 으로 이동" 카드
+        또는 URL 직접 /lab 입력
+        또는 lab 상세 → "← 실험실" 링크
+```
+
+### 18.6 검증
+
+```
+Cloud Build SUCCESS — 29분 5초
+   Build ID: b9734d66-0a5e-4e4f-b5ed-ea9cc1caecf8
+   Revision: aitutor-00024-jhf
+
+Playwright 19 tests / 15 passed / 4 skipped (의도) / 0 failed
+   /lab 메인 + 5 lab 페이지 + 헤더 통일 모두 통과
+```
+
+### 18.7 변경 이력 종합 (REBUILD30 누적, 9 commit)
+
+| 날짜 | 커밋 | 작업 |
+|---|---|---|
+| 2026-04-30 | 7bd78de | 옵션 A — slider + promptBuilder + models.js |
+| 2026-04-30 | eec2610 | 옵션 B — ParamSliders + ErrorBanner |
+| 2026-04-30 | e78851b | REBUILD27~30 누적 트리 정리 (58 files) |
+| 2026-04-30 | edb1c25 | action=public 라우트 401 버그 fix |
+| 2026-05-01 | 914c93f | React error #31 choices 객체 정규화 |
+| 2026-05-01 | 0d0896b | docs §16~17 사후 작업 추가 |
+| 2026-05-01 | 744918a | 빈 카테고리 fallback fix + 시험 갯수 표시 |
+| 2026-05-01 | d3f69d6 | §18 PromptEditor 6 lab 통일 + Qwen 강제 가시화 |
+| 2026-05-01 | 844cb7e | docs §17~18 |
+| 2026-05-01 | eb71141 | §19 SettingsTab Labs 탭 제거 — /lab 단일 통일 |
+
+### 18.8 Cloud Run 배포 이력 (6 revision)
+
+| 날짜 | Revision | TAG | 빌드 시간 |
+|---|---|---|---|
+| 2026-04-30 | aitutor-00019-k92 | rebuild30-20260430-173811 | 34분 44초 |
+| 2026-04-30 | aitutor-00020-h5x | rebuild30-fix-20260501-082038 | 32분 38초 |
+| 2026-05-01 | aitutor-00021-nkc | rebuild30-react31-fix-20260501-085943 | 28분 11초 |
+| 2026-05-01 | aitutor-00022-xd4 | rebuild30-empty-cat-fix-20260501-094454 | 27분 53초 |
+| 2026-05-01 | aitutor-00023-xct | rebuild30-prompt-editor-20260501-102105 | 35분 39초 |
+| 2026-05-01 | aitutor-00024-jhf | rebuild30-settings-labs-removal-20260501-115909 | 29분 5초 |
+
+현재 active: **aitutor-00024-jhf** (us-east4, 100% traffic)
+
+---
+
+## 19. 한 줄 요약
+
+**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 5건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화 / SettingsTab Labs 통일) + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화. 9 commit / 6 deploy / Playwright 15/15 통과 / origin/main + aitutor-00024-jhf 까지 sync.**
