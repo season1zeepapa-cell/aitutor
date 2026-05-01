@@ -1364,6 +1364,93 @@ curl /lab/hf → HTTP 200 ✓
 
 ---
 
-## 20. 한 줄 요약
+## 20. §21 메모리 다이어트 + 자동 cleanup + UI 정리 버튼 (2026-05-01)
 
-**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 6건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화 / SettingsTab Labs 통일 / HF circular JSON) + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화. 12 commit / 7 deploy / Playwright 15/15 통과 / origin/main + aitutor-00025-m2h 까지 sync.**
+### 20.1 동기
+
+503 에러 분석 결과 Cloud Run 컨테이너 SIGKILL (signal 9) 반복 발생:
+```
+04:23 / 04:54 / 05:00  Container terminated on signal 9
+```
+원인: 16 GiB memory + 24 GB GPU 한도 안에서 6 엔진 차례 테스트 시 자원 누적 → OOM.
+
+테스트 후 엔진/모델을 정할 예정이라 모든 엔진 사용 가능해야 하므로
+**메모리 자동 정리** + **사용자 통제** 필요.
+
+### 20.2 Phase A — Python sub-server lazy import
+
+`inference-py/engines/__init__.py`:
+- `transformers_engine` / `llamacpp` / `onnx` 모듈을 호출 시점에 import (`_get_lazy(name)`)
+- startup 시 PyTorch (~2 GiB) / transformers / llama-cpp-python / onnxruntime 안 로드
+- 호출 시점에만 해당 엔진 module 로드 (cache hit 후 재호출 비용 0)
+
+각 엔진에 `unload_all()` 추가 + `engines.cleanup_all()` 함수 + `POST /cleanup` endpoint.
+
+### 20.3 Phase D — Cross-engine 자동 cleanup
+
+`api/local-infer.js`:
+- 추론 호출 entry 에 `cleanupOtherEngines(activeEngine)` 자동 호출
+- 호출 엔진 외 모두 정리:
+  | 엔진 | cleanup 동작 |
+  |---|---|
+  | Ollama | `/api/ps` 조회 후 모든 모델에 `keep_alive: 0` 발송 |
+  | llama-server | `_killDaemon('llama-server')` SIGTERM/SIGKILL |
+  | vLLM | `_killDaemon('vllm')` |
+  | Python sub-server | `POST 11442/cleanup` 신호 |
+
+→ 사용자가 엔진 변경하기만 하면 GPU/RAM 자동 회수, OOM 위험 ↓
+
+### 20.4 Phase B — UI "🧹 메모리 정리" 버튼 (admin 전용)
+
+- `POST /api/local-infer?action=cleanup` (admin only)
+- LocalGcpTester 헤더에 admin 전용 버튼:
+  - 클릭 → confirm("계속?") → `cleanupOtherEngines(null)` (모든 엔진 정리)
+  - 응답: `{ ok, cleaned: ['ollama', 'llama-server', 'vllm', 'python-sub-server'] }`
+
+→ admin 이 의식적으로 reset 가능 (debugging / 깨끗 시작)
+
+### 20.5 검증
+
+```
+Cloud Build SUCCESS — 30분 6초
+   Build ID: 375057bf-c184-4beb-b74a-84cb922aa1c1
+   Revision: aitutor-00026-frk ⭐ 100% traffic
+   TAG: rebuild30-phase21-memory-20260501-141216
+
+Playwright 19 tests / 15 passed / 4 skipped (의도) / 0 failed (35.7s)
+   /lab + 5 lab 페이지 + 헤더 통일 모두 통과
+```
+
+### 20.6 변경 파일 (7개)
+
+| 파일 | 변경 |
+|---|---|
+| inference-py/engines/__init__.py | lazy `_get_lazy()` + `cleanup_all()` (+80 / -17) |
+| inference-py/engines/transformers_engine.py | `unload_all()` 추가 |
+| inference-py/engines/llamacpp.py | `unload_all()` 추가 (daemon kill) |
+| inference-py/engines/onnx.py | `unload_all()` 추가 |
+| inference-py/server.py | `POST /cleanup` endpoint |
+| api/local-infer.js | `cleanupOtherEngines()` + `?action=cleanup` (+66) |
+| src/labs/local-gcp/LocalGcpTester.jsx | admin "🧹 메모리 정리" 버튼 (+33) |
+
+순 변동: +203 / -17 = 186 라인 증가
+
+### 20.7 누적 변경 이력 (REBUILD30, 13 commit)
+
+| 날짜 | 커밋 | 작업 |
+|---|---|---|
+| ... | (12개 이전) | ... |
+| 2026-05-01 | 475867e | §21 Phase A+D+B 메모리 다이어트 |
+
+### 20.8 누적 배포 이력 (8 revision, 현재 -00026-frk)
+
+| Revision | TAG | 빌드 |
+|---|---|---|
+| -00019-k92 ~ -00025-m2h | (이전 7개) | ... |
+| -00026-frk | phase21-memory | 30분 6초 |
+
+---
+
+## 21. 한 줄 요약
+
+**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 6건 핫픽스 + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화 + §21 메모리 다이어트(lazy import + cross-engine 자동 cleanup + admin 정리 버튼). 13 commit / 8 deploy / Playwright 15/15 통과 / origin/main + aitutor-00026-frk 까지 sync.**
