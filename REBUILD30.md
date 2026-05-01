@@ -1451,6 +1451,71 @@ Playwright 19 tests / 15 passed / 4 skipped (의도) / 0 failed (35.7s)
 
 ---
 
-## 21. 한 줄 요약
+## 21. §22 GGUF 다운로드 ArrayBuffer 2GiB 한도 fix (2026-05-01)
 
-**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 6건 핫픽스 + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화 + §21 메모리 다이어트(lazy import + cross-engine 자동 cleanup + admin 정리 버튼). 13 commit / 8 deploy / Playwright 15/15 통과 / origin/main + aitutor-00026-frk 까지 sync.**
+### 21.1 증상
+
+`llama-server × Gemma 4 E2B` 호출 시 500 에러:
+```
+⚠ The value of "length" is out of range. It must be >= 0 && <= 2147483647.
+  Received 3106735776 (52595ms 후)
+```
+
+### 21.2 원인
+
+`api/local-infer.js:154` 의 GGUF 다운로드 코드:
+```js
+const buf = Buffer.from(await resp.arrayBuffer());  // ← ArrayBuffer 한도 2^31-1 (2.14 GiB)
+fs.writeFileSync(modelPath, buf);
+```
+
+Gemma 4 E2B GGUF (`gemma-4-E2B-it-Q4_K_M.gguf` ~3.1 GiB) 가 ArrayBuffer max int32 length 초과 → throw. 이전 모델은 2 GiB 미만이라 발생 안 함.
+
+### 21.3 수정 (stream pipeline)
+
+```js
+const { pipeline } = require('stream/promises');
+const { Readable } = require('stream');
+const tmpPath = modelPath + '.partial';
+try {
+  await pipeline(
+    Readable.fromWeb(resp.body),
+    fs.createWriteStream(tmpPath)
+  );
+  fs.renameSync(tmpPath, modelPath);  // atomic — 중간 실패 시 부분 파일 정리
+} catch (err) {
+  try { fs.unlinkSync(tmpPath); } catch {}
+  throw err;
+}
+```
+
+### 21.4 효과
+
+- ✅ 큰 GGUF (3 GB+) 다운로드 가능
+- ✅ 메모리 점유 chunk 단위 → OOM 위험 ↓
+- ✅ Atomic rename → 중간 실패 시 부분 파일 자동 정리
+
+### 21.5 검증
+
+```
+Cloud Build SUCCESS — 35분 14초
+   Build ID: b73ed20b-acab-4c76-8a07-b7774b3a8eba
+   Revision: aitutor-00027-q9j ⭐ 100% traffic
+   TAG: rebuild30-gguf-stream-fix-20260501-151930
+
+curl /lab/local-gcp → HTTP 200 ✓
+Playwright 19 tests / 15 passed / 4 skipped (의도) / 0 failed (32.9s)
+```
+
+### 21.6 누적 변경 이력 (REBUILD30, 14 commit / 9 deploy)
+
+| Revision | TAG | 내용 |
+|---|---|---|
+| -00026-frk | phase21-memory | Phase A+D+B 메모리 다이어트 |
+| -00027-q9j | gguf-stream-fix | ArrayBuffer 2 GiB 한도 → stream |
+
+---
+
+## 22. 한 줄 요약
+
+**REBUILD30 = §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB / ~$22/월 절감) + 영구 cleanup policy + 7건 핫픽스 (401 / React #31 / 빈 카테고리 / Qwen 가시화 / SettingsTab Labs 통일 / HF circular JSON / GGUF stream) + PromptEditor 6 lab 통일 + Settings/Lab 메인 단일화 + §21 메모리 다이어트. 14 commit / 9 deploy / Playwright 15/15 통과 / origin/main + aitutor-00027-q9j 까지 sync.**
