@@ -415,7 +415,7 @@ export default function HfCompare() {
           ⏹ 모두 중지
         </button>
       ) : (
-        <button onClick={handleRun}
+        <button onClick={() => handleRun()}
           disabled={selectedIds.size === 0 || (tab === 'exam' ? !question : !userMsg.trim())}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
           ⚖️ {selectedIds.size}개 모델 동시 호출 (병렬)

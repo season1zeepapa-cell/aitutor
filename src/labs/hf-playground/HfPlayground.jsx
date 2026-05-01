@@ -371,7 +371,7 @@ export default function HfPlayground() {
           ⏹ 중지
         </button>
       ) : (
-        <button onClick={handleRun}
+        <button onClick={() => handleRun()}
           disabled={!selectedModel || (tab === 'exam' ? !question : !userMsg.trim())}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
           ✨ {selectedModel?.name || '모델 선택 필요'} 로 {tab === 'exam' ? '해설 생성' : '응답 생성'}
