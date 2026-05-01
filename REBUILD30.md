@@ -894,6 +894,181 @@ REBUILD31 (옵션 A + 패키지 C/D, 8~12시간)
 
 ---
 
-## 16. 한 줄 요약
+## 16. §17 사후 작업 (옵션 B 완료 후 — 2026-04-30 ~ 05-01)
 
-**REBUILD30 §0.3 이슈 7건 + §0.4 후보 7건 모두 재검증 완료. 옵션 A (slider + buildPromptPreview + models.js) + 옵션 B (ParamSliders + ErrorBanner) 적용. 5 lab 의 슬라이더/에러 마크업이 단일 출처로 통일되어 향후 변경 1곳 수정으로 5 lab 자동 반영.**
+### 16.1 작업 흐름 요약
+
+옵션 B 완료 후 추가로 발견된 운영 이슈를 단계적으로 처리:
+1. **GCP 비용 정리** — 옵션 B 의 코드 효과 외에 인프라 누적 산출물 청소
+2. **API 버그** — `?action=public` 가 401 반환되어 카테고리 dropdown 미노출
+3. **UI 데이터 형식 mismatch** — DB 의 choices 객체 배열을 React 가 #31 throw
+
+### 16.2 GCP 인프라 정리 (사용자 옵션 B 결정 기준 = "마지막 2 revision 보존")
+
+#### 16.2.1 Cloud Run revision 정리
+
+| 대상 | Before | After | 삭제 |
+|---|---|---|---|
+| us-central1 aitutor (좀비) | 2 revision (00001/00002) | 0 (service 삭제) | service 자체 삭제 |
+| us-east4 aitutor | 19 revision (00001~00019) | 2 (00018/00019) | 17 |
+| us-east4 aitutor-inference | 11 revision (00001~00011) | 2 | 9 |
+| pressstand 6 service | 691 revision 누적 | 11 (각 service 2개씩, withbible 1) | 672 |
+| **합계** | **723** | **15** | **698** |
+
+#### 16.2.2 Artifact Registry 이미지 정리
+
+| Repo | Before | After | 회수 |
+|---|---|---|---|
+| aitutor (asia-northeast3) | 19 sha256 / 124 GB | 2 sha256 / 18 GB | **106 GB** |
+| pressstand cloud-run-source-deploy | 685 sha256 / 108 GB | 11 sha256 / 0.84 GB | **107 GB** |
+| **합계** | **704 sha256 / 232 GB** | **13 sha256 / 19 GB** | **213 GB** |
+
+부수 정리: news-pipeline (6, 메모리 룰 위반), pressstand-staging (3, 미사용) 좀비 이미지 즉시 삭제.
+
+#### 16.2.3 영구 자동화 정책 (재발 방지)
+
+```yaml
+AR cleanup-policy (aitutor + pressstand 동일 패턴):
+  KEEP:    최신 3 sha256
+  DELETE:  untagged > 7일
+  DELETE:  tagged > 30일
+  Mode:    enforce (dryRun: false)
+
+GCS lifecycle (cloudbuild source 2 버킷):
+  Age > 30일 → 자동 Delete
+  적용: aifactory-494108_cloudbuild + run-sources-pressstand-asia-northeast3
+
+Cloud SQL pressstand-db Auto-Resize Limit:
+  Before: storageAutoResizeLimit=0 (무제한)
+  After:  storageAutoResizeLimit=20 GB
+  
+Cloud SQL Disk Usage Alert:
+  Threshold: 80% → email season1zeepapa@gmail.com
+  
+GCP Budget Alert:
+  Display: GCP Total Monthly Budget
+  Amount: ₩150,000/월
+  Threshold: 50% / 90% / 100%
+  기존 ₩10 / ₩1,000 budget 정리됨
+```
+
+#### 16.2.4 비용 효과
+
+| 항목 | 월간 절감 |
+|---|---|
+| AR aitutor 회수 | ~$10.60 |
+| AR pressstand 회수 | ~$10.70 |
+| GCS cloudbuild source (30일 lifecycle) | ~$0.45 |
+| **합계** | **~$21.75/월 (~₩30,500/월, ~₩366,000/년)** |
+
+### 16.3 API 401 버그 수정 (api/questions.js)
+
+#### 증상
+`GET /api/questions?action=public` 가 항상 `{"error":"인증이 필요합니다."}` 반환.
+실험실 5 페이지의 QuestionPicker DB 모드에서 카테고리 dropdown 이 `categories.length===0` 으로 숨김.
+
+#### 원인
+```js
+const { action } = req.body || req.query || {};
+//                  ^^^ GET 요청 시 body-parser 가 셋업한 빈 객체 {}
+//                  truthy 라 req.query 로 fallback 못 함
+```
+
+#### 수정
+```js
+const action = req.body?.action || req.query?.action;
+// body.action 이 undefined 면 query.action 으로 자동 fallback
+// GET/POST 모두 호환
+```
+
+커밋: `edb1c25 fix(aitutor): action=public 라우트 401 버그`
+
+### 16.4 React error #31 — choices 객체 {num,text} 정규화
+
+#### 증상
+실험실 페이지에서 시험 dropdown 선택 시 화이트 스크린 + Minified React error #31.
+
+#### 원인
+DB 의 `questions.choices` 컬럼:
+```json
+[{"num":1,"text":"캡슐화"}, {"num":2,"text":"동기화"}, ...]
+```
+
+프론트엔드 가정:
+```json
+["캡슐화", "동기화", ...]
+```
+
+`<span>{c}</span>` 에서 c 가 객체 → React 가 객체를 child 로 렌더 시도 → #31 throw.
+paste 모드는 string[] 라 OK / DB 모드만 깨짐 → 형식 일치 부족이 근본 원인.
+
+#### 수정 (3 layer 정규화)
+
+```js
+// 1. src/components/lab/QuestionPicker.jsx (boundary 정규화)
+const choices = arr.map(c =>
+  (c && typeof c === 'object') ? String(c.text ?? c.num ?? '') : String(c ?? '')
+);
+
+// 2. src/components/lab/QuestionPreview.jsx (방어)
+const choices = rawChoices.map(c =>
+  (c && typeof c === 'object') ? String(c.text ?? c.num ?? '') : String(c ?? '')
+);
+
+// 3. src/lib/lab/promptBuilder.js (LLM prompt)
+const choices = choicesArr.map((c, i) => {
+  const txt = (c && typeof c === 'object') ? (c.text ?? c.num ?? '') : c;
+  return `${CIRCLE[i] || `(${i+1})`} ${txt}`;
+}).join('\n');
+```
+
+커밋: `914c93f fix(aitutor): React error #31 — choices 객체 정규화`
+
+### 16.5 변경 이력 (16장)
+
+| 날짜 | 커밋 | 작업 |
+|---|---|---|
+| 2026-04-30 | `7bd78de` | 옵션 A — slider + promptBuilder + models.js |
+| 2026-04-30 | `eec2610` | 옵션 B — ParamSliders + ErrorBanner |
+| 2026-04-30 | `e78851b` | REBUILD27~30 누적 트리 정리 (58 files) |
+| 2026-04-30 | `edb1c25` | action=public 라우트 401 버그 fix |
+| 2026-05-01 | `914c93f` | React error #31 choices 객체 정규화 |
+
+### 16.6 Cloud Run 배포 이력
+
+| 날짜 | Revision | TAG | 빌드 시간 |
+|---|---|---|---|
+| 2026-04-30 09:08 | aitutor-00019-k92 | rebuild30-20260430-173811 | 34분 44초 |
+| 2026-04-30 (later) | aitutor-00020-h5x | rebuild30-fix-20260501-082038 | 32분 38초 |
+| 2026-05-01 00:28 | aitutor-00021-nkc | rebuild30-react31-fix-20260501-085943 | 28분 11초 |
+
+현재 active: **aitutor-00021-nkc** (us-east4, 100% traffic)
+
+### 16.7 검증
+
+```
+$ git status
+nothing to commit, working tree clean
+
+$ git log --oneline -5
+914c93f fix(aitutor): React error #31 — choices 객체 정규화
+edb1c25 fix(aitutor): action=public 라우트 401 버그
+e78851b chore(aitutor): REBUILD27~30 누적 트리 정리
+eec2610 refactor(aitutor): REBUILD30 §0.4 옵션 B
+7bd78de refactor(aitutor): REBUILD30 §0.3 옵션 A
+
+$ git status -sb
+## main...origin/main         # ← origin 과 sync ✓
+
+$ curl https://aitutor-z2ppabmtxa-uk.a.run.app/api/questions?action=public
+HTTP 200 ✓
+
+$ curl https://aitutor-z2ppabmtxa-uk.a.run.app/lab
+HTTP 200 ✓
+```
+
+---
+
+## 17. 한 줄 요약
+
+**REBUILD30 §0.3 이슈 7건 + §0.4 후보 7건 재검증 + 옵션 A/B 코드 적용 + 사후 GCP 정리 (213GB 회수, ~$22/월 절감) + 영구 cleanup policy + 2건 핫픽스 (401 / React #31). 5 commit / 3 deploy / 모든 작업 origin/main + Cloud Run aitutor-00021-nkc 까지 sync 완료.**
