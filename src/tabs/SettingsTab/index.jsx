@@ -14,12 +14,13 @@ export default function SettingsTab() {
   // 일반 사용자: 내 계정만
   const [activeSection, setActiveSection] = useState(isAdmin ? 'general' : 'account');
 
+  // REBUILD30 §19 — 'labs' 탭 제거 (/lab 페이지로 통일).
+  // /lab 의 LabsHome 이 동일한 토글 + 카드 그리드 + admin 가드 기능 모두 제공.
   const sections = isAdmin
     ? [
         { key: 'general', label: '일반' },
         { key: 'categories', label: '카테고리' },
         { key: 'ai', label: 'AI 설정' },
-        { key: 'labs', label: '🧪 실험실' },
         { key: 'users', label: '회원관리' },
         { key: 'account', label: '내 계정' },
       ]
@@ -52,7 +53,6 @@ export default function SettingsTab() {
           <LlmUsagePanel />
         </div>
       )}
-      {activeSection === 'labs' && <LabsSection />}
       {activeSection === 'users' && <UsersSection />}
       {activeSection === 'account' && <AccountSection />}
     </div>
@@ -215,6 +215,9 @@ function EffectToggle({ label, desc, storageKey }) {
 }
 
 function GeneralSection() {
+  const user = getAuthUser();
+  const isAdmin = user?.admin;
+
   return (
     <div className="space-y-4">
       <Card>
@@ -232,6 +235,22 @@ function GeneralSection() {
           />
         </div>
       </Card>
+
+      {/* REBUILD30 §19 — 실험실 페이지 통합 안내 (admin 전용 진입 카드) */}
+      {isAdmin && (
+        <Card>
+          <p className="text-sm font-bold text-text mb-1">🧪 실험실</p>
+          <p className="text-xs text-text-secondary mb-3">
+            5 lab 카탈로그 + 활성/비활성 토글 + 추론 엔진 비교는 별도 페이지에서 관리합니다.
+          </p>
+          <a
+            href="/lab"
+            className="inline-block px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold"
+          >
+            → 실험실 페이지로 이동 (/lab)
+          </a>
+        </Card>
+      )}
     </div>
   );
 }
@@ -597,257 +616,6 @@ function SystemSettingsCard() {
   );
 }
 
-// ─── 🧪 실험실 (Labs) — 분리된 별도 탭 ───
-function LabsSection() {
-  const toast = useToast();
-  const [settings, setSettings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(null);
-
-  useEffect(() => {
-    apiGet('/api/admin?action=get_settings')
-      .then(data => setSettings(data.settings || []))
-      .catch(err => toast('실험실 설정 로드 실패: ' + err.message, 'error'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const getBoolValue = (key) => {
-    const row = settings.find(s => s.key === key);
-    return row?.value === 'true';
-  };
-
-  const toggleBool = async (key) => {
-    const newValue = !getBoolValue(key);
-    setSaving(key);
-    try {
-      await apiPost('/api/admin', { action: 'set_setting', key, value: String(newValue) });
-      setSettings(prev => {
-        const idx = prev.findIndex(s => s.key === key);
-        if (idx === -1) return [...prev, { key, value: String(newValue), updated_at: new Date().toISOString() }];
-        const next = [...prev];
-        next[idx] = { ...next[idx], value: String(newValue), updated_at: new Date().toISOString() };
-        return next;
-      });
-      if (key === 'lab_local_ai_enabled') {
-        toast(newValue ? '📱 실험실(온디바이스 모델)이 활성화되었습니다.' : '실험실이 비활성화되었습니다.', 'success');
-      } else if (key === 'lab_hf_enabled') {
-        toast(newValue ? '🤗 실험실(외부 추론 라우팅)이 활성화되었습니다.' : '실험실(외부 추론 라우팅)이 비활성화되었습니다.', 'success');
-      } else if (key === 'lab_local_lambda_enabled') {
-        toast(newValue ? '☁️ 실험실(서버 통합)이 활성화되었습니다.' : '실험실(서버 통합)이 비활성화되었습니다.', 'success');
-      } else if (key === 'lab_server_infer_enabled') {
-        toast(newValue ? '🧪 실험실(서버 분리)이 활성화되었습니다.' : '실험실(서버 분리)이 비활성화되었습니다.', 'success');
-      } else if (key === 'lab_ollama_bridge_enabled') {
-        toast(newValue ? '🖥️ 실험실(사용자 PC 추론)이 활성화되었습니다.' : '실험실(사용자 PC 추론)이 비활성화되었습니다.', 'success');
-      }
-    } catch (err) {
-      toast('변경 실패: ' + err.message, 'error');
-    } finally {
-      setSaving(null);
-    }
-  };
-
-  const labLocalEnabled = getBoolValue('lab_local_ai_enabled');
-  const isSavingLocal = saving === 'lab_local_ai_enabled';
-  // REBUILD26 §7-1: server-ai/server-ai-gguf 실험실 폐기. UI 카드 / API 응답 /
-  //   admin whitelist / 라우트 entry 모두 제거. DB row 만 history 로 보존.
-  const labHfEnabled = getBoolValue('lab_hf_enabled');
-  const isSavingHf = saving === 'lab_hf_enabled';
-  const labLocalLambdaEnabled = getBoolValue('lab_local_lambda_enabled');
-  const isSavingLocalLambda = saving === 'lab_local_lambda_enabled';
-  const labServerInferEnabled = getBoolValue('lab_server_infer_enabled');
-  const isSavingServerInfer = saving === 'lab_server_infer_enabled';
-  const labOllamaBridgeEnabled = getBoolValue('lab_ollama_bridge_enabled');
-  const isSavingOllamaBridge = saving === 'lab_ollama_bridge_enabled';
-
-  return (
-    <Card>
-      <p className="text-sm font-bold text-text mb-1">🧪 실험실 (Labs)</p>
-      <p className="text-xs text-text-secondary mb-3">
-        관리자 검증용 시범 페이지. 토글 활성화 후 테스트 페이지 진입 가능.
-      </p>
-
-      {loading ? (
-        <p className="text-xs text-text-secondary py-2">불러오는 중…</p>
-      ) : (
-        <div className="space-y-2">
-          {/* 📱 온디바이스 모델 (REBUILD17 → REBUILD29 §22 직관적 용어) */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
-            <div className="min-w-0 flex-1 mr-3">
-              <p className="text-sm text-text font-medium">📱 온디바이스 모델</p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {labLocalEnabled
-                  ? '🟢 활성화됨 — 모바일 PWA + Gemma 4 E4B 시범'
-                  : '🔴 비활성 — 활성화 시 테스트 페이지 진입 가능 (관리자 검증용)'}
-              </p>
-              {labLocalEnabled && (
-                <a
-                  href="/lab/local-ai"
-                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
-                >
-                  → 테스트 페이지 열기 (/lab/local-ai)
-                </a>
-              )}
-            </div>
-            <button
-              onClick={() => toggleBool('lab_local_ai_enabled')}
-              disabled={isSavingLocal}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
-                labLocalEnabled ? 'bg-primary' : 'bg-border'
-              }`}
-              aria-label={labLocalEnabled ? '디바이스 AI 실험실 비활성화' : '디바이스 AI 실험실 활성화'}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                  labLocalEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* REBUILD26 §7-1 — 서버 추론 / 서버 추론 GGUF 실험실 완전 폐기:
-              UI 카드 / 라우트 / API 응답 / admin whitelist 모두 제거. 옛 URL 진입 시
-              App.jsx catch-all 이 /quiz 로 보냄. DB row 는 history 보존. */}
-
-          {/* 🤗 HF Inference Providers (REBUILD22 §x) */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
-            <div className="min-w-0 flex-1 mr-3">
-              <p className="text-sm text-text font-medium">🤗 외부 추론 라우팅 (HF Inference)</p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {labHfEnabled
-                  ? '🟢 활성화됨 — Llama 3.3 / Qwen 2.5 / DeepSeek R1 / Mistral / Gemma 7종'
-                  : '🔴 비활성 — 활성화 시 다양한 오픈 모델 테스트 페이지 진입 가능'}
-              </p>
-              {labHfEnabled && (
-                <a
-                  href="/lab/hf"
-                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
-                >
-                  → 테스트 페이지 열기 (/lab/hf)
-                </a>
-              )}
-            </div>
-            <button
-              onClick={() => toggleBool('lab_hf_enabled')}
-              disabled={isSavingHf}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
-                labHfEnabled ? 'bg-primary' : 'bg-border'
-              }`}
-              aria-label={labHfEnabled ? 'HF 실험실 비활성화' : 'HF 실험실 활성화'}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                  labHfEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* 🏠 Cloud Run 일심동체 (REBUILD23~26 — 앱+모델 같은 컨테이너, 8 엔진 동거) */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
-            <div className="min-w-0 flex-1 mr-3">
-              <p className="text-sm text-text font-medium">☁️ 서버 통합 (서비스+추론엔진+모델 한 컨테이너)</p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {labLocalLambdaEnabled
-                  ? '🟢 활성화됨 — Cloud Run + GPU L4 24GB, 8 엔진 동거 (Phase 5-2: 6 active). Qwen 3 / Gemma 3n / 외부 API 0'
-                  : '🔴 비활성 — 활성화 시 admin 만 접근 가능, 콜드 스타트 30~90s 주의'}
-              </p>
-              {labLocalLambdaEnabled && (
-                <a
-                  href="/lab/local-gcp"
-                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
-                >
-                  → 테스트 페이지 열기 (/lab/local-gcp)
-                </a>
-              )}
-            </div>
-            <button
-              onClick={() => toggleBool('lab_local_lambda_enabled')}
-              disabled={isSavingLocalLambda}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
-                labLocalLambdaEnabled ? 'bg-primary' : 'bg-border'
-              }`}
-              aria-label={labLocalLambdaEnabled ? '서버 통합 실험실 비활성화' : '서버 통합 실험실 활성화'}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                  labLocalLambdaEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* 🧪 격리 추론 (REBUILD26 §3.2 — 별도 Cloud Run service, 8 엔진 동거) */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
-            <div className="min-w-0 flex-1 mr-3">
-              <p className="text-sm text-text font-medium">🧪 서버 분리 (추론엔진+모델 별도 서비스)</p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {labServerInferEnabled
-                  ? '🟢 활성화됨 — 메인과 별도 Cloud Run service (aitutor-inference, us-east4). 8 엔진 동거 비교'
-                  : '🔴 비활성 — 활성화 시 admin 만 접근 가능, 격리 service 호출 (Phase 7-1: 3 active CPU)'}
-              </p>
-              {labServerInferEnabled && (
-                <a
-                  href="/lab/server-infer"
-                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
-                >
-                  → 테스트 페이지 열기 (/lab/server-infer)
-                </a>
-              )}
-            </div>
-            <button
-              onClick={() => toggleBool('lab_server_infer_enabled')}
-              disabled={isSavingServerInfer}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
-                labServerInferEnabled ? 'bg-primary' : 'bg-border'
-              }`}
-              aria-label={labServerInferEnabled ? '서버 분리 실험실 비활성화' : '서버 분리 실험실 활성화'}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                  labServerInferEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* 🖥️ 외부 Ollama bridge (REBUILD28 §11 — 사용자 PC localhost:11434 직접) */}
-          <div className="flex items-center justify-between px-3 py-2.5 bg-badge-bg rounded-xl">
-            <div className="min-w-0 flex-1 mr-3">
-              <p className="text-sm text-text font-medium">🖥️ 사용자 PC 추론 (Ollama bridge)</p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                {labOllamaBridgeEnabled
-                  ? '🟢 활성화됨 — 사용자 PC 의 Ollama (localhost:11434) 직접 호출. 70B 모델까지 가능, 데스크톱 전용.'
-                  : '🔴 비활성 — 활성화 시 사용자 PC 의 Ollama 사용 가능. CORS / mixed content 안내 포함.'}
-              </p>
-              {labOllamaBridgeEnabled && (
-                <a
-                  href="/lab/ollama-bridge"
-                  className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary hover:underline"
-                >
-                  → 테스트 페이지 열기 (/lab/ollama-bridge)
-                </a>
-              )}
-            </div>
-            <button
-              onClick={() => toggleBool('lab_ollama_bridge_enabled')}
-              disabled={isSavingOllamaBridge}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
-                labOllamaBridgeEnabled ? 'bg-primary' : 'bg-border'
-              }`}
-              aria-label={labOllamaBridgeEnabled ? '사용자 PC 추론 실험실 비활성화' : '사용자 PC 추론 실험실 활성화'}
-            >
-              <div
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${
-                  labOllamaBridgeEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-      )}
-    </Card>
-  );
-}
 
 // ─── 회원관리 ───
 function UsersSection() {
