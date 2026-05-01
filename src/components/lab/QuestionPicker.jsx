@@ -57,12 +57,27 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
     return exams.filter(e => e.category_id === categoryId);
   }, [exams, categoryId]);
 
+  // REBUILD30 §17 — 카테고리별 시험 갯수 (dropdown label 에 표시).
+  const examCountByCategory = useMemo(() => {
+    const map = {};
+    for (const e of exams) {
+      const cid = e.category_id;
+      if (cid != null) map[cid] = (map[cid] || 0) + 1;
+    }
+    return map;
+  }, [exams]);
+
+  // REBUILD30 §17 — 카테고리 변경 시 시험이 0개면 examId 해제 (잘못된 fallback 방지).
   useEffect(() => {
-    if (categoryId && filteredExams.length) {
-      // 카테고리 변경 시 첫 시험으로
-      if (!filteredExams.find(e => e.id === examId)) {
-        setExamId(filteredExams[0].id);
-      }
+    if (!categoryId) return;
+    if (filteredExams.length === 0) {
+      setExamId(null);  // null 이면 시험 dropdown 비활성, 문항 목록 안 부름
+      setQuestions([]);
+      return;
+    }
+    // 카테고리 변경 시 첫 시험으로
+    if (!filteredExams.find(e => e.id === examId)) {
+      setExamId(filteredExams[0].id);
     }
   }, [categoryId, filteredExams, examId]);
 
@@ -178,7 +193,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
           {/* DB 모드 — REBUILD29 §25 계층 선택 */}
           {tab === 'db' && (
             <div className="space-y-2">
-              {/* 1) 카테고리 선택 (선택 사항) */}
+              {/* 1) 카테고리 선택 — REBUILD30 §17 시험 갯수 (N) 표시 */}
               {categories.length > 0 && (
                 <label className="flex flex-col gap-1 text-[11px]">
                   <span className="text-text-secondary">카테고리 (필터, 선택)</span>
@@ -187,31 +202,41 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
                     onChange={e => setCategoryId(e.target.value ? Number(e.target.value) : null)}
                     className="rounded px-2 py-1.5 border border-border bg-bg text-text text-sm"
                   >
-                    <option value="">전체</option>
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
+                    <option value="">전체 ({exams.length})</option>
+                    {categories.map(c => {
+                      const n = examCountByCategory[c.id] || 0;
+                      return (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({n}){n === 0 ? ' — 시험 없음' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </label>
               )}
 
-              {/* 2) 시험 선택 (카테고리 필터링됨) */}
+              {/* 2) 시험 선택 — REBUILD30 §17 빈 카테고리 시 안내 + 비활성화 */}
               <label className="flex flex-col gap-1 text-[11px]">
                 <span className="text-text-secondary">
                   시험 선택 ({filteredExams.length}개)
                 </span>
-                <select
-                  value={examId}
-                  onChange={e => setExamId(Number(e.target.value))}
-                  className="rounded px-2 py-1.5 border border-border bg-bg text-text text-sm"
-                >
-                  {filteredExams.length === 0 && <option value={defaultExamId}>운전면허 (default)</option>}
-                  {filteredExams.map(e => (
-                    <option key={e.id} value={e.id}>
-                      {e.title}{e.category_name ? ` · ${e.category_name}` : ''}
-                    </option>
-                  ))}
-                </select>
+                {filteredExams.length === 0 ? (
+                  <div className="rounded px-2 py-1.5 border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-200 text-[11px]">
+                    ⚠ 이 카테고리에 등록된 시험이 없습니다. 다른 카테고리를 선택해 주세요.
+                  </div>
+                ) : (
+                  <select
+                    value={examId || ''}
+                    onChange={e => setExamId(Number(e.target.value))}
+                    className="rounded px-2 py-1.5 border border-border bg-bg text-text text-sm"
+                  >
+                    {filteredExams.map(e => (
+                      <option key={e.id} value={e.id}>
+                        {e.title}{e.category_name ? ` · ${e.category_name}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </label>
 
               {/* 3) 무작위 또는 직접 선택 */}
