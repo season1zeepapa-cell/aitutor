@@ -1,8 +1,9 @@
 # REBUILD34 — `aitutor` 코드베이스 재분석 및 후속 개선 제안
 
-> **작성**: 2026-05-06 KST  
-> **요청**: 현재 코드베이스 분석 + `REBUILD32.md` / `REBUILD33.md` 참조 기반 아키텍처, 현황 구조, 개선 필요 지점 제안  
-> **범위**: 코드 변경 없음. 분석/제안 문서 작성만 수행.  
+> **작성**: 2026-05-06 KST
+> **갱신**: 2026-05-06 KST — §11 진행 현황 (P0/P1/P2 backlog 항목별 완료/이연 표 추가)
+> **요청**: 현재 코드베이스 분석 + `REBUILD32.md` / `REBUILD33.md` 참조 기반 아키텍처, 현황 구조, 개선 필요 지점 제안
+> **범위**: 코드 변경 없음. 분석/제안 문서 작성만 수행.
 > **검증**: `npm run build:fe` 성공, `server-infer/server.py` 문법 확인 성공, Node 라우트 require 확인 성공
 
 ---
@@ -744,4 +745,70 @@ node -e "require('./api/local-infer'); require('./api/iso-infer'); require('./se
 - 테스트와 주석이 과거 구조를 아직 설명한다.
 
 따라서 REBUILD34 이후 구현 우선순위는 “새 모델 추가”보다 “운영 안정성 고정”이 먼저다. 특히 concurrency/권한/번역 파이프라인 원자화 3가지를 먼저 처리하면 현재 아키텍처는 훨씬 안정적으로 굳어진다.
+
+---
+
+## §11. 진행 현황 (2026-05-06 갱신)
+
+REBUILD35 작성 직후 진행한 1차 정리 묶음의 처리 결과. 본 절은 backlog 의 살아있는 추적표 역할을 한다.
+
+### 11.1 즉시 처리 묶음 (1 PR, 위험 0)
+
+| ID | 항목 | 상태 | 커밋 |
+|----|------|------|------|
+| P2-E | LoadingOverlay JSX duplicate `opacity` attribute 수정 | ✅ 완료 | `e2108b5` (fillOpacity + strokeOpacity 분리, 원작자 의도 복원) |
+| P1-A | "14 모델" → "15 모델" 표현 정정 (3 파일: server.py / ServerInferTester.jsx / api/local-infer.js) | ✅ 완료 | `e2108b5` |
+| P1-B | translator 카테고리 chip 의도 명시 (현재 토글로만 노출, 의도된 숨김) | ✅ 완료 | `e2108b5` (ServerInferTester.jsx 주석 추가) |
+| P1-C | 잔여 stale 주석 정리 (api/config.js · src/App.jsx · cloudbuild.yaml × 2 · server-infer/server.py) | ✅ 완료 | `e2108b5` |
+
+선행 진행 항목:
+
+| ID | 항목 | 상태 | 커밋 |
+|----|------|------|------|
+| P1-C(부분) | `src/lib/lab/models.js` stale 주석 정리 + 미사용 헬퍼 3개 제거 | ✅ 완료 | `aab98ed` (Option A 묶음) |
+| P1-F(부분) | `step7-labs-smoke.spec.js` 6엔진 기대값 → 단일 Ollama 갱신 | ✅ 완료 | `aab98ed` |
+| (extra) | `@mediapipe/tasks-genai` 미사용 의존성 제거 (76MB 절감) | ✅ 완료 | `4bda80c` |
+| (extra) | `inference-py/` multi-engine sub-server 디렉토리 제거 | ✅ 완료 | `bc553be` |
+
+### 11.2 다음 스프린트 (P0 운영 안정성)
+
+| ID | 항목 | 권장 접근 | 비고 |
+|----|------|-----------|------|
+| P0-A | 추론 service concurrency 안정화 | Cloud Run `--concurrency=1` 즉시 적용 (10분), 트래픽 늘면 mutex/queue 로 진화 | 현재 traffic 패턴은 lab 위주 → A 옵션 비용 낮음 |
+| P0-B | restart-container 권한 admin 전용화 | `withAdminAuth` 미들웨어 신설 + `MemoryCard.jsx` 버튼 노출 조건 | 본업 무중단 확보 (직접 위험) |
+| P0-D | 번역 파이프라인 서버 endpoint 원자화 | FastAPI `/infer/translate-assisted` + asyncio.Lock | P0-A 적용 후에도 잔류 위험 시 진행 |
+
+### 11.3 이연 / 의사결정 보류
+
+| ID | 항목 | 사유 |
+|----|------|------|
+| P0-C | unload-all 권한 정책 | 현재 의도된 일반 사용자 허용 (REBUILD33 §31 코드 주석). audit log 만 추가하는 절충안 검토 가능 |
+| P1-D | dynamic availability now/after_unload 분리 | REBUILD35 §6.1 default 모델 매트릭스 확정 후 어떤 모델 전환 빈번한지 알면 우선순위 명확 |
+| P1-E | catalog schema contract | REBUILD35 §5.2 bench schema 와 동시 진행 (모델 메타 통합 설계) |
+| P1-F | Playwright lab test 보강 (전면 재작성) | REBUILD35 §6.4 회귀 테스트 인프라와 통합 |
+| P2-A | route registry required/optional 분리 | 운영 실측 장애 사례 부재 |
+| P2-B | observability (request id / structured log) | REBUILD35 시스템 메트릭 수집 인프라와 통합 |
+| P2-C | frontend chunk split (Vite manualChunks) | `/lab/local-ai` 폐기 의사결정과 묶음 (폐기 시 효과 80% 자동 달성) |
+| P2-D | Docker image slim (4.81GB → 2GB) | Cloud Run cold start 의 dominant 요인은 GPU 모델 다운로드. image 절감 효과 제한적 |
+
+### 11.4 커밋 이력 요약 (REBUILD32-35 통합 정리)
+
+| 커밋 | 내용 |
+|------|------|
+| `4bda80c` | `@mediapipe/tasks-genai` 의존성 제거 (76MB 절감) |
+| `aab98ed` | 6엔진 시대 잔재 코드 정리 (Option A — engines.js 삭제, 미사용 헬퍼 제거, step7 갱신) |
+| `ec8bfa4` | REBUILD 문서 `rebuild-docs/` 디렉토리로 통합 + REBUILD32~35 추가 |
+| `bc553be` | `inference-py/` multi-engine sub-server 제거 |
+| `13c7dab` | 격리 추론 service 신설 + 메인 service Ollama 단일 엔진화 |
+| `a5643b3` | 실험실 5개 모듈 단일 엔진 + 카테고리/메모리 카드 적용 |
+| `e2108b5` | **REBUILD34 P2-E + P1-A + P1-B + P1-C 즉시 정리 묶음** |
+
+### 11.5 다음 의사결정 후보
+
+1. **P0-A `--concurrency=1` 즉시 적용 여부** (10분, 비용 0)
+2. **P0-B restart-container admin 전용화** (1시간, 본업 무중단)
+3. **`/lab/local-ai` 폐기 검토** (P2-C 와 묶음, 367MB 추가 절감)
+4. **REBUILD35 Phase 1 (벤치마크 데이터셋 v1) 착수**
+
+위 4건 중 어느 것을 다음 스프린트로 가져갈지 사용자 결정 대기.
 
