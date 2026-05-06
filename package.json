@@ -23,7 +23,6 @@
     "@google-cloud/storage": "^7.14.0",
     "@google/generative-ai": "^0.21.0",
     "@huggingface/transformers": "^4.2.0",
-    "@mediapipe/tasks-genai": "^0.10.27",
     "@mlc-ai/web-llm": "^0.2.83",
     "dompurify": "^3.3.3",
     "dotenv": "^16.4.5",
