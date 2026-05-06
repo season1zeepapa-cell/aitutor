@@ -1,88 +1,83 @@
-// REBUILD23 §3.4 / REBUILD26 §5.1 / REBUILD28 §0.2 — Cloud Run 일심동체 추론 6 엔진
+// REBUILD33 Phase 2 (2026-05-05) — 메인 service "매장 로컬 AI" 컨셉 (Ollama 단일 엔진)
 //
-// Phase 5-1 active (Day 1~2):
-//   - ollama       (port 11434)  ⭐ start.sh 가 daemon 항상 띄움
-//   - llama-server (port 11435)  ⭐ lazy spawn (이 파일이 child_process 로 spawn)
-//   - vllm         (port 11436)  ⭐ lazy spawn (Python venv 사용)
+// REBUILD33 §28 — 통합 service = "매장 로컬 AI" 컨셉:
+//   - 일심동체 유지 (Express + Ollama 같은 컨테이너, localhost RTT ~1ms)
+//   - 한 개 엔진 (Ollama) + 최소 3 모델 (Q9-c)
+//   - 학습 앱 전용 내장 AI (qwen2.5:3b default — 한국어 강 + 영어 번역 가능)
 //
-// Phase 5-2 active (Python sub-server, port 11442 — 격리 service 와 동일 코드):
-//   - llama-cpp-python   ⭐ active — CUDA wheel
-//   - onnxruntime-genai  ⭐ active — CUDA wheel, in-process
-//   - transformers       ⭐ active — vLLM 의 transformers 재사용
+// REBUILD33 §29.1 슬림화 결과 (Before 890줄 → After ~430줄, -52%):
+//   폐기: vLLM / llama-server lazy spawn / cleanupOtherEngines / Python sub-server
+//   유지: Ollama 단일 dispatch, 동적 가용성, /memory, /healthz, /cleanup (Ollama unload)
 //
-// REBUILD28 (2026-04-30) — SGLang / TensorRT-LLM 은 사용 패턴 미스매치로 deferred,
-// placeholder 완전 제거. 미래 부활 필요 시 별도 의사결정 거쳐 재도입.
+// REBUILD32 §15 R-3 (2026-05-05) — 통합/분리 서버 완전 독립 운영 원칙:
+//   ⚠ 이 MODEL_MAP 은 통합 service 의 단독 진실 소스이다.
+//   격리 service (workspace/aitutor/server-infer/server.py) 의 MODELS 와 의도적으로 다를 수 있다.
+//   - 통합: 매장 로컬 AI 컨셉 (3 모델, 한국어 + 영어 번역)
+//   - 격리: 회사 자산 컨셉 (14 모델, 한국어 8 + 영어 6)
+//   동기화 검증/공유 import 금지. "버그" 아닌 "의도된 차이".
 //
 // 호출:
 //   POST /api/local-infer
-//   body: { engine, model_key, messages, maxTokens, temperature }
+//   body: { model_key, messages, maxTokens, temperature }   // engine 파라미터 제거됨
 //
-//   GET /api/local-infer?action=models
-//   응답: { default, default_engine, engines: [...], models: [...] }
+//   GET  /api/local-infer?action=models           → 카탈로그 (단일 엔진 + 동적 가용성)
+//   GET  /api/local-infer?action=memory           → 메모리 상태 (Ollama + RAM + GPU)
+//   GET  /api/local-infer?action=health           → Ollama 헬스체크
+//   POST /api/local-infer?action=unload-all       → 모든 Ollama 모델 unload (warm 유지)
+//   POST /api/local-infer?action=restart-container→ 컨테이너 자체 종료 (본업 영향, 메모리 100% 회수)
 
 const { withAuth } = require('./middleware');
-const { spawn } = require('child_process');
 const { applyQwenStrict } = require('./_runtime/qwen');
 
-// 같은 컨테이너 내부 daemon 들
-const OLLAMA_URL       = `http://127.0.0.1:${process.env.OLLAMA_PORT       || 11434}`;
-const LLAMASERVER_URL  = `http://127.0.0.1:${process.env.LLAMASERVER_PORT  || 11435}`;
-const VLLM_URL         = `http://127.0.0.1:${process.env.VLLM_PORT         || 11436}`;
-// Phase 5-2: Python sub-server (port 11442) — 격리 service 와 동일 FastAPI
-// llama-cpp-python / onnxruntime-genai / transformers 모두 이 sub-server 가 처리
-const PY_SUBSERVER_URL = `http://127.0.0.1:${process.env.PY_SUBSERVER_PORT || 11442}`;
+const OLLAMA_URL = `http://127.0.0.1:${process.env.OLLAMA_PORT || 11434}`;
 
-// ─── 엔진 카탈로그 (REBUILD28 §0.3 — 6 엔진 전수) ──────────
+// ─── 엔진 카탈로그 (REBUILD33 — 단일 엔진) ──────────────────
 const ENGINES = {
-  'ollama':            { label: 'Ollama',            status: 'active',  note: 'Go wrapper, 모델 자동관리 ⭐' },
-  'llama-server':      { label: 'llama-server',      status: 'active',  note: 'C++ native, GGUF 가장 빠름' },
-  'vllm':              { label: 'vLLM',              status: 'active',  note: 'GPU 최강, PagedAttention' },
-  'llama-cpp-python':  { label: 'llama-cpp-python',  status: 'active',  note: 'Python CUDA wheel (sub-server)' },
-  'onnxruntime-genai': { label: 'onnxruntime-genai', status: 'active',  note: 'Microsoft ONNX CUDA' },
-  'transformers':      { label: 'transformers',      status: 'active',  note: 'HF PyTorch (sub-server)' },
+  'ollama': { label: 'Ollama', status: 'active', note: 'Go wrapper, 모델 자동관리 (매장 로컬 AI 단일 엔진)' },
 };
 
-// ─── 모델 카탈로그 (engine 별 식별자) ──────────────────────
-//   ollama     : Ollama 태그 (qwen3:4b)
-//   gguf       : llama-server / llama-cpp-python (HF repo + 파일명)
-//   hf_repo    : vLLM / transformers (HF transformers 표준)
-//   onnx       : onnxruntime-genai
-// REBUILD29 §24 — local-ai 와 동일 모델 시리즈 (Qwen 3.5 + Gemma 4) 통일
-// 비교 가능: 3 lab (local-ai / 일심동체 / 격리) × 4 모델
+// ─── 모델 카탈로그 (REBUILD33 §28 매장 로컬 AI — Q9-c 채택 3 모델) ──────────
+//
+// REBUILD33 §28.3 추천 근거:
+//   1순위 qwen2.5:3b — 한국어 강(다국어 학습) + 영어 번역 우수 + 1.9GB 가벼움
+//   2순위 gemma2:2b  — Google 표준 안정성 + 1.6GB 가장 가벼움 (Qwen 응답 어색 시 fallback)
+//   3순위 qwen3.5:4b — 고성능 (필요 시) — 한국어/영어 번역 동급 강세
+//
+// 격리 service 와 의도적으로 다름 (REBUILD32 §15 R-3 — 동기화 강제 금지).
 const MODEL_MAP = {
-  'qwen35-2b': {
-    name: 'Qwen 3.5 2B', org: 'Alibaba', size: '~1.6GB', note: '경량 / 한국어 강',
-    ollama:    'qwen3.5:2b',
-    gguf:      { repo: 'unsloth/Qwen3.5-2B-GGUF', file: 'Qwen3.5-2B-Instruct-Q4_K_M.gguf' },
-    hf_repo:   'Qwen/Qwen3.5-2B-Instruct',
-    onnx_repo: 'onnx-community/Qwen3.5-2B-ONNX',
+  'qwen25-3b': {
+    name: 'Qwen 2.5 3B',
+    org:  'Alibaba',
+    size: '~1.9GB',
+    note: '범용 / 한국어 강 / 영어 번역 강 (default)',
+    ollama: 'qwen2.5:3b',
+  },
+  'gemma2-2b': {
+    name: 'Gemma 2 2B',
+    org:  'Google',
+    size: '~1.6GB',
+    note: '경량 / 다국어 / Qwen fallback',
+    ollama: 'gemma2:2b',
   },
   'qwen35-4b': {
-    name: 'Qwen 3.5 4B', org: 'Alibaba', size: '~2.5GB', note: '균형 / 한국어 강 / 추천',
-    ollama:    'qwen3.5:4b',
-    gguf:      { repo: 'unsloth/Qwen3.5-4B-GGUF', file: 'Qwen3.5-4B-Instruct-Q4_K_M.gguf' },
-    hf_repo:   'Qwen/Qwen3.5-4B-Instruct',
-    onnx_repo: 'onnx-community/Qwen3.5-4B-ONNX-OPT',
-  },
-  'gemma4-e2b': {
-    name: 'Gemma 4 E2B', org: 'Google', size: '~3.2GB', note: '효율적 멀티모달 / 128K context',
-    ollama:    'gemma4:e2b',
-    gguf:      { repo: 'unsloth/gemma-4-E2B-it-GGUF', file: 'gemma-4-E2B-it-Q4_K_M.gguf' },
-    hf_repo:   'google/gemma-4-E2B-it',
-    onnx_repo: 'onnx-community/gemma-4-E2B-it-ONNX',
-  },
-  'gemma4-e4b': {
-    name: 'Gemma 4 E4B', org: 'Google', size: '~4.9GB', note: 'Gemma 패밀리 / 안정 / 멀티모달',
-    ollama:    'gemma4:e4b',
-    gguf:      { repo: 'unsloth/gemma-4-E4B-it-GGUF', file: 'gemma-4-E4B-it-Q4_K_M.gguf' },
-    hf_repo:   'google/gemma-4-E4B-it',
-    onnx_repo: 'onnx-community/gemma-4-E4B-it-ONNX',
+    name: 'Qwen 3.5 4B',
+    org:  'Alibaba',
+    size: '~2.5GB',
+    note: '고성능 / 한국어 강 / 영어 번역 강',
+    ollama: 'qwen3.5:4b',
   },
 };
-const DEFAULT_MODEL_KEY = 'qwen35-4b';
-const DEFAULT_ENGINE = 'ollama';
+const DEFAULT_MODEL_KEY = 'qwen25-3b';
+const DEFAULT_ENGINE    = 'ollama';
 
-// ─── Ollama 모델 자동 pull (기존 로직 유지) ─────────────────
+function makeHttpError(statusCode, message, payload = {}) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  err.payload = payload;
+  return err;
+}
+
+// ─── Ollama 모델 자동 pull (cold start 시 첫 호출에 ~30~60초) ───
 async function ensureOllamaModel(ollamaModel) {
   const tagsResp = await fetch(`${OLLAMA_URL}/api/tags`);
   if (!tagsResp.ok) throw new Error(`Ollama /api/tags 실패: HTTP ${tagsResp.status}`);
@@ -101,199 +96,57 @@ async function ensureOllamaModel(ollamaModel) {
   }
 }
 
-// ─── lazy daemon 관리 (llama-server / vLLM) ─────────────────
-// 같은 GPU L4 24GB 를 여러 daemon 이 공유 → 한 번에 한 모델만 로드 (재spawn 패턴).
-const _daemons = {
-  'llama-server': { proc: null, model: null, port: 11435, healthEndpoint: '/v1/models', startTimeoutS: 60 },
-  'vllm':         { proc: null, model: null, port: 11436, healthEndpoint: '/v1/models', startTimeoutS: 180 },
-};
+// ─── REBUILD33 §15.5 패턴 — 직전 모델 캐시 (동일 모델 연속 호출 시 /api/ps 절약) ───
+// 단일 worker uvicorn 단일 스레드 환경 안전. 모델 변경 시에만 unload 트리거.
+let _lastServedModel = null;
 
-async function _waitHealth(port, endpoint, timeoutS) {
-  const url = `http://127.0.0.1:${port}${endpoint}`;
-  for (let i = 0; i < timeoutS; i++) {
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 2000);
-      const r = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (r.ok) return;
-    } catch {}
-    await new Promise(r => setTimeout(r, 1000));
-  }
-  throw new Error(`daemon 헬스체크 타임아웃 (${timeoutS}s, ${url})`);
-}
-
-async function _killDaemon(key) {
-  const d = _daemons[key];
-  if (d.proc && d.proc.exitCode === null) {
-    d.proc.kill('SIGTERM');
-    await new Promise(r => setTimeout(r, 2000));
-    if (d.proc.exitCode === null) d.proc.kill('SIGKILL');
-  }
-  d.proc = null;
-  d.model = null;
-}
-
-async function ensureLlamaServer(ollamaModelTag, ggufInfo) {
-  const d = _daemons['llama-server'];
-  if (d.proc && d.proc.exitCode === null && d.model === ollamaModelTag) return;
-  await _killDaemon('llama-server');
-
-  // GGUF 모델 path: HF Hub 캐시 또는 Ollama blob 활용
-  // REBUILD30 §22 — 2 GiB 이상 파일 stream 다운로드 (이전: arrayBuffer() 한계 2^31-1 bytes 초과 → throw)
-  const cacheDir = process.env.HF_HOME || '/var/cache/huggingface';
-  const modelPath = `${cacheDir}/llama-cpp/${ggufInfo.file}`;
-  const fs = require('fs');
-  if (!fs.existsSync(modelPath)) {
-    fs.mkdirSync(`${cacheDir}/llama-cpp`, { recursive: true });
-    const url = `https://huggingface.co/${ggufInfo.repo}/resolve/main/${ggufInfo.file}`;
-    console.log(`[local-infer] GGUF 다운로드 (stream): ${url} → ${modelPath}`);
-    const t0 = Date.now();
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`GGUF 다운로드 실패: HTTP ${resp.status}`);
-
-    // Web ReadableStream → fs writeStream pipeline (메모리 점유 chunk 단위, 큰 파일 OK)
-    const { pipeline } = require('stream/promises');
-    const { Readable } = require('stream');
-    const tmpPath = modelPath + '.partial';
-    try {
-      await pipeline(Readable.fromWeb(resp.body), fs.createWriteStream(tmpPath));
-      fs.renameSync(tmpPath, modelPath);  // atomic rename — 중간 실패 시 부분 파일 남지 않음
-    } catch (err) {
-      try { fs.unlinkSync(tmpPath); } catch {}
-      throw err;
-    }
-    const stat = fs.statSync(modelPath);
-    console.log(`[local-infer] GGUF 다운로드 완료 (${Date.now() - t0}ms, ${stat.size} bytes)`);
-  }
-
-  console.log(`[local-infer] llama-server spawn: ${modelPath}`);
-  d.proc = spawn('/usr/local/bin/llama-server', [
-    '--host', '127.0.0.1',
-    '--port', String(d.port),
-    '--model', modelPath,
-    '-ngl', '99',                   // GPU 모든 layer 오프로드
-    '--ctx-size', '4096',
-    '--no-warmup',
-  ], { stdio: ['ignore', 'inherit', 'inherit'] });
-  d.proc.on('exit', code => console.log(`[local-infer] llama-server 종료 code=${code}`));
-  await _waitHealth(d.port, d.healthEndpoint, d.startTimeoutS);
-  d.model = ollamaModelTag;
-}
-
-async function ensureVllm(ollamaModelTag, hfRepo) {
-  const d = _daemons['vllm'];
-  if (d.proc && d.proc.exitCode === null && d.model === ollamaModelTag) return;
-  await _killDaemon('vllm');
-
-  console.log(`[local-infer] vLLM spawn: ${hfRepo}`);
-  d.proc = spawn('/opt/venv-vllm/bin/python', [
-    '-m', 'vllm.entrypoints.openai.api_server',
-    '--host', '127.0.0.1',
-    '--port', String(d.port),
-    '--model', hfRepo,
-    '--max-model-len', '4096',
-    '--gpu-memory-utilization', '0.5',  // Ollama 와 GPU 공유 (Ollama unload 안 함)
-    '--enforce-eager',                  // CUDA graph 컴파일 스킵 (시작 빠름)
-  ], { stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, HF_HOME: process.env.HF_HOME || '/var/cache/huggingface' } });
-  d.proc.on('exit', code => console.log(`[local-infer] vLLM 종료 code=${code}`));
-  await _waitHealth(d.port, d.healthEndpoint, d.startTimeoutS);
-  d.model = ollamaModelTag;
-}
-
-// ─── REBUILD30 §21 — Cross-engine cleanup ──────────────
-// 호출되는 active 엔진 외 다른 엔진의 GPU/메모리 점유를 자동 회수.
-// 사용자가 lab UI 에서 엔진 변경 시 OOM 방지.
-async function cleanupOtherEngines(activeEngine) {
-  const tasks = [];
-
-  // 1) Ollama: active 가 아니면 로드된 모든 모델 unload (keep_alive: 0)
-  if (activeEngine !== 'ollama') {
-    tasks.push((async () => {
+async function unloadOtherModels(keepModel) {
+  try {
+    const psResp = await fetch(`${OLLAMA_URL}/api/ps`).catch(() => null);
+    if (!psResp || !psResp.ok) return;
+    const { models = [] } = await psResp.json();
+    for (const m of models) {
+      const name = m.name || m.model;
+      if (!name || name === keepModel) continue;
       try {
-        const r = await fetch('http://127.0.0.1:11434/api/ps').catch(() => null);
-        if (!r || !r.ok) return;
-        const data = await r.json();
-        const loaded = (data.models || []).map(m => m.name);
-        for (const name of loaded) {
-          await fetch('http://127.0.0.1:11434/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: name, keep_alive: 0, prompt: '' }),
-          }).catch(() => {});
-        }
-        if (loaded.length) console.log(`[cleanup] Ollama unload: ${loaded.join(', ')}`);
-      } catch (err) {
-        console.warn('[cleanup] Ollama unload 실패:', err?.message);
+        await fetch(`${OLLAMA_URL}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: name, keep_alive: 0, prompt: '' }),
+        });
+        console.log(`[local-infer] unloaded previous model: ${name} (keep=${keepModel})`);
+      } catch (e) {
+        console.warn(`[local-infer] unload ${name} 실패 (무시): ${e?.message}`);
       }
-    })());
+    }
+  } catch (e) {
+    console.warn(`[local-infer] unload_other_models 조회 실패 (무시): ${e?.message}`);
   }
-
-  // 2) llama-server lazy daemon: active 가 아니면 kill
-  if (activeEngine !== 'llama-server') {
-    tasks.push(_killDaemon('llama-server').catch(() => {}));
-  }
-
-  // 3) vLLM lazy daemon: active 가 아니면 kill
-  if (activeEngine !== 'vllm') {
-    tasks.push(_killDaemon('vllm').catch(() => {}));
-  }
-
-  // 4) Python sub-server (3 engines 공유): active 가 sub-server 엔진이 아니면 cleanup 신호
-  const pySubEngines = ['llama-cpp-python', 'onnxruntime-genai', 'transformers'];
-  if (!pySubEngines.includes(activeEngine)) {
-    tasks.push((async () => {
-      try {
-        await fetch('http://127.0.0.1:11442/cleanup', { method: 'POST' }).catch(() => {});
-        console.log('[cleanup] Python sub-server cleanup 신호 발송');
-      } catch {}
-    })());
-  }
-
-  await Promise.allSettled(tasks);
 }
 
-// ─── Ollama 호출 (기존 한국어 강제 로직 유지) ──────────────
+// ─── Ollama /api/chat 호출 — 한국어 강제 + thinking off ─────────────
 async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
   await ensureOllamaModel(ollamaModel);
 
-  const isQwen = ollamaModel.startsWith('qwen3');
-  let finalMessages = messages;
-  if (isQwen) {
-    const koreanForce = '\n\n⚠ CRITICAL: 반드시 한국어로만 답변하세요. 영어 사용 금지. 모든 응답은 한국어로 작성합니다.';
-    const userTail   = '\n\n⚠ 반드시 한국어(Korean)로만 답변하세요. English 사용 금지.';
-    const assistantSeed = '네, 한국어로 답변드리겠습니다.\n\n';
-
-    let withSystem;
-    if (messages[0]?.role === 'system') {
-      withSystem = [
-        { role: 'system', content: messages[0].content + koreanForce },
-        ...messages.slice(1),
-      ];
-    } else {
-      withSystem = [
-        { role: 'system', content: '당신은 한국어 자격증 시험 전문 강사입니다.' + koreanForce },
-        ...messages,
-      ];
-    }
-    const reversedIdx = [...withSystem].reverse().findIndex(m => m.role === 'user');
-    if (reversedIdx >= 0) {
-      const lastUserIdx = withSystem.length - 1 - reversedIdx;
-      withSystem = withSystem.map((m, i) =>
-        i === lastUserIdx ? { ...m, content: m.content + userTail } : m
-      );
-    }
-    finalMessages = [...withSystem, { role: 'assistant', content: assistantSeed }];
+  // REBUILD33 §15.5 I-3 패턴 — 모델 변경 시에만 unload
+  if (_lastServedModel && _lastServedModel !== ollamaModel) {
+    await unloadOtherModels(ollamaModel);
   }
+
+  // Qwen / DeepSeek 기반 모델: 한국어 강제 + /no_think (실험실 공통 정책)
+  const finalMessages = applyQwenStrict(messages, ollamaModel);
+  const isQwen = /^qwen/i.test(ollamaModel) || /deepseek/i.test(ollamaModel);
 
   const body = {
     model: ollamaModel,
     messages: finalMessages,
     stream: false,
     options: { num_predict: maxTokens, temperature },
+    keep_alive: '10m',
   };
   if (isQwen) body.think = false;
 
+  const t0 = Date.now();
   const resp = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -304,76 +157,234 @@ async function callOllama({ ollamaModel, messages, maxTokens, temperature }) {
     throw new Error(`Ollama HTTP ${resp.status}: ${errBody.slice(0, 300)}`);
   }
   const data = await resp.json();
-  return data.message?.content || '';
+  const inferMs = Date.now() - t0;
+  _lastServedModel = ollamaModel;
+  return { answer: data.message?.content || '', inferMs };
 }
 
-// ─── OpenAI 호환 호출 (llama-server / vLLM 공통) ────────────
-// REBUILD29 §13 — Qwen 모델은 thinking 모드 강제 비활성 (마지막 user 끝에 /no_think)
-async function callOpenAICompat({ baseUrl, modelTag, messages, maxTokens, temperature }) {
-  const finalMessages = applyQwenStrict(messages, modelTag);
-  const resp = await fetch(`${baseUrl}/v1/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: modelTag,
-      messages: finalMessages,
-      max_tokens: maxTokens,
-      temperature,
-      stream: false,
-      // vLLM 표준 — chat template 이 enable_thinking kwarg 인식
-      chat_template_kwargs: { enable_thinking: false },
-    }),
-  });
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    throw new Error(`HTTP ${resp.status}: ${errBody.slice(0, 300)}`);
+// ─── 동적 가용성 (REBUILD32 §X) ─────────────────────────────────
+function _modelSizeGb(sizeStr) {
+  if (!sizeStr) return 0;
+  const s = String(sizeStr).toUpperCase().replace(/~/g, '').trim();
+  const m = s.match(/(\d+(?:\.\d+)?)\s*(GIB|MIB|GB|MB)\b/);
+  if (!m) return 0;
+  const val = parseFloat(m[1]);
+  const unit = m[2];
+  if (unit === 'GIB') return val * 1.073741824;
+  if (unit === 'MIB') return (val * 1.073741824) / 1024;
+  if (unit === 'MB')  return val / 1024;
+  return val;  // GB
+}
+
+async function _readResources() {
+  const fs = require('fs').promises;
+  const { execFile } = require('child_process');
+  const { promisify } = require('util');
+  const execFileP = promisify(execFile);
+
+  let container = {};
+  try {
+    const text = await fs.readFile('/proc/meminfo', 'utf-8');
+    const mem = {};
+    text.split('\n').forEach(line => {
+      const m = line.match(/^(\w+):\s+(\d+)/);
+      if (m) mem[m[1]] = parseInt(m[2], 10);
+    });
+    const total_kb = mem.MemTotal || 0;
+    const avail_kb = mem.MemAvailable || 0;
+    container = {
+      total_mb: Math.round(total_kb / 1024),
+      available_mb: Math.round(avail_kb / 1024),
+    };
+  } catch {}
+
+  let gpu = {};
+  try {
+    const { stdout } = await execFileP('nvidia-smi',
+      ['--query-gpu=memory.used,memory.total', '--format=csv,noheader,nounits'],
+      { timeout: 2000 });
+    const parts = stdout.trim().split('\n')[0].split(',').map(s => parseInt(s.trim(), 10));
+    if (parts.length >= 2 && Number.isFinite(parts[1])) {
+      gpu = { used_mb: parts[0], total_mb: parts[1], free_mb: parts[1] - parts[0] };
+    }
+  } catch {}
+
+  return { container, gpu };
+}
+
+function _checkModelAvailable(model, resources) {
+  const sizeGb = _modelSizeGb(model.size);
+  if (sizeGb <= 0) return [true, null];
+
+  const requiredRamMb = (sizeGb + 2) * 1024;
+  const availRamMb = resources.container?.available_mb || 0;
+  if (availRamMb && availRamMb < requiredRamMb) {
+    return [false, `RAM 부족 (필요 ~${(requiredRamMb / 1024).toFixed(1)}GB, 가용 ${(availRamMb / 1024).toFixed(1)}GB)`];
   }
-  const data = await resp.json();
-  return data.choices?.[0]?.message?.content || '';
-}
 
-// ─── Python sub-server 호출 (llama-cpp-python / onnx / transformers) ─
-// 격리 service 의 /infer 와 동일 스펙 (engine + model_key + messages)
-// 첫 호출 시 sub-server 가 모델 lazy 다운로드 → 1~3분 콜드 가능
-// REBUILD29 §13 — Qwen 모델은 thinking 모드 강제 비활성
-async function callPySubserver({ engine, modelKey, messages, maxTokens, temperature }) {
-  const finalMessages = applyQwenStrict(messages, modelKey);
-  const resp = await fetch(`${PY_SUBSERVER_URL}/infer`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      engine,
-      model_key: modelKey,
-      messages: finalMessages,
-      max_tokens: maxTokens,
-      temperature,
-    }),
-  });
-  if (!resp.ok) {
-    const errBody = await resp.text();
-    throw new Error(`Python sub-server HTTP ${resp.status}: ${errBody.slice(0, 300)}`);
+  const requiredVramMb = sizeGb * 1024 * 1.3;
+  if (resources.gpu?.total_mb) {
+    const freeVramMb = resources.gpu.free_mb || 0;
+    if (freeVramMb < requiredVramMb) {
+      return [false, `VRAM 부족 (필요 ~${(requiredVramMb / 1024).toFixed(1)}GB, 가용 ${(freeVramMb / 1024).toFixed(1)}GB)`];
+    }
   }
-  const data = await resp.json();
-  return data.answer || '';
+
+  return [true, null];
 }
 
+// ─── 메인 핸들러 ────────────────────────────────────────────────
 module.exports = withAuth(async (req, res) => {
-  // 카탈로그 조회
+  // 카탈로그 조회 — REBUILD32 §X 동적 가용성
   if (req.method === 'GET' && req.query?.action === 'models') {
+    const resources = await _readResources().catch(() => ({}));
     return res.json({
       default: DEFAULT_MODEL_KEY,
+      default_model: DEFAULT_MODEL_KEY,
       default_engine: DEFAULT_ENGINE,
       engines: Object.entries(ENGINES).map(([key, m]) => ({ key, ...m })),
-      models: Object.entries(MODEL_MAP).map(([key, m]) => ({ key, ...m })),
+      models: Object.entries(MODEL_MAP).map(([key, m]) => {
+        const [available, reason] = _checkModelAvailable(m, resources);
+        return {
+          key,
+          ...m,
+          available_engines: ['ollama'],
+          available,
+          unavailable_reason: reason,
+        };
+      }),
+      _resources: {
+        container_available_mb: resources.container?.available_mb,
+        gpu_free_mb: resources.gpu?.free_mb,
+      },
     });
   }
 
-  // REBUILD30 §21 — 모든 엔진 메모리 정리 (admin 전용)
-  // UI "🧹 메모리 정리" 버튼이 호출. 모든 daemon kill + Ollama unload + Python cleanup.
-  if (req.method === 'POST' && req.query?.action === 'cleanup') {
-    if (!req.user?.admin) return res.status(403).json({ error: 'admin 권한 필요' });
-    await cleanupOtherEngines(null).catch(() => {});  // null = 어떤 엔진도 보존 안 함
-    return res.json({ ok: true, cleaned: ['ollama', 'llama-server', 'vllm', 'python-sub-server'] });
+  // 모든 Ollama 모델 unload (warm 유지, 모든 인증 사용자 가능)
+  // REBUILD33 §31 (2026-05-06) — admin 전용 cleanup 폐기. MemoryCard 의 [🗑️ 모두 언로드] 가 호출.
+  // GPU VRAM + weights 회수, 컨테이너는 유지 → 다음 호출 빠른 재로드.
+  if (req.method === 'POST' && req.query?.action === 'unload-all') {
+    _lastServedModel = null;
+    const unloaded = [];
+    const errors = [];
+    try {
+      const psResp = await fetch(`${OLLAMA_URL}/api/ps`).catch(() => null);
+      if (psResp?.ok) {
+        const { models = [] } = await psResp.json();
+        for (const m of models) {
+          const name = m.name || m.model;
+          if (!name) continue;
+          try {
+            await fetch(`${OLLAMA_URL}/api/generate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: name, keep_alive: 0, prompt: '' }),
+            });
+            unloaded.push(name);
+          } catch (e) {
+            errors.push(`${name}: ${e?.message}`);
+          }
+        }
+      }
+    } catch (e) {
+      errors.push(`list_failed: ${e?.message}`);
+    }
+    return res.json({ ok: true, unloaded, errors });
+  }
+
+  // 컨테이너 자체 종료 → Cloud Run 다음 호출 시 새 인스턴스 spawn (메모리 100% 회수)
+  // REBUILD33 §31 (2026-05-06) — 격리 service 의 ♻️ 인스턴스 재시작 패턴을 통합 service 에도 적용.
+  // ⚠ 통합 service 는 본업 (DB / Gemini API / 메모 등) 도 같은 컨테이너 → 본업도 잠시 다운됨.
+  if (req.method === 'POST' && req.query?.action === 'restart-container') {
+    _lastServedModel = null;
+    setTimeout(() => {
+      console.log(`[local-infer] restart-container: SIGTERM to self (PID ${process.pid})`);
+      process.kill(process.pid, 'SIGTERM');
+    }, 600);
+    return res.json({
+      ok: true,
+      message: '컨테이너 재시작 예약됨 (다음 호출은 cold start)',
+      next_call_warning: '~30초~2분 (모델 lazy pull 포함) 소요 예상',
+      impact_warning: '본업 (DB / 메모 / Gemini AI 해설 등) 도 컨테이너 재기동 동안 잠시 다운됩니다 (~5~10초)',
+    });
+  }
+
+  // 메모리 상태 (UI MemoryCard 용) — REBUILD33: Ollama + RAM + GPU 만 (sub_server / daemons 제거)
+  if (req.method === 'GET' && req.query?.action === 'memory') {
+    const resources = await _readResources().catch(() => ({}));
+    const result = {
+      service: 'aitutor',
+      engines: ['ollama'],
+      ollama: { reachable: false, loaded: [] },
+      container: resources.container || {},
+      gpu: {},
+    };
+
+    // Ollama (port 11434) /api/ps
+    try {
+      const r = await fetch(`${OLLAMA_URL}/api/ps`).catch(() => null);
+      if (r?.ok) {
+        const d = await r.json();
+        result.ollama.reachable = true;
+        result.ollama.loaded = (d.models || []).map(m => ({
+          name: m.name,
+          size_total: m.size,
+          size_vram: m.size_vram,
+          expires_at: m.expires_at,
+        }));
+      }
+    } catch {}
+
+    // GPU 상세 (util + temp 추가)
+    try {
+      const { execFile } = require('child_process');
+      const { promisify } = require('util');
+      const execFileP = promisify(execFile);
+      const { stdout } = await execFileP('nvidia-smi',
+        ['--query-gpu=memory.used,memory.total,utilization.gpu,temperature.gpu',
+         '--format=csv,noheader,nounits'],
+        { timeout: 3000 });
+      const first = stdout.trim().split('\n')[0];
+      const parts = first.split(',').map(s => parseInt(s.trim(), 10));
+      if (parts.length >= 4 && Number.isFinite(parts[1]) && parts[1] > 0) {
+        result.gpu = {
+          used_mb: parts[0],
+          total_mb: parts[1],
+          util_percent: parts[2],
+          temp_c: parts[3],
+          percent: Math.round(parts[0] * 1000 / parts[1]) / 10,
+        };
+      } else {
+        result.gpu = { error: 'parse failed' };
+      }
+    } catch (e) {
+      result.gpu = { error: (e?.message || 'nvidia-smi failed').slice(0, 100) };
+    }
+
+    // container percent 계산
+    if (result.container.total_mb && result.container.available_mb != null) {
+      const used_mb = Math.max(0, result.container.total_mb - result.container.available_mb);
+      result.container.used_mb = used_mb;
+      result.container.percent = Math.round(used_mb * 1000 / result.container.total_mb) / 10;
+    }
+
+    return res.json(result);
+  }
+
+  // 인프라 헬스체크 — REBUILD33: Ollama 만 (Python sub-server 제거됨)
+  if (req.method === 'GET' && req.query?.action === 'health') {
+    let ollamaOk = false;
+    try {
+      const r = await fetch(`${OLLAMA_URL}/api/tags`);
+      ollamaOk = r.ok;
+    } catch {}
+    return res.json({
+      ok: ollamaOk,
+      ollama: { reachable: ollamaOk, port: 11434 },
+      hint: ollamaOk
+        ? 'Ollama 정상.'
+        : 'Ollama 가 응답하지 않습니다. 컨테이너 재시작이 필요할 수 있습니다.',
+    });
   }
 
   if (req.method !== 'POST') {
@@ -383,7 +394,6 @@ module.exports = withAuth(async (req, res) => {
   const {
     messages,
     model_key   = DEFAULT_MODEL_KEY,
-    engine      = DEFAULT_ENGINE,
     maxTokens   = 512,
     temperature = 0.3,
   } = req.body || {};
@@ -399,67 +409,34 @@ module.exports = withAuth(async (req, res) => {
     return res.status(400).json({ error: 'messages 배열이 필요합니다.' });
   }
 
-  const eng = ENGINES[engine];
-  if (!eng) {
-    return res.status(400).json({
-      error: `unknown engine: ${engine}`,
-      available: Object.keys(ENGINES),
-    });
-  }
-  if (eng.status === 'planned') {
-    return res.status(503).json({
-      error: `engine_not_ready`,
-      message: `${eng.label} 엔진은 ${eng.note}. 현재 active: ${Object.keys(ENGINES).filter(k => ENGINES[k].status === 'active').join(', ')}`,
-      engine,
-    });
-  }
-
   const t0 = Date.now();
   try {
-    // REBUILD30 §21 — 엔진 변경 시 자동 cross-engine cleanup
-    // 호출 엔진 외 다른 엔진의 GPU/메모리 점유를 자동 회수해 OOM 방지.
-    await cleanupOtherEngines(engine).catch(err => {
-      console.warn('[local-infer] cleanupOtherEngines 일부 실패 (무시):', err?.message);
+    const { answer, inferMs } = await callOllama({
+      ollamaModel: meta.ollama,
+      messages,
+      maxTokens,
+      temperature,
     });
-
-    let answer = '';
-    if (engine === 'ollama') {
-      answer = await callOllama({ ollamaModel: meta.ollama, messages, maxTokens, temperature });
-    } else if (engine === 'llama-server') {
-      if (!meta.gguf) throw new Error(`model_key '${model_key}' has no GGUF mapping (gemma 모델은 Ollama 만 지원)`);
-      await ensureLlamaServer(meta.ollama, meta.gguf);
-      answer = await callOpenAICompat({ baseUrl: LLAMASERVER_URL, modelTag: meta.gguf.file, messages, maxTokens, temperature });
-    } else if (engine === 'vllm') {
-      if (!meta.hf_repo) throw new Error(`model_key '${model_key}' has no hf_repo mapping`);
-      await ensureVllm(meta.ollama, meta.hf_repo);
-      answer = await callOpenAICompat({ baseUrl: VLLM_URL, modelTag: meta.hf_repo, messages, maxTokens, temperature });
-    } else if (engine === 'llama-cpp-python' || engine === 'onnxruntime-genai' || engine === 'transformers') {
-      // Python sub-server (port 11442) — 격리 service 와 동일 코드, GPU L4 활용
-      if (!meta.hf_repo && !meta.gguf && !meta.onnx_repo) {
-        throw new Error(`model_key '${model_key}' has no Python engine mapping (gemma 모델은 Ollama 만 지원)`);
-      }
-      answer = await callPySubserver({ engine, modelKey: model_key, messages, maxTokens, temperature });
-    } else {
-      throw new Error(`engine '${engine}' marked active but no dispatcher`);
-    }
-
-    const inferMs = Date.now() - t0;
+    const totalMs = Date.now() - t0;
     res.json({
       answer,
       meta: {
         model_key,
         model_name: meta.name,
-        engine,
+        engine: 'ollama',
         infer_ms: inferMs,
-        total_ms: inferMs,
+        total_ms: totalMs,
         warm: true,
       },
     });
   } catch (err) {
     console.error('[local-infer] 에러:', err);
-    res.status(500).json({
+    const statusCode = Number.isInteger(err?.statusCode) ? err.statusCode : 500;
+    res.status(statusCode).json({
       error: err.message,
-      meta: { model_key, engine, total_ms: Date.now() - t0 },
+      message: err.message,
+      detail: err?.payload,
+      meta: { model_key, engine: 'ollama', total_ms: Date.now() - t0 },
     });
   }
 });

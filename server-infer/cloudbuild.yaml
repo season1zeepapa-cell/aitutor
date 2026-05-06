@@ -1,0 +1,93 @@
+# aitutor-server-infer — Cloud Build 자동화 (REBUILD32)
+#
+# 호출:
+#   cd workspace/aitutor/server-infer && gcloud builds submit --config cloudbuild.yaml --project=aitutortwo-prod
+#
+# 동작:
+#   1) Docker image 빌드 (Ollama only — vLLM/llama-server/Python sub-server 없음)
+#   2) Artifact Registry 푸시 (asia-southeast1)
+#   3) Cloud Run 배포 (GPU L4, 16Gi/4CPU, min=0/max=1, asia-southeast1)
+#
+# REBUILD32 — 옛 격리 service (aitutor-inference) 폐기 후 신규 service.
+#   - 메인 image (aitutortwo-prod/aitutor/aitutor) 와 완전 분리
+#   - 별도 Artifact Registry repo: aitutor-server-infer
+#   - 별도 SA: aitutor-server-infer-run@aitutortwo-prod
+
+substitutions:
+  _SERVICE_NAME: aitutor-server-infer
+  _AR_REGION: asia-southeast1
+  _RUN_REGION: asia-southeast1
+  _REPO: aitutor-server-infer
+  _SA_EMAIL: aitutor-server-infer-run@aitutortwo-prod.iam.gserviceaccount.com
+  _TAG: latest    # gcloud builds submit --substitutions=_TAG=v$(date +%Y%m%d-%H%M%S) 권장
+
+steps:
+  # 1) Docker 이미지 빌드 (Ollama only 가벼운 image)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args:
+      - 'build'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # 2) Artifact Registry 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-tag'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}']
+    waitFor: ['docker-build']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-latest'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest']
+    waitFor: ['docker-build']
+
+  # 3) Cloud Run 배포 (GPU L4 + 16Gi/4CPU)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'cloud-run-deploy'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}
+      - --region=${_RUN_REGION}
+      - --service-account=${_SA_EMAIL}
+      # REBUILD32 — 격리 service 자원
+      #   초기 (2026-05-04 20:30): 16Gi/4CPU
+      #   1차 (2026-05-04 23:25, OOM): 16→24Gi → quota 초과 fail (40Gi 한계)
+      #   2차 (2026-05-05 00:05, quota 한계 확정): 24→16Gi 임시 회복
+      #   3차 (2026-05-05 11:00, **quota 상향 승인 80GB**): 16→24Gi 복구
+      #     mem_allocation: 40Gi → 80GB (74.5GiB) 1.86배 상향
+      #     메인 24 + 격리 24 = 48Gi (한계 74.5Gi 안 26Gi 여유)
+      #     transient 시 메인 24 + 격리 옛 24 + 격리 새 24 = 72Gi (안전 2.5Gi 여유)
+      #     server.py PENDING_MODELS → MODELS 복구 (qwen2.5-7b, gemma4-e4b 활성화)
+      - --memory=24Gi
+      - --cpu=6
+      - --gpu=1
+      - --gpu-type=nvidia-l4
+      - --no-gpu-zonal-redundancy
+      - --no-cpu-throttling
+      - --timeout=600
+      - --concurrency=10
+      - --min-instances=0
+      - --max-instances=1
+      - --port=8080
+      - --set-env-vars=OLLAMA_HOST=0.0.0.0:11434,OLLAMA_MODELS=/var/ollama/models
+      # 인증: 메인 service 가 ID token 으로 호출 → 외부 직접 접근 차단
+      - --no-allow-unauthenticated
+    waitFor: ['docker-push-tag']
+
+images:
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+
+# Ollama image 빌드는 vLLM 보다 훨씬 가벼움 (vCPU 충분, disk 50GB 충분)
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 50
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

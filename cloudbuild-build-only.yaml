@@ -1,0 +1,51 @@
+# AI TutorTwo — Cloud Build 빌드 전용 (deploy 단계 제외)
+#
+# REBUILD31 §5 — GPU L4 quota 승인 전 빌드만 미리 실행 (사용자 요청, 2026-05-04)
+#   - 동일 cloudbuild.yaml 의 image build + AR push 까지만 실행
+#   - deploy step (Cloud Run + GPU) 는 quota 승인 후 별도 명령
+#
+# 호출:
+#   gcloud builds submit --config=cloudbuild-build-only.yaml \
+#     --substitutions=_TAG=v$(date +%Y%m%d-%H%M%S) \
+#     --project=aitutortwo-prod
+
+substitutions:
+  _SERVICE_NAME: aitutor
+  _AR_REGION: asia-southeast1
+  _REPO: aitutor
+  _TAG: latest
+
+steps:
+  # 1) Docker 이미지 빌드 (multi-stage — vite build + CUDA runtime)
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args:
+      - 'build'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # 2) Artifact Registry 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-sha'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}']
+    waitFor: ['docker-build']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push-latest'
+    args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest']
+    waitFor: ['docker-build']
+
+images:
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
+  - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+
+# Cloud Build 머신 — Docker build 가 큰 컨테이너라 E2_HIGHCPU_8 추천
+options:
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 100
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 3600s

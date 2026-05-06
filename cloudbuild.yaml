@@ -1,24 +1,32 @@
-# AI TutorTwo — Cloud Build 자동화 (REBUILD23)
+# AI TutorTwo — Cloud Build 자동화 (REBUILD23 / REBUILD31 마이그)
 #
 # 호출:
-#   gcloud builds submit --config cloudbuild.yaml --project=aifactory-494108
+#   gcloud builds submit --config cloudbuild.yaml --project=aitutortwo-prod
 #
 # 동작:
 #   1) Docker image 빌드 (Dockerfile multi-stage — Vite 빌드 + CUDA runtime)
-#   2) Artifact Registry 에 푸시 (asia-northeast3)
-#   3) Cloud Run 서비스 배포 (GPU L4, min=0, max=5)
+#   2) Artifact Registry 에 푸시 (asia-southeast1)
+#   3) Cloud Run 서비스 배포 (GPU L4, min=0, max=1, asia-southeast1)
 #
 # 배포 후:
 #   - Cloud Run URL 출력 → capacitor.config.json 갱신
 #   - 첫 호출 콜드 스타트 ~30~60s (GPU + Ollama 모델 다운로드)
+#
+# REBUILD31 (2026-05-04) — 신규 GCP (aitutortwo-prod / asia-southeast1) 마이그
+#   - 구: aifactory-494108 / us-east4
+#   - 격리 service URL 은 Phase 5-3 격리 배포 후 갱신 필수
 
 substitutions:
   _SERVICE_NAME: aitutor
-  _AR_REGION: asia-northeast3      # Artifact Registry (이미지 저장소) — 한국 가까움 + 비용 ↓
-  _RUN_REGION: us-east4            # Cloud Run (GPU L4 quota 승인된 리전, 2026-04-29) — REBUILD23 § 21 결정
+  _AR_REGION: asia-southeast1      # REBUILD31 — Artifact Registry (싱가포르, 한국 RTT ~80ms)
+  _RUN_REGION: asia-southeast1     # REBUILD31 — Cloud Run GPU L4 가용 리전 중 한국 최단
   _REPO: aitutor
-  _SA_EMAIL: aitutor-run@aifactory-494108.iam.gserviceaccount.com
-  _GCS_BUCKET: aitutor-files-aifactory-494108
+  _SA_EMAIL: aitutor-run@aitutortwo-prod.iam.gserviceaccount.com
+  _GCS_BUCKET: aitutor-files-aitutortwo-prod
+  # 격리 추론 service URL — REBUILD32 (2026-05-04) Ollama 단일 엔진 신규 service
+  #   옛: https://aitutor-inference-716942218621.asia-southeast1.run.app (폐기됨)
+  #   신: aitutor-server-infer (별도 image, 16Gi/4CPU/L4, REBUILD32)
+  _ISO_INFER_URL: https://aitutor-server-infer-xq3ezzqwfa-as.a.run.app
   _TAG: latest    # 호출 시 --substitutions=_TAG=v$(date +%Y%m%d-%H%M%S) 로 override 권장
 
 steps:
@@ -56,8 +64,12 @@ steps:
       - --image=${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}
       - --region=${_RUN_REGION}
       - --service-account=${_SA_EMAIL}
-      - --memory=16Gi
-      - --cpu=4
+      # REBUILD30 §36 (2026-05-03) — 16Gi/4cpu → 24Gi/6cpu
+      #   Python sub-server (transformers / llama-cpp-python / onnxruntime-genai 통합) +
+      #   vLLM lazy spawn + Ollama 동시 활성화 시 16Gi OOM 사례 발견.
+      #   24Gi 는 Cloud Run 의 6 vCPU 한도에서 가능한 최대 메모리.
+      - --memory=24Gi
+      - --cpu=6
       - --gpu=1
       - --gpu-type=nvidia-l4
       - --no-gpu-zonal-redundancy
@@ -67,10 +79,20 @@ steps:
       - --min-instances=0
       - --max-instances=1
       - --port=8080
-      - --set-env-vars=GCS_FILES_BUCKET=${_GCS_BUCKET},NODE_ENV=production
+      # REBUILD30 §25 (2026-05-03) — ISO_INFER_URL 추가 (격리 service 호출용)
+      #   --set-env-vars 는 명시 vars 만 남기고 나머지를 제거하므로,
+      #   격리 service URL 도 여기 명시하지 않으면 매 배포 후 사라짐 (사용자 보고 사례).
+      - --set-env-vars=GCS_FILES_BUCKET=${_GCS_BUCKET},NODE_ENV=production,ISO_INFER_URL=${_ISO_INFER_URL}
       - --update-secrets=ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,AUTH_TOKEN_SECRET=AUTH_TOKEN_SECRET:latest,DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,HF_API_KEY=HF_API_KEY:latest,LAW_API_OC=LAW_API_OC:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,RESEND_API_KEY=RESEND_API_KEY:latest
       - --allow-unauthenticated
     waitFor: ['docker-push-sha']
+
+# REBUILD32 (2026-05-04) — 옛 cloud-run-deploy-inference step 제거됨.
+#   사유: 옛 격리 service (aitutor-inference) 폐기. 신규 격리 service (aitutor-server-infer) 는
+#         완전히 다른 image (server-infer/Dockerfile, Ollama only 16Gi/4CPU) 로 분리되어
+#         workspace/aitutor/server-infer/cloudbuild.yaml 별도 빌드 파이프라인 사용.
+#   이 cloudbuild 는 메인 service (aitutor) 만 책임. 격리 service 변경 시 server-infer/ 디렉토리에서
+#   별도 gcloud builds submit 호출.
 
 images:
   - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'
