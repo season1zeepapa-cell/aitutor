@@ -9,10 +9,10 @@
     POST /memory/restart-container      → 컨테이너 자체 종료 → 다음 호출 cold start (REBUILD32 §15.5)
 
 설계 결정:
-    - 모델 카탈로그를 본 파일에 직접 정의 (격리 service 자급자족)
-    - 메인 service 의 inference-py/engines/catalog.py 와 ollama 매핑은 일치 유지
+    - 모델 카탈로그를 본 파일에 직접 정의 (격리 service 자급자족, REBUILD32 §15 R-3 독립 운영)
+    - 메인 service (api/local-infer.js) 와 ollama 매핑 자체는 일치 (모델 key 충돌 방지)
     - 첫 호출 시 ollama pull 자동 (Cloud Run ephemeral 이라 콜드 스타트마다 재pull)
-    - REBUILD32 §X (2026-05-05) — 동적 가용성: 자원 부족 모델은 클라이언트에 disabled 표시
+    - 동적 가용성: 자원 부족 모델은 클라이언트에 disabled 표시 (/infer/models 응답)
 """
 import os
 import re
@@ -34,13 +34,12 @@ OLLAMA_URL = "http://127.0.0.1:11434"
 
 # REBUILD32 — 격리 service 가 노출할 Ollama 호환 모델 (한국어 검증 통과만).
 #
-# REBUILD32 §15 R-3 (2026-05-05) — 통합/분리 서버 완전 독립 운영 원칙:
+# REBUILD32 §15 R-3 — 통합/분리 서버 완전 독립 운영 원칙:
 #   ⚠ 이 MODELS 는 격리 service (aitutor-server-infer) 의 단독 진실 소스이다.
-#   통합 service (aitutor) 의 inference-py/engines/catalog.py 와 의도적으로 다를 수 있다.
-#   - 격리: Ollama 단일 엔진 + 단일 모델 정책 + asia-southeast1 자원 제약 따름
-#   - 통합: 6 엔진 동거 + 다중 모델 적재 + 통합 자원 정책 따름
-#   두 서비스는 비교 lab 가치를 위해 독립 운영되며, 동기화 검증/공유 import 금지.
-#   양쪽이 다른 것은 "버그"가 아니라 "의도된 차이"이다.
+#   통합 service (aitutor) 의 api/local-infer.js MODEL_MAP 과 의도적으로 다를 수 있다.
+#   - 격리: Ollama 단일 엔진 + 단일 모델 정책 + 회사 자산 컨셉 (15 모델)
+#   - 통합: Ollama 단일 엔진 + 단일 모델 정책 + 매장 로컬 AI 컨셉 (3 모델)
+#   동기화 검증/공유 import 금지. 양쪽이 다른 것은 "버그"가 아니라 "의도된 차이"이다.
 #
 # 변경 이력:
 #   1. DeepSeek R1 제거 (2026-05-04 23:11) — 한국어 응답 불안정 (당시 Qwen strict 이중 적용 환경)
@@ -49,8 +48,8 @@ OLLAMA_URL = "http://127.0.0.1:11434"
 #   4. 동적 가용성 — /infer/models 응답에 available + reason 포함 (자원 부족 모델 자동 disabled)
 #   5. REBUILD32 §15 I-1 — DeepSeek 복원: B-1 수정으로 Qwen strict 단일 경로 확보.
 #      이전 불안정은 이중 적용 환경에서 테스트된 결과. 재발 시 재제거.
-# UI 분류 메타 (REBUILD33 §33 — 모델 14개 카테고리/티어 분류로 UI 인지 부담 ↓):
-#   category : 'korean' (한국어 자격증 / 다국어 모델), 'english' (영어 자격증), 'code' (코드/SDK)
+# UI 분류 메타 (REBUILD33 §33/§33.10 — 모델 15개 카테고리/티어 분류로 UI 인지 부담 ↓):
+#   category : 'korean' (한국어 자격증 / 다국어 모델), 'english' (영어 자격증), 'code' (코드/SDK), 'translator' (번역 보조)
 #   tier     : 'light' (~2GB 미만, cold start ~30초), 'balanced' (~2~5GB, 1분 내외),
 #              'heavy' (~5GB 이상, 1~2분 / VRAM 압박)
 #   recommended : 카테고리 내 1순위 추천 (UI 에서 ⭐ 표시)

@@ -23,9 +23,8 @@ substitutions:
   _REPO: aitutor
   _SA_EMAIL: aitutor-run@aitutortwo-prod.iam.gserviceaccount.com
   _GCS_BUCKET: aitutor-files-aitutortwo-prod
-  # 격리 추론 service URL — REBUILD32 (2026-05-04) Ollama 단일 엔진 신규 service
-  #   옛: https://aitutor-inference-716942218621.asia-southeast1.run.app (폐기됨)
-  #   신: aitutor-server-infer (별도 image, 16Gi/4CPU/L4, REBUILD32)
+  # 격리 추론 service URL — REBUILD32 Ollama 단일 엔진
+  #   현 spec: aitutor-server-infer (별도 image, 24Gi/4CPU/L4 GPU, REBUILD33 §17 quota 승인 후 24Gi 복구)
   _ISO_INFER_URL: https://aitutor-server-infer-xq3ezzqwfa-as.a.run.app
   _TAG: latest    # 호출 시 --substitutions=_TAG=v$(date +%Y%m%d-%H%M%S) 로 override 권장
 
@@ -64,10 +63,8 @@ steps:
       - --image=${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}
       - --region=${_RUN_REGION}
       - --service-account=${_SA_EMAIL}
-      # REBUILD30 §36 (2026-05-03) — 16Gi/4cpu → 24Gi/6cpu
-      #   Python sub-server (transformers / llama-cpp-python / onnxruntime-genai 통합) +
-      #   vLLM lazy spawn + Ollama 동시 활성화 시 16Gi OOM 사례 발견.
-      #   24Gi 는 Cloud Run 의 6 vCPU 한도에서 가능한 최대 메모리.
+      # 메인 service 자원: 24Gi/6vCPU/L4 GPU (Cloud Run 6 vCPU 한도에서 가능한 최대 메모리)
+      # REBUILD33: Express + Ollama 단일 엔진 (Python sub-server / vLLM / llama-cpp-python 제거됨)
       - --memory=24Gi
       - --cpu=6
       - --gpu=1
@@ -87,12 +84,9 @@ steps:
       - --allow-unauthenticated
     waitFor: ['docker-push-sha']
 
-# REBUILD32 (2026-05-04) — 옛 cloud-run-deploy-inference step 제거됨.
-#   사유: 옛 격리 service (aitutor-inference) 폐기. 신규 격리 service (aitutor-server-infer) 는
-#         완전히 다른 image (server-infer/Dockerfile, Ollama only 16Gi/4CPU) 로 분리되어
-#         workspace/aitutor/server-infer/cloudbuild.yaml 별도 빌드 파이프라인 사용.
-#   이 cloudbuild 는 메인 service (aitutor) 만 책임. 격리 service 변경 시 server-infer/ 디렉토리에서
-#   별도 gcloud builds submit 호출.
+# REBUILD32 — 격리 service 별도 image 분리.
+#   격리: workspace/aitutor/server-infer/ (Ollama only, 24Gi/4CPU/L4) → 별도 cloudbuild.yaml
+#   메인: 본 cloudbuild 가 책임. 격리 service 변경 시 server-infer/ 에서 별도 gcloud builds submit 호출.
 
 images:
   - '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}'

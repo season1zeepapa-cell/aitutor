@@ -52,10 +52,10 @@ const LocalAiLab = lazy(() => import('./labs/local-ai'));
 const HfLab = lazy(() => import('./labs/hf-playground'));
 // REBUILD22 §x Phase 4a — HF 비교 모드 (다중 모델 동시 호출)
 const HfCompareLab = lazy(() => import('./labs/hf-playground/CompareIndex'));
-// REBUILD23 — Cloud Run 일심동체 추론 (앱+모델 같은 컨테이너, 추론 엔진 교체 가능)
+// REBUILD33 — 서버 통합 추론 (메인 service Express + Ollama 단일 엔진, 3 모델, 24Gi/6CPU/L4 GPU)
 const LocalGcpLab = lazy(() => import('./labs/local-gcp'));
 
-// REBUILD32 — Cloud Run 격리 추론 service (aitutor-server-infer, Ollama 단일 엔진, 16Gi/4CPU)
+// REBUILD32 — 서버 분리 추론 (aitutor-server-infer, Ollama 단일 엔진, 15 모델, 24Gi/4CPU/L4 GPU)
 const ServerInferLab = lazy(() => import('./labs/server-infer'));
 
 // REBUILD28 §11 — /lab 실험실 메인 (5 lab 카탈로그)

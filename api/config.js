@@ -24,10 +24,10 @@ module.exports = withCors(async (req, res) => {
   const labLocalAi = await getSetting('lab_local_ai_enabled', 'false');
   // REBUILD22 §x — HF Inference Providers 실험실 토글
   const labHf = await getSetting('lab_hf_enabled', 'false');
-  // Cloud Run 일심동체 추론 (REBUILD23~26 — 앱+모델 같은 컨테이너, 8 엔진 동거).
-  // DB key (lab_local_lambda_enabled) 는 마이그 부담으로 보존, UI 라벨은 Cloud Run 으로 갱신됨.
+  // 서버 통합 추론 (REBUILD33 — 메인 service Express + Ollama 단일 엔진, 3 모델).
+  // DB key (lab_local_lambda_enabled) 는 마이그 부담으로 보존, UI 라벨은 "서버 통합" 으로 갱신됨.
   const labLocalLambda = await getSetting('lab_local_lambda_enabled', 'false');
-  // REBUILD26 §3.2 — 격리 추론 service (aitutor-inference) 실험실 토글
+  // 서버 분리 추론 (REBUILD32 — 격리 service aitutor-server-infer, FastAPI + Ollama 단일 엔진, 15 모델)
   const labServerInfer = await getSetting('lab_server_infer_enabled', 'false');
   // REBUILD28 §11 — 외부 Ollama bridge 실험실 토글 (사용자 PC localhost:11434 직접 호출)
   const labOllamaBridge = await getSetting('lab_ollama_bridge_enabled', 'false');

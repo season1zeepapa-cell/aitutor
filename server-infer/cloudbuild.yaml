@@ -6,7 +6,7 @@
 # 동작:
 #   1) Docker image 빌드 (Ollama only — vLLM/llama-server/Python sub-server 없음)
 #   2) Artifact Registry 푸시 (asia-southeast1)
-#   3) Cloud Run 배포 (GPU L4, 16Gi/4CPU, min=0/max=1, asia-southeast1)
+#   3) Cloud Run 배포 (GPU L4, 24Gi/4CPU, min=0/max=1, asia-southeast1)
 #
 # REBUILD32 — 옛 격리 service (aitutor-inference) 폐기 후 신규 service.
 #   - 메인 image (aitutortwo-prod/aitutor/aitutor) 와 완전 분리
@@ -44,7 +44,7 @@ steps:
     args: ['push', '${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest']
     waitFor: ['docker-build']
 
-  # 3) Cloud Run 배포 (GPU L4 + 16Gi/4CPU)
+  # 3) Cloud Run 배포 (GPU L4 + 24Gi/6vCPU — REBUILD33 §17 quota 승인 후)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'cloud-run-deploy'
     entrypoint: gcloud
@@ -55,15 +55,8 @@ steps:
       - --image=${_AR_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:${_TAG}
       - --region=${_RUN_REGION}
       - --service-account=${_SA_EMAIL}
-      # REBUILD32 — 격리 service 자원
-      #   초기 (2026-05-04 20:30): 16Gi/4CPU
-      #   1차 (2026-05-04 23:25, OOM): 16→24Gi → quota 초과 fail (40Gi 한계)
-      #   2차 (2026-05-05 00:05, quota 한계 확정): 24→16Gi 임시 회복
-      #   3차 (2026-05-05 11:00, **quota 상향 승인 80GB**): 16→24Gi 복구
-      #     mem_allocation: 40Gi → 80GB (74.5GiB) 1.86배 상향
-      #     메인 24 + 격리 24 = 48Gi (한계 74.5Gi 안 26Gi 여유)
-      #     transient 시 메인 24 + 격리 옛 24 + 격리 새 24 = 72Gi (안전 2.5Gi 여유)
-      #     server.py PENDING_MODELS → MODELS 복구 (qwen2.5-7b, gemma4-e4b 활성화)
+      # 격리 service 자원: 24Gi/6vCPU/L4 GPU (REBUILD33 §17 quota 80GB 상향 승인 후 24Gi 복구)
+      # 메인(24) + 격리(24) + transient 옛 격리(24) = 72Gi (한계 74.5Gi 안 2.5Gi 여유)
       - --memory=24Gi
       - --cpu=6
       - --gpu=1

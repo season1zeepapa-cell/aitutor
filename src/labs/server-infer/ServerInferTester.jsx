@@ -485,7 +485,8 @@ export default function ServerInferTester() {
       />
 
       {/* 모델 선택 — 격리 service /infer/models 응답 = ollama 호환 모델 + 동적 가용성
-          REBUILD33 §33: 14개 모델 인지 부담 ↓ → 카테고리 필터칩 + 2-col grid + 추천/티어 시각화 */}
+          REBUILD33 §33/§33.10: 15개 모델(번역 보조 포함) 인지 부담 ↓ → 카테고리 필터칩 + 2-col grid + 추천/티어 시각화
+          P1-B (REBUILD34): translator 카테고리는 토글로만 노출(의도된 숨김), 카테고리 칩에는 미노출 */}
       <div className="rounded-xl border border-border bg-card-bg p-3 space-y-2.5">
         <div className="flex items-baseline justify-between flex-wrap gap-1">
           <p className="text-xs font-bold text-text">

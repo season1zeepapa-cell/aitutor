@@ -22,7 +22,7 @@ function StudyAnimation() {
         <rect x="40" y="140" width="120" height="6" rx="3" fill="var(--primary)" opacity="0.15" />
 
         {/* 노트북 */}
-        <rect x="60" y="105" width="50" height="35" rx="4" fill="var(--primary)" opacity="0.12" stroke="var(--primary)" strokeWidth="1.5" opacity="0.3" />
+        <rect x="60" y="105" width="50" height="35" rx="4" fill="var(--primary)" fillOpacity="0.12" stroke="var(--primary)" strokeWidth="1.5" strokeOpacity="0.3" />
         <rect x="63" y="108" width="44" height="26" rx="2" fill="var(--primary)" opacity="0.06" />
         {/* 노트북 화면 줄 (타이핑 애니메이션) */}
         <line x1="68" y1="116" x2="92" y2="116" stroke="var(--primary)" strokeWidth="1.5" opacity="0.4">
