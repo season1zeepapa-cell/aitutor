@@ -1,10 +1,15 @@
-// REBUILD29 §21 — 실험실 (5 lab) 스모크 테스트 (옵션 A)
+// 실험실 (5 lab) 스모크 테스트 — UI 노출만 검증 (추론 호출 X)
 //
-// 검증 범위 (UI 만, 추론 호출 X):
+// 현재 운영 구조 (REBUILD32/33 이후):
+//   - 메인 통합 service: Ollama 단일 엔진 + 3 모델
+//   - 격리 분리 service: Ollama 단일 엔진 + 15 모델 (한국어/영어/코드/번역)
+//   - 옛 multi-engine (llama-server / vLLM / llama-cpp-python / onnxruntime-genai / transformers) 폐기
+//
+// 검증 범위:
 //   1. /lab 실험실 메인 — 5 카드 + 헤더
-//   2. /lab/local-ai — EngineSwitcher (transformers ↔ WebLLM)
-//   3. /lab/local-gcp — 6 엔진 + 5 모델 카드 + QuestionPicker
-//   4. /lab/server-infer — 동일
+//   2. /lab/local-ai — EngineSwitcher (transformers.js ↔ WebLLM, 브라우저 온디바이스)
+//   3. /lab/local-gcp — Ollama 단일 엔진 표시 + QuestionPicker
+//   4. /lab/server-infer — Ollama 단일 엔진 + 모델 카드 + 카테고리 칩
 //   5. /lab/hf — 카탈로그 + 탭 + 비교 모드
 //   6. /lab/ollama-bridge — 도움말 6단계 + 연결 테스트 필수 + 모델 select 비활성
 //   7. QuestionPicker 단독 — DB 탭 + 붙여넣기 파싱
@@ -12,7 +17,7 @@
 //
 // 환경:
 //   PLAYWRIGHT_BASE_URL 환경변수 또는 default localhost:5174 (dev 서버 자동 spawn)
-//   추론 호출은 백엔드 의존 → 옵션 A 는 UI 만 (백엔드 fail 무시)
+//   추론 호출은 백엔드 의존 → 본 스모크는 UI 만 (백엔드 fail 무시)
 
 const { test, expect } = require('@playwright/test');
 
@@ -88,21 +93,13 @@ test.describe('디바이스 AI (/lab/local-ai)', () => {
 });
 
 // ──────────────────────────────────────────────────────
-// 3. /lab/local-gcp 일심동체
+// 3. /lab/local-gcp 서버 통합 (Ollama 단일 엔진)
 // ──────────────────────────────────────────────────────
-test.describe('Cloud Run 일심동체 (/lab/local-gcp)', () => {
+test.describe('서버 통합 (/lab/local-gcp)', () => {
 
-  test('6 엔진 + 5 모델 카드 표시 (또는 비활성 가드)', async ({ page }) => {
+  test('Ollama 단일 엔진 + QuestionPicker (또는 비활성 가드)', async ({ page }) => {
     await loginAsAdmin(page, '/lab/local-gcp');
     await page.waitForLoadState('domcontentloaded');
-
-    // 활성 시: 6 엔진 표시
-    const engines = ['Ollama', 'llama-server', 'vLLM', 'llama-cpp-python', 'onnxruntime-genai', 'transformers'];
-    for (const e of engines) {
-      // 카드 또는 비활성 가드 페이지 — 어느 쪽이든 OK (옵션 A)
-      const found = await page.locator(`text=${e}`).first().isVisible().catch(() => false);
-      // 활성 시 노출 / 비활성 시 가드 페이지라 X — 둘 다 정상
-    }
 
     // QuestionPicker 노출 (lab 활성 시)
     const picker = page.locator('text=문항 입력');
@@ -120,25 +117,26 @@ test.describe('Cloud Run 일심동체 (/lab/local-gcp)', () => {
 });
 
 // ──────────────────────────────────────────────────────
-// 4. /lab/server-infer 격리 추론
+// 4. /lab/server-infer 서버 분리 (Ollama 단일 엔진 + 카테고리)
 // ──────────────────────────────────────────────────────
-test.describe('격리 추론 (/lab/server-infer)', () => {
+test.describe('서버 분리 (/lab/server-infer)', () => {
 
-  test('페이지 진입 + 6 엔진 표시 (fallback 동작)', async ({ page }) => {
+  test('페이지 진입 + 카테고리 칩 표시 (또는 비활성 가드)', async ({ page }) => {
     await loginAsAdmin(page, '/lab/server-infer');
     await page.waitForLoadState('domcontentloaded');
 
-    // FALLBACK_ENGINES 또는 동적 카탈로그 — 모두 active (REBUILD29 §17)
-    const engines = ['llama-cpp-python', 'onnxruntime-genai', 'transformers', 'Ollama', 'llama-server', 'vLLM'];
+    // 카테고리 칩 (REBUILD33 §33) — 추천/한국어/영어/코드/전체
+    // 백엔드 활성 시 카테고리 라벨이 노출됨. cold start / 비활성 가드 시 미노출.
+    const categories = ['추천', '한국어', '영어', '코드', '전체'];
     let foundCount = 0;
-    for (const e of engines) {
-      if (await page.locator(`text=${e}`).first().isVisible({ timeout: 2000 }).catch(() => false)) {
+    for (const c of categories) {
+      if (await page.locator(`text=${c}`).first().isVisible({ timeout: 2000 }).catch(() => false)) {
         foundCount++;
       }
     }
-    // 활성화 상태면 6 엔진 모두, 비활성 가드 시 0
+    // 활성화 상태면 카테고리 노출, 비활성 시 0 — 둘 다 통과
     if (foundCount > 0) {
-      expect(foundCount).toBeGreaterThanOrEqual(3);  // 최소 절반 이상 노출
+      expect(foundCount).toBeGreaterThanOrEqual(2);
     }
   });
 });
