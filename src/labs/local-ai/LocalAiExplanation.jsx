@@ -23,7 +23,7 @@ import { activateWakeLock, releaseWakeLock, attachVisibilityRetry } from './lib/
 const CIRCLE = ['①','②','③','④','⑤'];
 
 export default function LocalAiExplanation() {
-  const [engine, setEngine] = useState('transformers'); // REBUILD28 §11 — 엔진 선택 (transformers / webllm)
+  const [engine, setEngine] = useState('transformers'); // 엔진 선택 (transformers / webllm)
   const [mem, setMem] = useState(null);                 // 메모리 정보 — WebLLM 적합성 판정용
   const [device, setDevice] = useState(null);     // {supported, recommendedSize, reason}
   const [question, setQuestion] = useState(null);
@@ -54,7 +54,7 @@ export default function LocalAiExplanation() {
     getMemoryInfo().then(setMem);
   }, []);
 
-  // WebLLM 적합성 — 데스크톱 + WebGPU + RAM 8GB+ (REBUILD28 §11)
+  // WebLLM 적합성 — 데스크톱 + WebGPU + RAM 8GB+
   const webllmEligible = !!(
     device?.supported &&
     mem?.gpu?.adapter === 'requested' &&
@@ -114,7 +114,7 @@ export default function LocalAiExplanation() {
     return () => window.removeEventListener('popstate', handler);
   }, [isDownloading]);
 
-  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당
+  // QuestionPicker 가 문항 로딩 담당
   const handleQuestionChange = (q) => {
     setQuestion(q);
     setError('');
@@ -175,7 +175,7 @@ export default function LocalAiExplanation() {
     setRefreshKey(k => k + 1);
   };
 
-  // 해설 생성 — REBUILD30 §18: PromptEditor 가 customMessages 전달 시 우선 사용
+  // 해설 생성 — PromptEditor 가 customMessages 전달 시 우선 사용
   const generate = async (customMessages = null) => {
     if (!pipeRef.current || !question) return;
     setGenerating(true);
@@ -189,7 +189,7 @@ export default function LocalAiExplanation() {
         answer: question.answer,
         answer_extra: question.answer_extra,
       }, {
-        maxTokens: 2048,   // REBUILD29 — 사용자 디바이스 추론 (브라우저 WebGPU, 외부 비용 0). 잘림 방지
+        maxTokens: 2048,   // 사용자 디바이스 추론 (브라우저 WebGPU, 외부 비용 0). 잘림 방지
         temperature: 0.3,
         onToken: (t) => setExplanation(prev => prev + t),
         customMessages,    // PromptEditor 가 보낸 messages 우선
@@ -245,7 +245,7 @@ export default function LocalAiExplanation() {
       {/* 메모리 현황 — 항상 노출 (펼침 기본) */}
       <MemoryStatus />
 
-      {/* REBUILD28 §11 — 엔진 선택 (transformers.js vs WebLLM) */}
+      {/* 엔진 선택 (transformers.js vs WebLLM) */}
       <EngineSwitcher
         engine={engine}
         onChange={setEngine}
@@ -296,7 +296,7 @@ export default function LocalAiExplanation() {
         </>
       )}
 
-      {/* REBUILD29 §19 — 문항 입력 (DB 선택 + 외부 붙여넣기 통합) */}
+      {/* 문항 입력 (DB 선택 + 외부 붙여넣기 통합) */}
       <QuestionPicker question={question} onChange={handleQuestionChange} />
 
 
@@ -304,11 +304,11 @@ export default function LocalAiExplanation() {
       {engine === 'transformers' && pipeReady && question && (
         <button onClick={() => generate()} disabled={generating}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
-          {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성 (default)`}
+          {generating ? '✨ 생성 중…' : `✨ ${MODEL_META[activeSize]?.label || '모델'} 로 해설 생성`}
         </button>
       )}
 
-      {/* REBUILD30 §18 — PromptEditor 통합 (transformers 엔진일 때만, WebLLM 은 WebllmPanel 안에 자체) */}
+      {/* PromptEditor 통합 (transformers 엔진일 때만, WebLLM 은 WebllmPanel 안에 자체) */}
       {engine === 'transformers' && pipeReady && question && (
         <PromptEditor
           question={question}
@@ -335,7 +335,7 @@ export default function LocalAiExplanation() {
 
       {/* 안내 */}
       <p className="text-[11px] text-text-secondary text-center pt-4">
-        REBUILD17 §5 / REBUILD28 §11 — WebGPU 디바이스 AI 시범 · 엔진 2종 (transformers.js + WebLLM)
+        WebGPU 디바이스 AI 시범 — 엔진 2종 (transformers.js + WebLLM)
       </p>
     </div>
   );

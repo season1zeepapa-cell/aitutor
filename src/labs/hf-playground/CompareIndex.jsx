@@ -1,4 +1,4 @@
-// /lab/hf/compare 진입점 (REBUILD22 §x Phase 4a)
+// /lab/hf/compare 진입점 (HF 비교 모드)
 import { useState, useEffect } from 'react';
 import HfCompare from './HfCompare';
 

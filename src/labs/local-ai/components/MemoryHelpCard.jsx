@@ -166,7 +166,7 @@ export default function MemoryHelpCard({ activeSize, onActivate, onAfterChange, 
             ℹ️ 브라우저 페이지는 OS 가 관리하는 GPU·RAM 한계를 직접 늘릴 수 없습니다.
             모바일은 통합 GPU 메모리를 OS·다른 앱과 공유하므로 위 조치가 최선입니다.
             {platform !== 'desktop' && (
-              <> REBUILD17 §12.3-C 검증 결과 모바일 WebGPU 는 메모리 한계가 빡빡해 더 작은 모델 권장.</>
+              <> 모바일 WebGPU 는 메모리 한계가 빡빡해 더 작은 모델 권장.</>
             )}
           </p>
         </div>

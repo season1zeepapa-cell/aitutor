@@ -1,4 +1,4 @@
-// REBUILD30 §0.4 #5 — 에러 박스 통합 컴포넌트 (2026-04-30)
+// 에러 박스 통합 컴포넌트 (lab 공용)
 //
 // 3 lab (LocalGcp / ServerInfer / OllamaBridge) 의 에러 박스 마크업 통일.
 // 응답 박스(answer)는 lab 별 색상이 시각 식별 역할을 해서 통합 X — 에러만 통합.

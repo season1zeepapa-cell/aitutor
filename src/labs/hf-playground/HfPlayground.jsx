@@ -1,24 +1,20 @@
-// HF Inference Providers 실험실 — REBUILD22 §x (Phase 3 — 동적 카탈로그)
+// HF Inference Providers 실험실 — 동적 카탈로그
 //
 // 모델 카탈로그는 /api/hf-models 에서 동적 fetch (122개 router live 모델, 1h 캐시).
-// 운전면허 문항 무작위 + 정답 토글 + 프롬프트 보기 + 메트릭 + 이력 (lab 공통 패턴).
-// 자유 프롬프트 모드 — 영상정보관리사 5종 + 일반 평가 4종 프리셋
+// 시험 문제 모드 단일 — 다른 lab 들과 동일한 패턴
+//   · 자유 프롬프트 모드 제거 → PromptEditor 의 system/user 편집으로 동등 기능 제공
+//   · 옛 "🔍 최종 입력 프롬프트 보기" 카드 제거 → PromptEditor 의 "📨 최종 메시지" 로 통합
 
 import { useState, useEffect, useRef } from 'react';
 import {
-  PROMPT_PRESETS, CIRCLE,
   buildExamMessages, calcCost, usdToKrw, fmtCtx, fmtPrice, CAPABILITY_META,
+  pushRecentModel,
 } from './lib/models';
 import { chat as hfChat, fetchModelCatalog } from './lib/hfClient';
 import ModelCatalog from './components/ModelCatalog';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import ParamSliders from '../../components/lab/ParamSliders';
 import PromptEditor from '../../components/lab/PromptEditor';
-
-const TABS = [
-  { id: 'exam', label: '🎓 시험 문제 모드', desc: '운전면허 무작위 문항으로 추론 비교' },
-  { id: 'prompt', label: '💬 자유 프롬프트', desc: '영상정보관리사 / 일반 평가 프리셋' },
-];
 
 // fallback default — 카탈로그 fetch 실패 시
 const FALLBACK_MODEL_ID = 'google/gemma-4-31B-it';
@@ -54,16 +50,12 @@ export default function HfPlayground() {
 
   const selectedModel = catalog.find(m => m.id === selectedId);
 
-  // ─── 모드/공통 입력 상태 ─────────────────────────────
-  const [tab, setTab] = useState('exam');
+  // ─── 입력 상태 (시험 문제 모드 단일) ─────────────────────────────
   const [question, setQuestion] = useState(null);
   const [loadingQ, setLoadingQ] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [systemMsg, setSystemMsg] = useState('');
-  const [userMsg, setUserMsg] = useState('');
   const [temperature, setTemperature] = useState(0.3);
-  const [maxTokens, setMaxTokens] = useState(1024);  // REBUILD29 — 외부 API (HF Inference) 토큰당 과금 → 보수적 유지
+  const [maxTokens, setMaxTokens] = useState(1024);  // 외부 API (HF Inference) 토큰당 과금 → 보수적 유지
 
   // ─── 추론/응답/이력 ─────────────────────────────
   const [stream, setStream] = useState('');
@@ -76,7 +68,7 @@ export default function HfPlayground() {
   const firstTokenAtRef = useRef(0);
   const abortRef = useRef(null);
 
-  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당
+  // QuestionPicker 가 문항 로딩 담당
   const handleQuestionChange = (q) => {
     setQuestion(q);
     setError('');
@@ -86,13 +78,8 @@ export default function HfPlayground() {
     setShowAnswer(false);
   };
 
-  function applyPreset(preset) {
-    setSystemMsg(preset.system);
-    setUserMsg(preset.user);
-  }
-
-  // REBUILD30 §18 — handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
-  // exam 모드에서 PromptEditor 가 messages 보내면 그대로 사용, 아니면 기존 build.
+  // handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
+  // PromptEditor 가 messages 보내면 그대로 사용, 아니면 기본 buildExamMessages.
   const handleRun = async (customMessages = null) => {
     setStream('');
     setMeta(null);
@@ -105,24 +92,21 @@ export default function HfPlayground() {
     let messages;
     if (customMessages) {
       messages = customMessages;
-    } else if (tab === 'exam') {
+    } else {
       if (!question) { setRunning(false); return; }
       const built = buildExamMessages(question);
       messages = [
         { role: 'system', content: built.system },
         { role: 'user',   content: built.user },
       ];
-    } else {
-      if (!userMsg.trim()) { setRunning(false); return; }
-      messages = [];
-      if (systemMsg.trim()) messages.push({ role: 'system', content: systemMsg });
-      messages.push({ role: 'user', content: userMsg });
     }
 
     const ac = new AbortController();
     abortRef.current = ac;
 
     try {
+      // 추론 호출 직후 최근 사용 모델로 기록 (localStorage)
+      pushRecentModel(selectedId);
       const r = await hfChat({
         model: selectedId,
         messages,
@@ -156,7 +140,6 @@ export default function HfPlayground() {
         time: new Date().toLocaleTimeString(),
         modelId: selectedId,
         modelName: selectedModel?.name || selectedId,
-        tab,
         ...finalDone,
       }, ...h].slice(0, 10));
     } catch (e) {
@@ -170,8 +153,6 @@ export default function HfPlayground() {
   const handleCancel = () => {
     if (abortRef.current) abortRef.current.abort();
   };
-
-  const examPrompt = tab === 'exam' && question ? buildExamMessages(question) : null;
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
@@ -269,32 +250,12 @@ export default function HfPlayground() {
         />
       )}
 
-      {/* 모드 탭 */}
-      <div className="flex gap-1.5">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            disabled={running}
-            className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-              tab === t.id ? 'bg-primary text-white' : 'bg-card-bg border border-border text-text hover:border-primary/40'
-            } ${running ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <p className="text-[11px] text-text-secondary text-center -mt-2">
-        {TABS.find(t => t.id === tab)?.desc}
-      </p>
+      {/* 시험 문제 선택 — 통합 QuestionPicker */}
+      <QuestionPicker question={question} onChange={handleQuestionChange} />
 
-      {/* === 시험 문제 모드 — REBUILD29 §19 통합 QuestionPicker === */}
-      {tab === 'exam' && (
-        <QuestionPicker question={question} onChange={handleQuestionChange} />
-      )}
-
-      {/* REBUILD30 §18 — exam 모드에서 PromptEditor (Qwen 강제 4 섹션 + 미리보기) */}
-      {tab === 'exam' && question && (
+      {/* PromptEditor (Qwen 강제 4 섹션 + 📨 최종 메시지 미리보기 내장) */}
+      {/* system/user 자유 편집은 PromptEditor 안에서 가능 — 옛 자유 프롬프트 모드 대체 */}
+      {question && (
         <PromptEditor
           question={question}
           model={selectedId}
@@ -303,59 +264,7 @@ export default function HfPlayground() {
         />
       )}
 
-      {/* === 자유 프롬프트 모드 === */}
-      {tab === 'prompt' && (
-        <div className="rounded-xl border border-border bg-card-bg p-3 space-y-3">
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">프리셋</label>
-            <select
-              onChange={e => {
-                const sel = e.target.value;
-                if (!sel) return;
-                const [gi, pi] = sel.split(':').map(Number);
-                const p = PROMPT_PRESETS[gi]?.items[pi];
-                if (p) applyPreset(p);
-              }}
-              disabled={running}
-              defaultValue=""
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50"
-            >
-              <option value="">— 프리셋 선택 / 직접 입력 —</option>
-              {PROMPT_PRESETS.map((g, gi) => (
-                <optgroup key={gi} label={g.group}>
-                  {g.items.map((p, pi) => (
-                    <option key={pi} value={`${gi}:${pi}`}>{p.title}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">시스템 메시지 (선택)</label>
-            <textarea
-              value={systemMsg}
-              onChange={e => setSystemMsg(e.target.value)}
-              disabled={running}
-              rows={2}
-              placeholder="모델 역할/태도 정의…"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50 resize-y font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">사용자 메시지 *</label>
-            <textarea
-              value={userMsg}
-              onChange={e => setUserMsg(e.target.value)}
-              disabled={running}
-              rows={5}
-              placeholder="질문 / 지시문…"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50 resize-y font-mono"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 파라미터 — REBUILD30 §0.4 #4 ParamSliders 통합 */}
+      {/* 파라미터 — ParamSliders 통합 */}
       <ParamSliders
         temperature={temperature}
         onTemperatureChange={setTemperature}
@@ -372,42 +281,13 @@ export default function HfPlayground() {
         </button>
       ) : (
         <button onClick={() => handleRun()}
-          disabled={!selectedModel || (tab === 'exam' ? !question : !userMsg.trim())}
+          disabled={!selectedModel || !question}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
-          ✨ {selectedModel?.name || '모델 선택 필요'} 로 {tab === 'exam' ? '해설 생성' : '응답 생성'}
+          ✨ {selectedModel?.name || '모델 선택 필요'} 로 해설 생성
         </button>
       )}
 
-      {/* 최종 입력 프롬프트 */}
-      {((tab === 'exam' && question) || (tab === 'prompt' && userMsg.trim())) && (
-        <div className="rounded-xl border border-border bg-card-bg">
-          <button type="button" onClick={() => setShowPrompt(s => !s)}
-            className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-text">
-            <span>🔍 최종 입력 프롬프트 보기</span>
-            <span className="text-text-secondary">{showPrompt ? '접기 ▲' : '펼치기 ▼'}</span>
-          </button>
-          {showPrompt && (() => {
-            let promptText;
-            if (tab === 'exam' && examPrompt) {
-              promptText = `[system]\n${examPrompt.system}\n\n[user]\n${examPrompt.user}`;
-            } else {
-              promptText = `${systemMsg ? `[system]\n${systemMsg}\n\n` : ''}[user]\n${userMsg}`;
-            }
-            return (
-              <div className="px-4 pb-3 border-t border-border">
-                <div className="flex items-center justify-between mt-2 mb-1">
-                  <span className="text-[10px] text-text-secondary">{promptText.length}자</span>
-                  <button type="button" onClick={() => navigator.clipboard?.writeText(promptText)}
-                    className="text-[10px] text-primary hover:underline">📋 복사</button>
-                </div>
-                <pre className="text-[11px] bg-bg p-2 rounded whitespace-pre-wrap break-words leading-relaxed text-text max-h-72 overflow-y-auto border border-border">
-{promptText}
-                </pre>
-              </div>
-            );
-          })()}
-        </div>
-      )}
+      {/* "🔍 최종 입력 프롬프트 보기" 카드는 PromptEditor 의 "📨 최종 메시지" 미리보기로 통합되어 제거됨. */}
 
       {/* 메트릭 */}
       {(meta || done) && (
@@ -435,7 +315,7 @@ export default function HfPlayground() {
       {(stream || running) && (
         <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-4">
           <p className="text-xs font-bold text-amber-900 dark:text-amber-200 mb-2">
-            🤗 {selectedModel?.name || selectedId} {tab === 'exam' ? '해설' : '응답'}
+            🤗 {selectedModel?.name || selectedId} 해설
             {running && <span className="ml-1 pulse-soft">생성 중...</span>}
           </p>
           <p className="text-sm text-amber-900 dark:text-amber-100 whitespace-pre-wrap leading-relaxed">
@@ -458,7 +338,6 @@ export default function HfPlayground() {
             {history.map((h, i) => (
               <div key={i} className="flex items-center gap-2 py-1 border-b border-border last:border-0 flex-wrap">
                 <span className="text-text-secondary">{h.time}</span>
-                <span className="text-[9px] px-1 rounded bg-bg text-text-secondary">{h.tab === 'exam' ? '시험' : '프롬'}</span>
                 <span className="font-bold text-text">{h.modelName}</span>
                 <span className="text-text-secondary">
                   첫토큰 {h.first_token_ms}ms · 전체 {h.latency_ms}ms · ${h.cost.toFixed(6)}
@@ -470,7 +349,7 @@ export default function HfPlayground() {
       )}
 
       <p className="text-[11px] text-text-secondary text-center pt-4">
-        REBUILD22 §x — HF Inference Providers (router.huggingface.co/v1)
+        HF Inference Providers — router.huggingface.co/v1
       </p>
     </div>
   );

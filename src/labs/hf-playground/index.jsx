@@ -1,4 +1,4 @@
-// /lab/hf 라우트 진입점 (REBUILD22 §x)
+// /lab/hf 라우트 진입점 (HF Inference Providers)
 //
 // 가드: /api/config 의 lab_hf_enabled === true 일 때만 마운트
 // (기본 false — 관리자가 명시적으로 활성화).

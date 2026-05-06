@@ -55,7 +55,7 @@ const HfCompareLab = lazy(() => import('./labs/hf-playground/CompareIndex'));
 // REBUILD23 — Cloud Run 일심동체 추론 (앱+모델 같은 컨테이너, 추론 엔진 교체 가능)
 const LocalGcpLab = lazy(() => import('./labs/local-gcp'));
 
-// REBUILD26 §3.2 — Cloud Run 격리 추론 service (aitutor-inference, 6 엔진 동거)
+// REBUILD32 — Cloud Run 격리 추론 service (aitutor-server-infer, Ollama 단일 엔진, 16Gi/4CPU)
 const ServerInferLab = lazy(() => import('./labs/server-infer'));
 
 // REBUILD28 §11 — /lab 실험실 메인 (5 lab 카탈로그)
@@ -130,7 +130,7 @@ function AppLayout({ onLogout, theme, onToggleTheme, categoryId, onCategoryChang
             <Route path="/lab/hf/compare" element={<HfCompareLab />} />
             <Route path="/lab/hf/*" element={<HfLab />} />
             <Route path="/lab/local-gcp" element={<LocalGcpLab />} />
-            {/* REBUILD26 — 격리 추론 service (메인과 별도 Cloud Run, 6 엔진 동거 비교) */}
+            {/* REBUILD32 — 격리 추론 service (메인과 별도 Cloud Run, Ollama 단일 엔진) */}
             <Route path="/lab/server-infer" element={<ServerInferLab />} />
             {/* REBUILD28 §11 — 외부 Ollama bridge (사용자 PC localhost:11434 직접) */}
             <Route path="/lab/ollama-bridge" element={<OllamaBridgeLab />} />

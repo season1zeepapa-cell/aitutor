@@ -1,13 +1,16 @@
-// HF Inference Providers — 비교 모드 (REBUILD22 §x Phase 4a)
+// HF Inference Providers — 비교 모드 (Stack 레이아웃)
 //
 // 같은 프롬프트로 2~6개 모델 동시 호출 → 응답 컬럼 + 자동 분석
 // Stack 레이아웃 (모바일 친화) — 컬럼 세로로 쌓임
+//
+// 시험 문제 모드 단일 — 다른 lab 들과 동일한 패턴.
+//   · 자유 프롬프트 모드 제거 → PromptEditor 의 system/user 편집으로 동등 기능 제공
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  PROMPT_PRESETS, CIRCLE,
   buildExamMessages, calcCost, usdToKrw, fmtCtx, fmtPrice, CAPABILITY_META,
+  pushRecentModel, CIRCLE,
 } from './lib/models';
 import { chat as hfChat, fetchModelCatalog } from './lib/hfClient';
 import { COMPARE_PRESETS, resolvePreset, extractAnswer } from './lib/comparePresets';
@@ -16,10 +19,6 @@ import QuestionPicker from '../../components/lab/QuestionPicker';
 import ParamSliders from '../../components/lab/ParamSliders';
 import PromptEditor from '../../components/lab/PromptEditor';
 
-const TABS = [
-  { id: 'exam', label: '🎓 시험' },
-  { id: 'prompt', label: '💬 자유' },
-];
 const MAX_SLOTS = 6;
 
 export default function HfCompare() {
@@ -31,15 +30,12 @@ export default function HfCompare() {
   const [showCatalog, setShowCatalog] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
 
-  // 입력
-  const [tab, setTab] = useState('exam');
+  // 입력 — 시험 문제 모드 단일
   const [question, setQuestion] = useState(null);
   const [loadingQ, setLoadingQ] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [systemMsg, setSystemMsg] = useState('');
-  const [userMsg, setUserMsg] = useState('');
   const [temperature, setTemperature] = useState(0.3);
-  const [maxTokens, setMaxTokens] = useState(1024);  // REBUILD29 — 외부 API (HF Inference) 토큰당 과금 → 보수적 유지
+  const [maxTokens, setMaxTokens] = useState(1024);  // 외부 API (HF Inference) 토큰당 과금 → 보수적 유지
 
   // 호출 상태 (모델별 컬럼)
   const [columns, setColumns] = useState({});  // { [modelId]: { stream, meta, done, error, status, t0, firstTokenAt } }
@@ -63,7 +59,7 @@ export default function HfCompare() {
     [selectedIds, catalog]
   );
 
-  // REBUILD29 §19 — QuestionPicker 가 문항 로딩 담당
+  // QuestionPicker 가 문항 로딩 담당
   const handleQuestionChange = (q) => {
     setQuestion(q);
     setShowAnswer(false);
@@ -91,32 +87,22 @@ export default function HfCompare() {
     setSelectedIds(new Set(ids.slice(0, MAX_SLOTS)));
   };
 
-  function applyPromptPreset(preset) {
-    setSystemMsg(preset.system);
-    setUserMsg(preset.user);
-  }
-
   // ─── 동시 호출 ───
-  // REBUILD30 §18 — handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
+  // handleRun 이 customMessages 받게 변경 (PromptEditor 호환).
   const handleRun = async (customMessages = null) => {
     if (selectedIds.size === 0) return;
 
-    // 메시지 구성
+    // 메시지 구성 — PromptEditor 가 보낸 customMessages 우선, 아니면 buildExamMessages
     let messages;
     if (customMessages) {
       messages = customMessages;
-    } else if (tab === 'exam') {
+    } else {
       if (!question) return;
       const built = buildExamMessages(question);
       messages = [
         { role: 'system', content: built.system },
         { role: 'user',   content: built.user },
       ];
-    } else {
-      if (!userMsg.trim()) return;
-      messages = [];
-      if (systemMsg.trim()) messages.push({ role: 'system', content: systemMsg });
-      messages.push({ role: 'user', content: userMsg });
     }
 
     // 컬럼 초기화
@@ -140,6 +126,9 @@ export default function HfCompare() {
     const updateCol = (id, patch) => {
       setColumns(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...patch } }));
     };
+
+    // 비교 호출도 사용된 모델 모두 최근 사용 기록 (가장 최근이 맨 앞)
+    Array.from(selectedIds).forEach(id => pushRecentModel(id));
 
     // 모델별 promise 생성 (병렬)
     const promises = Array.from(selectedIds).map(async (modelId) => {
@@ -216,8 +205,8 @@ export default function HfCompare() {
     const cheapest = minBy('cost');
     const longest = maxBy('output_chars');
 
-    // 시험 모드 — 정답 일치
-    const correctAnswer = tab === 'exam' && question ? question.answer : null;
+    // 정답 일치 (시험 모드 단일 — 항상 question 존재 시 분석)
+    const correctAnswer = question ? question.answer : null;
     const answerMatches = correctAnswer != null
       ? dones.map(d => ({ ...d, picked: extractAnswer(d.stream), correct: extractAnswer(d.stream) === correctAnswer }))
       : null;
@@ -229,7 +218,7 @@ export default function HfCompare() {
       fastestTtft, fastestTotal, cheapest, longest,
       answerMatches, correctCount,
     };
-  }, [columns, catalog, tab, question]);
+  }, [columns, catalog, question]);
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-4">
@@ -327,31 +316,14 @@ export default function HfCompare() {
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900">⚠ {catalogError}</div>
       )}
 
-      {/* 4. 모드 탭 + 입력 */}
-      <div className="flex gap-1.5">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            disabled={running}
-            className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-              tab === t.id ? 'bg-primary text-white' : 'bg-card-bg border border-border text-text hover:border-primary/40'
-            } ${running ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* 4. 시험 문제 입력 — 단일 모드 */}
+      <QuestionPicker question={question} onChange={handleQuestionChange} />
 
-      {/* REBUILD29 §19 — 시험 모드: 통합 QuestionPicker */}
-      {tab === 'exam' && (
-        <QuestionPicker question={question} onChange={handleQuestionChange} />
-      )}
-
-      {/* REBUILD30 §18 — 비교 모드 PromptEditor.
+      {/* 비교 모드 PromptEditor.
           여러 모델 호출이지만 messages 는 1개 → 첫 선택 모델 ID 로 isQwen 판정.
-          비-Qwen 모델도 한국어 강제 system 받지만 무해. */}
-      {tab === 'exam' && question && selectedIds.size > 0 && (
+          비-Qwen 모델도 한국어 강제 system 받지만 무해.
+          system/user 자유 편집은 PromptEditor 안에서 가능 — 옛 자유 프롬프트 모드 대체 */}
+      {question && selectedIds.size > 0 && (
         <PromptEditor
           question={question}
           model={Array.from(selectedIds)[0]}
@@ -360,46 +332,7 @@ export default function HfCompare() {
         />
       )}
 
-      {tab === 'prompt' && (
-        <div className="rounded-xl border border-border bg-card-bg p-3 space-y-3">
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">프리셋</label>
-            <select
-              onChange={e => {
-                const sel = e.target.value;
-                if (!sel) return;
-                const [gi, pi] = sel.split(':').map(Number);
-                const p = PROMPT_PRESETS[gi]?.items[pi];
-                if (p) applyPromptPreset(p);
-              }}
-              disabled={running}
-              defaultValue=""
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50"
-            >
-              <option value="">— 프리셋 선택 / 직접 입력 —</option>
-              {PROMPT_PRESETS.map((g, gi) => (
-                <optgroup key={gi} label={g.group}>
-                  {g.items.map((p, pi) => <option key={pi} value={`${gi}:${pi}`}>{p.title}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">시스템 메시지 (선택)</label>
-            <textarea value={systemMsg} onChange={e => setSystemMsg(e.target.value)} disabled={running} rows={2}
-              placeholder="모델 역할/태도 정의…"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50 resize-y font-mono" />
-          </div>
-          <div>
-            <label className="block text-[11px] font-bold text-text-secondary mb-1">사용자 메시지 *</label>
-            <textarea value={userMsg} onChange={e => setUserMsg(e.target.value)} disabled={running} rows={5}
-              placeholder="질문 / 지시문…"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-bg border border-border text-xs text-text disabled:opacity-50 resize-y font-mono" />
-          </div>
-        </div>
-      )}
-
-      {/* 5. 파라미터 — REBUILD30 §0.4 #4 ParamSliders 통합 */}
+      {/* 5. 파라미터 — ParamSliders 통합 */}
       <ParamSliders
         temperature={temperature}
         onTemperatureChange={setTemperature}
@@ -416,7 +349,7 @@ export default function HfCompare() {
         </button>
       ) : (
         <button onClick={() => handleRun()}
-          disabled={selectedIds.size === 0 || (tab === 'exam' ? !question : !userMsg.trim())}
+          disabled={selectedIds.size === 0 || !question}
           className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-bold">
           ⚖️ {selectedIds.size}개 모델 동시 호출 (병렬)
         </button>
@@ -490,7 +423,7 @@ export default function HfCompare() {
       )}
 
       <p className="text-[11px] text-text-secondary text-center pt-4">
-        REBUILD22 §x — Phase 4a 비교 모드 (Stack 레이아웃)
+        HF Inference Providers — 비교 모드 (Stack 레이아웃)
       </p>
     </div>
   );

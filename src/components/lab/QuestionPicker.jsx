@@ -1,4 +1,4 @@
-// 문항 입력 공통 컴포넌트 (REBUILD29 §19 / §25 — 사용자 요청 2026-04-30)
+// 문항 입력 공통 컴포넌트 (DB 선택 + 외부 붙여넣기 통합)
 //
 // 모든 lab 페이지의 문항 입력을 통합. 두 가지 방식 지원:
 //   1) 📚 DB 등록 문항 — 카테고리 → 시험 → 문제 카드 리스트 (특정 문제까지 선택)
@@ -24,7 +24,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
   const [tab, setTab] = useState(defaultTab);
   const [open, setOpen] = useState(!isValidQuestion(question));
 
-  // ─── DB 모드 상태 (REBUILD29 §25 — 계층 선택) ──────
+  // ─── DB 모드 상태 (계층 선택: 카테고리 → 시험 → 문제) ──────
   const [categories, setCategories] = useState([]);
   const [exams, setExams] = useState([]);
   const [categoryId, setCategoryId] = useState(null);  // null = 전체
@@ -57,7 +57,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
     return exams.filter(e => e.category_id === categoryId);
   }, [exams, categoryId]);
 
-  // REBUILD30 §17 — 카테고리별 시험 갯수 (dropdown label 에 표시).
+  // 카테고리별 시험 갯수 (dropdown label 에 표시).
   const examCountByCategory = useMemo(() => {
     const map = {};
     for (const e of exams) {
@@ -67,7 +67,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
     return map;
   }, [exams]);
 
-  // REBUILD30 §17 — 카테고리 변경 시 시험이 0개면 examId 해제 (잘못된 fallback 방지).
+  // 카테고리 변경 시 시험이 0개면 examId 해제 (잘못된 fallback 방지).
   useEffect(() => {
     if (!categoryId) return;
     if (filteredExams.length === 0) {
@@ -90,7 +90,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
     fetch(`/api/questions?action=public&exam_id=${examId}`, { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
-        // REBUILD30 §17 — DB 의 choices 가 [{num, text}, ...] 객체 배열이라 React error #31 발생.
+        // DB 의 choices 가 [{num, text}, ...] 객체 배열이라 React error #31 발생.
         // 모든 lab 의 통일 형식 = string[] 으로 정규화 (paste 모드와 일치).
         const list = (d.questions || []).map(q => {
           let arr = q.choices;
@@ -190,10 +190,10 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
             ))}
           </div>
 
-          {/* DB 모드 — REBUILD29 §25 계층 선택 */}
+          {/* DB 모드 — 계층 선택 */}
           {tab === 'db' && (
             <div className="space-y-2">
-              {/* 1) 카테고리 선택 — REBUILD30 §17 시험 갯수 (N) 표시 */}
+              {/* 1) 카테고리 선택 — 시험 갯수 (N) 표시 */}
               {categories.length > 0 && (
                 <label className="flex flex-col gap-1 text-[11px]">
                   <span className="text-text-secondary">카테고리 (필터, 선택)</span>
@@ -215,7 +215,7 @@ export default function QuestionPicker({ question, onChange, defaultTab = 'db', 
                 </label>
               )}
 
-              {/* 2) 시험 선택 — REBUILD30 §17 빈 카테고리 시 안내 + 비활성화 */}
+              {/* 2) 시험 선택 — 빈 카테고리 시 안내 + 비활성화 */}
               <label className="flex flex-col gap-1 text-[11px]">
                 <span className="text-text-secondary">
                   시험 선택 ({filteredExams.length}개)

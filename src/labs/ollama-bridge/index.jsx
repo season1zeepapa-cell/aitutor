@@ -1,4 +1,4 @@
-// /lab/ollama-bridge 가드 + 진입점 (REBUILD28 §11)
+// /lab/ollama-bridge 가드 + 진입점
 
 import { useState, useEffect } from 'react';
 import OllamaBridgeTester from './OllamaBridgeTester';

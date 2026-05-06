@@ -131,6 +131,145 @@ export const CAPABILITY_META = {
   moe:      { label: '🌐 MoE',      color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// REBUILD30 §33 (2026-05-03) — 시리즈 메타 + 큐레이션 + localStorage 헬퍼
+// ─────────────────────────────────────────────────────────────────────────
+
+/** 모델 시리즈별 특징 설명 (org 기반 자동 매칭) */
+export const FAMILY_INFO = {
+  Qwen:        { flag: '🇨🇳', tag: 'Alibaba',    note: '한국어/중국어 강세 · 자격증 해설 추천 ⭐' },
+  meta:        { flag: '🇺🇸', tag: 'Meta',       note: '영어 표준 · 가장 다양한 fine-tune 생태계' },
+  'meta-llama':{ flag: '🇺🇸', tag: 'Meta',       note: '영어 표준 · 가장 다양한 fine-tune 생태계' },
+  deepseek:    { flag: '🇨🇳', tag: 'DeepSeek',   note: '코딩/수학 특화 · R1 reasoning 강세' },
+  'deepseek-ai':{flag: '🇨🇳', tag: 'DeepSeek',   note: '코딩/수학 특화 · R1 reasoning 강세' },
+  google:      { flag: '🇺🇸', tag: 'Google',     note: '효율적 · Gemma 4 부터 멀티모달 강화' },
+  mistralai:   { flag: '🇫🇷', tag: 'Mistral AI', note: '유럽 · 범용 강세 · MoE 효율 (Mixtral)' },
+  anthropic:   { flag: '🇺🇸', tag: 'Anthropic',  note: '안전성 + long context · Claude 시리즈' },
+  openai:      { flag: '🇺🇸', tag: 'OpenAI',     note: 'GPT 시리즈 · 일반 표준' },
+  microsoft:   { flag: '🇺🇸', tag: 'Microsoft',  note: 'Phi 시리즈 · 작아도 강한 SLM' },
+  nvidia:      { flag: '🇺🇸', tag: 'NVIDIA',     note: 'Nemotron · GPU 최적화' },
+  'nv-mistralai':{flag:'🇺🇸', tag: 'NVIDIA × Mistral', note: '하이브리드 튜닝' },
+  cohere:      { flag: '🇨🇦', tag: 'Cohere',     note: '엔터프라이즈 RAG · Command 시리즈' },
+  'CohereLabs':{ flag: '🇨🇦', tag: 'Cohere Labs', note: '엔터프라이즈 RAG · Command 시리즈' },
+  'CohereForAI':{flag: '🇨🇦', tag: 'Cohere for AI', note: 'Aya 시리즈 · 다국어 강세' },
+  'zai-org':   { flag: '🇨🇳', tag: 'Z.ai',       note: 'GLM-4.5 · 한국어 OK · MoE 효율' },
+  'baidu':     { flag: '🇨🇳', tag: 'Baidu',      note: 'Ernie 시리즈 · 중국어 강세' },
+  'moonshotai':{ flag: '🇨🇳', tag: 'Moonshot AI', note: 'Kimi 시리즈 · long context 강세' },
+  'TheStage-AI':{flag: '🇺🇸', tag: 'TheStage AI', note: '특화 fine-tune' },
+};
+
+/** org 가 매칭 안 되면 fallback */
+export const DEFAULT_FAMILY_INFO = { flag: '🌐', tag: '기타', note: '' };
+
+/** 추천 큐레이션 칩 — 클릭 시 어떤 필터 자동 적용 */
+export const CURATED_PRESETS = [
+  {
+    key: 'korean',
+    label: '⭐ 한국어 강세',
+    desc: 'Qwen / Aya / GLM 등 다국어 강세 시리즈',
+    apply: (models) => models.filter(m => /Qwen|Aya|GLM|Yi|Solar|Kimi/i.test(m.id)),
+  },
+  {
+    key: 'cheap',
+    label: '💰 가장 저렴',
+    desc: '$0.20/1M 이하 + live provider 보유',
+    apply: (models) => models.filter(m => (m.pricing.minIn ?? Infinity) * 1000 <= 0.20 && m.liveProviderCount > 0)
+      .sort((a, b) => (a.pricing.minIn ?? Infinity) - (b.pricing.minIn ?? Infinity)),
+  },
+  {
+    key: 'thinking',
+    label: '🧠 Thinking / Reasoning',
+    desc: 'R1 / Reasoner / Thinking 시리즈',
+    apply: (models) => models.filter(m => m.capabilities.thinking),
+  },
+  {
+    key: 'coder',
+    label: '💻 Coder',
+    desc: '코드 생성 특화',
+    apply: (models) => models.filter(m => m.capabilities.coder),
+  },
+  {
+    key: 'vision',
+    label: '🖼️ Vision (멀티모달)',
+    desc: '이미지 입력 가능',
+    apply: (models) => models.filter(m => m.capabilities.vision),
+  },
+  {
+    key: 'tools',
+    label: '🔧 Tools (Function calling)',
+    desc: '도구 호출 지원',
+    apply: (models) => models.filter(m => m.capabilities.tools),
+  },
+  {
+    key: 'longctx',
+    label: '📐 Long Context (128K+)',
+    desc: '128K 이상 컨텍스트',
+    apply: (models) => models.filter(m => (m.maxContextLength || 0) >= 128_000),
+  },
+  {
+    key: 'fast',
+    label: '⚡ 빠름 (provider 多)',
+    desc: 'live provider 3개 이상',
+    apply: (models) => models.filter(m => m.liveProviderCount >= 3)
+      .sort((a, b) => b.liveProviderCount - a.liveProviderCount),
+  },
+];
+
+/** 시리즈 빠른 필터 — 인기 series prefix 매칭 */
+export const SERIES_FILTERS = [
+  { key: 'all',      label: '전체',      match: () => true },
+  { key: 'qwen',     label: 'Qwen',      match: (m) => /^Qwen|qwen/i.test(m.name) },
+  { key: 'llama',    label: 'Llama',     match: (m) => /Llama|llama/i.test(m.name) },
+  { key: 'deepseek', label: 'DeepSeek',  match: (m) => /DeepSeek|deepseek/i.test(m.name) },
+  { key: 'gemma',    label: 'Gemma',     match: (m) => /Gemma|gemma/i.test(m.name) },
+  { key: 'mistral',  label: 'Mistral',   match: (m) => /Mistral|Mixtral|mistral/i.test(m.name) },
+  { key: 'phi',      label: 'Phi',       match: (m) => /^Phi|phi/i.test(m.name) },
+  { key: 'glm',      label: 'GLM',       match: (m) => /^GLM|glm/i.test(m.name) },
+  { key: 'aya',      label: 'Aya',       match: (m) => /^aya|Aya/i.test(m.name) },
+];
+
+/** 모델의 시리즈 정보 조회 (org → FAMILY_INFO) */
+export function getFamilyInfo(model) {
+  if (!model) return DEFAULT_FAMILY_INFO;
+  return FAMILY_INFO[model.org] || DEFAULT_FAMILY_INFO;
+}
+
+// ─── localStorage 헬퍼 (즐겨찾기 + 최근 사용) ─────────────────
+const FAV_KEY = 'hf_favorites';
+const RECENT_KEY = 'hf_recent_models';
+const RECENT_MAX = 5;
+
+export function getFavorites() {
+  try {
+    const raw = localStorage.getItem(FAV_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch { return new Set(); }
+}
+
+export function toggleFavorite(modelId) {
+  const favs = getFavorites();
+  if (favs.has(modelId)) favs.delete(modelId);
+  else favs.add(modelId);
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(favs))); } catch {}
+  return favs;
+}
+
+export function getRecentModels() {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+export function pushRecentModel(modelId) {
+  if (!modelId) return;
+  const recent = getRecentModels().filter(id => id !== modelId);
+  recent.unshift(modelId);
+  const trimmed = recent.slice(0, RECENT_MAX);
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(trimmed)); } catch {}
+  return trimmed;
+}
+
 /** 모델 정렬/그룹화 헬퍼 */
 export function sortModels(models, by = 'org') {
   const arr = [...models];

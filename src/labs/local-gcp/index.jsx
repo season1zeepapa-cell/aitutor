@@ -1,4 +1,4 @@
-// /lab/local-gcp 진입점 — REBUILD23 (이전: /lab/local-lambda)
+// /lab/local-gcp 진입점 (서버 통합 매장 로컬 AI)
 // 가드: lab_local_lambda_enabled === true && admin
 //   ※ DB 토글 키는 호환성을 위해 그대로 유지 (관리자가 옮길 필요 X)
 import { useEffect, useState } from 'react';

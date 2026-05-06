@@ -1,4 +1,4 @@
-// /lab 실험실 메인 페이지 (REBUILD28 §11 — 사용자 결정 2026-04-30)
+// /lab 실험실 메인 페이지
 //
 // 5개 lab 카탈로그 — admin 토글 + 진입 링크.
 // 일반 사용자: 활성 lab 만 진입 가능, 토글 없음.
@@ -7,16 +7,15 @@
 // /api/config 응답 의존:
 //   - lab_local_ai_enabled
 //   - lab_hf_enabled
-//   - lab_local_lambda_enabled    (Cloud Run 일심동체)
-//   - lab_server_infer_enabled    (격리)
-//   - lab_ollama_bridge_enabled   (외부 Ollama bridge — 신규)
+//   - lab_local_lambda_enabled    (Cloud Run 일심동체 — 매장 로컬 AI)
+//   - lab_server_infer_enabled    (격리 service)
+//   - lab_ollama_bridge_enabled   (외부 Ollama bridge)
 
 import { useEffect, useState } from 'react';
 import { getAuthUser, apiPost } from '../lib/api';
 
 const LABS = [
   {
-    // REBUILD29 §22 — 직관적 용어 (서비스/추론엔진/모델 구성 명시)
     key: 'local-ai',
     icon: '📱',
     title: '온디바이스 모델',
@@ -37,8 +36,8 @@ const LABS = [
   {
     key: 'local-gcp',
     icon: '☁️',
-    title: '서버 통합 (서비스+추론엔진+모델 한 컨테이너)',
-    summary: '메인 앱 + 6 추론엔진 (Ollama / llama-server / vLLM / llama-cpp-python / onnx / transformers) 같은 Cloud Run, GPU L4 24GB.',
+    title: '서버 통합 (매장 로컬 AI)',
+    summary: '메인 앱과 같은 Cloud Run 컨테이너에 Ollama 단일 엔진 + 3 모델 (qwen2.5:3b / gemma2:2b / qwen3.5:4b). 학습 앱 전용 내장 AI.',
     href: '/lab/local-gcp',
     flag: 'lab_local_lambda_enabled',
     palette: 'cyan',
@@ -46,8 +45,8 @@ const LABS = [
   {
     key: 'server-infer',
     icon: '🧪',
-    title: '서버 분리 (추론엔진+모델 별도 서비스)',
-    summary: '메인 앱과 별도 Cloud Run (aitutor-inference) 으로 추론엔진+모델 분리. 동일 6 엔진 + 모델 양쪽 비교 가능.',
+    title: '서버 분리 (추론엔진 전용 서비스)',
+    summary: '메인 앱과 별도 Cloud Run (aitutor-server-infer) 으로 추론 분리. Ollama 단일 엔진 + 다중 모델 (한국어 + 영어), 회사 자산 컨셉.',
     href: '/lab/server-infer',
     flag: 'lab_server_infer_enabled',
     palette: 'emerald',

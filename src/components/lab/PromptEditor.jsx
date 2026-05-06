@@ -1,9 +1,9 @@
-// 프롬프트 섹션별 편집기 (REBUILD29 §26 + REBUILD30 §18 — 사용자 결정 2026-05-01)
+// 프롬프트 섹션별 편집기 (lab 공용, Qwen 한국어 강제 4 섹션 포함)
 //
 // lab 의 추론 호출 직전 프롬프트 구조를 사용자에게 노출 + 편집 가능:
 //   - 시스템 메시지 (편집 가능, default = STANDARD_SYSTEM_PROMPT)
 //   - 사용자 메시지 (편집 가능, default = buildUserPrompt(question))
-//   - Qwen 모델 시 추가 4 섹션 (REBUILD30 §18):
+//   - Qwen 모델 시 추가 4 섹션:
 //       · System tail KOREAN_FORCE_SYSTEM (편집 가능)
 //       · User tail KOREAN_FORCE_USER (편집 가능)
 //       · Assistant Seed KOREAN_ASSISTANT_SEED (편집 가능)
@@ -29,7 +29,7 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
   // ─── 기본 2 섹션 (모든 모델) ───────────────────────────
   const [system, setSystem] = useState(STANDARD_SYSTEM_PROMPT);
   const [user, setUser] = useState('');
-  const [open, setOpen] = useState(true);  // REBUILD30 §18 — 기본 펼침 (사용자 발견성 ↑)
+  const [open, setOpen] = useState(true);  // 기본 펼침 (사용자 발견성 ↑)
 
   // ─── Qwen 추가 4 섹션 (Qwen 모델만 노출) ────────────────
   const [qSysTail, setQSysTail] = useState(KOREAN_FORCE_SYSTEM);
@@ -144,7 +144,7 @@ export default function PromptEditor({ question, model, running, onSubmit, disab
             />
           </div>
 
-          {/* 3) Qwen 강제 4 섹션 (Qwen 모델만) — REBUILD30 §18 */}
+          {/* 3) Qwen 강제 4 섹션 (Qwen 모델만) */}
           {isQwen && (
             <div className="rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 p-2.5 space-y-2">
               <div className="flex items-center justify-between">

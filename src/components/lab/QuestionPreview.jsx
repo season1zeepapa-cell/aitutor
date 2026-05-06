@@ -1,4 +1,4 @@
-// 문항 미리보기 카드 — QuestionPicker 가 선택/파싱한 결과 표시 (REBUILD29 §19)
+// 문항 미리보기 카드 — QuestionPicker 가 선택/파싱한 결과 표시
 
 import { answerLabel } from '../../lib/lab/parseQuestion';
 
@@ -13,7 +13,7 @@ export default function QuestionPreview({ question, onClear, compact = false }) 
     );
   }
 
-  // REBUILD30 §17 — choices 가 [{num,text}] 형태일 수도 있어 string 으로 정규화.
+  // choices 가 [{num,text}] 형태일 수도 있어 string 으로 정규화.
   const rawChoices = Array.isArray(question.choices)
     ? question.choices
     : (() => { try { return JSON.parse(question.choices || '[]'); } catch { return []; } })();

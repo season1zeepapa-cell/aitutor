@@ -1,5 +1,5 @@
 // 엔진 선택 카드 — transformers.js (ONNX/WebGPU, 현재) vs WebLLM (MLC/WebGPU, 7B+ 큰 모델)
-// REBUILD28 §11 — 사용자 결정 옵션 A 채택 (2026-04-30)
+// 엔진 선택 (transformers.js vs WebLLM)
 
 const ENGINES = [
   {
