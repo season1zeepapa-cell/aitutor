@@ -179,9 +179,28 @@ added 1 package, changed 12 packages, and audited 498 packages in 892ms
   - `containerscanning.googleapis.com` ✅ ENABLED
 - **효과**: 푸시되는 Docker image 자동 스캔 → Ubuntu 22.04 + CUDA 12.4 OS-level CVE 실시간 감지
 - **사각지대 해소**: npm/Python audit 외 base image 계층 (이전엔 미점검)
-- **확인 명령**: `gcloud artifacts docker images list-vulnerabilities <IMAGE_URI> --project=aitutortwo-prod`
+- **확인 명령**: `gcloud artifacts docker images describe <IMAGE_URI> --project=aitutortwo-prod --show-package-vulnerability`
+- **첫 스캔 결과 (2026-05-07 메인 service revision 00028)**: ⚠️ **Item 4 가치 입증**
+  - **CRITICAL**: 1건 — CVE-2026-27143 (CVSS 9.8, network attack vector)
+  - **HIGH**: 다수 (CVSS 7.5+ 등)
+  - 모두 base image (`nvidia/cuda:12.4.0-runtime-ubuntu22.04`) 의 OS-level CVE
+  - npm audit / pip audit 으로는 **절대 발견 못 했을 사각지대**
+  - → §5.1 후속 권장에 base image 업그레이드 항목 추가 필요
 
 ### 5.1 즉시 처리 권장 (다음 스프린트)
+
+#### Z. **Base image CVE 처리 — Container Scanning 첫 결과 후속 (긴급도 ↑)**
+
+REBUILD37 Item 4 활성화 즉시 발견:
+- CVE-2026-27143 (CVSS 9.8 CRITICAL, attack vector network) — `nvidia/cuda:12.4.0-runtime-ubuntu22.04` OS layer
+- 다수 HIGH (CVSS 7.5+)
+
+**조치 옵션**:
+1. **`nvidia/cuda:12.6.x-runtime-ubuntu22.04`** 으로 base image 업그레이드 (2 minor 점프, 검증 필요)
+2. **`ubuntu:24.04`** 기반 + Ollama 설치 분리 (CUDA runtime 자체 회피, 큰 변경)
+3. **현 base 유지 + apt-get upgrade** Dockerfile 추가 (간단, 가장 빠름)
+
+권장: 옵션 3 → 옵션 1 순. 다음 스프린트 우선순위.
 
 #### A. `npm audit` CI hook 추가 (회귀 자동 감지)
 

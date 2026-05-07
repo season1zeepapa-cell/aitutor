@@ -18,10 +18,6 @@ echo "[start.sh] OLLAMA_HOST=$OLLAMA_HOST"
 echo "[start.sh] OLLAMA_MODELS=$OLLAMA_MODELS"
 echo "[start.sh] PORT=${PORT:-8080}"
 
-# REBUILD37 Item 3 절충안 — 보안 감사용 Ollama 버전 기록
-# (install.sh 가 latest 가져오므로 빌드 시점 정확한 버전을 startup log 에 남김)
-echo "[start.sh] Ollama version: $(ollama --version 2>&1 | head -1)"
-
 # 1) Ollama daemon 백그라운드
 echo "[start.sh] Ollama daemon 시작..."
 ollama serve > /tmp/ollama.log 2>&1 &
@@ -36,6 +32,10 @@ for i in $(seq 1 30); do
   fi
   sleep 1
 done
+
+# REBUILD37 Item 3 절충안 — 보안 감사용 Ollama 버전 기록
+# daemon ready 후 호출해야 client/server 양쪽 버전 깨끗하게 출력됨
+echo "[start.sh] Ollama version: $(ollama --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 
 # 2) FastAPI uvicorn 백그라운드 (REBUILD32 §15 R-4 — exec 제거, bash 가 PID 1 유지)
 echo "[start.sh] FastAPI uvicorn 시작 (port ${PORT:-8080})..."
