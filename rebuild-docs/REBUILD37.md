@@ -147,6 +147,40 @@ added 1 package, changed 12 packages, and audited 498 packages in 892ms
 
 ## §5. 잔여 의사결정
 
+### 5.0 Codex 6 항목 재검토 결과 (2026-05-07 추가 반영)
+
+코드 검토 도구 Codex 가 추가 6 항목을 제안. 코드베이스 실측 + REBUILD37 결과 교차 비교 후 다음과 같이 처리:
+
+| Item | 항목 | 처리 결과 |
+|------|------|-----------|
+| 1 | FastAPI/Starlette 메이저 업그레이드 (0.115.5 → 0.128.8 등) | 🟠 P2 이연 — 직접 CVE 없음, 정기 업데이트 사이클로 |
+| 2 | `@google-cloud/storage` LOW chain 모니터링 | ✅ 본 §2.4/§5.3 정책으로 이미 결정됨 |
+| 3 | Ollama 버전 pin → **절충안** 채택 | ✅ **완료** — `start.sh` 양쪽에 `ollama --version` startup log 추가 |
+| 4 | Artifact Registry Vulnerability Scanning 활성화 | ✅ **완료** — `containeranalysis` + `containerscanning` API enabled |
+| 5 | mdToHtml HTML escaping 정리 | 🟠 P2 이연 — DOMPurify 단일 방어선 → defense-in-depth 다음 스프린트 |
+| 6 | `package.json` floor 갱신 | ✅ **완료** — dompurify ^3.4.2 / postcss ^8.5.14 / vite ^6.4.2 |
+
+### 5.0.1 Option B 처리 상세
+
+#### Item 6 — package.json floor 갱신
+- **before**: `dompurify: "^3.3.3"` / `postcss: "^8.4.0"` / `vite: "^6.0.0"`
+- **after**: `dompurify: "^3.4.2"` / `postcss: "^8.5.14"` / `vite: "^6.4.2"`
+- **효과**: 새 환경 셋업 시 패치 미만 버전 유입 차단 (기존 lockfile 안전 + 명시적 floor 표기)
+
+#### Item 3 — Ollama 버전 startup log
+- **변경 위치**: `start.sh` (메인) / `server-infer/start.sh` (격리)
+- **추가 라인**: `echo "[start.sh] Ollama version: $(ollama --version 2>&1 | head -1)"`
+- **효과**: 매 Cloud Run revision 시작 시 Ollama 버전이 startup log 에 기록 → 사후 감사/재현성 확보
+- **장점**: 자동 패치(install.sh latest) 유지 + 감사 가능성 동시 달성
+
+#### Item 4 — Artifact Registry Vulnerability Scanning
+- **활성화 API**:
+  - `containeranalysis.googleapis.com` ✅ ENABLED
+  - `containerscanning.googleapis.com` ✅ ENABLED
+- **효과**: 푸시되는 Docker image 자동 스캔 → Ubuntu 22.04 + CUDA 12.4 OS-level CVE 실시간 감지
+- **사각지대 해소**: npm/Python audit 외 base image 계층 (이전엔 미점검)
+- **확인 명령**: `gcloud artifacts docker images list-vulnerabilities <IMAGE_URI> --project=aitutortwo-prod`
+
 ### 5.1 즉시 처리 권장 (다음 스프린트)
 
 #### A. `npm audit` CI hook 추가 (회귀 자동 감지)
@@ -200,6 +234,8 @@ updates:
 |------|------|------|
 | `6b06ba3` | docs(aitutor): REBUILD36 — 통합/분리 service 추론 메모리 거동 상세 분석 | +550 |
 | `8c0299d` | chore(aitutor): 의존성 보안 자동 패치 (npm audit fix) — 13건 → 5건 LOW | +52 / -39 |
+| `28db558` | docs(aitutor): REBUILD37 — 의존성 보안 전수 조사 + REBUILD34 §11 갱신 | +281 / -5 |
+| (예정) | chore(aitutor): Option B (Codex Item 3/4/6) — package.json floor + Ollama 버전 log + 이미지 스캔 | - |
 
 ---
 

@@ -18,6 +18,10 @@ echo "[start.sh] OLLAMA_HOST=$OLLAMA_HOST"
 echo "[start.sh] OLLAMA_MODELS=$OLLAMA_MODELS"
 echo "[start.sh] PORT=${PORT:-8080}"
 
+# REBUILD37 Item 3 절충안 — 보안 감사용 Ollama 버전 기록
+# (install.sh 가 latest 가져오므로 빌드 시점 정확한 버전을 startup log 에 남김)
+echo "[start.sh] Ollama version: $(ollama --version 2>&1 | head -1)"
+
 # 1) Ollama daemon 백그라운드
 echo "[start.sh] Ollama daemon 시작..."
 ollama serve > /tmp/ollama.log 2>&1 &
