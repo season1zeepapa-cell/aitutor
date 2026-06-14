@@ -139,7 +139,7 @@ dig +short TXT _dmarc.newsstand.blog @8.8.8.8
 ### 3-7. 1차 재배포 결과
 - HTTP 응답: `500` → **`200`**
 - CloudWatch 로그: `[Verify] Resend 발송 실패: ...` → `[Verify] 인증코드 발송: <이메일>`
-- 실제 가입 성공: `ss1zeepapa@naver.com` (본인 Gmail 외 이메일 최초 수신 확인)
+- 실제 가입 성공: `<REDACTED — 운영자 외부 이메일>` (본인 Gmail 외 이메일 최초 수신 확인)
 
 ---
 
@@ -369,7 +369,7 @@ curl -X POST https://d2dcsdi9b1j2rf.cloudfront.net/api/send-verification \
 CloudWatch: `[Verify] 인증코드 발송: verify-test-2026@example.com (type=signup)`
 
 #### 실사용자 검증
-- `ss1zeepapa@naver.com` — 인증코드 수신 → 회원가입 성공
+- `<REDACTED — 운영자 외부 이메일>` — 인증코드 수신 → 회원가입 성공
 - 수신 메일 발신자: `AI TutorTwo <noreply@newsstand.blog>` ✅
 
 ### 7-2. Part B 검증 (자동 로그인)

@@ -40,10 +40,20 @@ export function applyQwenNoThink(messages, modelKeyOrId) {
   return result;
 }
 
-/** 한국어 강제 3중 패턴 (system + user + assistant seed). */
-export function applyQwenKoreanLock(messages, modelKeyOrId) {
+/**
+ * 한국어 강제 3중 패턴 (system + user + assistant seed) — 모델 무관 generic 버전.
+ *
+ * REBUILD41 (2026-05-07) — 기존 applyQwenKoreanLock 의 Qwen 체크를 제거한 generic 버전.
+ * Gemma / Solar / EEVE / GPT-OSS 등 한국어 강도 ⭐3 이상 비-Qwen 모델에서 사용자 보고:
+ *   "Gemma 4 가 reasoning 자체를 영문으로 진행" → 한국어 강제 system prompt 가 Qwen 만 적용되어 발생.
+ *
+ * idempotent — 이미 한국어 force 가 들어있으면 skip. 여러 번 호출해도 안전.
+ *
+ * @param {Array<{role: string, content: string}>} messages
+ * @returns {Array<{role: string, content: string}>}
+ */
+export function applyKoreanLock(messages) {
   if (!Array.isArray(messages) || messages.length === 0) return messages;
-  if (!isQwenModel(modelKeyOrId)) return messages;
 
   const result = [...messages];
 
@@ -78,6 +88,12 @@ export function applyQwenKoreanLock(messages, modelKeyOrId) {
   }
 
   return result;
+}
+
+/** 한국어 강제 3중 패턴 — Qwen 전용 wrapper (역호환 유지). */
+export function applyQwenKoreanLock(messages, modelKeyOrId) {
+  if (!isQwenModel(modelKeyOrId)) return messages;
+  return applyKoreanLock(messages);
 }
 
 /** 한국어 + no_think 모두 적용 (자격증 해설 lab 의 표준 호출). */

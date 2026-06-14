@@ -8,11 +8,17 @@
 //   key=ollama_bridge_model (예: qwen3:4b)
 
 import { useState, useEffect, useRef } from 'react';
-import { applyQwenStrict, isQwenModel } from '../../lib/qwen';
+import { applyQwenStrict, isQwenModel, applyKoreanLock } from '../../lib/qwen';
 import QuestionPicker from '../../components/lab/QuestionPicker';
 import PromptEditor from '../../components/lab/PromptEditor';
+import ParamSliders from '../../components/lab/ParamSliders';
+// REBUILD40 — 메모리 현황 카드 (정보) + 통합/분리 서버 참고용 카드
+import OllamaPcStatusCard from '../../components/lab/OllamaPcStatusCard';
+import MemoryCard from '../../components/lab/MemoryCard';
 import { buildLabMessages } from '../../lib/lab/promptBuilder';
 import ErrorBanner from '../../components/lab/ErrorBanner';
+// REBUILD39 — 브릿지 전용 모델 메타 카탈로그 (통합/분리와 독립 운영, R-3 정책)
+import { getOllamaModelMeta, resolveAutoThink } from '../../lib/lab/ollama-bridge-model-meta';
 
 const DEFAULT_URL = 'http://localhost:11434';
 const DEFAULT_MODEL = 'qwen3:4b';
@@ -72,6 +78,11 @@ export default function OllamaBridgeTester() {
   const [maxTokens, setMaxTokens] = useState(2048);  // Qwen 한국어 해설 default
   const [temperature, setTemperature] = useState(0.3);
   const [showHelp, setShowHelp] = useState(false);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);  // 🛠️ 문제 해결 팁 카드 펼침 토글
+  // REBUILD39 — thinking 모드 토글 ('auto' | 'on' | 'off'). 통합/분리 서버와 동일 UX.
+  //   auto = 모델 메타의 think_default 적용 (Qwen 3.5 → off, DeepSeek R1 → on 등)
+  //   on/off = 사용자 명시. resolveAutoThink 보다 우선.
+  const [thinkMode, setThinkMode] = useState('auto');
   const t0Ref = useRef(0);
 
   // ─── 메모리 관리 state (단일 모델 정책) ──────────────
@@ -299,8 +310,15 @@ export default function OllamaBridgeTester() {
     try {
       // PromptEditor customMessages 우선
       const baseMessages = customMessages || buildLabMessages(question);
-      // Qwen 한국어 강제 + thinking 비활성
-      const messages = applyQwenStrict(baseMessages, model);
+      // Qwen 한국어 강제 + thinking 비활성 (idempotent — 한국어 force 가 들어있으면 skip)
+      let messages = applyQwenStrict(baseMessages, model);
+      // REBUILD41 — Qwen 외 한국어 강 모델 (⭐3+) 도 한국어 lock 적용
+      //   사용자 보고: Gemma 4 가 reasoning 을 영문으로 출력 → 시스템 프롬프트 한국어 강제 누락이 원인
+      //   대상: korean_strength ≥ 3 (Gemma 4/3, Solar, EEVE, GPT-OSS, Qwen 2.5 등)
+      //   Qwen 은 applyQwenStrict 가 이미 처리했으므로 중복 적용 회피 (isQwenModel 체크)
+      if (!isQwenModel(model) && (currentModel?.korean_strength || 0) >= 3) {
+        messages = applyKoreanLock(messages);
+      }
       const ollamaBody = {
         model,
         messages,
@@ -310,8 +328,20 @@ export default function OllamaBridgeTester() {
         // Ollama 기본값 5m 대신 사용자 의도 존중. UI 의 [📥 로딩] 과 정합.
         keep_alive: -1,
       };
-      // Ollama 자체 think 옵션 (이중 안전망)
-      if (isQwenModel(model)) ollamaBody.think = false;
+      // REBUILD39 — thinking 옵션 결정 (사용자 토글 우선 → 모델 메타 auto → Qwen 안전망)
+      //   1) 사용자가 'on'/'off' 로 명시 → 그대로 적용
+      //   2) 'auto' 일 때 → 모델 메타의 think_default 사용
+      //      (예: DeepSeek R1 → true, Qwen 3.5 → false. resolveAutoThink 가 결정)
+      //   3) 메타 없는 모델 + Qwen 패밀리 → 안전망 false (REBUILD33 §33.8 빈 응답 방지)
+      if (thinkMode === 'on') {
+        ollamaBody.think = true;
+      } else if (thinkMode === 'off') {
+        ollamaBody.think = false;
+      } else {
+        const auto = resolveAutoThink(currentModel);
+        if (auto !== undefined) ollamaBody.think = auto;
+        else if (isQwenModel(model)) ollamaBody.think = false;
+      }
       const r = await fetch(`${url.replace(/\/+$/, '')}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -322,7 +352,22 @@ export default function OllamaBridgeTester() {
         throw new Error(`HTTP ${r.status}: ${t.slice(0, 200)}`);
       }
       const d = await r.json();
-      setAnswer(d.message?.content || '(빈 응답)');
+      // REBUILD39 — content 빈 응답 시 thinking 필드로 fallback (gemma4 / DeepSeek R1 류 대응)
+      //   Ollama 0.11+ 부터 <think> 블록을 message.thinking 으로 분리해서 content 가 비어 보이는 케이스가 있음.
+      //   사용자가 무엇이라도 볼 수 있게 thinking 도 노출하되, 어느 필드인지 명확히 라벨링.
+      const contentText = d.message?.content || '';
+      const thinkingText = d.message?.thinking || '';
+      let merged;
+      if (contentText && thinkingText) {
+        merged = `[💭 thinking]\n\n${thinkingText}\n\n[💬 answer]\n\n${contentText}`;
+      } else if (contentText) {
+        merged = contentText;
+      } else if (thinkingText) {
+        merged = `[💭 thinking 응답 (content 비어있음)]\n\n${thinkingText}`;
+      } else {
+        merged = '';
+      }
+      setAnswer(merged || '(빈 응답)');
       setMeta({
         total_ms: Date.now() - t0Ref.current,
         eval_count: d.eval_count,
@@ -343,6 +388,11 @@ export default function OllamaBridgeTester() {
   const choices = question
     ? (Array.isArray(question.choices) ? question.choices : JSON.parse(question.choices || '[]'))
     : [];
+
+  // REBUILD39 — 선택된 모델의 메타데이터 (브릿지 전용 카탈로그)
+  //   사용자가 ollama list 로 받은 임의의 태그(예: "qwen3:4b") 를 family prefix 로 매칭.
+  //   미지원 패밀리는 빈 메타 → 정보 카드 자동 미표시 / thinking 토글 비활성.
+  const currentModel = getOllamaModelMeta(model);
 
   // 사용자 OS 별 Ollama 실행/재시작 명령어 — 상태 배너에서 노출
   const os = detectOS();
@@ -534,6 +584,243 @@ curl -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'htt
         )}
       </div>
 
+      {/* 🛠️ 문제 해결 팁 — 사용자 보고 케이스 기반
+          - CORS 보안 강화 (* 대신 특정 origin)
+          - 데스크톱 앱 vs Homebrew 설치 차이
+          - 재시작 명령 3가지 (osascript / pkill / 메뉴바)
+          - 환경변수 적용 검증 (curl)
+          - 영구 저장 (LaunchAgent plist)
+          - 자주 보는 에러 해석 */}
+      <div className="rounded-xl border border-border bg-card-bg">
+        <button
+          type="button"
+          onClick={() => setShowTroubleshoot(s => !s)}
+          className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-text"
+        >
+          <span>🛠️ 문제 해결 팁 — 자주 막히는 곳 (CORS / 재시작 / 영구 저장 / 에러 해석)</span>
+          <span className="text-text-secondary">{showTroubleshoot ? '접기 ▲' : '펼치기 ▼'}</span>
+        </button>
+        {showTroubleshoot && (
+          <div className="px-3 pb-3 border-t border-border space-y-4 text-[11px] text-text-secondary leading-relaxed">
+
+            {/* Tip 1 — CORS 보안 강화 */}
+            <div>
+              <p className="font-bold text-text mt-2">💡 Tip 1 — CORS 보안 강화 (<code className="bg-bg px-1 rounded">*</code> 대신 특정 origin)</p>
+              <p className="text-[10px] mb-1.5">
+                <code className="bg-bg px-1 rounded">OLLAMA_ORIGINS=*</code> 는 모든 사이트에서 내 PC Ollama 호출 허용 → 보안 위험.
+                실제 사용하는 사이트만 콤마로 명시 권장.
+              </p>
+              <p className="text-[10px] text-amber-700 dark:text-amber-400 mb-1">⚠️ 보안 위험 — 모든 사이트 허용</p>
+              <CodeBlock code={`launchctl setenv OLLAMA_ORIGINS "*"`} />
+              <p className="text-[10px] text-emerald-700 dark:text-emerald-400 mt-1.5 mb-1">✅ 권장 — 이 페이지 + 로컬 개발만 허용</p>
+              <CodeBlock code={`launchctl setenv OLLAMA_ORIGINS "${typeof window !== 'undefined' ? window.location.origin : 'https://your-site.run.app'},http://localhost:5173,http://localhost:3000"`} />
+              <p className="text-[10px] opacity-80 mt-1">
+                💡 Origin 형식: <code className="bg-bg px-1 rounded">프로토콜://호스트:포트</code> 까지만 (경로 ❌, 끝 슬래시 ❌).
+                여러 개는 콤마로 구분, 공백 없이.
+              </p>
+            </div>
+
+            {/* Tip 2 — 데스크톱 앱 vs Homebrew 설치 차이 */}
+            <div>
+              <p className="font-bold text-text">💡 Tip 2 — Ollama 설치 방법 차이 (재시작 명령이 다름)</p>
+              <table className="w-full mt-1 text-[10px] border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1 font-semibold text-text">설치 방법</th>
+                    <th className="text-left py-1 font-semibold text-text">확인 명령</th>
+                    <th className="text-left py-1 font-semibold text-text">재시작 방법</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1">데스크톱 앱<br/>(ollama.com .dmg)</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">ls /Applications/Ollama.app</code></td>
+                    <td className="py-1">AppleScript / open<br/>(brew 명령 ❌)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1">Homebrew<br/>(brew install)</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">brew list ollama</code></td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">brew services restart ollama</code></td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="text-[10px] opacity-80 mt-1.5">
+                🚨 <b>"Formula `ollama` is not installed"</b> 에러는 <b>데스크톱 앱으로 설치</b>했다는 신호.
+                Homebrew 가 그 앱을 모르는 것뿐이니 정상. 아래 Tip 3 의 AppleScript 방식 사용.
+              </p>
+            </div>
+
+            {/* Tip 3 — 재시작 3가지 방법 */}
+            <div>
+              <p className="font-bold text-text">💡 Tip 3 — Ollama 재시작 명령 (상황별 3가지)</p>
+              <p className="text-[10px] mb-1.5">
+                환경변수 변경 후 <b>반드시 재시작</b> 필요 — 이미 떠있던 Ollama 는 옛 환경변수로 작동 중.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-1.5">⭐ 권장 — 정중한 종료 (AppleScript)</p>
+              <CodeBlock code={`osascript -e 'quit app "Ollama"' && sleep 2 && open -a Ollama`} />
+              <p className="text-[10px] opacity-80 mt-0.5">
+                ✓ 앱이 정리(임시 파일, 진행 중 다운로드 등) 후 종료 → 안전. 평소 사용.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-2">🚨 강제 종료 — 앱이 응답 없을 때만</p>
+              <CodeBlock code={`pkill -x Ollama && sleep 2 && open -a Ollama`} />
+              <p className="text-[10px] opacity-80 mt-0.5">
+                ✓ <code className="bg-bg px-1 rounded">-x</code> = 정확히 'Ollama' 이름인 프로세스만 (안전).
+                응답 없으면 <code className="bg-bg px-1 rounded">pkill -9 -x Ollama</code> 로 강제 시그널.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-2">🖱️ 수동 — 메뉴바에서</p>
+              <p className="text-[10px] pl-2">
+                ① 화면 우상단 🦙 클릭 → <b>"Quit Ollama"</b><br/>
+                ② Launchpad / Spotlight (⌘+Space) → "Ollama" 입력 → 엔터<br/>
+                ③ 메뉴바 🦙 다시 나타나면 시작 완료
+              </p>
+            </div>
+
+            {/* Tip 4 — 환경변수 적용 검증 */}
+            <div>
+              <p className="font-bold text-text">💡 Tip 4 — 환경변수가 진짜 적용됐는지 검증</p>
+              <p className="text-[10px] mb-1.5">
+                재시작 후 두 단계로 확인 — <b>(A) 시스템 등록</b> + <b>(B) Ollama 가 실제 적용했는지</b>.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-1.5">A) 시스템 환경변수 등록 확인</p>
+              <CodeBlock code={`launchctl getenv OLLAMA_ORIGINS`} />
+              <p className="text-[10px] opacity-80 mt-0.5">
+                ✓ 등록한 값이 그대로 출력돼야 OK. 빈 줄이면 setenv 실패.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-2">B) Ollama 가 CORS 헤더 내려주는지 (가장 중요!)</p>
+              <CodeBlock code={`curl -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'https://your-site.run.app'}" -I http://localhost:11434/api/version`} />
+              <p className="text-[10px] opacity-80 mt-0.5">
+                ✓ 응답에 <code className="bg-bg px-1 rounded">Access-Control-Allow-Origin: ...</code> 헤더가 있어야 OK.<br/>
+                ✗ 헤더 없으면 → Ollama 가 옛 환경변수로 작동 중 (재시작 다시).
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-2">📋 일괄 점검 — 한 번에 다 확인</p>
+              <CodeBlock code={`echo "=== 1) 환경변수 ===" && launchctl getenv OLLAMA_ORIGINS
+echo "=== 2) Ollama 응답 ===" && curl -s http://localhost:11434/api/version
+echo "=== 3) CORS 헤더 ===" && curl -s -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'https://your-site.run.app'}" -I http://localhost:11434/api/version | grep -i "access-control"`} />
+            </div>
+
+            {/* Tip 5 — LaunchAgent plist 영구 저장 */}
+            <div>
+              <p className="font-bold text-text">💡 Tip 5 — 재부팅 후에도 자동 적용 (LaunchAgent plist)</p>
+              <p className="text-[10px] mb-1.5">
+                <code className="bg-bg px-1 rounded">launchctl setenv</code> 는 <b>재부팅 시 사라짐</b>.
+                매번 다시 입력하기 귀찮으면 plist 파일로 영구화. 한 번만 셋업하면 평생 자동.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-1.5">① 셋업 스크립트 (한 번에 실행)</p>
+              <CodeBlock code={`mkdir -p ~/Library/LaunchAgents
+cat > ~/Library/LaunchAgents/com.ollama.origins.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ollama.origins</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/launchctl</string>
+        <string>setenv</string>
+        <string>OLLAMA_ORIGINS</string>
+        <string>${typeof window !== 'undefined' ? window.location.origin : 'https://your-site.run.app'},http://localhost:5173,http://localhost:3000</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+EOF
+chmod 644 ~/Library/LaunchAgents/com.ollama.origins.plist
+plutil -lint ~/Library/LaunchAgents/com.ollama.origins.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ollama.origins.plist
+launchctl getenv OLLAMA_ORIGINS`} />
+              <p className="text-[10px] opacity-80 mt-1">
+                ✓ 마지막 출력에 등록한 origin 들이 보이면 성공. <code className="bg-bg px-1 rounded">plutil -lint</code> 가 "OK" 안 내면 XML 오타 의심.
+              </p>
+
+              <p className="text-[10.5px] font-semibold mt-2">② 값 변경 시 (unload → 수정 → load 순서)</p>
+              <CodeBlock code={`launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.ollama.origins.plist
+nano ~/Library/LaunchAgents/com.ollama.origins.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ollama.origins.plist
+osascript -e 'quit app "Ollama"' && sleep 2 && open -a Ollama`} />
+
+              <p className="text-[10.5px] font-semibold mt-2">③ 완전 제거 시</p>
+              <CodeBlock code={`launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.ollama.origins.plist
+rm ~/Library/LaunchAgents/com.ollama.origins.plist`} />
+
+              <p className="text-[10px] opacity-80 mt-1.5">
+                ⚠️ <b>주의 함정</b> — Ollama 가 로그인 시 자동시작 켜져 있으면 plist 보다 먼저 켜질 수 있음 (race condition).
+                해결 → 시스템 설정 → 일반 → 로그인 항목 에서 Ollama 제거 권장.
+              </p>
+            </div>
+
+            {/* Tip 6 — 자주 보는 에러 해석 */}
+            <div>
+              <p className="font-bold text-text">💡 Tip 6 — 자주 보는 에러 메시지 해석</p>
+              <table className="w-full mt-1 text-[10px] border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1 font-semibold text-text">에러 메시지</th>
+                    <th className="text-left py-1 font-semibold text-text">원인</th>
+                    <th className="text-left py-1 font-semibold text-text">해결</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">Formula `ollama` is not installed</code></td>
+                    <td className="py-1 pr-2">데스크톱 앱 설치 (brew 아님)</td>
+                    <td className="py-1">Tip 3 의 osascript 방식</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">Application isn't running</code></td>
+                    <td className="py-1 pr-2">Ollama 가 이미 꺼져있음</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">open -a Ollama</code> 만</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">Can't get application "Ollama"</code></td>
+                    <td className="py-1 pr-2">앱 이름이 다름</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">ls /Applications | grep -i ollama</code> 로 정확 이름 확인</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">No 'Access-Control-Allow-Origin' header</code></td>
+                    <td className="py-1 pr-2">CORS 환경변수 미적용</td>
+                    <td className="py-1">setenv 후 <b>Ollama 재시작 필수</b></td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">net::ERR_FAILED 403</code></td>
+                    <td className="py-1 pr-2">CORS 또는 mixed content</td>
+                    <td className="py-1">Tip 1 + 위 6단계 가이드 6️⃣</td>
+                  </tr>
+                  <tr className="border-b border-border/50">
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">net::ERR_CONNECTION_REFUSED</code></td>
+                    <td className="py-1 pr-2">Ollama 가 안 켜져 있음</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">open -a Ollama</code> + <code className="bg-bg px-1 rounded">curl localhost:11434/api/version</code> 확인</td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 pr-2"><code className="bg-bg px-1 rounded text-[9.5px]">Bootstrap failed: 5: Input/output error</code></td>
+                    <td className="py-1 pr-2">plist 이미 등록됨 (중복)</td>
+                    <td className="py-1"><code className="bg-bg px-1 rounded">launchctl bootout</code> 먼저 후 재등록</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* 마무리 안내 */}
+            <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-2 mt-2">
+              <p className="text-blue-800 dark:text-blue-200">
+                💬 <b>그래도 안 풀리면</b> — 다음 3가지 결과를 함께 알려주세요:<br/>
+                ① <code className="bg-bg px-1 rounded">launchctl getenv OLLAMA_ORIGINS</code> 출력<br/>
+                ② <code className="bg-bg px-1 rounded">curl -I http://localhost:11434/api/version</code> 응답 헤더 전체<br/>
+                ③ 브라우저 콘솔 에러 메시지 (DevTools → Console)
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* 사용자 설정 — DB 연계 */}
       <div className="rounded-xl border border-border bg-card-bg p-3 space-y-2">
         <p className="text-xs font-bold text-text">⚙️ Ollama 연결 설정</p>
@@ -617,6 +904,22 @@ curl -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'htt
           </div>
         )}
       </div>
+
+      {/* REBUILD40 — 사용자 PC Ollama 상태 카드 (정보 전용)
+          기존 메모리 관리 카드와 분리: 정보 vs 동작.
+          데이터: loadedModels (/api/ps) + models (/api/tags) + navigator.deviceMemory.
+          노출 조건: Ollama 연결 OK 일 때. */}
+      {pingResult?.ok && (
+        <OllamaPcStatusCard
+          loadedModels={loadedModels}
+          diskModels={models}
+          ollamaVersion={pingResult?.version}
+          onRefresh={async () => {
+            await ping();
+            await refreshLoadedModels();
+          }}
+        />
+      )}
 
       {/* ─── 메모리 관리 카드 — 단일 모델 정책 (사용자 PC RAM 보호) ─── */}
       {/* 표시 조건: Ollama 연결 OK 인 경우만 — 미연결이면 의미 없음 */}
@@ -746,27 +1049,125 @@ curl -H "Origin: ${typeof window !== 'undefined' ? window.location.origin : 'htt
         </div>
       )}
 
-      {/* 추론 옵션 */}
-      <div className="grid grid-cols-2 gap-2 text-[11px]">
-        <label className="flex flex-col gap-0.5">
-          <span className="text-text-secondary">max_tokens</span>
-          <input
-            type="number" min="64" max="4096" step="64"
-            value={maxTokens}
-            onChange={e => setMaxTokens(Number(e.target.value))}
-            className="rounded px-2 py-1 border border-border bg-card-bg text-text"
-          />
-        </label>
-        <label className="flex flex-col gap-0.5">
-          <span className="text-text-secondary">temperature</span>
-          <input
-            type="number" min="0" max="2" step="0.1"
-            value={temperature}
-            onChange={e => setTemperature(Number(e.target.value))}
-            className="rounded px-2 py-1 border border-border bg-card-bg text-text"
-          />
-        </label>
+      {/* REBUILD40 — 참고용 Cloud Run 서버 메모리 카드
+          ⚠ 브릿지는 사용자 PC 에서 추론하므로 서버 메모리는 추론 성능과 무관.
+            이 페이지는 SPA 호스팅용 컨테이너만 사용 (api/auth, api/questions 등 메타 API).
+          노출 이유: 사용자가 통합/분리 서버에 익숙하면 같은 정보를 한 곳에서 보고 싶어함.
+          기본 닫힘 상태로 두 카드 모두 펼침 토글 → 클릭 시 lazy fetch.
+          기존 MemoryCard 컴포넌트 100% 재사용 (lazy 로드 / 새로고침 / 액션 모두 동일). */}
+      <div className="rounded-xl border border-dashed border-border/60 bg-bg/30 p-2.5 space-y-2">
+        <p className="text-[11px] text-text-secondary leading-relaxed">
+          ℹ️ <b>참고용</b> — 아래는 Cloud Run 서버 메모리입니다.
+          브릿지는 <b>사용자 PC 에서 추론</b>하므로 서버 메모리는 추론 성능과 무관해요
+          (서버는 SPA 호스팅 + 메타 API 만 담당).
+          비교/디버깅용으로만 펼쳐보세요.
+        </p>
+        <MemoryCard
+          title="📊 (참고) 통합 서버 — aitutor"
+          service="aitutor"
+          endpoint="/api/local-infer?action=memory"
+        />
+        <MemoryCard
+          title="📊 (참고) 분리 서버 — aitutor-server-infer"
+          service="aitutor-server-infer"
+          endpoint="/api/iso-infer?action=memory"
+        />
       </div>
+
+      {/* REBUILD39 — 선택 모델 상세 정보 카드 (capabilities / 권장 파라미터 / 한국어 강도 / 팁)
+          노출 조건: 메타 카탈로그에서 매칭된 모델만. 알 수 없는 태그면 자동 숨김. */}
+      {currentModel && (currentModel.capabilities || currentModel.tips) && (
+        <div className="rounded-xl border border-violet-200 dark:border-violet-800/60 bg-violet-50/40 dark:bg-violet-900/20 p-3 space-y-2">
+          <div className="flex items-baseline justify-between gap-2 flex-wrap">
+            <p className="text-xs font-bold text-violet-900 dark:text-violet-200">
+              🔍 {currentModel.name} 상세 정보
+            </p>
+            <span className="text-[10px] text-violet-700 dark:text-violet-300 font-mono">
+              {currentModel.org}{currentModel.size ? ` · ${currentModel.size}` : ''} · <span className="opacity-80">{model}</span>
+            </span>
+          </div>
+
+          {/* 한국어 강도 (별점) */}
+          {typeof currentModel.korean_strength === 'number' && (
+            <div className="text-[11px] text-violet-900 dark:text-violet-200 flex items-center gap-2 flex-wrap">
+              <span>🌐 한국어 강도</span>
+              <span className={`font-mono tracking-wider ${currentModel.korean_strength <= 2 ? 'text-amber-600 dark:text-amber-400' : ''}`}>
+                {'⭐'.repeat(currentModel.korean_strength)}
+                <span className="opacity-30">{'⭐'.repeat(5 - currentModel.korean_strength)}</span>
+              </span>
+              <span className="text-[10px] opacity-70">({currentModel.korean_strength}/5)</span>
+            </div>
+          )}
+
+          {/* Capabilities 칩 */}
+          {currentModel.capabilities && (
+            <div className="flex flex-wrap gap-1">
+              {currentModel.capabilities.think_supported && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200 font-bold">
+                  💭 thinking 지원
+                </span>
+              )}
+              {currentModel.capabilities.multimodal && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-900 dark:text-pink-200 font-bold">
+                  🖼️ multimodal
+                </span>
+              )}
+              {currentModel.capabilities.tools && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-200 font-bold">
+                  🛠️ tools
+                </span>
+              )}
+              {currentModel.capabilities.coder && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200 font-bold">
+                  💻 코드 특화
+                </span>
+              )}
+              {currentModel.capabilities.context_k && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-200 font-bold">
+                  📜 {currentModel.capabilities.context_k}K context
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 권장 파라미터 */}
+          {currentModel.params && Object.keys(currentModel.params).length > 0 && (
+            <div className="text-[10px] text-violet-900 dark:text-violet-200 flex flex-wrap gap-x-3 gap-y-0.5">
+              <span className="font-bold">📊 권장:</span>
+              {currentModel.params.temperature != null && (
+                <span>temp <code className="font-mono">{currentModel.params.temperature}</code></span>
+              )}
+              {currentModel.params.top_p != null && (
+                <span>top_p <code className="font-mono">{currentModel.params.top_p}</code></span>
+              )}
+              {currentModel.params.repeat_penalty != null && (
+                <span>repeat_penalty <code className="font-mono">{currentModel.params.repeat_penalty}</code></span>
+              )}
+            </div>
+          )}
+
+          {/* 팁 */}
+          {currentModel.tips && (
+            <p className="text-[11px] text-violet-900 dark:text-violet-100 leading-relaxed bg-violet-100/40 dark:bg-violet-950/30 rounded-md px-2.5 py-1.5">
+              💡 {currentModel.tips}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 추론 옵션 — REBUILD39 §39 ParamSliders 통합 (max_tokens + temperature + thinking 토글)
+          thinking 토글은 모델이 think_supported 일 때만 노출 (그 외에는 자동 숨김). */}
+      <ParamSliders
+        temperature={temperature}
+        onTemperatureChange={setTemperature}
+        maxTokens={maxTokens}
+        onMaxTokensChange={setMaxTokens}
+        disabled={running}
+        thinkMode={thinkMode}
+        onThinkModeChange={setThinkMode}
+        thinkSupported={currentModel?.capabilities?.think_supported || false}
+        thinkRecommend={currentModel?.capabilities?.think_default ? 'on' : 'off'}
+      />
 
       {/* 문항 입력 (DB 선택 + 외부 붙여넣기 통합) */}
       <QuestionPicker question={question} onChange={handleQuestionChange} />
