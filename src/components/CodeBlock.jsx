@@ -12,7 +12,10 @@ import { useMemo } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 // 지원 언어들을 번들에 포함 (트리 셰이킹 방지)
+import 'prismjs/components/prism-clike'; // java/csharp/c 의존
 import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-c';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-typescript';
@@ -27,6 +30,10 @@ const LANG_MAP = {
   ts: 'typescript',
   kotlin: 'java',  // kotlin grammar 없으면 java로 폴백
   swift: 'java',
+  csharp: 'csharp',
+  'c#': 'csharp',
+  cs: 'csharp',
+  c: 'c',
 };
 
 /** code 문자열을 라인 배열로 분리하고 선행 라인 번호(원문에 포함된)를 떼어냄 */

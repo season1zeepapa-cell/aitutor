@@ -4,23 +4,31 @@
 // - 검색: 제목·키워드·분류·요약 전체 필터
 // - 새 자료원은 src/data/kisa-library.json 의 sources 에 추가만 하면 자동 노출
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import libData from '../data/kisa-library.json';
+import SharedCodeBlock from './CodeBlock';
 
 const SOURCE_BADGE = {
   library: { label: '진단가이드', cls: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
   course: { label: '교재', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
 };
 
-// 코드 블록 — 취약(bad, 빨강) / 안전(good, 초록) 구분
-function CodeBlock({ label, code, variant }) {
-  const box = variant === 'bad' ? 'border-red-400/40 bg-red-500/5' : 'border-green-400/40 bg-green-500/5';
+// 코드 lang 라벨 → Prism 언어 키 추정
+function guessLang(s) {
+  const l = (s || '').toLowerCase();
+  if (l.includes('c#') || l.includes('csharp')) return 'csharp';
+  if (l.includes('python')) return 'python';
+  if (l.includes('script')) return 'javascript';
+  return 'java';
+}
+
+// 코드 블록 — 취약(bad, 빨강) / 안전(good, 초록) 라벨 + 공통 CodeBlock(Prism 신택스 하이라이트)
+function CodeBlock({ label, code, variant, language }) {
   const lab = variant === 'bad' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400';
   return (
     <div className="mt-1">
-      {label && <div className={`text-[10px] font-semibold ${lab}`}>{label}</div>}
-      <pre className={`mt-0.5 overflow-x-auto text-[10.5px] leading-relaxed font-mono p-2 rounded border ${box}`}>
-        <code>{code}</code>
-      </pre>
+      {label && <div className={`text-[10px] font-semibold mb-0.5 ${lab}`}>{label}</div>}
+      <SharedCodeBlock code={code} language={language || 'java'} />
     </div>
   );
 }
@@ -39,8 +47,8 @@ function CodeSection({ item }) {
           {ce.map((c, i) => (
             <div key={i} className="rounded-lg border border-border/60 p-2">
               <div className="text-[11px] font-semibold mb-0.5">{c.lang}</div>
-              {c.vulnerable && <CodeBlock label="❌ 취약한 코드" code={c.vulnerable} variant="bad" />}
-              {c.safe && <CodeBlock label="✅ 안전한 코드" code={c.safe} variant="good" />}
+              {c.vulnerable && <CodeBlock label="❌ 취약한 코드" code={c.vulnerable} variant="bad" language={guessLang(c.lang)} />}
+              {c.safe && <CodeBlock label="✅ 안전한 코드" code={c.safe} variant="good" language={guessLang(c.lang)} />}
               {c.note && <p className="text-[11px] mt-1 text-current/70 leading-relaxed">💡 {c.note}</p>}
             </div>
           ))}
@@ -68,7 +76,7 @@ function CodeSection({ item }) {
 }
 
 // 한 항목 행 (클릭 시 상세 펼침)
-function ItemRow({ item, expanded, onToggle }) {
+function ItemRow({ item, expanded, onToggle, onJump }) {
   const badge = SOURCE_BADGE[item.source] || { label: item.source, cls: 'bg-gray-500/15 text-gray-500' };
   return (
     <div className="border-b border-border/60">
@@ -100,6 +108,14 @@ function ItemRow({ item, expanded, onToggle }) {
               ))}
             </div>
           )}
+          {item.source === 'library' && onJump && (
+            <button
+              onClick={() => onJump(item)}
+              className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
+            >
+              📖 학습에서 자세히 보기 →
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -107,6 +123,7 @@ function ItemRow({ item, expanded, onToggle }) {
 }
 
 export default function LibraryFab() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -153,6 +170,8 @@ export default function LibraryFab() {
 
   const toggleGroup = (key) => setOpenGroups((p) => ({ ...p, [key]: !p[key] }));
   const toggleItem = (id) => setExpandedId((p) => (p === id ? null : id));
+  // 라이브러리(보안약점) 항목 → 학습 상세로 점프 (chapter_code 일치)
+  const handleJump = (item) => { setOpen(false); navigate(`/kisa/study/${item.id}`); };
 
   return (
     <>
@@ -205,7 +224,7 @@ export default function LibraryFab() {
                   <>
                     <p className="text-xs text-primary/50 px-1 pb-1">검색 결과 {results.length}건</p>
                     {results.map((it) => (
-                      <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} />
+                      <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
                     ))}
                   </>
                 ) : (
@@ -236,7 +255,7 @@ export default function LibraryFab() {
                             <div className="ml-2">
                               {/* 단원 직속 항목 (분류 없음) */}
                               {g1.direct.map((it) => (
-                                <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} />
+                                <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
                               ))}
                               {/* 2단계: 분류 */}
                               {g1.sub.map(([g2name, items]) => {
@@ -255,7 +274,7 @@ export default function LibraryFab() {
                                     {o2 && (
                                       <div className="ml-3">
                                         {items.map((it) => (
-                                          <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} />
+                                          <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
                                         ))}
                                       </div>
                                     )}

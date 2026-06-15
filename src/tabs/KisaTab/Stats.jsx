@@ -22,6 +22,7 @@ export default function Stats() {
   const navigate = useNavigate();
   const { stats, loading, error } = useKisaStats();
   const [resetModal, setResetModal] = useState(false);
+  const [resetScope, setResetScope] = useState('all'); // all | attempts | srs | exams
   const [resetting, setResetting] = useState(false);
   const [resetError, setResetError] = useState('');
 
@@ -29,7 +30,7 @@ export default function Stats() {
     setResetting(true);
     setResetError('');
     try {
-      const res = await apiPost('/api/kisa-review?action=reset', { scope: 'all' });
+      const res = await apiPost('/api/kisa-review?action=reset', { scope: resetScope });
       console.info('[KISA 초기화]', res?.deleted);
       setResetModal(false);
       // 통계 재조회를 위해 페이지 새로고침
@@ -171,11 +172,34 @@ export default function Stats() {
           <div className="w-full max-w-sm bg-card-bg rounded-2xl shadow-2xl p-5 space-y-4">
             <div className="text-center">
               <div className="text-3xl mb-2">⚠️</div>
-              <h3 className="text-base font-bold mb-1">통계를 초기화할까요?</h3>
+              <h3 className="text-base font-bold mb-1">학습 기록 초기화</h3>
               <p className="text-xs text-text-secondary">
-                응시 기록, 복습 큐, 모의고사 기록이 모두 삭제됩니다.<br/>
+                초기화할 범위를 선택하세요.<br/>
                 <span className="font-bold text-red-600 dark:text-red-400">되돌릴 수 없습니다.</span>
               </p>
+            </div>
+            {/* 초기화 범위 선택 (서버 scope: all/attempts/srs/exams) */}
+            <div className="space-y-1">
+              {[
+                { key: 'all', label: '전체 초기화', desc: '응시 기록 + 복습 큐 + 모의고사' },
+                { key: 'attempts', label: '응시 기록만', desc: '문제 풀이·자가채점 기록' },
+                { key: 'srs', label: '복습 큐만', desc: 'SRS 복습 대기열' },
+                { key: 'exams', label: '모의고사만', desc: '모의고사 세션 기록' },
+              ].map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => setResetScope(o.key)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs transition-colors ${
+                    resetScope === o.key ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-border hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  <span className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 ${resetScope === o.key ? 'border-red-500 bg-red-500' : 'border-border'}`} />
+                  <span className="flex-1">
+                    <span className="font-semibold">{o.label}</span>
+                    <span className="text-text-secondary"> · {o.desc}</span>
+                  </span>
+                </button>
+              ))}
             </div>
             {summary && (
               <div className="text-xs text-text-secondary bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 space-y-0.5">

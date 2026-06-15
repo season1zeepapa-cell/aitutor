@@ -17,6 +17,10 @@ const DAYS_OPTIONS = [
   { value: 90,  label: '최근 90일' },
 ];
 
+// 원본 가이드(붙임3) 분류 순서 — 오답 집계를 가이드순으로 정렬
+const CATEGORY_ORDER = ['input_validation', 'security_feature', 'time_state', 'error_handling', 'code_error', 'encapsulation', 'api_abuse', 'session_control'];
+const catRank = (k) => { const i = CATEGORY_ORDER.indexOf(k); return i < 0 ? 99 : i; };
+
 export default function WrongNotes() {
   const navigate = useNavigate();
   const [days, setDays] = useState(30);
@@ -97,7 +101,7 @@ export default function WrongNotes() {
   }
 
   const items = data?.items || [];
-  const byCategory = data?.by_category || [];
+  const byCategory = [...(data?.by_category || [])].sort((a, b) => catRank(a.weakness_category) - catRank(b.weakness_category));
 
   return (
     <div className="space-y-4">
