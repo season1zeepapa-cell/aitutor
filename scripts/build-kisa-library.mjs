@@ -87,6 +87,7 @@ function mapCourse(d) {
     id: d.unit_code,
     title: d.title,
     source: 'course',
+    unit: d.unit || '', // 단원 로마숫자 (Ⅰ~Ⅵ) — 단원카드 학습 링크 분기용
     g1: d.unit ? `${d.unit}단원` : '단원',
     g2: isItem ? catLabel : '', // 단원카드(Ⅰ·Ⅱ·Ⅲ·Ⅵ)는 g2 없음 → 단원 직속
     order: (UNIT_ORDER[d.unit] || 9) * 100000 + (isItem ? (CAT_ORDER[cat] || 9) * 1000 + codeNum(d.unit_code) : 0),

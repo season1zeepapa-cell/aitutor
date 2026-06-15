@@ -76,7 +76,7 @@ function CodeSection({ item }) {
 }
 
 // 한 항목 행 (클릭 시 상세 펼침)
-function ItemRow({ item, expanded, onToggle, onJump }) {
+function ItemRow({ item, expanded, onToggle, onGo }) {
   const badge = SOURCE_BADGE[item.source] || { label: item.source, cls: 'bg-gray-500/15 text-gray-500' };
   return (
     <div className="border-b border-border/60">
@@ -108,20 +108,28 @@ function ItemRow({ item, expanded, onToggle, onJump }) {
               ))}
             </div>
           )}
-          {onJump && item.source === 'library' && (
+          {onGo && item.source === 'library' && (
             <button
-              onClick={() => onJump(item.id)}
+              onClick={() => onGo(`/kisa/study/${item.id}`)}
               className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
             >
               📖 학습에서 자세히 보기 →
             </button>
           )}
-          {onJump && item.source === 'course' && (item.relatedLibrary || []).length > 0 && (
+          {onGo && item.source === 'course' && (item.relatedLibrary || []).length > 0 && (
             <button
-              onClick={() => onJump(item.relatedLibrary[0])}
+              onClick={() => onGo(`/kisa/study/${item.relatedLibrary[0]}`)}
               className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
             >
               🔗 연관 보안약점 학습 ({item.relatedLibrary[0]}) →
+            </button>
+          )}
+          {onGo && item.source === 'course' && !(item.relatedLibrary || []).length && (
+            <button
+              onClick={() => onGo(item.unit === 'Ⅵ' ? '/kisa/drill' : '/kisa/study')}
+              className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
+            >
+              {item.unit === 'Ⅵ' ? '🎯 문제 풀이(드릴) 시작 →' : '📖 학습 자료 보기 →'}
             </button>
           )}
         </div>
@@ -178,8 +186,8 @@ export default function LibraryFab() {
 
   const toggleGroup = (key) => setOpenGroups((p) => ({ ...p, [key]: !p[key] }));
   const toggleItem = (id) => setExpandedId((p) => (p === id ? null : id));
-  // 보안약점 코드(IMP/DSG)로 학습 상세 점프
-  const handleJump = (code) => { setOpen(false); navigate(`/kisa/study/${code}`); };
+  // 패널 닫고 지정 경로로 이동 (학습 상세/목록/드릴)
+  const handleGo = (path) => { setOpen(false); navigate(path); };
 
   return (
     <>
@@ -236,7 +244,7 @@ export default function LibraryFab() {
                   <>
                     <p className="text-xs text-primary/50 px-1 pb-1">검색 결과 {results.length}건</p>
                     {results.map((it) => (
-                      <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
+                      <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onGo={handleGo} />
                     ))}
                   </>
                 ) : (
@@ -267,7 +275,7 @@ export default function LibraryFab() {
                             <div className="ml-2">
                               {/* 단원 직속 항목 (분류 없음) */}
                               {g1.direct.map((it) => (
-                                <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
+                                <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onGo={handleGo} />
                               ))}
                               {/* 2단계: 분류 */}
                               {g1.sub.map(([g2name, items]) => {
@@ -286,7 +294,7 @@ export default function LibraryFab() {
                                     {o2 && (
                                       <div className="ml-3">
                                         {items.map((it) => (
-                                          <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onJump={handleJump} />
+                                          <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} onGo={handleGo} />
                                         ))}
                                       </div>
                                     )}
