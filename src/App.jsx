@@ -64,6 +64,9 @@ const LabsHome = lazy(() => import('./labs'));
 // REBUILD28 §11 — 외부 Ollama bridge (사용자 PC localhost:11434 직접 호출)
 const OllamaBridgeLab = lazy(() => import('./labs/ollama-bridge'));
 
+// REBUILD45 — 자료 라이브러리 플로팅 메뉴 (데이터 번들 분리를 위해 lazy)
+const LibraryFab = lazy(() => import('./components/LibraryFab'));
+
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center py-20">
@@ -141,6 +144,8 @@ function AppLayout({ onLogout, theme, onToggleTheme, categoryId, onCategoryChang
         </Suspense>
       </main>
       <ScrollToTop />
+      {/* REBUILD45 — 자료 라이브러리 플로팅 메뉴 (상단이동 버튼 위, 겹치지 않음) */}
+      <Suspense fallback={null}><LibraryFab /></Suspense>
       <BottomNav />
     </div>
   );
