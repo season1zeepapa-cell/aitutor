@@ -108,12 +108,20 @@ function ItemRow({ item, expanded, onToggle, onJump }) {
               ))}
             </div>
           )}
-          {item.source === 'library' && onJump && (
+          {onJump && item.source === 'library' && (
             <button
-              onClick={() => onJump(item)}
+              onClick={() => onJump(item.id)}
               className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
             >
               📖 학습에서 자세히 보기 →
+            </button>
+          )}
+          {onJump && item.source === 'course' && (item.relatedLibrary || []).length > 0 && (
+            <button
+              onClick={() => onJump(item.relatedLibrary[0])}
+              className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
+            >
+              🔗 연관 보안약점 학습 ({item.relatedLibrary[0]}) →
             </button>
           )}
         </div>
@@ -170,8 +178,8 @@ export default function LibraryFab() {
 
   const toggleGroup = (key) => setOpenGroups((p) => ({ ...p, [key]: !p[key] }));
   const toggleItem = (id) => setExpandedId((p) => (p === id ? null : id));
-  // 라이브러리(보안약점) 항목 → 학습 상세로 점프 (chapter_code 일치)
-  const handleJump = (item) => { setOpen(false); navigate(`/kisa/study/${item.id}`); };
+  // 보안약점 코드(IMP/DSG)로 학습 상세 점프
+  const handleJump = (code) => { setOpen(false); navigate(`/kisa/study/${code}`); };
 
   return (
     <>

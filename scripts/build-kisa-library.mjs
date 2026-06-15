@@ -99,6 +99,7 @@ function mapCourse(d) {
       (d.sections || []).length ? { label: '구성', text: d.sections.map((s) => s.title).join(' · ') } : null,
       (d.related_library || []).length ? { label: '연관 라이브러리', text: d.related_library.join(', ') } : null,
     ].filter(Boolean),
+    relatedLibrary: d.related_library || [], // 교차 점프용 (IMP/DSG 코드)
     codeExamples: [],
     diagnosisCode: { truePositive: [], falsePositive: [] },
   };

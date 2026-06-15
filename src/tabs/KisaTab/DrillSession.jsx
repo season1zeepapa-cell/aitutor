@@ -7,7 +7,7 @@
 //   제출 후: ResultOverlay (점수 + 모범답안 + 자가평가 4버튼)
 //
 // 세션 중 상태 관리는 useState + 내부 queue로 처리. 전역 Context 추가하지 않음.
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { apiGet, apiPost } from '../../lib/api';
 import { getQuestionType } from '../../components/QuestionTypes/registry';
@@ -45,6 +45,8 @@ export default function DrillSession() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [seenIds, setSeenIds] = useState([]);                       // 중복 방지
   const [startedAt, setStartedAt] = useState(Date.now());
+  const [guideOrder, setGuideOrder] = useState(false); // 가이드순 출제 모드
+  const didOrderMount = useRef(false);
 
   // 제출 결과 (오버레이 표시용)
   const [result, setResult] = useState(null);
@@ -63,6 +65,7 @@ export default function DrillSession() {
       if (difficulty) params.set('difficulty', difficulty);
       if (chapterCode) params.set('chapter_code', chapterCode);
       if (srsOnly) params.set('srs', 'true');
+      if (guideOrder) params.set('order', 'guide');
       if (seenIds.length > 0) params.set('exclude_ids', seenIds.join(','));
 
       const data = await apiGet(`/api/kisa-drill?${params}`);
@@ -73,7 +76,7 @@ export default function DrillSession() {
     } finally {
       setLoading(false);
     }
-  }, [type, stage, category, language, difficulty, chapterCode, srsOnly, seenIds]);
+  }, [type, stage, category, language, difficulty, chapterCode, srsOnly, guideOrder, seenIds]);
 
   // 최초 진입 시 total 수 조회 + 첫 문항 로드
   useEffect(() => {
@@ -112,6 +115,15 @@ export default function DrillSession() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 출제 순서 토글 시 세션 리셋 후 재출제 (초기 마운트는 위 useEffect가 처리)
+  useEffect(() => {
+    if (!didOrderMount.current) { didOrderMount.current = true; return; }
+    setSeenIds([]);
+    setProgress((p) => ({ ...p, done: 0 }));
+    fetchNextQuestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guideOrder]);
 
   // 답안 제출
   const handleSubmit = async (answer) => {
@@ -245,6 +257,17 @@ export default function DrillSession() {
           <Badge variant="blue">{question.language}</Badge>
           <Badge variant="amber">{question.difficulty}</Badge>
           {question.weakness_code && <Badge variant="neutral">{question.weakness_code}</Badge>}
+          {!srsOnly && (
+            <button
+              onClick={() => setGuideOrder((v) => !v)}
+              className={`ml-auto text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                guideOrder ? 'border-primary text-primary bg-primary/10' : 'border-border text-text-secondary'
+              }`}
+              title="출제 순서 전환 (가이드순 ↔ 랜덤)"
+            >
+              {guideOrder ? '📑 가이드순' : '🎲 랜덤'}
+            </button>
+          )}
         </div>
       </div>
 

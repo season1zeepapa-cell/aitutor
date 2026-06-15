@@ -40,6 +40,7 @@ module.exports = withAuth(async (req, res) => {
   const language = ALLOWED_LANGUAGES.includes(req.query?.language) ? req.query.language : null;
   const difficulty = ALLOWED_DIFFICULTIES.includes(req.query?.difficulty) ? req.query.difficulty : null;
   const srsOnly = req.query?.srs === 'true';
+  const guideOrder = req.query?.order === 'guide'; // 가이드순(단계→분류→번호) 출제 모드
   // chapter_code 필터 (DSG-IV-01, IMP-SF-04 등) — 특정 챕터만 출제
   const chapterCode = typeof req.query?.chapter_code === 'string'
     && /^(DSG|IMP)-[A-Z]{2}-\d{2}$/.test(req.query.chapter_code)
@@ -126,7 +127,13 @@ module.exports = withAuth(async (req, res) => {
         ORDER BY submitted_at DESC LIMIT 1
       ) a ON TRUE
       WHERE ${conditions.join(' AND ')}
-      ORDER BY a.submitted_at ASC NULLS FIRST, RANDOM()
+      ORDER BY ${guideOrder ? `
+        CASE q.stage WHEN 'design' THEN 1 ELSE 2 END,
+        CASE q.weakness_category
+          WHEN 'input_validation' THEN 1 WHEN 'security_feature' THEN 2 WHEN 'time_state' THEN 3
+          WHEN 'error_handling' THEN 4 WHEN 'code_error' THEN 5 WHEN 'encapsulation' THEN 6
+          WHEN 'api_abuse' THEN 7 WHEN 'session_control' THEN 8 ELSE 9 END,
+        q.chapter_code, q.id` : `a.submitted_at ASC NULLS FIRST, RANDOM()`}
       LIMIT 1
     `;
     params.push(userId);

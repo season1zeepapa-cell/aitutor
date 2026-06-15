@@ -8,7 +8,7 @@
 // 사용 예:
 //   <CodeBlock code={question.vulnerable_code} language={question.code_language}
 //              citedLines={cited} onLineClick={setCited} />
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
 // 지원 언어들을 번들에 포함 (트리 셰이킹 방지)
@@ -59,6 +59,15 @@ export default function CodeBlock({
 }) {
   const lines = useMemo(() => normalizeLines(code), [code]);
   const grammar = Prism.languages[LANG_MAP[language] || 'java'] || Prism.languages.java;
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    // 원문(라인번호 제외) 복사
+    const plain = lines.map((l) => l.content).join('\n');
+    navigator.clipboard?.writeText(plain).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  };
 
   const toggleLine = (lineNo) => {
     if (!onLineClick) return;
@@ -73,11 +82,18 @@ export default function CodeBlock({
       <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 border-b border-border text-[11px] text-text-secondary">
         <span className="font-mono">{language}</span>
         {onLineClick && (
-          <span className="ml-auto text-[10px] text-text-secondary">
+          <span className="text-[10px] text-text-secondary">
             💡 취약 라인을 클릭하세요
             {citedLines.length > 0 && ` · ${citedLines.length}줄 선택됨`}
           </span>
         )}
+        <button
+          onClick={handleCopy}
+          className="ml-auto text-[10px] px-1.5 py-0.5 rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+          aria-label="코드 복사"
+        >
+          {copied ? '✓ 복사됨' : '📋 복사'}
+        </button>
       </div>
       <pre className="m-0 p-0 text-[13px] leading-[1.6] overflow-x-auto">
         <code className="block font-mono">
