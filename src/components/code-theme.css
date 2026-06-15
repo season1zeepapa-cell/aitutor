@@ -1,0 +1,52 @@
+/* Prism 코드 구문강조 다크모드 토큰 색 (REBUILD52)
+ * prism.css(라이트)를 .kisa-code-block 스코프에서만 오버라이드 — VSCode Dark+ 계열.
+ * darkMode: ['class', '[data-theme="dark"]'] 둘 다 :is() 로 커버. */
+
+:is(.dark, [data-theme="dark"]) .kisa-code-block code,
+:is(.dark, [data-theme="dark"]) .kisa-code-block pre {
+  color: #d4d4d4;
+  text-shadow: none;
+}
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token {
+  text-shadow: none;
+  background: none;
+}
+
+/* 주석 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.comment,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.prolog,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.doctype,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.cdata { color: #6a9955; }
+
+/* 구두점·연산자 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.punctuation,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.operator { color: #d4d4d4; }
+
+/* 키워드·불리언·태그 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.keyword,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.boolean,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.tag,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.constant { color: #569cd6; }
+
+/* 문자열 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.string,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.char,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.attr-value,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.regex { color: #ce9178; }
+
+/* 함수·메소드 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.function,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.method { color: #dcdcaa; }
+
+/* 클래스명·타입 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.class-name,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.builtin,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.namespace { color: #4ec9b0; }
+
+/* 숫자 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.number { color: #b5cea8; }
+
+/* 속성명·변수·어노테이션 */
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.attr-name,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.variable,
+:is(.dark, [data-theme="dark"]) .kisa-code-block .token.annotation { color: #9cdcfe; }

@@ -11,6 +11,7 @@
 import { useMemo, useState } from 'react';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism.css';
+import './code-theme.css'; // 다크모드 토큰 색 오버라이드 (REBUILD52)
 // 지원 언어들을 번들에 포함 (트리 셰이킹 방지)
 import 'prismjs/components/prism-clike'; // java/csharp/c 의존
 import 'prismjs/components/prism-java';
