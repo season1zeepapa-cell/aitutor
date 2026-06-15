@@ -26,6 +26,13 @@ const CATEGORY_EMOJI = {
   session_control: '🎫',
 };
 
+// 원본 가이드(붙임3) 분류 순서 — 카테고리/항목 정렬에 사용
+const CATEGORY_ORDER = {
+  input_validation: 1, security_feature: 2, time_state: 3, error_handling: 4,
+  code_error: 5, encapsulation: 6, api_abuse: 7, session_control: 8,
+};
+const chapterNum = (code) => { const m = String(code).match(/(\d+)\s*$/); return m ? +m[1] : 0; };
+
 export default function Study() {
   const navigate = useNavigate();
   const [data, setData] = useState({ design: [], implementation: [], total: 0 });
@@ -62,13 +69,16 @@ export default function Study() {
     );
   }
 
-  // 카테고리별 그룹핑
+  // 카테고리별 그룹핑 + 가이드 순서 정렬 (카테고리 순서 + 항목 번호순)
   const currentChapters = activeTab === 'design' ? data.design : data.implementation;
   const byCategory = {};
   for (const ch of currentChapters) {
     if (!byCategory[ch.category]) byCategory[ch.category] = [];
     byCategory[ch.category].push(ch);
   }
+  const sortedCategories = Object.entries(byCategory)
+    .sort((a, b) => (CATEGORY_ORDER[a[0]] || 99) - (CATEGORY_ORDER[b[0]] || 99))
+    .map(([cat, chs]) => [cat, [...chs].sort((x, y) => chapterNum(x.chapter_code) - chapterNum(y.chapter_code))]);
 
   return (
     <div className="space-y-3">
@@ -99,8 +109,8 @@ export default function Study() {
         />
       </div>
 
-      {/* 카테고리 섹션들 */}
-      {Object.entries(byCategory).map(([category, chapters]) => (
+      {/* 카테고리 섹션들 (가이드 순서) */}
+      {sortedCategories.map(([category, chapters]) => (
         <div key={category} className="rounded-xl bg-card-bg border border-border p-3">
           <h3 className="text-sm font-bold mb-2 flex items-center gap-1">
             <span>{CATEGORY_EMOJI[category]}</span>

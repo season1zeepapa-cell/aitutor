@@ -30,7 +30,13 @@ export default function StudyDetail() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedExample, setSelectedExample] = useState(0);
+  const [openExamples, setOpenExamples] = useState(() => new Set([0])); // 예제 아코디언 (첫 예제 펼침)
+  const toggleExample = (i) =>
+    setOpenExamples((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
 
   useEffect(() => {
     (async () => {
@@ -38,7 +44,7 @@ export default function StudyDetail() {
       try {
         const result = await apiGet(`/api/kisa-study?action=detail&code=${chapterCode}`);
         setData(result);
-        setSelectedExample(0);
+        setOpenExamples(new Set([0]));
       } catch (e) {
         setError(e.message);
       } finally {
@@ -67,7 +73,6 @@ export default function StudyDetail() {
   }
 
   const { chapter, code_examples, mcq_count, blank_count = 0, diagnosis_count, related_forward = [], related_reverse = [] } = data;
-  const currentExample = code_examples[selectedExample];
 
   return (
     <div className="space-y-3">
@@ -132,95 +137,82 @@ export default function StudyDetail() {
         </Section>
       )}
 
-      {/* 5. 코드 예시 — 취약 vs 안전 */}
+      {/* 5. 코드 예시 — 취약 vs 안전 (아코디언: 예제별 접기/펼치기) */}
       {code_examples.length > 0 && (
         <div className="rounded-xl bg-card-bg border border-border p-3">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold">💻 실제 코드 예시</h3>
-            {code_examples.length > 1 && (
-              <div className="flex gap-1">
-                {code_examples.map((ex, i) => (
+          <h3 className="text-sm font-bold mb-2">
+            💻 실제 코드 예시 <span className="text-[10px] text-text-secondary font-normal">({code_examples.length})</span>
+          </h3>
+          <div className="space-y-2">
+            {code_examples.map((ex, exIdx) => {
+              const open = openExamples.has(exIdx);
+              return (
+                <div key={exIdx} className="rounded-lg border border-border overflow-hidden">
+                  {/* 아코디언 헤더 — 클릭 시 접기/펼치기 */}
                   <button
-                    key={i}
-                    onClick={() => setSelectedExample(i)}
-                    className={`text-[10px] px-2 py-1 rounded-md ${
-                      i === selectedExample
-                        ? 'bg-primary text-white'
-                        : 'bg-neutral-100 dark:bg-neutral-800 text-text-secondary'
-                    }`}
+                    onClick={() => toggleExample(exIdx)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                   >
-                    {ex.language} · {ex.difficulty}
+                    <span className="text-primary/60 text-xs">{open ? '▾' : '▸'}</span>
+                    <span className="flex-1 text-xs font-semibold">{ex.language} · {ex.difficulty}</span>
+                    <span className="text-[10px] text-text-secondary">{open ? '접기' : '펼치기'}</span>
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
+                  {open && (
+                    <div className="p-3 space-y-3">
+                      {/* 취약 코드 */}
+                      <div>
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className="text-xs font-bold text-red-600 dark:text-red-400">❌ 취약한 코드</span>
+                          {ex.vulnerable_lines?.length > 0 && (
+                            <span className="text-[10px] text-text-secondary">· 라인 {ex.vulnerable_lines.join(', ')}</span>
+                          )}
+                        </div>
+                        <CodeBlock code={ex.vulnerable_code} language={ex.language} citedLines={ex.vulnerable_lines || []} />
+                        {ex.rationale && (
+                          <p className="mt-2 text-xs text-text-secondary leading-relaxed">
+                            <span className="font-bold text-red-700 dark:text-red-400">왜 취약한가: </span>
+                            {ex.rationale}
+                          </p>
+                        )}
+                      </div>
 
-          {currentExample && (
-            <div className="space-y-3">
-              {/* 취약 코드 */}
-              <div>
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-xs font-bold text-red-600 dark:text-red-400">❌ 취약한 코드</span>
-                  {currentExample.vulnerable_lines?.length > 0 && (
-                    <span className="text-[10px] text-text-secondary">
-                      · 라인 {currentExample.vulnerable_lines.join(', ')}
-                    </span>
+                      {/* 안전 코드 */}
+                      <div>
+                        <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">✅ 안전한 코드</div>
+                        <CodeBlock code={ex.safe_code} language={ex.language} />
+                        {ex.fix_description && (
+                          <p className="mt-2 text-xs text-text-secondary leading-relaxed">
+                            <span className="font-bold text-green-700 dark:text-green-400">수정 포인트: </span>
+                            {ex.fix_description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* 키워드 요약 */}
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                        {ex.rationale_keywords?.length > 0 && (
+                          <div>
+                            <span className="text-[10px] font-bold text-text-secondary">근거 키워드: </span>
+                            {ex.rationale_keywords.map((kw, i) => (
+                              <span key={i} className="inline-block text-[10px] px-1.5 py-0.5 mr-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">{kw}</span>
+                            ))}
+                          </div>
+                        )}
+                        {ex.fix_keywords?.length > 0 && (
+                          <div>
+                            <span className="text-[10px] font-bold text-text-secondary">수정 키워드: </span>
+                            {ex.fix_keywords.map((kw, i) => (
+                              <span key={i} className="inline-block text-[10px] px-1.5 py-0.5 mr-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">{kw}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
-                <CodeBlock
-                  code={currentExample.vulnerable_code}
-                  language={currentExample.language}
-                  citedLines={currentExample.vulnerable_lines || []}
-                />
-                {currentExample.rationale && (
-                  <p className="mt-2 text-xs text-text-secondary leading-relaxed">
-                    <span className="font-bold text-red-700 dark:text-red-400">왜 취약한가: </span>
-                    {currentExample.rationale}
-                  </p>
-                )}
-              </div>
-
-              {/* 안전 코드 */}
-              <div>
-                <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">✅ 안전한 코드</div>
-                <CodeBlock
-                  code={currentExample.safe_code}
-                  language={currentExample.language}
-                />
-                {currentExample.fix_description && (
-                  <p className="mt-2 text-xs text-text-secondary leading-relaxed">
-                    <span className="font-bold text-green-700 dark:text-green-400">수정 포인트: </span>
-                    {currentExample.fix_description}
-                  </p>
-                )}
-              </div>
-
-              {/* 키워드 요약 */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                {currentExample.rationale_keywords?.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-bold text-text-secondary">근거 키워드: </span>
-                    {currentExample.rationale_keywords.map((kw, i) => (
-                      <span key={i} className="inline-block text-[10px] px-1.5 py-0.5 mr-1 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-                        {kw}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {currentExample.fix_keywords?.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-bold text-text-secondary">수정 키워드: </span>
-                    {currentExample.fix_keywords.map((kw, i) => (
-                      <span key={i} className="inline-block text-[10px] px-1.5 py-0.5 mr-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                        {kw}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       )}
 
