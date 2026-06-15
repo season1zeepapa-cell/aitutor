@@ -1,0 +1,79 @@
+{
+  "unit_code": "COURSE-IMP-AA-01",
+  "chapter_code_ref": "IMP-AA-01",
+  "title": "DNS Lookup에 의존한 보안결정",
+  "unit": "Ⅴ",
+  "type": "course",
+  "category": "api_abuse",
+  "source": {
+    "doc": "2025년 SW보안약점 진단원 기본(양성)과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 > API 오용 항목에 대한 고려 7-1 DNS Lookup에 의존한 보안결정",
+    "pages": "493-496"
+  },
+  "summary": "프로그램 로직에서 도메인 명에 의존하여 보안을 결정하는 경우 발생하는 API 오용 보안약점이다. 공격자가 DNS 엔트리를 속일 수 있으므로 도메인 명에 의존한 보안 결정은 인증·접근통제 오류를 일으킬 수 있다. 보안 결정에 DNS 조회결과를 사용하지 않고 실제 IP 주소를 사용해야 한다. 'API 오용'은 의도된 사용에 반하거나 보안에 취약한 API를 사용해 발생하는 약점으로, DNS Lookup 의존과 취약한 API 사용 2가지가 있다.",
+  "sections": [
+    {
+      "title": "API 오용 보안약점 개요",
+      "key_points": [
+        "API 오용: 의도된 사용에 반하는 방법으로 API를 사용하거나, 보안에 취약한 API를 사용하여 발생할 수 있는 보안 약점.",
+        "API 오용 보안약점 2종: ① DNS Lookup에 의존한 보안결정, ② 취약한 API 사용."
+      ]
+    },
+    {
+      "title": "개요 — 약점 정의와 위협",
+      "key_points": [
+        "프로그램 로직에서 도메인 명에 의존하여 보안을 결정하는 경우 발생한다.",
+        "공격자가 DNS 엔트리를 속일 수 있으므로 도메인 명에 의존해 보안 결정을 하면 인증 및 접근 통제 오류 등을 일으킬 수 있다.",
+        "DNS 서버 캐쉬가 공격자에 의해 오염되면 사용자와 특정 서버 간 네트워크 트래픽이 공격자를 경유하도록 할 수 있다.",
+        "공격자가 마치 동일 도메인에 속한 서버인 것처럼 위장할 수도 있다."
+      ]
+    },
+    {
+      "title": "보안대책",
+      "key_points": [
+        "보안 결정에 DNS 조회결과를 사용하지 않는다.",
+        "도메인 명이 아닌 실제 서버의 IP 주소를 사용하여 DNS 변조에 방어한다."
+      ]
+    },
+    {
+      "title": "진단 흐름도",
+      "key_points": [
+        "DNS lookup 모듈 확인 → DNS lookup에 따른 보안 결정 여부 확인.",
+        "미존재면 안전, 존재하면 위험."
+      ]
+    },
+    {
+      "title": "코드 예시 — getCanonicalHostName vs IP 비교",
+      "key_points": [
+        "안전하지 않은 코드: req.getRemoteAddr()로 얻은 ip를 InetAddress로 변환한 뒤 addr.getCanonicalHostName().endsWith(\"trustme.com\")으로 도메인을 검사 — DNS 변경에 취약.",
+        "안전한 코드: ip가 null·빈 문자열이면 즉시 반환하고, 신뢰 IP(예: \"127.0.0.1\")와 ip.equals()로 직접 비교하여 DNS 변조를 방어."
+      ]
+    },
+    {
+      "title": "보충 — DNS Spoofing & DNS Cache Poisoning",
+      "key_points": [
+        "DNS Spoofing: 도메인 IP 요청 시 공격자가 잘못된 IP를 응답해 사용자를 악성 사이트로 리다이렉트하는 공격.",
+        "DNS Cache Poisoning: DNS 서버 캐시에 위조된 도메인-IP 매핑을 주입(오염)하는 공격. DNS Spoofing을 일으키는 한 가지 방법.",
+        "대응: DNSSEC(디지털 서명으로 무결성·원본 검증, 가장 효과적), DoH/DoT(DNS 암호화), DNS 서버 설정 강화(재귀쿼리 제한·쿼리 ID/포트 무작위화·TTL 단축), 정기 캐시 청소(ipconfig /flushdns), IDS/IPS 보안 솔루션."
+      ]
+    }
+  ],
+  "key_concepts": [
+    { "term": "DNS Lookup 의존 보안결정", "definition": "도메인 명(호스트 이름) 조회 결과로 신뢰 여부·접근 권한을 판단하는 로직. 공격자가 DNS를 속이면 인증·접근통제가 우회된다." },
+    { "term": "getCanonicalHostName()", "definition": "IP의 정규 호스트 이름을 DNS 역방향 조회로 얻는 메소드. 보안 결정에 사용하면 DNS 변조에 취약하다." },
+    { "term": "DNS Spoofing", "definition": "도메인 IP 요청에 대해 공격자가 위조된 IP를 응답해 사용자를 악성 사이트로 유도하는 공격." },
+    { "term": "DNS Cache Poisoning", "definition": "DNS 서버 캐시에 위조된 도메인-IP 레코드를 주입(오염)하는 공격. 그 서버를 쓰는 모든 사용자가 DNS Spoofing 피해를 입는다." },
+    { "term": "DNSSEC", "definition": "DNS 응답에 디지털 서명을 적용해 무결성과 원본을 검증하는 가장 효과적인 방어책 중 하나." }
+  ],
+  "exam_points": [
+    "API 오용 2종: ① DNS Lookup에 의존한 보안결정, ② 취약한 API 사용",
+    "원인: 프로그램 로직이 도메인 명에 의존해 보안 결정 — DNS 엔트리 위조로 인증·접근통제 오류 발생",
+    "보안대책: 보안 결정에 DNS 조회결과 미사용, 실제 IP 주소로 비교",
+    "안전하지 않은 코드: getCanonicalHostName().endsWith(\"trustme.com\") / 안전한 코드: ip.equals(신뢰 IP)",
+    "DNS Cache Poisoning은 DNS Spoofing을 일으키는 한 방법 — 대응책 1순위는 DNSSEC",
+    "진단 흐름: DNS lookup에 따른 보안 결정이 존재하면 위험"
+  ],
+  "keywords": ["API 오용", "DNS Lookup", "보안결정", "도메인 명", "getCanonicalHostName", "DNS Spoofing", "DNS Cache Poisoning", "DNSSEC", "DoH", "DoT", "IP 주소"],
+  "related_library": ["IMP-AA-01"],
+  "tags": ["course", "implementation", "api_abuse", "dns", "spoofing", "access-control", "API오용", "구현단계"]
+}

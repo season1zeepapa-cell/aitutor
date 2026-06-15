@@ -1,0 +1,69 @@
+{
+  "unit_code": "COURSE-IMP-EN-01",
+  "chapter_code_ref": "IMP-EN-01",
+  "title": "잘못된 세션에 의한 데이터 정보 노출",
+  "unit": "Ⅴ",
+  "type": "course",
+  "category": "encapsulation",
+  "source": {
+    "doc": "2025년 SW보안약점 진단원 기본(양성)과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 > 캡슐화 항목에 대한 고려 6-1 잘못된 세션에 의한 데이터 정보 노출",
+    "pages": "480-482"
+  },
+  "summary": "다중 스레드 환경에서 싱글톤(singleton) 객체의 멤버변수를 사용하는 경우 발생하는 캡슐화 보안약점이다. Servlet·JSP·Controller 등 싱글톤으로 존재하는 객체의 멤버변수가 여러 스레드에 의해 공유되면서 다른 스레드에게 정보를 노출시킬 수 있다. 변수 범위(scope)에 주의하여 멤버 필드 대신 지역변수를 사용해야 한다.",
+  "sections": [
+    {
+      "title": "개요 — 약점 정의와 발생 원인",
+      "key_points": [
+        "다중 스레드 환경에서 싱글톤(singleton) 객체의 멤버변수를 사용하는 경우 발생한다.",
+        "Servlet, JSP, Controller 등 싱글톤으로 존재하는 객체들의 멤버변수가 여러 스레드에 의해 공유되면서 다른 스레드에게 정보를 노출시킬 수 있다."
+      ]
+    },
+    {
+      "title": "보안대책 — 변수 범위(scope) 관리",
+      "key_points": [
+        "싱글톤 패턴을 사용하는 경우, 변수 범위(scope)에 주의하여 사용한다.",
+        "Java에서 HttpServlet 클래스의 하위 클래스나 JSP, Controller에서 멤버 필드를 선언하지 않도록 한다.",
+        "필요한 경우 지역변수를 선언하여 사용한다."
+      ]
+    },
+    {
+      "title": "진단 흐름도",
+      "key_points": [
+        "다중 스레드 환경 확인 → HttpServlet 하위 클래스 내 멤버필드 선언 여부 확인.",
+        "멤버필드 선언이 없으면 안전.",
+        "멤버필드 선언이 있으면 final로 정의되어 있는 경우 안전, 그렇지 않으면 위험."
+      ]
+    },
+    {
+      "title": "코드 예시 — JSP 멤버변수 vs 로컬변수",
+      "key_points": [
+        "안전하지 않은 코드: JSP에서 <%! ... %> 선언부로 String commonPath, imagePath 등을 멤버 변수로 선언 — 스레드 간 공유됨.",
+        "안전한 코드: JSP에서 <% ... %> 스크립틀릿으로 동일 String 필드들을 로컬 변수로 선언하여 스레드 간 공유를 차단."
+      ]
+    },
+    {
+      "title": "코드 예시 — Controller 멤버변수 vs 지역변수",
+      "key_points": [
+        "안전하지 않은 코드: @Controller의 TrendForecastController에서 private int currentPage = 1; 멤버 변수가 스레드 간 공유되고, doSomething()이 request 파라미터로 이 값을 갱신함.",
+        "안전한 코드: doSomething() 내부에서 int currentPage를 지역변수로 선언하여 스레드 간 공유되지 못하도록 함."
+      ]
+    }
+  ],
+  "key_concepts": [
+    { "term": "싱글톤(Singleton)", "definition": "애플리케이션 내에서 단 하나의 인스턴스만 존재하는 객체. Servlet·JSP·Controller가 대표적이며, 멤버변수가 모든 요청 스레드에 의해 공유된다." },
+    { "term": "변수 범위(scope)", "definition": "변수가 유효한 영역. 싱글톤 객체에서 멤버 필드(인스턴스 변수)는 스레드 간 공유되므로, 요청별로 독립적인 지역변수로 선언해야 한다." },
+    { "term": "멤버 필드 vs 지역변수", "definition": "멤버 필드는 객체 수명 동안 유지되어 스레드 간 공유되지만, 메소드 내 지역변수는 각 스레드의 스택에 독립적으로 존재한다." },
+    { "term": "JSP 선언부 <%! %> vs 스크립틀릿 <% %>", "definition": "<%!...%>는 멤버 변수/메소드를 선언(공유)하고, <%...%>는 _jspService() 내부 로컬 변수로 처리되어 요청별로 분리된다." }
+  ],
+  "exam_points": [
+    "다중 스레드 환경에서 싱글톤 객체의 멤버변수 사용이 원인 — Servlet·JSP·Controller가 대상",
+    "보안대책: 멤버 필드 선언 금지, 필요 시 지역변수 사용",
+    "JSP에서 <%! %>(멤버변수)는 위험, <% %>(로컬변수)가 안전",
+    "Controller의 private int currentPage 같은 인스턴스 필드를 request 값으로 갱신하면 스레드 간 정보 노출",
+    "진단 흐름: 멤버필드 선언 있고 final이 아니면 위험"
+  ],
+  "keywords": ["캡슐화", "싱글톤", "다중 스레드", "멤버변수", "지역변수", "HttpServlet", "JSP", "Controller", "scope", "정보 노출"],
+  "related_library": ["IMP-EN-01"],
+  "tags": ["course", "implementation", "encapsulation", "singleton", "thread", "session", "캡슐화", "구현단계"]
+}

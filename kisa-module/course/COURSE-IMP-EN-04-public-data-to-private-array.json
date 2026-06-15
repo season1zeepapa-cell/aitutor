@@ -1,0 +1,59 @@
+{
+  "unit_code": "COURSE-IMP-EN-04",
+  "chapter_code_ref": "IMP-EN-04",
+  "title": "Private 배열에 Public 데이터 할당",
+  "unit": "Ⅴ",
+  "type": "course",
+  "category": "encapsulation",
+  "source": {
+    "doc": "2025년 SW보안약점 진단원 기본(양성)과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 > 캡슐화 항목에 대한 고려 6-4 Private 배열에 Public 데이터 할당",
+    "pages": "490-492"
+  },
+  "summary": "public으로 선언된 데이터 또는 메소드 인자를 private 배열에 저장하는 경우, 외부에서 private 배열을 직접 접근하여 값을 수정할 수 있는 캡슐화 보안약점이다. 입력된 public 배열의 reference가 아니라 배열의 '값'을 private 배열에 할당하여 private 멤버로서의 접근권한을 유지해야 한다. EN-03(반환)과 대칭되는 입력(할당) 측 약점이다.",
+  "sections": [
+    {
+      "title": "개요 — 약점 정의와 위협",
+      "key_points": [
+        "public으로 선언된 데이터 또는 메소드의 인자를 private 배열에 저장하는 경우 발생한다.",
+        "private 배열을 외부에서 직접 접근하여 값을 수정하는 것이 가능하다."
+      ]
+    },
+    {
+      "title": "보안대책",
+      "key_points": [
+        "입력된 public 배열의 reference가 아닌, 배열의 '값'을 private 배열에 할당한다.",
+        "이를 통해 private 멤버로서의 접근권한을 유지한다."
+      ]
+    },
+    {
+      "title": "진단 흐름도",
+      "key_points": [
+        "private 배열 선언 확인 → public 메소드를 통한 외부 배열 할당 여부 확인.",
+        "미할당이면 안전, 할당하면 위험."
+      ]
+    },
+    {
+      "title": "코드 예시 — reference 할당 vs 값 복사 할당",
+      "key_points": [
+        "안전하지 않은 코드: private String[] datas에 대해 setDatas(String[] datas)가 this.datas = datas로 외부 배열의 reference를 그대로 할당. 외부 outerData[1]='xx' 수정이 내부 datas에 반영됨.",
+        "안전한 코드: setDatas()에서 datas != null 검사 후 새 배열을 만들어 for 루프로 원소를 하나씩 복사(this.datas[i] = datas[i]). 외부 배열 수정이 내부에 영향을 주지 않음."
+      ]
+    }
+  ],
+  "key_concepts": [
+    { "term": "reference 할당", "definition": "외부에서 전달받은 배열의 주소(참조)를 private 멤버에 그대로 대입하는 것. 외부와 내부가 같은 배열 객체를 공유하여 외부 수정이 내부에 반영된다." },
+    { "term": "값 복사 할당(deep copy)", "definition": "전달받은 배열의 새 인스턴스를 만들어 원소 값을 하나씩 복사해 private 배열에 할당하는 방어 기법. 외부 배열과 분리되어 접근권한을 유지한다." },
+    { "term": "private 멤버 접근권한 유지", "definition": "private 배열이 외부 참조와 연결되지 않도록 값만 복사해, 외부에서 직접 수정할 수 없게 캡슐화를 보장하는 원칙." }
+  ],
+  "exam_points": [
+    "원인: public 데이터/메소드 인자를 private 배열에 reference로 저장 → 외부에서 private 배열 직접 수정 가능",
+    "보안대책: reference가 아닌 배열의 '값'을 복사하여 할당해 private 멤버 접근권한 유지",
+    "안전한 코드 핵심: null 검사 후 새 배열 생성 + for 루프로 원소 복사",
+    "EN-03(public 메소드의 private 배열 반환)과 대칭 — EN-04는 외부 배열을 private에 할당하는 입력 측 약점",
+    "진단 흐름: public 메소드를 통한 외부 배열 할당이 있으면 위험"
+  ],
+  "keywords": ["캡슐화", "private 배열", "public 데이터", "할당", "reference", "값 복사", "setter", "접근권한", "clone"],
+  "related_library": ["IMP-EN-04"],
+  "tags": ["course", "implementation", "encapsulation", "array", "assignment", "setter", "캡슐화", "구현단계"]
+}
