@@ -69,19 +69,21 @@ pipeline.py, requirements.txt, transcribe.py
 
 ---
 
-## §3. 3등급 — src dead code (후속 보류)
+## §3. 3등급 — src dead code (✅ 실행 완료 2026-06-15)
 
-정적 import 추적상 어디서도 참조되지 않는 컴포넌트 (이번엔 **제거하지 않음**):
+정적 import 추적상 어디서도 참조되지 않는 컴포넌트 5개. 직접 grep 재검증(참조 0건) + 빌드 통과 확인 후 제거 (약 315줄):
 
-| 파일 | 비고 |
-|------|------|
-| `src/components/ui/Button.jsx` | 미사용 |
-| `src/labs/hf-playground/components/MetricsBadge.jsx` | hf-playground 내 미사용 |
-| `src/labs/hf-playground/components/ModelPicker.jsx` | 〃 (구버전 유물 추정) |
-| `src/labs/hf-playground/components/PromptArea.jsx` | 〃 |
-| `src/labs/hf-playground/components/ResponseView.jsx` | 〃 |
+| 제거 파일 | 대체 |
+|-----------|------|
+| `src/components/ui/Button.jsx` | 네이티브 버튼 + Tailwind |
+| `src/labs/hf-playground/components/MetricsBadge.jsx` | 인라인 메트릭 렌더링 |
+| `src/labs/hf-playground/components/ModelPicker.jsx` | `ModelCatalog.jsx` (검색·필터 강화판) |
+| `src/labs/hf-playground/components/PromptArea.jsx` | `PromptEditor` + `ParamSliders` 분리 |
+| `src/labs/hf-playground/components/ResponseView.jsx` | 인라인 / `ResponseCard` |
 
-→ 제거 시 빌드 1회 통과 확인 후 별도 커밋 권장.
+- `hf-playground/components/` 에는 실사용 `ModelCatalog.jsx` 만 잔류.
+- 제거 후 빌드 통과(에러 0), 기능 손실 없음 확인.
+- 후속(REBUILD43+ 검토): 루트 `pool-import-v2.js` v1/v2 중복 정리 — 유효 버전 확인 필요로 보류.
 
 ---
 
