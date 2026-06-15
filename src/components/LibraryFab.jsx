@@ -11,6 +11,62 @@ const SOURCE_BADGE = {
   course: { label: '교재', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
 };
 
+// 코드 블록 — 취약(bad, 빨강) / 안전(good, 초록) 구분
+function CodeBlock({ label, code, variant }) {
+  const box = variant === 'bad' ? 'border-red-400/40 bg-red-500/5' : 'border-green-400/40 bg-green-500/5';
+  const lab = variant === 'bad' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400';
+  return (
+    <div className="mt-1">
+      {label && <div className={`text-[10px] font-semibold ${lab}`}>{label}</div>}
+      <pre className={`mt-0.5 overflow-x-auto text-[10.5px] leading-relaxed font-mono p-2 rounded border ${box}`}>
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
+// 예시코드 + 정탐/오탐 코드 섹션 (library 항목에만 존재)
+function CodeSection({ item }) {
+  const ce = item.codeExamples || [];
+  const dc = item.diagnosisCode || { truePositive: [], falsePositive: [] };
+  const hasDiag = (dc.truePositive || []).length > 0 || (dc.falsePositive || []).length > 0;
+  if (!ce.length && !hasDiag) return null;
+  return (
+    <>
+      {ce.length > 0 && (
+        <div className="space-y-2 pt-1">
+          <div className="font-semibold text-primary/80">예시 코드 (취약 vs 안전)</div>
+          {ce.map((c, i) => (
+            <div key={i} className="rounded-lg border border-border/60 p-2">
+              <div className="text-[11px] font-semibold mb-0.5">{c.lang}</div>
+              {c.vulnerable && <CodeBlock label="❌ 취약한 코드" code={c.vulnerable} variant="bad" />}
+              {c.safe && <CodeBlock label="✅ 안전한 코드" code={c.safe} variant="good" />}
+              {c.note && <p className="text-[11px] mt-1 text-current/70 leading-relaxed">💡 {c.note}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {hasDiag && (
+        <div className="space-y-2 pt-1">
+          <div className="font-semibold text-primary/80">정탐(취약) / 오탐(안전) 코드</div>
+          {(dc.truePositive || []).map((t, i) => (
+            <div key={'tp' + i}>
+              {t.desc && <p className="text-[11px] text-red-600 dark:text-red-400 leading-relaxed">🔴 정탐: {t.desc}</p>}
+              {t.code && <CodeBlock label="" code={t.code} variant="bad" />}
+            </div>
+          ))}
+          {(dc.falsePositive || []).map((t, i) => (
+            <div key={'fp' + i}>
+              {t.desc && <p className="text-[11px] text-green-600 dark:text-green-400 leading-relaxed">🟢 오탐: {t.desc}</p>}
+              {t.code && <CodeBlock label="" code={t.code} variant="good" />}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 // 한 항목 행 (클릭 시 상세 펼침)
 function ItemRow({ item, expanded, onToggle }) {
   const badge = SOURCE_BADGE[item.source] || { label: item.source, cls: 'bg-gray-500/15 text-gray-500' };
@@ -36,6 +92,7 @@ function ItemRow({ item, expanded, onToggle }) {
               <p className="leading-relaxed whitespace-pre-line mt-0.5">{d.text}</p>
             </div>
           ))}
+          <CodeSection item={item} />
           {(item.keywords || []).length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {item.keywords.map((k) => (
@@ -57,15 +114,26 @@ export default function LibraryFab() {
 
   const allItems = useMemo(() => libData.sources.flatMap((s) => s.items), []);
 
-  // 자료원 → 그룹 → 항목 (아코디언용)
+  // 자료원 → g1(단계/단원) → g2(분류) → 항목  2단계 중첩 (items 는 가이드 순서로 정렬돼 있음)
   const grouped = useMemo(
     () =>
       libData.sources.map((s) => {
-        const groups = {};
+        const g1map = new Map();
         s.items.forEach((it) => {
-          (groups[it.group] = groups[it.group] || []).push(it);
+          if (!g1map.has(it.g1)) g1map.set(it.g1, { direct: [], sub: new Map() });
+          const node = g1map.get(it.g1);
+          if (it.g2) {
+            if (!node.sub.has(it.g2)) node.sub.set(it.g2, []);
+            node.sub.get(it.g2).push(it);
+          } else {
+            node.direct.push(it);
+          }
         });
-        return { ...s, groupEntries: Object.entries(groups) };
+        const g1 = [...g1map.entries()].map(([name, node]) => {
+          const count = node.direct.length + [...node.sub.values()].reduce((a, v) => a + v.length, 0);
+          return { name, direct: node.direct, sub: [...node.sub.entries()], count };
+        });
+        return { ...s, g1 };
       }),
     []
   );
@@ -146,28 +214,54 @@ export default function LibraryFab() {
               ) : (
                 grouped.map((s) => (
                   <div key={s.id} className="mb-3">
-                    <div className="flex items-center gap-2 px-1 py-1.5 sticky top-0 bg-card-bg">
+                    <div className="flex items-center gap-2 px-1 py-1.5 sticky top-0 bg-card-bg z-10">
                       <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${SOURCE_BADGE[s.id]?.cls || ''}`}>{s.label}</span>
                       <span className="text-[11px] text-primary/40">{s.count}개</span>
                     </div>
-                    {s.groupEntries.map(([g, items]) => {
-                      const key = s.id + '/' + g;
-                      const gopen = openGroups[key];
+                    {s.g1.map((g1) => {
+                      const k1 = s.id + '/' + g1.name;
+                      const o1 = openGroups[k1];
                       return (
-                        <div key={key} className="ml-1">
+                        <div key={k1} className="ml-1">
+                          {/* 1단계: 단계(설계/구현) 또는 단원 */}
                           <button
-                            onClick={() => toggleGroup(key)}
-                            className="w-full flex items-center gap-2 py-1.5 px-1 text-left text-xs font-medium hover:bg-primary/5 rounded"
+                            onClick={() => toggleGroup(k1)}
+                            className="w-full flex items-center gap-2 py-1.5 px-1 text-left text-sm font-semibold hover:bg-primary/5 rounded"
                           >
-                            <span className="text-primary/50">{gopen ? '▾' : '▸'}</span>
-                            <span className="flex-1">{g}</span>
-                            <span className="text-primary/40">{items.length}</span>
+                            <span className="text-primary/50">{o1 ? '▾' : '▸'}</span>
+                            <span className="flex-1">{g1.name}</span>
+                            <span className="text-[11px] text-primary/40">{g1.count}</span>
                           </button>
-                          {gopen && (
-                            <div className="ml-3">
-                              {items.map((it) => (
+                          {o1 && (
+                            <div className="ml-2">
+                              {/* 단원 직속 항목 (분류 없음) */}
+                              {g1.direct.map((it) => (
                                 <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} />
                               ))}
+                              {/* 2단계: 분류 */}
+                              {g1.sub.map(([g2name, items]) => {
+                                const k2 = k1 + '/' + g2name;
+                                const o2 = openGroups[k2];
+                                return (
+                                  <div key={k2} className="ml-1">
+                                    <button
+                                      onClick={() => toggleGroup(k2)}
+                                      className="w-full flex items-center gap-2 py-1 px-1 text-left text-xs font-medium text-primary/80 hover:bg-primary/5 rounded"
+                                    >
+                                      <span className="text-primary/40">{o2 ? '▾' : '▸'}</span>
+                                      <span className="flex-1">{g2name}</span>
+                                      <span className="text-[10px] text-primary/40">{items.length}</span>
+                                    </button>
+                                    {o2 && (
+                                      <div className="ml-3">
+                                        {items.map((it) => (
+                                          <ItemRow key={it.source + it.id} item={it} expanded={expandedId === it.source + it.id} onToggle={() => toggleItem(it.source + it.id)} />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

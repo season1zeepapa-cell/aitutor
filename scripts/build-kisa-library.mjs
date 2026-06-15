@@ -1,9 +1,15 @@
-// KISA 라이브러리 합본 생성 (REBUILD45)
+// KISA 라이브러리 합본 생성 (REBUILD45 / 정렬·계층 개선 REBUILD46)
 // kisa-module/library(진단가이드) + course(양성과정 교재) json → src/data/kisa-library.json
 //
 // 왜 필요한가: Dockerfile frontend-builder 는 src/·public/ 만 COPY 한다.
 // kisa-module/ 은 빌드 컨텍스트에 없으므로, 앱이 쓰려면 빌드 전 src/ 안에 합본을 만들어 두어야 한다.
 // 이 스크립트로 생성한 src/data/kisa-library.json 을 git 에 커밋 → Docker 빌드가 src 와 함께 번들.
+//
+// 정렬: 원본 가이드 순서를 따른다.
+//   - 단계:   설계(design) → 구현(implementation)
+//   - 분류:   입력검증 → 보안기능 → 시간및상태 → 에러처리 → 코드오류 → 캡슐화 → API오용 → 세션통제
+//   - 항목:   분류 안에서 번호순
+//   - 교재:   단원 Ⅰ→Ⅵ, Ⅳ·Ⅴ 는 분류로 세분
 //
 // 실행: node scripts/build-kisa-library.mjs  (또는 npm run build:lib)
 
@@ -17,7 +23,6 @@ const courseDir = join(root, 'kisa-module/course');
 const outDir = join(root, 'src/data');
 const outFile = join(outDir, 'kisa-library.json');
 
-// 분류 코드 → 한글 라벨
 const CAT_LABEL = {
   input_validation: '입력데이터 검증 및 표현',
   security_feature: '보안기능',
@@ -28,75 +33,82 @@ const CAT_LABEL = {
   api_abuse: 'API오용',
   session_control: '세션통제',
 };
+// 원본 가이드 분류 순서
+const CAT_ORDER = {
+  input_validation: 1, security_feature: 2, time_state: 3, error_handling: 4,
+  code_error: 5, encapsulation: 6, api_abuse: 7, session_control: 8,
+};
 const STAGE_LABEL = { design: '설계단계', implementation: '구현단계' };
+const STAGE_ORDER = { design: 1, implementation: 2 };
+const UNIT_ORDER = { 'Ⅰ': 1, 'Ⅱ': 2, 'Ⅲ': 3, 'Ⅳ': 4, 'Ⅴ': 5, 'Ⅵ': 6 };
+const ABBR_CAT = { IV: 'input_validation', SF: 'security_feature', TS: 'time_state', EH: 'error_handling', CE: 'code_error', EN: 'encapsulation', AA: 'api_abuse', SC: 'session_control' };
+
+const codeNum = (code) => { const m = String(code).match(/(\d+)\s*$/); return m ? +m[1] : 0; };
+const catAbbr = (code) => { const m = String(code).match(/-(IV|SF|TS|EH|CE|EN|AA|SC)-/); return m ? m[1] : ''; };
 
 function readJsons(dir) {
-  return readdirSync(dir)
-    .filter((f) => f.endsWith('.json'))
-    .sort()
-    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')));
+  return readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')));
 }
 
-// 진단가이드(library) 항목 → 통합 카드
+// 진단가이드(library) → 카드. g1=단계, g2=분류
 function mapLibrary(d) {
+  const catLabel = CAT_LABEL[d.category] || d.category || '';
   return {
     id: d.chapter_code,
     title: d.title,
     source: 'library',
-    group: STAGE_LABEL[d.stage] || d.stage || '기타',
-    category: CAT_LABEL[d.category] || d.category || '',
+    g1: STAGE_LABEL[d.stage] || d.stage || '기타',
+    g2: catLabel,
+    order: (STAGE_ORDER[d.stage] || 9) * 100000 + (CAT_ORDER[d.category] || 9) * 1000 + codeNum(d.chapter_code),
+    category: catLabel,
     summary: d.overview || d.description || '',
     keywords: d.tags || [],
     cwe: d.cwe || '',
     detail: [
       d.countermeasure ? { label: '보안대책', text: d.countermeasure } : null,
-      Array.isArray(d.security_measures) && d.security_measures.length
-        ? { label: '보안대책', text: d.security_measures.join('\n') }
-        : null,
+      Array.isArray(d.security_measures) && d.security_measures.length ? { label: '보안대책', text: d.security_measures.join('\n') } : null,
       d.diagnosis?.method ? { label: '진단방법', text: d.diagnosis.method } : null,
-      (d.code_examples || []).length
-        ? { label: '코드예제', text: `${d.code_examples.length}개 언어 (취약/안전 쌍) — 상세는 라이브러리 원문` }
-        : null,
-      (d.diagnosis?.true_positive || []).length || (d.diagnosis?.false_positive || []).length
-        ? { label: '정탐/오탐', text: `정탐 ${(d.diagnosis.true_positive || []).length} · 오탐 ${(d.diagnosis.false_positive || []).length}` }
-        : null,
-      (d.question_hooks?.keywords || []).length
-        ? { label: '핵심 키워드', text: d.question_hooks.keywords.join(', ') }
-        : null,
+      (d.question_hooks?.keywords || []).length ? { label: '핵심 키워드', text: d.question_hooks.keywords.join(', ') } : null,
     ].filter(Boolean),
+    codeExamples: (d.code_examples || []).map((c) => ({ lang: c.lang || '', vulnerable: c.vulnerable || '', safe: c.safe || '', note: c.note || '' })),
+    diagnosisCode: {
+      truePositive: (d.diagnosis?.true_positive || []).map((t) => ({ desc: t.desc || '', code: t.code || '' })),
+      falsePositive: (d.diagnosis?.false_positive || []).map((t) => ({ desc: t.desc || '', code: t.code || '' })),
+    },
   };
 }
 
-// 양성과정 교재(course) 항목 → 통합 카드
+// 양성과정 교재(course) → 카드. g1=단원, g2=분류(Ⅳ·Ⅴ 항목카드만)
 function mapCourse(d) {
+  const isItem = /^COURSE-(DSG|IMP)-/.test(d.unit_code);
+  const cat = isItem ? ABBR_CAT[catAbbr(d.unit_code)] : '';
+  const catLabel = CAT_LABEL[cat] || (CAT_LABEL[d.category] || (isItem ? d.category : ''));
   return {
     id: d.unit_code,
     title: d.title,
     source: 'course',
-    group: d.unit ? `${d.unit}단원` : '단원',
+    g1: d.unit ? `${d.unit}단원` : '단원',
+    g2: isItem ? catLabel : '', // 단원카드(Ⅰ·Ⅱ·Ⅲ·Ⅵ)는 g2 없음 → 단원 직속
+    order: (UNIT_ORDER[d.unit] || 9) * 100000 + (isItem ? (CAT_ORDER[cat] || 9) * 1000 + codeNum(d.unit_code) : 0),
     category: CAT_LABEL[d.category] || d.category || '개요',
     summary: d.summary || '',
     keywords: d.keywords || [],
     cwe: '',
     detail: [
-      (d.exam_points || []).length
-        ? { label: '시험 출제 포인트', text: d.exam_points.map((p) => `• ${p}`).join('\n') }
-        : null,
-      (d.sections || []).length
-        ? { label: '구성', text: d.sections.map((s) => s.title).join(' · ') }
-        : null,
-      (d.related_library || []).length
-        ? { label: '연관 라이브러리', text: d.related_library.join(', ') }
-        : null,
+      (d.exam_points || []).length ? { label: '시험 출제 포인트', text: d.exam_points.map((p) => `• ${p}`).join('\n') } : null,
+      (d.sections || []).length ? { label: '구성', text: d.sections.map((s) => s.title).join(' · ') } : null,
+      (d.related_library || []).length ? { label: '연관 라이브러리', text: d.related_library.join(', ') } : null,
     ].filter(Boolean),
+    codeExamples: [],
+    diagnosisCode: { truePositive: [], falsePositive: [] },
   };
 }
 
-const libItems = readJsons(libDir).map(mapLibrary);
-const courseItems = readJsons(courseDir).map(mapCourse);
+const libItems = readJsons(libDir).map(mapLibrary).sort((a, b) => a.order - b.order);
+const courseItems = readJsons(courseDir).map(mapCourse).sort((a, b) => a.order - b.order);
 
 const data = {
-  version: 1,
+  version: 2,
   sources: [
     { id: 'library', label: '진단가이드 (보안약점)', count: libItems.length, items: libItems },
     { id: 'course', label: '양성과정 교재', count: courseItems.length, items: courseItems },
@@ -105,6 +117,4 @@ const data = {
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, JSON.stringify(data));
-console.log(
-  `✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} = ${libItems.length + courseItems.length}개`
-);
+console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} = ${libItems.length + courseItems.length}개 (가이드 순서 정렬)`);
