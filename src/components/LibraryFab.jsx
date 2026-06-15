@@ -198,9 +198,13 @@ export default function LibraryFab() {
 
       {/* 우측 드로어 패널 */}
       {open && (
-        <div className="fixed inset-0 z-[60] flex justify-end">
+        <div className="fixed inset-0 z-[60] flex items-end">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-md bg-card-bg h-full flex flex-col shadow-2xl">
+          <div className="relative w-full max-h-[85vh] bg-card-bg rounded-t-2xl flex flex-col shadow-2xl">
+            {/* 드래그 핸들 (바텀시트) */}
+            <div className="flex justify-center pt-2 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-border" />
+            </div>
             {/* 헤더 */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
               <h2 className="font-bold text-sm flex-1">📚 자료 라이브러리 <span className="text-primary/50 font-normal">({allItems.length})</span></h2>
