@@ -1,0 +1,60 @@
+{
+  "chapter_code": "IMP-IV-10",
+  "title": "LDAP 삽입 (LDAP Injection)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-90",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §10. LDAP 삽입",
+    "pages": "264-271"
+  },
+  "overview": "공격자가 외부 입력으로 의도하지 않은 LDAP(Lightweight Directory Access Protocol) 명령어를 수행할 수 있는 보안약점이다. 웹 응용프로그램이 사용자가 제공한 입력을 올바르게 처리하지 못하면 공격자가 LDAP 명령문의 구성을 바꿀 수 있고, 이로 인해 프로세스가 명령을 실행한 컴포넌트와 동일한 권한(Permission)을 가지고 동작하게 된다. 외부입력값을 적절한 처리 없이 LDAP 쿼리문이나 결과의 일부로 사용하는 경우, 공격자는 LDAP 쿼리문의 내용을 마음대로 변경할 수 있다.",
+  "countermeasure": "DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 특수문자가 포함되지 않도록 특수문자를 제거한다. 만약 특수문자를 사용해야 하는 경우에는 특수문자( = + < > # ; \\ 등)가 실행명령이 아닌 일반문자로 인식되도록 처리한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "private void searchRecord(String userSN, String userPassword) throws NamingException {\n  Hashtable<String, String> env = new Hashtable<String, String>();\n  env.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\n  try {\n    DirContext dctx = new InitialDirContext(env);\n    SearchControls sc = new SearchControls();\n    String[] attributeFilter = { \"cn\", \"mail\" };\n    sc.setReturningAttributes(attributeFilter);\n    sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n    String base = \"dc=example,dc=com\";\n    // userSN과 userPassword 값에 LDAP필터를 조작할 수 있는 공격 문자열에 대한 검증이 없어 안전하지 않다.\n    String filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n    NamingEnumeration<?> results = dctx.search(base, filter, sc);\n    while (results.hasMore()) {\n      SearchResult sr = (SearchResult) results.next();\n      Attributes attrs = sr.getAttributes();\n      Attribute attr = attrs.get(\"cn\");\n      ......\n    }\n    dctx.close();\n  } catch (NamingException e) { … }\n}",
+      "safe": "private void searchRecord(String userSN, String userPassword) throws NamingException {\n  Hashtable<String, String> env = new Hashtable<String, String>();\n  env.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\n  try {\n    DirContext dctx = new InitialDirContext(env);\n    SearchControls sc = new SearchControls();\n    String[] attributeFilter = {\"cn\", \"mail\" };\n    sc.setReturningAttributes(attributeFilter);\n    sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n    String base = \"dc=example,dc=com\";\n    // userSN과 userPassword 값에서 LDAP 필터를 조작할 수 있는 문자열을 제거하고 사용\n    if (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n      throw new IllegalArgumentException(\"Invalid input\");\n    }\n    String filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n    NamingEnumeration<?> results = dctx.search(base, filter, sc);\n    while (results.hasMore()) {\n      SearchResult sr = (SearchResult) results.next();\n      Attributes attrs = sr.getAttributes();\n      Attribute attr = attrs.get(\"cn\");\n      ......\n    }\n    dctx.close();\n  } catch (NamingException e) { … }\n}",
+      "note": "userSN과 userPassword 변수의 값으로 *을 전달할 경우 필터 문자열은 \"(&(sn=S*)(userPassword=*))\"가 되어 항상 참이 되며 의도하지 않은 동작을 유발한다. 검색 필터 문자열로 사용되는 외부 입력에서 위험한 문자열을 제거하여 위험성을 부분적으로 감소시킬 수 있다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "static void SearchRecord(string userSN, string userPW)\n{\n  try {\n    DirectoryEntry oDE;\n    oDE = new DirectoryEntry(GetStrPath());\n    // 인증을 하지않은 익명 바인딩으로 LDAP 쿼리를 실행\n    foreach(DirectoryEntry objChildDE om oDE.Children) {\n      ...\n    }\n  } catch (NamingException e) { ... }\n}",
+      "safe": "static void SearchRecord(string userSN, string userPW)\n{\n  try {\n    DirectoryEntry oDE;\n    oDE = new DirectoryEntry(GetStrPath(), userSN, userPW);\n    // userSN과 userPW 로 인증 후에 LDAP 쿼리를 실행\n    foreach(DirectoryEntry objChildDE om oDE.Children) {\n      ...\n    }\n  } catch (NamingException e) { ... }\n}",
+      "note": "익명 바인딩을 사용하지 않고 인증을 진행해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void LDAPInjection() {\n  char *filter = getenv(\"Filter\");\n  int error_code;\n  LDAP *ld = NULL;\n  LDAPMessage *result;\n  // 외부에서 불러온 filter를 검증 없이 사용\n  error_code = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter,\n    NULL, 0, NULL, NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n}",
+      "safe": "void LDAPInjection() {\n  char *filter = getenv(\"Filter\");\n  int error_code;\n  int i;\n  LDAP *ld = NULL;\n  LDAPMessage *result;\n  // 정보를 알고 싶은 사용자의 이름을 고정 값으로 사용\n  for(i = 0; *(filter + i) != 0; i++) {\n    // 공격 가능한 문자열 검사\n    switch(*(filter + i)) {\n      case '*':\n      case '(':\n      case ')':\n      …\n        return;\n    }\n  }\n  error_code = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter,\n    NULL, 0, NULL, NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n}",
+      "note": "외부 입력이 아닌 고정된 LDAP 쿼리문을 사용하거나 공격 가능한 특수문자를 검사하여 문제를 해결할 수 있다."
+    }
+  ],
+  "diagnosis": {
+    "method": "LDAP 조회 쿼리가 실행됨을 확인하고(①), LDAP 조회문의 필터에 사용되는 변수가 외부 입력값인지 확인한 후(②), 해당 변수에 대한 필터링 모듈이 존재하는지 확인한다(③). 필터링 모듈이 존재하거나 관련 프레임워크에서 적절히 조치할 경우엔 안전한 것으로 판정한다.",
+    "true_positive": [
+      {
+        "desc": "외부 입력(name)이 검색 필터 문자열 생성에 사용됨. name 값으로 \"*\"을 전달하면 필터가 \"(name=*)\"가 되어 항상 참이 되므로 인증 우회·의도하지 않은 동작 가능 → 취약 판정",
+        "code": "public void f() {\n  Hashtable env = new Hashtable();\n  env.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\n  env.put(Context.PROVIDER_URL, \"ldap://localhost:389/o=rootDir\");\n  try {\n    javax.naming.directory.DirContext ctx = new InitialDirContext(env);\n    // 프로퍼티를 만들고 외부 파일을 로드한다.\n    Properties props = new Properties();\n    String fileName = \"ldap.properties\";\n    FileInputStream in = new FileInputStream(fileName);\n    props.load(in);\n    // LDAP Search를 하기 위해 name을 읽는다\n    String name = props.getProperty(\"name\");\n    String filter = \"(name =\" + name + \")\";\n    // LDAP search가 name값에 대한 여과없이 그대로 통과되어 검색이 되어진다.\n    NamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\n    printSearchEnumeration(answer);\n    ctx.close();\n  }\n  catch (NamingException e) { … }\n}"
+      },
+      {
+        "desc": "외부 입력(name)이 검색 base 문자열 생성에 사용됨. 임의의 루트 디렉터리를 지정하여 정보에 접근할 수 있으며, 적절한 접근제어가 없으면 정보 누출 발생 → 취약 판정",
+        "code": "try {\n  …\n  // 외부로부터 입력을 받는다.\n  String name = props.getProperty(\"ldap.properties\");\n  // 입력 값에 대한 BasicAttribute를 생성한다.\n  BasicAttribute attr = new BasicAttribute(\"name\", name);\n  // 외부 입력 값이 LDAP search의 인자로 사용이 된다.\n  NamingEnumeration answer = ctx.search(\"ou=NewHires\", attr.getID(), new SearchControls());\n  printSearchEnumeration(answer);\n  ctx.close();\n}\ncatch (NamingException e) { … }"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-90 LDAP Injection, MITRE — http://cwe.mitre.org/data/definitions/90.html",
+    "Prevent LDAP injection (IDS54-J), CERT",
+    "LDAP injection, OWASP — https://www.owasp.org/index.php/LDAP_Injection_Prevention_Cheat_Sheet",
+    "LDAP Resources — http://ldapman.org/"
+  ],
+  "tags": ["ldap", "injection", "directory", "input_validation", "special-char-filter"],
+  "question_hooks": {
+    "keywords": ["LDAP 필터 조작", "특수문자 제거", "DN(Distinguished Name)", "와일드카드(*) 항상 참", "익명 바인딩", "화이트리스트 검증", "고정 쿼리문"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

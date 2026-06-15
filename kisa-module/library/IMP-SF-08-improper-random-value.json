@@ -1,0 +1,65 @@
+{
+  "chapter_code": "IMP-SF-08",
+  "title": "적절하지 않은 난수 값 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-330",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §8. 적절하지 않은 난수 값 사용",
+    "pages": "364-369"
+  },
+  "overview": "예측 가능한 난수를 사용하는 것은 시스템에 보안약점을 유발한다. 예측 불가능한 숫자가 필요한 상황에서 예측 가능한 난수를 사용한다면, 공격자는 SW에서 생성되는 다음 숫자를 예상하여 시스템을 공격하는 것이 가능하다.",
+  "countermeasure": "컴퓨터의 난수발생기는 난수 값을 결정하는 시드(Seed)값이 고정될 경우 매번 동일한 난수값이 발생한다. 이를 최대한 피하기 위해 Java에서는 Random()과 Math.random() 사용 시 java.util.Random 클래스에서 기본값으로 현재시간을 기반으로 조합하여 매번 변경되는 시드(Seed)값을 사용하며, C에서는 rand() 함수 사용 시 매번 변경되는 기본 시드(Seed)값이 없으므로 srand()로 매번 변경되는 현재시간 기반 등으로 시드(Seed)값을 설정하여야 한다. 그러나 세션 ID, 암호화키 등 보안결정을 위한 값을 생성하고 보안결정을 수행하는 경우에는 Java에서 Random()과 Math.random()을 사용하지 말아야 하며, 예측이 거의 불가능하게 암호학적으로 보호된 java.security.SecureRandom 클래스를 사용하는 것이 안전하다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "import java.util.Random;\n...\npublic Static int getRandomValue(int maxValue) {\n//고정된 시드값을 사용하여 동일한 난수값이 생성되어 안전하지 않다.\n      Random random = new Random(100);\n      return random.nextInt(maxValue);\n}\npublic Static String getAuthKey() {\n//매번 변경되는 시드값을 사용하여 다른 난수값이 생성되나 보안결정을 위한 난수로는 안전하지 않다.\n       Random random = new Random();\n      String authKey = Integer.toString(random.nextInt());",
+      "safe": "import java.util.Random;\nimport java.security.SecureRandom;\n...\npublic Static int getRandomValue(int maxValue) {\n//setSeed로 매번 변경되는 시드값을 설정 하거나, 기본값인 현재 시간 기반으로 매번 변경되는 시드값을 사용하도록 한다.\n       Random random = new Random();\n      return random.nextInt(maxValue);\n}\npublic Static String getAuthKey() {\n//보안결정을 위한 난수로는 예측이 거의 불가능하게 암호학적으로 보호된 SecureRandom을 사용한다.\ntry{\nSecureRandom secureRandom = SecureRandom.getInstance(\"SHA1PRNG\");\nMessageDigest digest = MessageDigest.getInstance(\"SHA-256\");\nsecureRandom.setSeed(secureRandom.generateSeed(128));\nString authKey = new String(digest.digest((secureRandom.nextLong() + \"\").getBytes()));\n...\n} catch (NoSuchAlgorithmException e) {",
+      "note": "고정된 seed를 설정하면 동일한 난수값이 생성되어 안전하지 않고, 매번 변경되는 seed를 설정하더라도 보안결정을 위한 난수에는 안전하지 않다. 보안결정에는 java.security.SecureRandom을 사용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "static int GenerateDigit()\n{\n//매번 변경되는 시드값을 사용하여 다른 난수값이 생성되나 보안결정을 위한 난수로는 안전하지 않다.\nRandom rng = new Random();\nreturn rng.Next(10);\n}",
+      "safe": "static int GenerateDigitGood()\n{\n//보안결정을 위한 난수로는 예측이 거의 불가능하게 암호학적으로 보호된 SecureRandom을 사용한다.\nbyte[] b = new byte[4];\nnew System.Security.Cryptography.RNGCryptoServiceProvider().GetBytes(b);\nreturn (b[0] & 0x7f) << 24 | b[1] << 16 | b[2] << 8 | b[3];\n}",
+      "note": "보안결정을 위한 난수에는 암호학적으로 보호된 SecureRandom(RNGCryptoServiceProvider)을 사용한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void foo(){\nint i;\nfor(i=0; i<20; i++)\n// 프로그램을 여러 번 실행 했을 때 얻는 결과 값이 같다. 범위가 작기 때문에 암호화에 사용되기 힘들다.\nprintf(\"%d\", rand());",
+      "safe": "void foo(){\nsrandom(time(NULL));\nint i;\nfor(i=0; i<20; i++)\n    printf(\"%ld\", random());\n}",
+      "note": "Seeding 없이 사용하는 rand() 함수는 암호화에 사용하기 힘들다. srandom(), random() 함수를 사용하면 보안적으로 안전한 난수를 얻을 수 있다."
+    }
+  ],
+  "diagnosis": {
+    "method": "Math.random() 메소드를 사용하는지 확인한다(①). Math.random()을 사용하는 경우 취약하다. 난수값을 세션ID로 설정하여 보안결정에 사용하는지 확인한다(②). 보안 결정인 경우 java.security.SecureRandom을 사용하면 안전하다.",
+    "true_positive": [
+      {
+        "desc": "Math.random() 함수를 사용하여 난수 값을 발생시킨 경우 → 취약 판정",
+        "code": "public static int[] insertRandom(int[] Cnt, int i ,int scope) {\nint ran = (int) (Math.random() * scope) - 1;\nif (checkDigit(ran,Cnt)) {\nCnt[i] = ran;\n} else {\ninsertRandom(Cnt,i,scope);\n}\nreturn Cnt;\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "자체 랜덤 키 생성으로 취약점을 보완하는 경우(Date 요소들로 보완) → 안전하다고 판정(오탐 주의)",
+        "code": "long rand = ((r.nextLong()>>>1)%(endDate.getTimeInMillis()-beginDate.getTimeInMillis() + 1)) + beginDate.getTimeInMillis();"
+      },
+      {
+        "desc": "java.util.Random, java.security.SecureRandom 사용 시 복잡도가 상대적으로 높으므로 취약하지 않음(오탐 주의)",
+        "code": "import java.security.SecureRandom;\n….\nSecureRandom r = new SecureRandom();\nlong rand = ((r.nextLong()>>>1)%(endDate.getTimeInMillis()-beginDate.getTimeInMillis() + 1)) + beginDate.getTimeInMillis();"
+      }
+    ]
+  },
+  "references": [
+    "CWE-330 Use of Insufficiently Random Values, MITRE — http://cwe.mitre.org/data/definitions/330.html",
+    "Generate strong random numbers (MSC02-J), CERT",
+    "Do not use the rand() function for generating pseudorandom numbers (MSC30-C), CERT",
+    "Insecure Randomness, OWASP — https://www.owasp.org/index.php/Insecure_Randomness"
+  ],
+  "tags": ["security_feature", "random", "seed", "securerandom", "predictable-value", "session-id"],
+  "question_hooks": {
+    "keywords": ["예측 가능한 난수", "시드(Seed)", "고정 시드", "Math.random()", "java.util.Random", "java.security.SecureRandom", "RNGCryptoServiceProvider", "srand()/srandom()", "세션 ID/암호화키", "보안결정"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '적절하지 않은 난수 값 사용 보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

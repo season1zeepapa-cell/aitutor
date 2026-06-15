@@ -1,0 +1,49 @@
+{
+  "chapter_code": "IMP-IV-11",
+  "title": "크로스사이트 요청 위조 (CSRF)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-352",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §11. 크로스사이트 요청 위조",
+    "pages": "272-275"
+  },
+  "overview": "특정 웹사이트에 대해 사용자가 인지하지 못한 상황에서 사용자의 의도와 무관하게 공격자가 의도한 행위(수정, 삭제, 등록 등)를 요청하게 하는 공격이다. 웹 응용프로그램이 사용자로부터 받은 요청에 대해 사용자가 의도한 대로 작성·전송된 것인지 확인하지 않는 경우 발생하며, 특히 해당 사용자가 관리자인 경우 사용자 권한관리·게시물 삭제·사용자 등록 등 관리자 권한으로만 수행 가능한 기능을 공격자 의도대로 실행시킬 수 있다. 공격자는 사용자가 인증한 세션이 특정 동작을 수행하여도 계속 유지되어 정상/비정상 요청을 구분하지 못하는 점을 악용한다. 요청의 적법성을 입증하는 값이 고정되어 있고 GET 방식으로 전달되면 공격자가 이를 쉽게 알아내어 위험한 작업을 요청할 수 있다.",
+  "countermeasure": "입력화면 폼 작성 시 GET 방식보다는 POST 방식을 사용하고, 입력화면 폼과 해당 입력을 처리하는 프로그램 사이에 토큰을 사용하여 공격자의 직접적인 URL 사용이 동작하지 않도록 처리한다. 특히 중요한 기능에 대해서는 사용자 세션검증과 더불어 재인증을 유도한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "// 어떤 형태의 요청이던지 기본적으로 CSRF 취약점을 가질 수 있다.\n// 클라이언트로부터의 요청(request)에 대해 정상 요청 여부를 검증하지 않고 처리",
+      "safe": "// 입력화면이 요청되었을 때, 임의의 토큰을 생성한 후 세션에 저장한다.\nsession.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\n// 입력화면에 임의의 토큰을 HIDDEN 필드항목의 값으로 설정해 서버로 전달되도록 한다.\n<input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />\n// 요청 파라미터와 세션에 저장된 토큰을 비교해서 일치하는 경우에만 요청을 처리한다.\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String)session.getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.equals(sToken) {\n  // 일치하는 토큰이 존재하는 경우 -> 정상 처리\n  ......\n} else {\n  // 토큰이 없거나 값이 일치하지 않는 경우 -> 오류 메시지 출력\n  ......\n}",
+      "note": "정상 요청 여부를 판단하기 위해 토큰을 이용한다. 입력(신청) 페이지 요청 시 임의의 토큰을 생성·세션에 저장하고 HIDDEN 필드 값으로 설정한 뒤, 처리 페이지에서 요청 파라미터의 토큰과 세션의 토큰을 비교하여 일치하는 경우에만 정상 요청으로 판단한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "",
+      "safe": "@using (Html.BeginForm(\"PostTest\",\"Home\",FormMethod.Post,null))\n{\n  //AntiForgeryToken()을 이용해 크로스사이트 요청 위조를 방지\n  @Html.AntiForgeryToken()\n  <input type=\"submit\" value=\"Html PsBk Click\" />\n}",
+      "note": "AntiForgeryToken() 등을 이용하여 크로스사이트 요청 위조를 방지해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "사용자 권한변경·신규정보 등록 등 주요 기능을 확인하고(①), 해당 기능 수행 시 권한확인 절차 존재 여부를 확인한다(②). 권한확인 절차가 없거나, 권한 확인 방법이 세션쿠키·사용자 IP·SSL 인증과 같이 자동 제출되는 자격증명에 의존하는 경우 취약하다.",
+    "true_positive": [],
+    "false_positive": [
+      {
+        "desc": "2번 라인에서 임의의 토큰을 생성해 세션에 저장하고, 5번 라인에서 HIDDEN 필드 값으로 설정하며, 10번 라인에서 HIDDEN 필드 토큰과 세션 토큰을 비교하여 일치하는 경우에만 정상 처리 → 오탐(안전) 판정",
+        "code": "// 입력화면이 요청되었을 때, 임의의 토큰을 생성한 후 세션에 저장한다.\nsession.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\n\n// 입력화면에 임의의 토큰을 HIDDEN 필드항목의 값으로 설정해 서버로 전달되도록 한다.\n<input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />\n\n// 요청 파라미터와 세션에 저장된 토큰을 비교해서 일치하는 경우에만 요청을 처리한다.\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String)session.getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.equals(sToken) {\n  // 일치하는 토큰이 존재하는 경우 -> 정상 처리\n  ......\n} else {\n  // 토큰이 없거나 값이 일치하지 않는 경우 -> 오류 메시지 출력\n  ......\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-352 Cross-Site Request Forgery(CSRF), MITRE — http://cwe.mitre.org/data/definitions/352.html",
+    "Security Corner: Cross-Site Request Forgeries, Chris Shiflett — http://shiflett.org/articles/cross-site-request-forgeries",
+    "Cross-Site Request Forgery (CSRF), OWASP — https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)"
+  ],
+  "tags": ["csrf", "token", "session", "input_validation", "anti-forgery-token"],
+  "question_hooks": {
+    "keywords": ["CSRF 토큰", "HIDDEN 필드", "세션 토큰 비교", "POST 방식", "재인증", "AntiForgeryToken()", "자동 제출 자격증명(세션쿠키/IP/SSL)"],
+    "mcq_seed": "code_examples 의 safe 코드 또는 diagnosis 의 오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "false_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

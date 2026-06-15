@@ -1,0 +1,64 @@
+{
+  "chapter_code": "IMP-CE-02",
+  "title": "부적절한 자원 해제",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-404",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 제5절 코드오류 §2. 부적절한 자원 해제",
+    "pages": "445-452"
+  },
+  "overview": "프로그램의 자원, 예를 들면 열린 파일디스크립터(Open File Descriptor), 힙 메모리(Heap Memory), 소켓(Socket) 등은 유한한 자원이다. 이러한 자원을 할당받아 사용한 후 더 이상 사용하지 않는 경우에는 적절히 반환하여야 하는데, 프로그램 오류 또는 에러로 사용이 끝난 자원을 반환하지 못하는 경우의 보안약점이다.",
+  "countermeasure": "자원을 획득하여 사용한 다음에는 반드시 자원을 해제하여 반환한다. 예외상황 발생 여부와 상관없이 항상 실행되는 finally 블록에서 할당받은 모든 자원을 반환하도록 하고, C#은 using 구문을 활용한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "InputStream in = null;\nOutputStream out = null;\ntry {\n  in = new FileInputStream(inputFile);\n  out = new FileOutputStream(outputFile);\n  ...\n  FileCopyUtils.copy(fis, os);\n  //자원반환 실행 전에 오류가 발생할 경우 자원이 반환되지 않으며, 할당된 모든 자원을 반환해야 한다.\n  in.close();\n  out.close();\n} catch (IOException e) {\n  logger.error(e);\n}",
+      "safe": "InputStream in = null;\nOutputStream out = null;\ntry {\n  in = new FileInputStream(inputFile);\n  out = new FileOutputStream(outputFile);\n  ...\n  FileCopyUtils.copy(fis, os);\n} catch (IOException e) {\n  logger.error(e);\n//항상 수행되는 finally 블록에서 할당받은 모든 자원에 대해 각각 null검사를 수행 후 예외처리를 하여 자원을 해제하여야 한다.\n} finally {\n  if (in != null) {\n    try {\n      in.close();\n    } catch (IOException e) {\n      logger.error(e);\n    }\n  }\n  if (out != null) {\n    try {\n      out.close();\n    } catch (IOException e) {\n      logger.error(e);\n    }\n  }\n}",
+      "note": "try 구문 내 처리 중 오류가 발생하면 close()가 실행되지 않아 자원이 반환되지 않는다. 항상 실행되는 finally 블록에서 모든 자원을 반환해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "public void FileStreamTest()\n{\n  // fsSource에 자원이 할당되었으나 해제되지 않습니다.\n  FileStream fsSource = new FileStream(pathSource, FileMode.Open, FileAccess.Read);\n  byte[] bytes = new byte[fsSource.Length];\n  int numBytesToRead = (int)fsSource.Length;\n  int numBytesRead = 0;\n  while(numBytesToRead > 0)\n  {\n    int n = fsSource.Read(bytes, numBytesRead, numBytesToRead);\n    if(n==0) break;\n    numBytesToRead += n;\n    numBytesToRead -= n;\n  }\n  using(FileStream fsNew = new FileStream(pathNew, FileMode.Create, FileAccess.Write)) {\n    fsNew.Write(bytes, 0, numBytesToRead);\n  }\n}",
+      "safe": "public void FileStreamTest()\n{\n  //using 구문으로 자원을 할당하면 구문이 끝나는 지점에서 자동으로 자원이 해제됩니다.\n  using(FileStream fsSource = new FileStream(pathSource, FileMode.Open, FileAccess.Read)){\n    byte[] bytes = new byte[fsSource.Length];\n    int numBytesToRead = (int)fsSource.Length;\n    int numBytesRead = 0;\n    while(numBytesToRead > 0)\n    {\n      int n = fsSource.Read(bytes, numBytesRead, numBytesToRead);\n      if(n==0) break;\n      numBytesToRead += n;\n      numBytesToRead -= n;\n    }\n  }\n  using(FileStream fsNew = new FileStream(pathNew, FileMode.Create, FileAccess.Write)) {\n    fsNew.Write(bytes, 0, numBytesToRead);\n  }\n}",
+      "note": "using 구문을 사용하면 구문이 끝나는 지점에서 자동으로 자원이 해제된다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void ImproperResourceRelease(char* filename) {\n  char buf[BUF_SIZE];\n  FILE *f = fopen(filename, \"r\");\n  if(!checkSomething()) {\n    printf(\"Something is wrong\");\n    return;\n  }\n  // checkSomething에서 false를 반환하는 경우, 파일 핸들러를 종료할 수 없습니다.\n  fclose(f);\n}",
+      "safe": "void ImproperResourceRelease(char* filename) {\n  char buf[BUF_SIZE];\n  FILE *f = fopen(filename, \"r\");\n  if(!checkSomething()) {\n    printf(\"Something is wrong\");\n    // checkSomthing에서 false를 반환해도 파일 핸들러를 종료하도록 수정\n    fclose(f);\n    return;\n  }\n  fclose(f);\n}",
+      "note": "파일을 연 상태에서 오류로 조기 return 하면 fclose가 실행되지 않아 자원 누수가 발생한다. 모든 분기에서 자원을 해제하도록 수정한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "자원(파일기술자, 힙메모리, 소켓)이 선언되고 할당된 경우 해제되는지 확인한다. 진단자는 제어문·예외처리문 등의 분기에 따라 모든 흐름(control flow)을 판단하여 자원해제 여부를 체크해야 한다. 할당된 자원이 해제되면 안전, 자원이 해제되지 않는 분기가 존재하면 취약하다.",
+    "true_positive": [
+      {
+        "desc": "finally 안에서 rs.close()·pstmt.close()·conn.close()를 하나의 try로 묶어, rs.close()에서 예외 발생 시 이하 자원 해제가 이루어지지 않음 → 자원유출 → 취약 판정",
+        "code": "try {\n  String sqlSelect = \"SELECT USER_ID, PWD FROM USER\"\n  String sqlUpdate = \"UPDATE USER SET PASSWD = ? WHERE USER_ID = ?\"\n  Class.forName(\"oracle.jdbc.driver.OracleDriver\");\n  conn = DriverManager.getConnection(\"jdbc:oracle:thin:@192.168.1.1:1521:db\", \"aaa\", \"AAA\");\n  pstmt = conn.prepareStatement(sqlSelect);\n  pstmt1 = conn.prepareStatement(sqlUpdate);\n  rs = pstmt.executeQuery();\n  while( rs.next()) {\n    pstmt1.setString(1, CryptUtils.encrypt(rs.getString(\"PWD\")));\n    pstmt1.setString(2, rs.getString(\"USER_ID\"));\n    pstmt1.executeUpdate();\n    pstmt1.clearParameters();\n  }\n  conn.commit();\n} catch(Exception e) {\n  e.printStackTrace();\n  try { conn.rollback(); } catch(Exception ex) {}\n} finally {\n  try {\n    rs.close();\n    pstmt.close();\n    pstmt1.close();\n    conn.close();\n  } catch(Exception e) { }\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "finally 안에서 각 자원의 close()를 개별 try-catch 로 분리하여 한 자원의 예외가 다른 자원 해제를 막지 않음 → 안전(오탐 주의)",
+        "code": "try {\n  ...\n  conn = DriverManager.getConnection(\"jdbc:oracle:thin:@192.168.1.1:1521:db\", \"aaa\", \"AAA\");\n  pstmt = conn.prepareStatement(sqlSelect);\n  pstmt1 = conn.prepareStatement(sqlUpdate);\n  rs = pstmt.executeQuery();\n  while( rs.next()) { ... }\n  conn.commit();\n} catch(Exception e) {\n  e.printStackTrace();\n  try { conn.rollback(); } catch (Exception ex) { }\n} finally {\n  try { rs.close(); } catch (Exception e) { }\n  try { pstmt.close(); } catch(Exception e) { }\n  try { pstmt1.close(); } catch (Exception e) { }\n  try { conn.close(); } catch (Exception e) { }\n}"
+      },
+      {
+        "desc": "함수의 역할이 자원(Connection)을 리턴하는 경우, 자원 해제는 호출한 쪽에서 담당하므로 취약하지 않음(오탐 주의)",
+        "code": "public class DBUtil {\n  public static Connection getConnection() {\n    Connection conn = null;\n    try {\n      Class.forName(\"oracle.jdbc.driver.OracleDriver\");\n      conn = DriverManager.getConnection(DbInfo.url, DbInfo.id, DbInfo.password);\n    } catch (SQLException e) {\n      e.printStackTrace();\n    } catch (ClassNotFoundException e) {\n      e.printStackTrace();\n    }\n    return conn;\n  }\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-404 Improper Resource Shutdown or Release, MITRE — http://cwe.mitre.org/data/definitions/404.html",
+    "Release resources when they are no longer needed (FIO04-J), CERT — http://www.securecoding.cert.org/confluence/display/java/FIO04-J.+Release+resources+when+they+are+no+longer+needed",
+    "Unreleased Resource, OWASP — https://www.owasp.org/index.php/Unreleased_Resource"
+  ],
+  "tags": ["code_error", "resource-release", "자원해제", "finally", "using", "fclose", "java", "csharp", "c"],
+  "question_hooks": {
+    "keywords": ["자원 해제", "finally 블록", "close()", "using 구문", "fclose", "개별 try-catch", "제어 흐름(control flow)", "자원 누수"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '자원 해제 누락 여부' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 또는 false_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

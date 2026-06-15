@@ -1,0 +1,64 @@
+{
+  "chapter_code": "DSG-IV-02",
+  "title": "XML 조회 및 결과 검증",
+  "stage": "design",
+  "category": "input_validation",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제3장 분석·설계단계 §1.2 XML 조회 및 결과 검증",
+    "pages": "50-53"
+  },
+  "design_item": "XML 조회 및 결과 검증",
+  "description": "XML 조회시 질의문(XPath, XQuery 등) 내 입력값과 그 조회결과에 대한 유효성 검증방법(필터링 등)과 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+  "overview": "XML 문서를 조회할 경우 입력값 조작으로 XQuery나 XPath와 같은 XML 질의문의 구조를 임의로 변경하여 허가되지 않은 데이터를 조회하거나 인증절차를 우회할 수 있다.",
+  "security_measures": [
+    "① XML문서를 조회하는 기능을 구현해야 하는 경우 XML질의문에 사용되는 파라미터는 반드시 XML쿼리를 조작할 수 없도록 필터링해서 사용하거나, 미리 작성된 질의문에 입력값을 자료형에 따라 바인딩해서 사용해야 한다."
+  ],
+  "design_considerations": [
+    {
+      "point": "① XML질의문 파라미터 필터링/바인딩",
+      "detail": "XML문서를 조회하는 기능을 구현해야 하는 경우 XML질의문에 사용되는 파라미터는 반드시 XML질의문을 조작할 수 없도록 필터링해서 사용하거나, 미리 작성된 질의문에 입력값을 자료형에 따라 바인딩해서 사용해야 한다. (ㄱ) 공통 검증 컴포넌트(Validator)를 개발하여 XML조회 시 입력값 검증을 일괄 적용. (ㄴ) Filter 컴포넌트에서 XML삽입 활용 문자(\", [, ], /, =, @)를 필터링하도록 작성하여 프레임워크에서 일괄 적용. (ㄷ) 개별 컴포넌트에서 XML삽입 유발 문자열(\", [, ], /, =, @ 등)을 제거·치환하는 시큐어코딩 규칙 정의. (ㄹ) 외부입력값이 질의문 구조를 바꿀 수 없는 안전한 API(예: Java API-XQuery)를 사용하도록 시큐어코딩 규칙 정의."
+    }
+  ],
+  "diagnosis": {
+    "requirements": [
+      {
+        "requirement": "① XML문서를 조회하는 기능을 구현해야 하는 경우 XML질의문에 사용되는 파라미터는 반드시 XML질의문을 조작할 수 없도록 필터링해서 사용하거나, 미리 작성된 질의문에 입력값을 자료형에 따라 바인딩해서 사용해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 외부 입력값이 XML 데이터 조회에 사용되는 경우, 입력값이 조회 구문을 변경하지 않도록 보안설계가 적용되어 있는가?",
+            "methods": [
+              { "method": "1-1 요구사항정의서에 설계항목에 대한 대책이 수립되어 있으며, 요구사항추적표로 요구사항 추적여부 확인", "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토" },
+              { "method": "1-2 XML조회에 사용되는 외부 입력값을 안전하게 필터링 하는 기능이 설계되어 있거나 안전한 외부라이브러리를 사용하도록 설계되어 있는지 확인", "artifacts": "프로그램명세서, 컴포넌트설계서, 유즈케이스설계서, 클래스설계서 등에서 필터링 기능 검토" },
+              { "method": "1-3 XML데이터를 조회하는 기능 구현시, XML필터링을 적용하기 위한 코딩규칙이나 안전하게 사용할 수 있는 API에 대한 설명이 개발가이드에 정의되어 있는지 확인", "artifacts": "개발가이드에서 코딩규칙 검토" }
+            ]
+          },
+          {
+            "question": "2. XML삽입 취약점을 점검할 수 있는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              { "method": "2-1 XML조회 구문을 변경할 수 있는 입력값을 사용하여 XML조회 구문이 변경되는지를 점검하는 테스트계획이 수립되어 있는지 확인 (테스트 입력값: 쿼리예약어, \", [, ], /, =, @ 등)", "artifacts": "단위테스트케이스 검토" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "related_weaknesses": [
+    { "category": "입력데이터 검증 및 표현", "weakness": "XML 삽입", "code": "IMP-IV-09" },
+    { "category": "입력데이터 검증 및 표현", "weakness": "부적절한 XML 외부개체 참조", "code": "IMP-IV-08" }
+  ],
+  "references": [
+    "XML Path Language (XPath) Version 1.0, W3C Recommendation, 1999",
+    "XQuery Injection, CAPEC-84",
+    "Blind XPath Injection, Amit Klein",
+    "CWE-643 XPath Injection, MITRE",
+    "CWE-652 XQuery Injection, MITRE",
+    "2016 OWASP Application Security Verification Standard, OWASP"
+  ],
+  "tags": ["xml", "xpath", "xquery", "injection", "input_validation", "design", "필터링", "바인딩"],
+  "question_hooks": {
+    "keywords": ["XML질의문", "XPath", "XQuery", "입력값 필터링", "안전한 API", "자료형 바인딩", "공통 Validator 컴포넌트", "Filter 컴포넌트", "요구사항추적표", "개발가이드 코딩규칙", "단위테스트케이스"],
+    "mcq_seed": "XML삽입 방지 보안대책/진단방법-관련산출물 짝을 제시하고 '잘못 연결된 것' 또는 '설계 보안대책으로 옳지 않은 것'을 묻는 객관형",
+    "diagnosis_seed": "요구사항정의서·아키텍처설계서·개발가이드 산출물을 제시하고 XML조회 입력값 검증 설계 적용 여부를 진단보고서로 작성하는 복합서술형. 채점은 checklist 의 진단방법·관련산출물 포함 여부로 판정"
+  }
+}

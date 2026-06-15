@@ -1,0 +1,74 @@
+{
+  "chapter_code": "IMP-IV-03",
+  "title": "경로 조작 및 자원 삽입 (Path Traversal)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-22",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §3. 경로 조작 및 자원 삽입",
+    "pages": "201-210"
+  },
+  "overview": "검증되지 않은 외부입력값으로 파일 및 서버 등 시스템 자원에 대한 접근 혹은 식별을 허용할 경우, 입력값 조작으로 시스템이 보호하는 자원에 임의로 접근할 수 있는 보안약점이다. 경로조작 및 자원삽입 약점을 이용하여 공격자는 자원의 수정·삭제, 시스템 정보누출, 시스템 자원 간 충돌로 인한 서비스 장애 등을 유발시킬 수 있다. 즉, 경로 조작 및 자원 삽입으로 공격자가 허용되지 않은 권한을 획득하여 설정에 관계된 파일을 변경하거나 실행시킬 수 있다.",
+  "countermeasure": "외부의 입력을 자원(파일, 소켓의 포트 등)의 식별자로 사용하는 경우 적절한 검증을 거치도록 하거나 사전에 정의된 적합한 리스트에서 선택되도록 한다. 특히 외부의 입력이 파일명인 경우에는 경로 순회(directory traversal) 공격의 위험이 있는 문자( / \\ .. 등 )를 제거할 수 있는 필터를 이용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (파일 다운로드)",
+      "vulnerable": "// 외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString fileName = request.getParameter(\"P\");\nBufferedInputStream bis = null;\nBufferedOutputStream bos = null;\nFileInputStream fis = null;\ntry {\n       response.setHeader(\"Content-Disposition\", \"attachment;filename=\"+fileName+\";\");\n       ...\n       // 외부로부터 입력받은 값이 검증 또는 처리 없이 파일처리에 수행되었다.\n       fis = new FileInputStream(\"C:/datas/\" + fileName);\n       bis = new BufferedInputStream(fis);\n       bos = new BufferedOutputStream(response.getOutputStream());",
+      "safe": "String fileName = request.getParameter(\"P\");\nBufferedInputStream bis = null;\nBufferedOutputStream bos = null;\nFileInputStream fis = null;\ntry {\n  response.setHeader(\"Content-Disposition\", \"attachment;filename=\"+fileName+\";\");\n...\n  // 외부 입력받은 값을 경로순회 문자열(./\\)을 제거하고 사용해야한다.\n  filename = filename.replaceAll(\"\\\\.\", \"\").replaceAll(\"/\", \"\").replaceAll(\"\\\\\\\\\", \"\");\n  fis = new FileInputStream(\"C:/datas/\" + fileName);\n  bis = new BufferedInputStream(fis);\n  bos = new BufferedOutputStream(response.getOutputStream());",
+      "note": "공격자가 P에 ../../../rootFile.txt 같은 값을 전달하면 의도하지 않은 파일 내용이 버퍼에 쓰여 시스템에 악영향을 준다."
+    },
+    {
+      "lang": "Java (도움말 파일 읽기)",
+      "vulnerable": "public class ShowHelp {\n   private final static String safeDir = \"c:\\\\help_files\\\\\";\n   public static void main(String[] args) throws IOException {\n     String helpFile = args[0];\n     try (BufferedReader br = new BufferedReader(new FileReader(safeDir + helpFile))) {\n         String line;\n         while ((line = br.readLine()) != null) {\n               System.out.println(line);\n         }\n         ...\n    }",
+      "safe": "public class ShowHelpSolution {\n   private final static String safeDir = \"c:\\\\help_files\\\\\";\n   //경로조작 문자열 포함 여부를 확인하고 조치 후 사용하도록 한다.\n   public static void main(String[] args) throws IOException {\n       String helpFile = args[0];\n       if (helpFile != null) {\n             helpFile = helpFile.replaceAll(\"\\\\.{2,}[/\\\\\\\\]\", \"\");\n       }\n       try (BufferedReader br = new BufferedReader(new FileReader(safeDir + helpFile))) {\n      ...",
+      "note": "args[0]에 \"..\\..\\..\\windows\\system32\\drivers\\etc\\hosts\" 같은 경로조작 문자열이 들어오면 접근이 제한된 경로의 파일을 열람할 수 있다. null 여부 체크 후 경로조작 문자열을 제거한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 외부 입력 값이 검증 없이 파일처리에 사용 되었다.\nstring file = Request.QueryString[\"path\"];\nif (file != null)\n{\n            File.Delete(file);\n}",
+      "safe": "string file = Request.QueryString[\"path\"];\nif (file != null)\n{\n//경로조작 문자열이 있는지 확인하고 파일 처리를 하도록 한다.\n    if (file.IndexOf('\\\\') > -1 || file.IndexOf('/') > -1)\n    {\n        Response.Write(\"Path Traversal Attack\");\n    }\n    else\n    {\n        File.Delete(file);\n    }\n}",
+      "note": "외부 입력값을 파일명에 바로 사용하면 의도치 않은 파일의 손상을 가져올 수 있다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "char* filename = getenv(\"reportfile\");\nFILE *fin = NULL;\n// 외부 설정 값에서 받은 파일 이름을 그대로 사용한다.\nfin = fopen(filename, \"r\");\nwhile (fgets(buf, BUF_LEN, fin)) {\n     // 파일 내용 출력\n}",
+      "safe": "FILE *fin = NULL;\nregex_t regex;\nint ret;\nchar* filename = getenv(\"reportfile\");\nret = regcomp(&regex, \".*\\\\.\\\\..*\", 0);\n// 경로 조작 가능성 있는 문자열 탐지\nret = regexec(&regex, filename, 0, NULL, 0);\nif (!ret) {\n// 경로 조작 문자열 발견, 오류 처리\n}\n// 필터링된 파일 이름으로 사용\nfin = fopen(filename, \"r\");\nwhile (fgets(buf, BUF_LEN, fin)) {\n     // 파일 내용 출력\n}",
+      "note": "환경 변수 reportfile을 조작하여 디렉토리 경로를 조작할 수 있다. 경로 조작 가능성이 있는 문자열을 검증하고 사용한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "디렉토리 경로나 자원에 대한 접근 경로 생성, 자원을 제어하기 위한 코드는 외부의 입력값이 직접적으로 영향을 주어서는 안된다. [경로 조작] 파일객체를 사용하는지 확인하고(①), 해당 파일에 대한 접근이 외부에서 직접 접근하는지 확인한다(②). 파일객체가 가리키는 경로에 외부 입력 값이 경로 순회 문자열에 대한 제거없이 사용되면 취약 판정. [자원 삽입] 파일명·소켓의 포트 등 자원을 사용하는지 확인하고(①), 해당 자원에 대한 접근이 외부에서 직접 접근하는지 확인한다(②). 직접 접근하지 않고 매핑표나 리스트를 가질 경우 기본적으로 안전, 그 외에는 취약 판정. 시스템 경로는 직접 입력 대신 getRealPath()·getContextPath() 등 시스템 함수를 사용하는 것이 바람직하다.",
+    "true_positive": [
+      {
+        "desc": "4라인 filePath를 9~11라인에서 경로순회 문자 필터링했으나 11라인 getRealPath(\"/\") 컨텍스트 경로에 접근 가능하여 웹·서블릿 설정 파일 접근 가능 → 취약 판정",
+        "code": "@RequestMapping(value = \"/Download.do\")\npublic void downloadFile(\n     @RequestParam(value = \"filePath\", required = true) String filePath\n     , HttpServletRequest request\n     , HttpServletResponse response) throws Exception {\n...\nfilePath = filePath.replaceAll(\"\\\\.\", \"\");\nfilePath = filePath.replaceAll(\"/\", \"\");\nfilePath = filePath.replaceAll(\"\\\\\\\\\", \"\");\nString targetFile = getServletContext().getRealPath(\"/\") + filePath;\nFile file = new File(targetFile);"
+      },
+      {
+        "desc": "EgovFileCmprs.jsp 10라인 외부 입력값 source를 13라인에서 static 함수 cmprsFile에 전달, 함수 내 7라인에서 source1에 저장 후 9라인에서 파일 생성 → 취약 판정",
+        "code": "// EgovFileCmprs.jsp\nString source = request.getParameter(\"source\");\nString target = request.getParameter(\"target\");\nif (source != null && source.length() > 0 && target != null && target.length() > 0) {\nisCompressed = EgovFileCmprs.cmprsFile(source, target);\n\n// EgovFileCmprs.java\npublic static boolean cmprsFile(String source, String target) throws Exception {\n  String source1 = source.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR);\n  String target1 = target.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR);\n  File srcFile = new File(source1);"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "getRealPath() 등 내부 함수로 경로를 구성하므로 소스가 안전 → 취약하지 않음(오탐 주의)",
+        "code": "File file = new File(getServletConfig().getServletContext().getRealPath(\"/\")+\n\"/jsp/gis/gcc/cmm/xml/\"+(String)tempChartImgList.get(k));"
+      },
+      {
+        "desc": "시스템 프로퍼티(is.OrgCode)에서 가져온 값으로 파일 필터를 구성하므로 안전 → 취약하지 않음(오탐 주의). 단, 시스템 프로퍼티가 아닌 개별 사용 프로퍼티일 경우는 정탐 처리",
+        "code": "File[] f_list = f.listFiles( new FilenameFilter() {\npublic boolean accept(File dir, String name) {\nString org_code = SystemierConfig.getPropertiesBean().getProperty(\"is.OrgCode\");\nif(name.matches(org_code + \".*CVDTST.*\" + \".txt\")) {\nreturn true;\n}\nreturn false;\n}\n});\nBufferedReader in = new BufferedReader( new FileReader(f_list[0].getPath()) );"
+      }
+    ]
+  },
+  "references": [
+    "CWE-99 Resource Injection, MITRE — http://cwe.mitre.org/data/definitions/99.html",
+    "CWE-22 Path Traversal, MITRE — http://cwe.mitre.org/data/definitions/22.html",
+    "Path Traversal, OWASP — https://www.owasp.org/index.php/Path_Traversal"
+  ],
+  "tags": ["path-traversal", "directory-traversal", "resource-injection", "input_validation", "file-access"],
+  "question_hooks": {
+    "keywords": ["경로순회(directory traversal)", "경로조작 문자열(/ \\ .. )", "화이트리스트/매핑표", "getRealPath/getContextPath", "시스템 함수", "필터링", "자원 식별자 검증"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "chapter_code": "IMP-IV-05",
+  "title": "운영체제 명령어 삽입 (OS Command Injection)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-78",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §5. 운영체제 명령어 삽입",
+    "pages": "223-231"
+  },
+  "overview": "적절한 검증절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행되는 경우, 의도하지 않은 시스템 명령어가 실행되어 부적절하게 권한이 변경되거나 시스템 동작 및 운영에 악영향을 미칠 수 있는 보안약점이다. 일반적으로 명령어 라인의 파라미터나 스트림 입력 등 외부 입력을 사용하여 시스템 명령어를 생성하는 프로그램이 많은데, 외부 입력 문자열은 신뢰할 수 없기 때문에 적절한 처리를 해주지 않으면 공격자가 원하는 명령어 실행이 가능하게 된다.",
+  "countermeasure": "웹 인터페이스로 서버 내부로 시스템 명령어를 전달시키지 않도록 응용프로그램을 구성하고, 외부에서 전달되는 값을 검증 없이 시스템 내부 명령어로 사용하지 않는다. 외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하여 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (exec 화이트리스트)",
+      "vulnerable": "public static void main(String args[]) throws IOException {\n// 해당 프로그램에서 실행할 프로그램을 제한하고 있지 않아 파라미터로 전달되는 모든 프로그램이 실행될 수 있다.\n  String cmd = args[0];\n  Process ps = null;\n  try {\n    ps = Runtime.getRuntime().exec(cmd);\n    ...",
+      "safe": "public static void main(String args[]) throws IOException {\n// 해당 어플리케이션에서 실행할 수 있는 프로그램을 노트패드와 계산기로 제한하고 있다.\n   List<String> allowedCommands = new ArrayList<String>();\n   allowedCommands.add(\"notepad\");\n   allowedCommands.add(\"calc\");\n   String cmd = args[0];\n   if (!allowedCommands.contains(cmd)) {\n       System.err.println(\"허용되지 않은 명령어입니다.\");\n       return;\n   }\n   Process ps = null;\n   try {\n       ps = Runtime.getRuntime().exec(cmd);\n       ......",
+      "note": "미리 정의된 파라미터의 배열을 만들어 놓고 외부 입력에 따라 적절한 파라미터를 선택하도록 하여 외부의 부적절한 입력이 명령어로 사용될 가능성을 배제한다."
+    },
+    {
+      "lang": "Java (특수문자 필터링)",
+      "vulnerable": "// 외부로 부터 입력 받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString date = request.getParameter(\"date\");\nString command = new String(\"cmd.exe /c backuplog.bat\");\nRuntime.getRuntime().exec(command + date);",
+      "safe": "String date = request.getParameter(\"date\");\nString command = new String(\"cmd.exe /c backuplog.bat\");\n// 외부로부터 입력 받은 값을 필터링으로 우회문자를 제거하여 사용한다.\ndate = date.replaceAll(\"|\",\"\");\ndate = date.replaceAll(\";\",\"\");\ndate = date.replaceAll(\"&\",\"\");\ndate = date.replaceAll(\":\",\"\");\ndate = date.replaceAll(\">\",\"\");\nRuntime.getRuntime().exec(command + date);",
+      "note": "멀티라인을 지원하는 특수문자(| ; & :)나 파일 리다이렉트 특수문자(> >>)등을 제거하여 원하지 않은 운영체제 명령어가 실행될 수 없도록 필터링한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 외부 입력값이 프로세스가 실행할 파일 이름을 지정하고 있습니다.\nstring fileName = PgmTextBox.Text;\nProcessStartInfo proStartInfo = new ProcessStartInfo();\nproStartInfo.FileName = fileName;\nProcess.Start(proStartInfo);",
+      "safe": "string fileName = PgmTextBox.Text;\n// 외부 입력값에 대해 정규식 등을 이용하여 검증을 해줘야 합니다.\nif (Regex.IsMatch(fileName, \"properRegexHere\"))\n{\n     ProcessStartInfo proStartInfo = new ProcessStartInfo();\n     proStartInfo.FileName = fileName;\n     Process.Start(proStartInfo);\n}",
+      "note": "적절한 정규식이나 white list 등을 이용하여 검증을 한 후 사용한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "int main(int argc, char* argv[]) {\n      char cmd[CMD_LENGTH];\n      if (argc < 1 ) {\n          // error\n      }\n      // 외부 입력값으로 커맨드를 직접 수행\n      cmd_data = argv[1];\n     snprintf(cmd, CMD_LENGTH, \"cat %s\", cmd_data);\n     system(cmd);\n     ......\n}",
+      "safe": "int main(int argc, char* argv[]) {\n      char cmd[CMD_LENGTH];\n      int len = 0;\n      if (argc < 1 ) {\n          // error\n      }\n      // 외부 입력값으로 커맨드를 직접 수행\n      cmd_data = argv[1];\n      len = strlen(cmd_data);\n      for (int i = 0; i < len; i++) {\n          if (cmd_data[i] == '|' || cmd_data[i] == '&' ||\n          cmd_data[i] == ';' || cmd_data[i] == ':' || cmd_data[i] == '>') {\n           // 멀티라인을 지원하는 특수문자나 파일 리다이렉트 특수문자가 존재하여\n           // 안전하지 않음\n           return -1;\n      }\n  }\n  snprintf(cmd, CMD_LENGTH, \"cat %s\", cmd_data);\n  system(cmd);\n  ......\n}",
+      "note": "멀티라인 지원 특수문자(| ; & :)나 파일 리다이렉트 특수문자(> >>)등을 제거하여 원하지 않은 운영체제 명령어가 실행될 수 없도록 필터링한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "운영체제 명령어(exec(), system(), Runtime.getRuntime().exec 등)를 실행할 수 있는 함수가 호출되는지 확인하고(①), 외부에서 전달되는 값이 시스템 내부명령어의 일부 또는 전부로 사용되는지 확인한다(②). 정해진 후보군에서 선택된 값(White List)이거나 적절하게 검증하면 안전하고 그 외에는 취약하다. 프레임워크 특성상 Property 사용은 금지할 수 없으나, 시스템 프로퍼티 등 공용 프로퍼티가 아닌 개별 사용 프로퍼티일 경우는 취약, 시스템 프로퍼티 사용은 안전한 것으로 판정한다.",
+    "true_positive": [
+      {
+        "desc": "외부 입력값 processMon(processNm)을 파라미터로 19라인에서 execStr 문자열을 만들고 28라인에서 명령어로 실행하여 취약 판정",
+        "code": "// EgovProcessMonController.java\n@RequestMapping(\"/utl/sys/prm/selectProcessSttus.do\")\npublic String selectProcessSttus(@ModelAttribute(\"processMonVO\") ProcessMonVO\n     processMonVO, ModelMap model) throws Exception {\n...\n}\n\n// ProcessMonChecker.java\npublic static String getProcessId(String processNm) throws Exception {\n        Process p = null;\n        String execStr = \"tasklist /fo table /nh /fi \\\"imagename eq \"+processNm+\"\\\"\";\n        ...\n        if (\"WINDOWS\".equals(Globals.OS_TYPE)) {\n          cnt = -1;\n          p = Runtime.getRuntime().exec(execStr);\n        }\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "5라인 cmdStr 변수는 시스템 Property에서 값을 가져온 이후 명령어로 사용되므로 안전 판정(오탐 주의). 개별 사용 프로퍼티였다면 취약",
+        "code": "public static float getMoryFreeCpcty() throws Exception {\nfloat cpcty = 0;\nProcess p = null;\ntry {\nString cmdStr = EgovProperties.getPathProperty(Globals.SERVER_CONF_PATH,\n\"SHELL.\"+Globals.OS_TYPE+\".getMoryInfo\");\nString[] command = {cmdStr.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR),\"FREE\"};\n}\np = Runtime.getRuntime().exec(command);"
+      },
+      {
+        "desc": "fname은 srcFile.getName()의 결과값인 파일의 이름이므로 명령어에 삽입되어 공격할 수 있는 file separator나 \"..\" 등의 문자열이 없어 취약하지 않음(오탐 주의)",
+        "code": "public static String getOwner(String file) throws Exception{\nString src = file.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR);\ntry {\n     File srcFile = new File(src);\n     if (srcFile.exists()) {\n      String parentPath = srcFile.getParent();\n      String fname = srcFile.getName();\n      String cmdStr = EgovProperties.getProperty(Globals.SHELL_FILE_PATH,\n            \"SHELL.\"+Globals.OS_TYPE+\".getDrctryOwner\");\n      String[] command = {cmdStr.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR), parentPath.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR), fname};\n      p = Runtime.getRuntime().exec(command);\n}\n}\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-78 OS Command Injection, MITRE — http://cwe.mitre.org/data/definitions/78.html",
+    "Sanitize untrusted data passed to the Runtime.exec() method (IDS07-J), CERT",
+    "Do not call system(), CERT",
+    "Reviewing Code for OS Injection, OWASP — https://www.owasp.org/index.php/Reviewing_Code_for_OS_Injection"
+  ],
+  "tags": ["os-command-injection", "command-injection", "exec", "system", "input_validation", "whitelist"],
+  "question_hooks": {
+    "keywords": ["Runtime.getRuntime().exec / system / exec", "화이트리스트(allowedCommands)", "멀티라인 특수문자(| ; & :)", "파일 리다이렉트 특수문자(> >>)", "정규식 검증", "시스템 프로퍼티 vs 개별 프로퍼티"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

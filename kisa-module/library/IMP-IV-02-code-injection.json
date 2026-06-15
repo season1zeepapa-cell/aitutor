@@ -1,0 +1,76 @@
+{
+  "chapter_code": "IMP-IV-02",
+  "title": "코드 삽입 (Code Injection)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-94",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §2. 코드삽입",
+    "pages": "194-200"
+  },
+  "overview": "공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입하여 소프트웨어가 비정상적으로 동작하도록 하는 보안약점이다. 코드 삽입은 프로그래밍 언어 자체의 기능에 의해서만 제한된다는 점에서 운영체제 명령어 삽입과 다르다. 취약한 프로그램에서 사용자의 입력 값에 코드가 포함되는 것을 허용할 경우, 공격자는 개발자가 의도하지 않은 코드를 실행하여 권한을 탈취하거나 인증 우회, 시스템 명령어 실행 등을 할 수 있다.",
+  "countermeasure": "동적코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시 실행 가능한 동적코드를 입력 값으로 받지 않도록 외부 입력 값에 대하여 화이트리스트 방식으로 구현한다. 또는 유효한 문자만 포함하도록 동적 코드에 사용되는 사용자 입력 값을 필터링한다.",
+  "code_examples": [
+    {
+      "lang": "Java (ScriptEngine eval)",
+      "vulnerable": "public class CodeInjectionController {\n@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\n    public String execute(@RequestParam(\"src\") String src)\n    throws ScriptException {\n            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n            ScriptEngine scriptEngine= scriptEngineManager.getEngineByName(\"javascript\");\n            // 외부 입력값인 src를 javascript eval 함수로 실행하고 있어 안전하지 않다.\n            String retValue = (String)scriptEngine.eval(src);\n            return retValue;\n    }\n}",
+      "safe": "@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\npublic String execute(@RequestParam(\"src\") String src) throws ScriptException {\n          // 정규식을 이용하여 특수문자 입력시 예외를 발생시킨다.\n          if (src.matches(\"[\\\\w]*\") == false) {\n                 throw new IllegalArgumentException();\n          }\n          ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n          ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(\"javascript\");\n          String retValue = (String)scriptEngine.eval(src);\n          return retValue;\n}",
+      "note": "javax.script.ScriptEngineManager의 eval로 사용자 입력을 실행하면 공격자가 조작된 인수로 새 파일을 만들거나 덮어쓸 수 있다. 정규식 필터링은 입력 값의 형태에 따라 변형하여 적용해야 한다."
+    },
+    {
+      "lang": "JSP (new Function)",
+      "vulnerable": "<body>\n<%\n      String name = request.getparameter(\"name\");\n%>\n...\n<script>\n// 외부 입력값인 name을 javascript new Function()을 이용하여 문자열을 함수로 실행하고 있다.\n      (new Function(<%=name%>))();\n</script>\n</body>",
+      "safe": "",
+      "note": "외부 입력 값을 javascript의 new Function()으로 동적으로 코드를 실행할 수 있어 안전하지 않다. (안전한 코드 예제는 원문 미제공)"
+    },
+    {
+      "lang": "Java (화이트리스트)",
+      "vulnerable": "",
+      "safe": "@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\npublic String execute(@RequestParam(\"src\") String src) throws ScriptException {\n      // 유효한 문자 \"_\" 일 경우 실행할 메소드 호출한다.\n      if (src.matches(\"UNDER_BAR\") == true) {\n              ...\n              // 유효한 문자 \"$\" 일 경우 실행할 메소드 호출한다.\n              } else if (src.matches(\"DOLLAR\") == true) {\n                      ...\n              // 유효하지 않은 특수문자 입력시 예외를 발생시킨다.\n              } else {\n                          throw new IllegalArgumentException();\n              }\n     ...\n}",
+      "note": "스크립트 실행이 필요한 경우 화이트리스트 방식을 적용하여 유효한 문자인 경우에만 실행되도록 하고 그 외의 경우는 모두 예외 처리한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "각 언어에서 제공하고 있는 동적실행 함수를 확인한다(①). 동적코드 실행에 사용되는 데이터가 신뢰할 수 있는 값인지 확인한다(②). 이 때 데이터가 신뢰할 수 없는 값이거나 별도의 검증절차가 없으면 취약하다고 판단한다.",
+    "true_positive": [
+      {
+        "desc": "6라인에서 동적코드 실행 함수 ScriptEngine.eval을 사용하고 실행코드 데이터 name이 사용자 입력값이므로 취약 판정",
+        "code": "class ACC {\n     public static void executeScript(final String name) throws ScriptException {\n              ScriptEngineManager manager = new ScriptEngineManager();\n              ScriptEngine engine = manager.getEngineByName(\"javascript\");\n              // eval을 이용해서 변수 name 값을 표시한다.\n              engine.eval(\"print('\" + name + \"')\");\n     }\n}\n     ...\n@RequestMapping(value = \"/print\", method = RequestMethod.POST)\npublic void print(@RequestParam(\"name\") String name) throws ScriptException{\n   // 사용자 입력값인 name을 이용해서 eval 을 사용하는 함수를 호출한다.\n   ACC.executeScript(name);\n   ...\n}"
+      },
+      {
+        "desc": "PHP eval() 함수에서 2라인 arg 파라미터를 사전 검증 없이 3라인에서 실행하여 1;phpinfo() 같은 삽입코드 실행 가능 → 취약 판정",
+        "code": "// vul.php\n$myvar = 'somevalue';\n$x = $_GET['arg'];\neval('$myvar = ' . $x . ';');\n\n// 삽입코드의 예\n// /vul.php?arg=1;phpinfo()\n// /vul.php?arg=1;system(\"uname -a\")\n// /vul.php?arg=1;system(\"cat /etc/passwd\")\n// /vul.php?arg=1;system(\"ps -ef\")"
+      },
+      {
+        "desc": "사용자 메시지를 필터링 없이 파일에 저장하고 ViewMessages 시 include로 실행하여 의도하지 않은 PHP 명령어 실행 가능 → 취약 판정",
+        "code": "$MessageFile = \"cwe-94/messages.out\";\nif ($_GET[\"action\"] == \"NewMessage\") {\n      $name = $_GET[\"name\"];\n      $message = $_GET[\"message\"];\n      $handle = fopen($MessageFile, \"a+\");\n      fwrite($handle, \"<b>$name</b> says '$message'<hr>\\n\");\n      fclose($handle);\n      echo \"Message Saved!<p>\\n\";\n} else if ($_GET[\"action\"] == \"ViewMessages\") {\n     include($MessageFile);\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "eval() 함수 사용 전 3라인에서 잠재적으로 위험한 기호를 preg_replace로 제거하므로 취약하지 않음(오탐 주의)",
+        "code": "$myvar = \"varname\";\n$x = $_GET['arg'];\n$x=preg_replace(\"/[w\\\\^a-z0-9]/i\", \"\", $x);\neval(\"\\$myvar = \\$x;\");"
+      },
+      {
+        "desc": "외부 입력 값을 사용하기 전에 Filter.filterScript로 알파벳·숫자·'_'만 허용하는 검증을 수행하므로 취약하지 않음(오탐 주의)",
+        "code": "class ACC {\n      public static void executeScript(final String name) throws ScriptException {\n                if (!Filter.filterScript(name)) {\n                            throw new IllegalArgumentException();\n                }\n      ScriptEngineManager manager = new ScriptEngineManager();\n      ScriptEngine engine = manager.getEngineByName(\"javascript\");\n      engine.eval(\"print('\" + name + \"')\");\n      ...\n      }\n}\n// Filter.filterScript: name.matches(\"[\\\\w]*\") 로 알파벳·숫자·'_'만 허용"
+      },
+      {
+        "desc": "동적 실행함수(eval)를 사용하였으나 외부 입력값을 실행하지 않으므로 취약하지 않음(오탐 주의)",
+        "code": "<script>\n      var obj = {};\n      for(var i = 0; i < 5; i++){\n      eval(\"obj.test\" + i + \"=\" + i);\n      }\n      console.log(obj);\n</script>"
+      }
+    ]
+  },
+  "references": [
+    "CWE-94 Improper Control of Generation of Code ('Code Injection'), MITRE — http://cwe.mitre.org/data/definitions/94.html",
+    "CWE-95 Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection'), MITRE — http://cwe.mitre.org/data/definitions/95.html",
+    "Code Injection Software Attack, OWASP — https://owasp.org/www-community/attacks/Code_Injection"
+  ],
+  "tags": ["code-injection", "eval", "dynamic-code", "input_validation", "whitelist"],
+  "question_hooks": {
+    "keywords": ["동적실행 함수", "eval", "ScriptEngine", "new Function", "화이트리스트", "특수문자 필터링", "정규식 검증"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

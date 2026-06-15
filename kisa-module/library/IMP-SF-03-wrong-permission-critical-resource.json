@@ -1,0 +1,59 @@
+{
+  "chapter_code": "IMP-SF-03",
+  "title": "중요한 자원에 대한 잘못된 권한 설정",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-732",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §3. 중요한 자원에 대한 잘못된 권한 설정",
+    "pages": "325-329"
+  },
+  "overview": "SW가 중요한 보안관련 자원에 대하여 읽기 또는 수정하기 권한을 의도하지 않게 허가할 경우, 권한을 갖지 않은 사용자가 해당자원을 사용하게 된다.",
+  "countermeasure": "설정파일, 실행파일, 라이브러리 등은 SW 관리자에 의해서만 읽고 쓰기가 가능하도록 설정하고, 설정파일과 같이 중요한 자원을 사용하는 경우 허가받지 않은 사용자가 중요한 자원에 접근 가능한지 검사한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "File file = new File(\"/home/setup/system.ini\");\n//모든 사용자에게 실행 권한을 허용하여 안전하지 않다.\nfile.setExecutable(true, false);\n//모든 사용자에게 읽기 권한을 허용하여 안전하지 않다.\nfile.setReadable(true, false);\n//모든 사용자에게 쓰기 권한을 허용하여 안전하지 않다.\nfile.setWritable(true, false);",
+      "safe": "File file = new File(\"/home/setup/system.ini\");\n//소유자에게 실행 권한을 금지하였다.\nfile.setExecutable(false);\n//소유자에게 읽기 권한을 허용하였다.\nfile.setReadable(true);\n//소유자에게 쓰기 권한을 금지하였다.\nfile.setWritable(false);",
+      "note": "setExecutable/setReadable/setWritable(p1, p2)에서 두 번째 파라미터가 false이면 모든 사용자에게 권한이 부여된다. 파일에 대해서는 최소권한을 할당하고 소유자에게만 권한을 부여(2개 인자 → 1개 인자 메소드)해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "public static void AddDirectorySecurity(string FileName)\n{\n  // 디렉토리 정보 객체 생성\n  DirectoryInfo dInfo = new DirectoryInfo(FileName);\n  DirectorySecurity dSecurity = dInfo.GetAccessControl();\n  // 모든 사용자에게 권한 부여.\n  dSecurity.AddAccessRule(new FileSystemAccessRule(\"everyone\",\n    FileSystemRights.FullControl,\n    InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,\n    PropagationFlags.NoPropagateInherit, AccessControlType.Allow));\n  dInfo.SetAccessControl(dSecurity);\n}",
+      "safe": "public static void AddDirectorySecurity(string FileName, string Account,\n  FileSystemRights Rights, AccessControlType ControlType)\n{\n  // 디렉토리 정보 객체 생성\n  DirectoryInfo dInfo = new DirectoryInfo(FileName);\n  DirectorySecurity dSecurity = dInfo.GetAccessControl();\n  // FileSystemAccessRule 에 권한 설정\n  dSecurity.AddAccessRule(new FileSystemAccessRule(Account,\n    Rights,\n    ControlType));\n  dInfo.SetAccessControl(dSecurity);\n}",
+      "note": "\"everyone\"에게 FullControl을 부여하지 말고 적절한 계정·권한을 파일에 설정해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "//모든 사용자가 읽기/쓰기 권한을 갖게 됩니다.\numask(0);\nFILE *out = fopen(\"file_name\", \"w\");\nif(out){\n  fprintf(out, \"secure code\\n\");\n  fclose(out);",
+      "safe": "//유저 외에는 아무런 권한을 주지 않습니다.\numask(077);\nFILE *out = fopen(\"file_name\", \"w\");\nif(out){\n  fprintf(out, \"secure code\\n\");\n  fclose(out);",
+      "note": "umask()를 사용하여 권한 설정을 할 때 올바른 권한을 설정해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "해당 취약점은 보안특성 중 중요자원에 대한 접근 권한 설정과 관련된 취약점으로 정적도구를 사용하여 중요자원이 무엇인지 판단하는 것은 어려운 작업이다. 이에 따라 진단원이 직접 중요자원을 식별하고 이에 대한 취약성을 판단하는 것이 필요하다. SW에서 생성하는 중요자원(파일 등)이 존재하는지 식별한다. 사용자 업로드 파일, 프로그램이 사용하는 설정파일 등 중요자원에 대해 읽기·쓰기·실행 등의 권한을 사전에 정의하였는지 확인하고 사전에 정의한 권한대로 중요자원에 접근권한을 허용하는지 확인한다. 설정파일, 문서파일의 경우 실행 권한이 설정되지 않았는지 확인하여야 한다.",
+    "true_positive": [
+      {
+        "desc": "umask 0 으로 설정하여 파일 권한 rw-rw-rw-, 디렉토리 권한 rwxrwxrwx 으로 모든 사용자에게 권한이 부여되므로 취약하다고 판정한다.",
+        "code": "// 파일 권한 : rw-rw-rw-, 디렉토리 권한 : rwxrwxrwx\nString cmd = \"umask 0\";\nFile file = new File(\"/home/report/report.txt\");\n...\nRuntime.getRuntime().exec(cmd);"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "4~6번 라인에서 실행권한과 쓰기권한은 제외하고 읽기 권한만 부여하고 있어 취약하지 않음(오탐 주의)",
+        "code": "try {\n  ......\n  File file = new File(\"/home/setup/system.ini\");\n  file.setExecutable(false);\n  file.setReadable(true);\n  file.setWritable(false);\n\n  if (file.createNewFile()) {\n    System.out.println(\"File is created!\");\n  } else {\n    System.out.println(\"File already exists.\");\n  }\n} catch (IOException e) {\n  ......\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-732 Incorrect Permission Assignment for Critical Resource, MITRE — http://cwe.mitre.org/data/definitions/732.html",
+    "Create files with appropriate access permissions (FIO06-C), CERT — http://www.securecoding.cert.org/confluence/display/c/FIO06-C.+Create+files+with+appropriate+access+permissions"
+  ],
+  "tags": ["permission", "file-permission", "critical-resource", "security_feature", "least-privilege", "umask"],
+  "question_hooks": {
+    "keywords": ["최소권한", "setExecutable/setReadable/setWritable", "umask(077)", "everyone FullControl", "소유자 전용 권한", "설정파일 실행권한 금지", "FileSystemAccessRule"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

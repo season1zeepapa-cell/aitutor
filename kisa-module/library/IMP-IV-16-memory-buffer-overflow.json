@@ -1,0 +1,51 @@
+{
+  "chapter_code": "IMP-IV-16",
+  "title": "메모리 버퍼 오버플로우 (Memory Buffer Overflow)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-120",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §16. 메모리 버퍼 오버플로우",
+    "pages": "303-308"
+  },
+  "overview": "메모리 버퍼 오버플로우 보안약점은 연속된 메모리 공간을 사용하는 프로그램에서 할당된 메모리의 범위를 넘어선 위치에 자료를 읽거나 쓰려고 할 때 발생한다. 메모리 버퍼 오버플로우는 프로그램의 오동작을 유발시키거나, 악의적인 코드를 실행시킴으로써 공격자가 프로그램을 통제할 수 있는 권한을 획득하게 한다. 메모리 버퍼 오버플로우에는 스택 메모리 버퍼 오버플로우와 힙 메모리 버퍼 오버플로우가 있다. gets()와 같은 함수는 문자열을 크기와 상관없이 연속된 기억공간에 저장시키므로, 공격자는 정상적인 문자열 대신 공격코드를 입력하고 스택 시작주소를 반복 입력하여 프로그램이 정상 주소 대신 공격코드의 시작주소로 복귀해 공격코드를 수행하게 만들 수 있다.",
+  "countermeasure": "프로그램 상에서 메모리 버퍼를 사용할 경우 적절한 버퍼의 크기를 설정하고, 설정된 범위의 메모리 내에서 올바르게 읽거나 쓸 수 있게 통제하여야 한다. 특히, 문자열 저장시 널(Null) 문자로 종료하지 않으면 의도하지 않은 결과를 가져오게 되므로 널(Null) 문자를 버퍼 범위내에 삽입하여 널(Null) 문자로 종료되도록 해야 한다.",
+  "code_examples": [
+    {
+      "lang": "C",
+      "vulnerable": "typedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid\nvoid badCode() {\n    charvoid cv_struct\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n\n    /* sizeof(cv_struct)의 사용으로 포인터 y에 덮어쓰기 발생 */\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct));\n    printLine((char *) cv_struct.x);\n    printLine((char *) cv_struct.y);\n}",
+      "safe": "typedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid\n\nstatic void goodCode() {\n    charvoid cv_struct\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n\n    /* sizeof(cv_struct.x)로 변경하여 포인터 y의 덮어쓰기를 방지함 */\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct.x));\n\n    /* 문자열 종료를 위해 널 문자를 삽입함 */\n    cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\\0';\n    printLine((char *) cv_struct.x);\n    printLine((char *) cv_struct.y);\n}",
+      "note": "잘못 계산된 데이터 크기 sizeof(cv_struct)로 인해 연속된 메모리 공간인 포인터 y를 덮어쓰는 버퍼 오버플로우가 발생한다. 안전한 코드는 (1) 문자열 복사 범위를 sizeof(cv_struct.x)로 한정하고, (2) 마지막 인덱스에 널(Null) 문자를 패딩한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "버퍼에 값을 기록하는 경우, 값의 크기가 대상 버퍼보다 작은지 확인한다. 버퍼의 크기나 데이터의 크기가 외부 입력 값에 의해 결정되는 경우 입력 값의 크기가 대상 데이터를 충분히 포함할 수 있는지 확인한다. 버퍼의 크기를 비교하거나 인덱싱으로 접근할 경우에는 데이터의 크기 비교 외에도 음수값이 포함되지 않도록 0보다 큰지 반드시 확인한다. 상수로 바로 접근하는 경우 해당 상수값을 확인하고, 버퍼의 범위를 고려하여 접근하도록 수정한다. 특히 반복문으로 버퍼에 접근할 때 반드시 경계값을 확인하며, 문자열 처리 시 마지막에 널(Null) 문자가 포함되는지 반드시 확인한다.",
+    "true_positive": [
+      {
+        "desc": "매개변수로 입력받은 값을 16 byte 버퍼에 복사하지만 입력 값의 크기 검사가 없음. 입력이 더 크면 버퍼 영역을 벗어남 → 취약 판정",
+        "code": "void foo(char* string){\n    char buf[16];\n    strcpy(buf, string);\n    …\n}"
+      },
+      {
+        "desc": "외부 입력값을 64 byte hostname 버퍼에 strcpy. 이름값이 64byte보다 작음을 보장할 수 없어 긴 호스트 이름 입력 시 오버플로우 → 취약 판정",
+        "code": "void host_lookup(char *user_supplied_addr)\n{\n    struct hostent *hp;\n    in_addr_t *addr;\n    char hostname[64];\n    in_addr_t inet_addr(const char *cp);\n    validate_addr_form(user_supplied_addr);\n    addr = inet_addr(user_supplied_addr);\n    hp = gethostbyaddr( addr, sizeof(struct in_addr), AF_INET);\n    strcpy(hostname, hp->h_name);\n}"
+      },
+      {
+        "desc": "공백 제거 루프(16~19행)에서 인덱스 len이 감소하지만 0보다 작아지는지 검사하지 않음. len이 음수가 되면 버퍼 범위를 벗어난 값을 참조 → 취약 판정",
+        "code": "char* trimTrailingWhitespace(char *strMessage, int length)\n{\n    char *retMessage;\n    char *message = malloc(sizeof(char)*(length+1));\n\n    // copy input string to a temporary string\n    char message[length+1];\n    int index;\n    for (index = 0; index < length; index++) {\n        message[index] = strMessage[index];\n    }\n    message[index] = '\\0';\n\n    // trim trailing whitespace\n    int len = index-1;\n    while (isspace(message[len])) {\n        message[len] = '\\0';\n        len--;\n    }\n\n    // return string without trailing whitespace\n    retMessage = message;\n    return retMessage;\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-120 Buffer Copy without Checking Size of Input ('Classic Buffer Overflow'), MITRE — http://cwe.mitre.org/data/definitions/120.html",
+    "CWE-119 Improper Restriction of Operations within the Bounds of a Memory Buffer, MITRE — http://cwe.mitre.org/data/definitions/119.html",
+    "Buffer overflow attack, OWASP — https://www.owasp.org/index.php/Buffer_overflow_attack"
+  ],
+  "tags": ["buffer-overflow", "memory", "strcpy", "null-termination", "boundary-check", "input_validation"],
+  "question_hooks": {
+    "keywords": ["메모리 버퍼 오버플로우", "스택/힙 오버플로우", "버퍼 크기 검증", "널(Null) 문자 종료", "경계값 확인", "strcpy/gets", "sizeof 오용"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

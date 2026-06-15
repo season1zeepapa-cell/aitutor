@@ -1,0 +1,87 @@
+{
+  "chapter_code": "DSG-IV-05",
+  "title": "웹 서비스 요청 및 결과 검증",
+  "stage": "design",
+  "category": "input_validation",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제3장 분석·설계단계 §1.5 웹 서비스 요청 및 결과 검증",
+    "pages": "64-70"
+  },
+  "design_item": "웹 서비스 요청 및 결과 검증",
+  "description": "웹 서비스(게시판 등) 요청(스크립트 게시 등)과 응답결과(스크립트를 포함한 웹 페이지)에 대한 유효성 검증방법 설계 및 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+  "overview": "사례1(외부 입력값을 검증 없이 응답페이지 생성에 사용): 웹 페이지에 악의적인 스크립트가 포함될 수 있으며, 해당 웹페이지를 열람하는 접속자의 권한으로 부적절한 스크립트가 실행되어 정보 유출 등의 공격을 유발할 수 있다(Reflective XSS). 사례2(DB에 저장된 값을 검증 없이 응답페이지 생성에 사용): 공격자가 미리 취약한 서버에 악의적인 스크립트가 포함된 정보를 저장해서 일반 사용자들이 해당 정보를 조회하는 경우 접속자의 권한으로 부적절한 스크립트가 수행되어 정보 유출 등의 공격을 유발할 수 있다(Stored XSS).",
+  "security_measures": [
+    "① 사용자로부터 입력받은 값을 동적으로 생성되는 응답페이지에 사용하는 경우 크로스사이트스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다.",
+    "② DB조회결과를 동적으로 생성되는 응답페이지에 사용하는 경우 HTML인코딩 또는 크로스사이트스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다."
+  ],
+  "design_considerations": [
+    {
+      "point": "① 입력값에 대한 XSS 필터링",
+      "detail": "입력값에 대해 필터링 또는 인코딩 정책을 적용하는 공통코드를 작성하여 웹 컨테이너 또는 MVC 프레임워크에 적용한다. (ㄱ) 필터를 이용한 입력값 검증: 웹 컴포넌트 Filter로 사용자 입력값에 XSS 필터나 HTML인코딩을 적용하여 안전한 값으로 치환한 뒤 사용하도록 모든 애플리케이션에 일괄 적용. (ㄴ) 인터셉트를 이용한 입력값 검증: MVC 프레임워크의 Interceptor 컴포넌트로 입력값에 XSS 공격 패턴 문자열 포함 여부를 검사하여 요청을 차단·허용하는 정책을 일괄 적용. (ㄷ) 라이브러리 또는 Validator 컴포넌트를 이용한 입력값 검증: 공통코드로 Validator 컴포넌트를 작성하여 XSS 공격패턴의 입력값을 필터링하도록 설계."
+    },
+    {
+      "point": "② DB조회결과에 대한 XSS 필터링/HTML인코딩",
+      "detail": "각각의 컴포넌트에서 출력값에 대해 XSS필터 또는 HTML인코딩을 적용하여 안전한 값만 응답에 사용한다. (ㄱ) View 컴포넌트에서 출력값에 HTML인코딩 적용: 입력값을 동적 응답페이지에 사용하는 경우 XSS필터 또는 HTML인코딩을 적용하도록 시큐어코딩 규칙 정의. (ㄴ) DB조회 결과값에 대한 XSS 필터 적용: DB에서 읽어오는 데이터도 외부 입력값 범위에 포함시켜 출력 전 반드시 검증. 프레임워크 컴포넌트로 일괄 필터링이 어려우면 각 개발자가 출력값 검증을 수행하도록 시큐어코딩 규칙을 정의하고, HTML·URL 등 문자를 인코딩·필터링하는 라이브러리(ASP.NET: MS Anti-XSS Library/AntiXSSEncoder/HTML Sanitizer, Java: LUCY XSS Filter/OWASP ESAPI XSS Filter, PHP: HTML Purifier) 사용을 고려한다."
+    }
+  ],
+  "diagnosis": {
+    "requirements": [
+      {
+        "requirement": "① 사용자로부터 입력된 값을 동적으로 생성되는 응답페이지에 사용하는 경우 크로스사이트 스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 외부입력값에 포함된 XSS 공격코드를 안전하게 필터링할 수 있도록 보안설계가 적용되어 있는가?",
+            "methods": [
+              { "method": "1-1 요구사항정의서에 설계항목에 대한 대책이 수립되어 있으며, 아키텍처설계서에 설계항목 적용계획이 수립되어 있고, 요구사항추적표로 요구사항 추적 가능 여부 확인", "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토" },
+              { "method": "1-2 XSS 필터 컴포넌트 설계 확인 - 외부라이브러리를 사용하는 경우 안전한 필터링 가능 여부 확인 - XSS필터 생성 시 필터링 규칙이 안전한 화이트리스트 정책이 적용되도록 설계되었는지 확인", "artifacts": "프로그램명세서, 클래스설계서, 유즈케이스설계서 등 검토, 아키텍처설계서의 보안요구항목 적용계획 검토" },
+              { "method": "1-3 외부입력값에 대한 XSS 필터링 방법이 정의되어 있는지 아키텍처설계서 등에서 확인 - Filter 사용 시 필터링 적용대상이 웹서버 설정파일에 정확히 정의되어 있는지 확인 - 개별 프로그램에서 입력값 필터링을 수행하는 경우 필터링 코딩규칙이 개발가이드에 정의되어 있는지 확인 - 개별 프로그램(Controller 또는 View 컴포넌트)에서 출력값에 대해 필터링을 수행하는 경우 필터링 코딩규칙이 개발가이드에 정의되어 있는지 확인", "artifacts": "아키텍처설계서 검토, 코딩규칙은 개발가이드 검토" }
+            ]
+          },
+          {
+            "question": "2. 입력값에 대한 XSS필터링이 안전하게 수행되는지 점검하는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              { "method": "2-1 XSS 발생시킬 수 있는 입력값에 대해 필터링이 적용되어 안전한 값만 응답에 사용되는지를 점검하기 위한 계획이 수립되어 있는지 확인 (테스트 입력값: 필터를 우회할 수 있는 입력값 사용 - <IMG SRC=\"javascript:alert('XSS');\">, <IMG \"\"\"><SCRIPT>alert(\"XSS\")</SCRIPT>\">, <IMG SRC=\"jav&#x0A;ascript:alert('XSS');\"> 등, OWASP XSS Filter Evasion Cheat Sheet 참조)", "artifacts": "단위테스트케이스 검토" }
+            ]
+          }
+        ]
+      },
+      {
+        "requirement": "② DB조회결과를 동적으로 생성되는 응답페이지에 사용하는 경우 HTML인코딩 또는 크로스사이트 스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다.",
+        "checklist": [
+          {
+            "question": "1. DB조회 결과에 포함된 XSS 공격코드를 안전하게 필터링할 수 있도록 보안설계가 적용되어 있는가?",
+            "methods": [
+              { "method": "1-1 요구사항정의서에 설계항목에 대한 대책이 수립되어 있으며, 아키텍처설계서에 설계항목 적용계획이 수립되어 있고, 요구사항추적표로 요구사항 추적 가능 여부 확인", "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토" },
+              { "method": "1-2 XSS 필터 컴포넌트 설계 확인 - 외부라이브러리를 사용하는 경우 안전한 필터링 가능 여부 확인 - XSS필터 생성 시 필터링 규칙이 안전한 화이트리스트 정책이 적용되도록 설계되었는지 확인", "artifacts": "아키텍처설계서의 보안요구항목 적용 계획 검토, 프로그램명세서, 클래스설계서, 유즈케이스설계서 등 검토" },
+              { "method": "1-3 DB조회결과를 응답페이지 생성에 사용하는 경우 XSS필터 또는 HTML인코딩을 적용하여 응답페이지를 만들도록 코딩규칙이 개발가이드에 정의되어 있는지 확인", "artifacts": "아키텍처설계서 검토, 코딩규칙은 개발가이드 검토" }
+            ]
+          },
+          {
+            "question": "2. DB조회 결과에 대한 XSS필터링이 안전하게 수행되는지 점검하는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              { "method": "2-1 DB조회의 결과값에 대해 XSS필터링이 적용되어 안전한 값만 응답에 사용되는지 점검하기 위한 테스트 계획이 수립되어 있는지 확인", "artifacts": "단위테스트케이스 검토" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "related_weaknesses": [
+    { "category": "입력데이터 검증 및 표현", "weakness": "크로스사이트 스크립트", "code": "IMP-IV-04" }
+  ],
+  "references": [
+    "2013 OWASP Top 10 - A3 Cross-Site Scripting(XSS), OWASP",
+    "Feed Injection In Web 2.0: Hacking RSS and Atom Feed Implementations, Robert Auger",
+    "2010 OWASP Secure Coding Practices - Input Validation, OWASP",
+    "CERT Advisory CA-2000-02 Malicious HTML Tags Embedded in Client Web Requests",
+    "Cross-site Scripting Explained, Amit Klein",
+    "DOM Based Cross Site Scripting or XSS of the Third Kind, Amit Klein (WASC)"
+  ],
+  "tags": ["xss", "web", "injection", "input_validation", "design", "html인코딩", "화이트리스트", "stored-xss", "reflective-xss"],
+  "question_hooks": {
+    "keywords": ["XSS 필터링", "HTML인코딩", "화이트리스트 정책", "Filter 컴포넌트", "Interceptor", "Validator 컴포넌트", "View 컴포넌트 출력 인코딩", "DB조회결과도 외부입력값", "XSS Filter Evasion", "요구사항추적표", "개발가이드 코딩규칙", "단위테스트케이스"],
+    "mcq_seed": "Reflective/Stored XSS 방지 보안대책, 또는 진단방법-관련산출물 짝을 제시하고 '잘못 연결된 것'·'XSS 필터링 적용 위치로 옳지 않은 것'을 묻는 객관형",
+    "diagnosis_seed": "요구사항정의서·아키텍처설계서·개발가이드 산출물을 제시하고 입력값 및 DB조회결과에 대한 XSS 필터링/HTML인코딩 설계 적용 여부를 진단보고서로 작성하는 복합서술형. 채점은 checklist 의 진단방법·관련산출물 포함 여부로 판정"
+  }
+}

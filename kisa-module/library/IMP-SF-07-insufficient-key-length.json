@@ -1,0 +1,53 @@
+{
+  "chapter_code": "IMP-SF-07",
+  "title": "충분하지 않은 키 길이 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-326",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §7. 충분하지 않은 키 길이 사용",
+    "pages": "360-363"
+  },
+  "overview": "길이가 짧은 키를 사용하는 것은 암호화 알고리즘을 취약하게 만들 수 있다. 키는 암호화 및 복호화에 사용되는데, 검증된 암호화 알고리즘을 사용하더라도 키 길이가 충분히 길지 않으면 짧은 시간 안에 키를 찾아낼 수 있고, 이를 이용해 공격자가 암호화된 데이터나 비밀번호를 복호화할 수 있게 된다.",
+  "countermeasure": "RSA 알고리즘은 적어도 2,048비트 이상의 길이를 가진 키와 함께 사용해야 하고, 대칭암호화 알고리즘(Symmetric Encryption Algorithm)의 경우에는 적어도 128비트 이상의 키를 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (RSA 키 길이)",
+      "vulnerable": "public static final String ALGORITHM = \"RSA\";\npublic static final String PRIVATE_KEY_FILE = \"C:/keys/private.key\";\npublic static final String PUBLIC_KEY_FILE = \"C:/keys/public.key\";\npublic static void generateKey() {\n   try {\n     final KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);\n      //RSA 키 길이를 1024 비트로 짧게 설정하는 경우 안전하지 않다.\n     keyGen.initialize(1024);\n     final KeyPair key = keyGen.generateKeyPair();\n     File privateKeyFile = new File(PRIVATE_KEY_FILE);\n     File publicKeyFile = new File(PUBLIC_KEY_FILE);",
+      "safe": "public static final String ALGORITHM = \"RSA\";\npublic static final String PRIVATE_KEY_FILE = \"C:/keys/private.key\";\npublic static final String PUBLIC_KEY_FILE = \"C:/keys/public.key\";\npublic static void generateKey() {\n    try {\n          final KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);\n          keyGen.initialize(2048);\n          final KeyPair key = keyGen.generateKeyPair();\n          File privateKeyFile = new File(PRIVATE_KEY_FILE);\n          File publicKeyFile = new File(PUBLIC_KEY_FILE);",
+      "note": "보안성이 강한 RSA 알고리즘을 사용하더라도 키 사이즈를 작게(1024비트) 설정하면 보안약점이 된다. 공개키 암호화 키 길이는 적어도 2048비트 이상으로 설정한다."
+    },
+    {
+      "lang": "C# (RSA 키 길이)",
+      "vulnerable": "static string UseRSA(string input) {\n      //RSA 키 길이를 1024 비트로 짧게 설정하는 경우 안전하지 않다.\n    var rsa = new RSACryptoServiceProvider(1024);\n    ...\n}",
+      "safe": "static string UseRSA(string input) {\n     //RSA 키 길이를 2048 비트 이상으로 길게 설정한다\n    var rsa = new RSACryptoServiceProvider(2048);\n    ...\n}",
+      "note": "공개키 암호화 키 길이는 적어도 2048비트 이상으로 설정한다."
+    },
+    {
+      "lang": "C (RSA 키 길이)",
+      "vulnerable": "EVP_PKEY *RSAKey(){\nEVP_PKEY *pkey;\nRSA *rsa;\n      //RSA 키 길이를 512 비트로 짧게 설정하는 경우 안전하지 않다.\nrsa = RSA_generate_key(512, 35, NULL, NULL);\nif(rsa == NULL){\n    printf(\"Error\\n\");\n    return NULL;\n}\npkey = EVP_PKEY_new();\nEVP_PKEY_assign_RSA(pkey, rsa);\nreturn pkey;",
+      "safe": "EVP_PKEY *RSAKey(){\nEVP_PKEY *pkey;\nRSA *rsa;\n      //2048비트 이상으로 설정한 후에 사용해야 한다.\nrsa = RSA_generate_key(2048, 35, NULL, NULL);\nif(rsa == NULL){\n    printf(\"Error\\n\");\n    return NULL;\n}\npkey = EVP_PKEY_new();\nEVP_PKEY_assign_RSA(pkey, rsa);\nreturn pkey;\n}",
+      "note": "공개키 암호화 키 길이는 적어도 2048비트 이상으로 설정한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "대칭키 암호알고리즘(예: AES, ARIA, SEED 등)의 경우 128bit 이상, 해시 함수(예: SHA 등)의 경우 128bit 이상, 공개키 암호알고리즘(예: RSA, DSA 등)은 2,048bit 이상(ECC의 경우 256 이상)의 키를 사용하는지 확인한다. 보안성이 강한 RSA 알고리즘을 사용하더라도 키 사이즈를 작게 설정하면 취약점이 된다.",
+    "true_positive": [
+      {
+        "desc": "RSA Key generator의 키 크기를 512비트로 불충분하게 설정 → 취약 판정. 공개키 암호화 키 길이는 적어도 2048비트 이상으로 설정해야 함",
+        "code": "…\npublic void target() throws NoSuchAlgorithmException {\nKeyPairGenerator keyGen = KeyPairGenerator.getInstance(\"RSA\");\n// Key generator의 불충분한 키 크기\nkeyGen.initialize(512);\nKeyPair myKeys = keyGen.generateKeyPair();\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-326 Inadequate Encryption Strength, MITRE — http://cwe.mitre.org/data/definitions/326.html"
+  ],
+  "tags": ["security_feature", "key-length", "encryption-strength", "rsa", "symmetric-key", "public-key"],
+  "question_hooks": {
+    "keywords": ["키 길이", "RSA 2048비트", "대칭키 128비트", "해시 128비트", "ECC 256비트", "KeyPairGenerator.initialize", "RSACryptoServiceProvider", "RSA_generate_key", "브루트포스"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 알고리즘별 최소 키 길이 기준을 제시하고 '충분하지 않은 키 길이 보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

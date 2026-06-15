@@ -1,0 +1,62 @@
+{
+  "chapter_code": "DSG-IV-03",
+  "title": "디렉토리 서비스 조회 및 결과 검증",
+  "stage": "design",
+  "category": "input_validation",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제3장 분석·설계단계 §1.3 디렉토리 서비스 조회 및 결과 검증",
+    "pages": "54-57"
+  },
+  "design_item": "디렉토리 서비스 조회 및 결과 검증",
+  "description": "디렉토리 서비스(LDAP 등)를 조회할 때 입력값과 그 조회결과에 대한 유효성 검증방법 설계 및 유효하지 않은 값에 대한 처리방법을 설계한다.",
+  "overview": "외부입력값이 LDAP 조회를 수행하기 위한 필터 생성에 사용되는 경우 필터규칙을 변경할 수 있는 입력값에 대한 검증 작업을 수행하지 않게 되면 공격자가 의도하는 LDAP 조회가 수행될 수 있는 취약점이다. (LDAP: TCP/IP 위에서 디렉토리 서비스를 조회·수정하는 응용 프로토콜)",
+  "security_measures": [
+    "① LDAP 인증서버로 인증을 구현하는 경우 인증요청을 위해 사용되는 외부입력값은 LDAP 삽입 취약점을 가지지 않도록 필터링해서 사용해야 한다."
+  ],
+  "design_considerations": [
+    {
+      "point": "① LDAP 검색 필터 특수문자 필터링",
+      "detail": "LDAP 인증이 포함되는 기능 설계시, 외부입력값이 LDAP 조회를 위한 검색 필터 생성에 삽입되어 사용되는 경우, 필터 규칙으로 인식 가능한 특수문자(=, +, <, >, #, ;, \\ 등)들을 제거하고 사용할 수 있도록 시큐어코딩 규칙을 정의해야 한다. 활용 가능한 프레임워크/라이브러리(Java, PHP, ASP): LDAP Syntax Filters - 액티브 디렉토리 조회 시의 검색기준을 정의하고 효율적인 검색을 수행하며, MS 웹문서 내용과 참조목록으로 필터 작성 문법을 참고하여 특수문자를 필터링한다."
+    }
+  ],
+  "diagnosis": {
+    "requirements": [
+      {
+        "requirement": "① LDAP 인증서버로 인증을 구현하는 경우 인증요청을 위해 사용되는 외부입력값은 LDAP 삽입 취약점을 가지지 않도록 필터링해서 사용해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 외부입력값이 LDAP조회를 위한 필터생성에 삽입되어 사용되는 경우, 안전하게 사용될 수 있도록 보안설계가 적용되어 있는가?",
+            "methods": [
+              { "method": "1-1 요구사항정의서에 설계항목에 대한 대책이 수립되어 있으며, 아키텍처설계서에 설계항목 적용계획이 수립되어 있고, 요구사항추적표로 요구사항 추적 가능 여부 확인", "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토" },
+              { "method": "1-2 LDAP 조회필터 생성에 사용되는 입력값을 필터링하는 기능이 설계되어 있거나, 안전한 외부라이브러리를 사용하도록 설계되어 있는지 확인", "artifacts": "프로그램명세서, 컴포넌트설계서, 유즈케이스설계서, 클래스설계서 등에서 필터링 기능 검토" },
+              { "method": "1-3 LDAP조회기능 구현시, LDAP필터링을 적용하기 위한 코딩규칙이 개발가이드에 정의되어 있는지 확인", "artifacts": "개발가이드에서 코딩규칙 검토" }
+            ]
+          },
+          {
+            "question": "2. LDAP 삽입 취약점을 점검할 수 있는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              { "method": "2-1 LDAP 필터구문을 변경할 수 있는 입력값을 사용하여 LDAP필터의 규칙이 변경되는지를 점검하기 위한 테스트 계획이 수립되어 있는지 확인 (테스트 입력값: =, +, <, >, #, ;, \\ 등)", "artifacts": "단위테스트케이스 검토" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "related_weaknesses": [
+    { "category": "입력데이터 검증 및 표현", "weakness": "LDAP 삽입", "code": "IMP-IV-10" }
+  ],
+  "references": [
+    "CWE-90 LDAP Injection, MITRE",
+    "2016 OWASP Application Security Verification Standard, OWASP",
+    "LDAP Resources, ldapman.org",
+    "LDAP Injection & Blind LDAP Injection, BlackHat Europe 2008",
+    "A String Representation of LDAP Search Filters, RFC 1960"
+  ],
+  "tags": ["ldap", "directory", "injection", "input_validation", "design", "검색필터", "특수문자필터링"],
+  "question_hooks": {
+    "keywords": ["LDAP 삽입", "검색 필터", "특수문자 필터링", "=, +, <, >, #, ;, \\", "LDAP Syntax Filters", "시큐어코딩 규칙", "요구사항추적표", "개발가이드 코딩규칙", "단위테스트케이스"],
+    "mcq_seed": "LDAP삽입 방지 보안대책/진단방법-관련산출물 짝을 제시하고 '잘못 연결된 것' 또는 'LDAP 필터에서 제거해야 할 특수문자'를 묻는 객관형",
+    "diagnosis_seed": "요구사항정의서·아키텍처설계서·개발가이드 산출물을 제시하고 LDAP 검색필터 입력값 필터링 설계 적용 여부를 진단보고서로 작성하는 복합서술형. 채점은 checklist 의 진단방법·관련산출물 포함 여부로 판정"
+  }
+}

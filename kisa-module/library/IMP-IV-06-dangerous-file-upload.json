@@ -1,0 +1,63 @@
+{
+  "chapter_code": "IMP-IV-06",
+  "title": "위험한 형식 파일 업로드 (Dangerous File Upload)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-434",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §6. 위험한 형식 파일 업로드",
+    "pages": "232-238"
+  },
+  "overview": "서버 측에서 실행될 수 있는 스크립트 파일(asp, jsp, php 파일 등)이 업로드 가능하고, 이 파일을 공격자가 웹으로 직접 실행시킬 수 있는 경우, 시스템 내부명령어를 실행하거나 외부와 연결하여 시스템을 제어할 수 있는 보안약점이다.",
+  "countermeasure": "화이트 리스트 방식으로 허용된 확장자만 업로드를 허용한다. 업로드 되는 파일을 저장할 때에는 파일명과 확장자를 외부사용자가 추측할 수 없는 문자열로 변경하여 저장하며, 저장 경로는 'web document root' 밖에 위치시켜서 공격자의 웹으로 직접 접근을 차단한다. 또한 파일 실행여부를 설정할 수 있는 경우, 실행 속성을 제거한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "MultipartRequest multi\n  = new MultipartRequest(request,savePath,sizeLimit,\"euc-kr\",new DefaultFileRenamePolicy());\n......\n//업로드 되는 파일명을 검증 없이 사용하고 있어 안전하지 않다.\nString fileName = multi.getFilesystemName(\"filename\");\n......\nsql = \" INSERT INTO board(email,r_num,w_date,pwd,content,re_step,re_num,filename) \"+ \" values ( ?, 0, sysdate(), ?, ?, ?, ?, ? ) \";\nPreparedStatement pstmt = con.prepareStatement(sql);\npstmt.setString(1, stemail);\npstmt.setString(2, stpwd);\npstmt.setString(3, stcontent);\npstmt.setString(4, stre_step);\npstmt.setString(5, stre_num);\npstmt.setString(6, fileName);\npstmt.executeUpdate();\nThumbnail.create(savePath+\"/\"+fileName, savePath+\"/\"+\"s_\"+fileName, 150);",
+      "safe": "MultipartRequest multi\n  = new MultipartRequest(request,savePath,sizeLimit,\"euc-kr\",new DefaultFileRenamePolicy());\n......\nString fileName = multi.getFilesystemName(\"filename\");\nif (fileName != null) {\n  //1.업로드 파일의 마지막 \".\" 문자열의 기준으로 실제 확장자 여부를 확인하고, 대소문자 구별을 해야한다.\n  String fileExt = fileName.substring(fileName.lastIndexOf(\".\")+1).toLowerCase();\n  //2.되도록 화이트 리스트 방식으로 허용되는 확장자로 업로드를 제한해야 안전하다.\n  if (!\"gif\".equals(fileExt) && !\"jpg\".equals(fileExt) && !\"png\".equals(fileExt)) {\n    alertMessage(\"업로드 불가능한 파일입니다.\");\n    return;\n  }\n}\n......\nsql = \" INSERT INTO board(email,r_num,w_date,pwd,content,re_step,re_num,filename) \" + \" values ( ?, 0, sysdate(), ?, ?, ?, ?, ? ) \";\nPreparedStatement pstmt = con.prepareStatement(sql);\n......\nThumbnail.create(savePath+\"/\"+fileName, savePath+\"/\"+\"s_\"+fileName, 150);",
+      "note": "업로드 파일의 확장자를 검사하여 허용되지 않은 확장자인 경우 업로드를 제한한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "string fn = Path.GetFileName(FileUploadCtr.FileName);\n//업로드 하는 파일명을 검증 없이 사용하고 있습니다.\nFileUploadCtr.SaveAs(fn);\nStatusLabel.Text = \"Upload status: File uploaed!\";",
+      "safe": "//파일 타입과 크기를 제한합니다.\nif (FileUploadCtr.PostedFile.ContentType == \"image/jpeg\")\n{\n  if (FileUploadCtr.PostedFile.ContentLength < 102400)\n  {\n    string fn = Path.GetFileName(FileUploadCtr.FileName);\n    FileUploadCtr.SaveAs(Server.MapPath(\"~/\") + fn);\n    StatusLabel.Text = \"Upload status: File uploaed!\";\n  }\n  else\n    StatusLabel.Text = \"Upload Status: The File has to be less than 100 kb!\";\n}\nelse\n  StatusLabel.Text = \"Upload Status: Only JPEG files are accepted!\";",
+      "note": "파일 타입과 크기 등을 검사하여 제한하도록 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "외부 입력값에서 파일명을 얻어오는 부분이 존재하는지 확인하고(①), 허용된 확장자에 대해서만 파일 업로드를 허용하는지 확인한다(②). 제어문 등을 사용하여 허용된 파일만 업로드 될 경우와 업로드된 파일명을 외부에서 알 수 없는 형태로 변경할 경우엔 안전하지만 그 외에는 취약하다. getOriginalFilename() 함수를 사용하여 파일을 업로드하면서 해당 파일의 확장자를 체크하지 않는 경우엔 취약하다고 판정한다.",
+    "true_positive": [
+      {
+        "desc": "업로드된 파일의 확장자를 체크하고 있지 않으므로 취약한 것으로 판정한다.",
+        "code": "while (itr.hasNext()) {\n  Entry<String, List<MultipartFile>> entry = itr.next();\n  fileList = entry.getValue();\n  for(int i=0, s=fileList.size(); i<s; i++) {\n    file = (MultipartFile)fileList.get(i);\n    String orginFileName = file.getOriginalFilename();\n    // 원 파일명이 없는 경우 처리 (첨부가 되지 않은 input file type)\n    if (\"\".equals(orginFileName)) continue;\n    int index = orginFileName.lastIndexOf(\".\");\n    //String fileName = orginFileName.substring(0, index);\n    String fileExt = orginFileName.substring(index + 1);\n    String newName = KeyStr + EgovStringUtil.getTimeStamp() + fileKey;\n    long _size = file.getSize();\n    if (!\"\".equals(orginFileName)) {\n      filePath = storePathString + File.separator + newName;\n      file.transferTo(new File(filePath));\n    }\n    fvo = new FileVO();\n    fvo.setFileExtsn(fileExt);\n    fvo.setFileStreCours(storePathString);\n    fvo.setFileMg(Long.toString(_size));\n    fvo.setOrignlFileNm(orginFileName);\n    fvo.setStreFileNm(newName);\n    fvo.setAtchFileId(atchFileIdString);\n    fvo.setFileSn(String.valueOf(fileKey));\n    result.add(fvo);\n    fileKey++;\n  }\n}\nreturn result;"
+      },
+      {
+        "desc": "파일의 확장자를 체크하여 필터링하고 있으나, 확장자의 대소문자구분을 하지 않아 JSP, Jsp, ASP, PHP, Php 등의 확장자가 업로드 가능하므로 취약하다.",
+        "code": "...\nString fileName = file.getOriginalFilename();\nif ( fileName != null ) {\n  if ( !fileName.endsWith(\".jsp\") ) {\n    /* file 업로드 루틴 */\n  }\n}\n..."
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "파일의 확장자를 체크하여 필터링하고 있으므로 안전하다.",
+        "code": "String orginFileName = file.getOriginalFilename();\n// 원 파일명이 없는 경우 처리 (첨부가 되지 않은 input file type)\nif (\"\".equals(orginFileName)) { continue }\nint index = orginFileName.lastIndexOf(\".\");\n//String fileName = orginFileName.substring(0, index);\nString fileExt = orginFileName.substring(index + 1);\n/* 확장자 체크 */\nfor(Object fileExclusionExt : this.fileExclusionExtension) {\n  if( ((String) fileExclusionExt).equals(fileExt.toLowerCase())){\n    throw new Exception(\"egume.message.error.file.exclusion.extension\");\n  }\n}"
+      },
+      {
+        "desc": "getOriginalFilename()의 리턴 값을 저장하여 사용하지 않으면, 파일명을 사용하기 위해 다른 곳에서 해당 함수를 호출할 것이므로 취약하지 않다고 판정한다.",
+        "code": "if (!\"\".equals(file.getOriginalFilename())) {\n  zipManageService.insertExcelZip(file.getInputStream());"
+      }
+    ]
+  },
+  "references": [
+    "CWE-434 Unrestricted Upload of File with Dangerous Type, MITRE — http://cwe.mitre.org/data/definitions/434.html",
+    "Prevent arbitrary file upload, CERT — IDS56-J",
+    "Secure File Upload Check List With PHP, Clay",
+    "Unrestricted File Upload, OWASP — https://www.owasp.org/index.php/Unrestricted_File_Upload"
+  ],
+  "tags": ["file-upload", "input_validation", "whitelist", "extension", "webshell"],
+  "question_hooks": {
+    "keywords": ["화이트 리스트 확장자 검증", "대소문자 구분(toLowerCase)", "파일명 난수화", "web document root 밖 저장", "실행 속성 제거", "getOriginalFilename()", "파일 타입/크기 제한"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

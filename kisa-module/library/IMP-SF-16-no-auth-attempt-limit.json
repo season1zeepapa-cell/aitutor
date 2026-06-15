@@ -1,0 +1,54 @@
+{
+  "chapter_code": "IMP-SF-16",
+  "title": "반복된 인증시도 제한 기능 부재",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-307",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 §16 반복된 인증시도 제한 기능 부재",
+    "pages": "400-405"
+  },
+  "overview": "일정 시간 내에 여러 번의 인증을 시도하여도 계정잠금 또는 추가 인증 방법 등의 충분한 조치가 수행되지 않는 경우, 공격자는 예상 ID와 비밀번호들을 사전(Dictionary)으로 만들고 무차별 대입(brute force)하여 로그인 성공 및 권한획득이 가능하다.",
+  "countermeasure": "인증시도 횟수를 적절한 횟수로 제한하고 설정된 인증실패 횟수를 초과했을 경우 계정을 잠금하거나 추가적인 인증과정을 거쳐서 시스템에 접근이 가능하도록 한다.",
+  "code_examples": [
+    {
+      "lang": "java",
+      "vulnerable": "private static final String SERVER_IP = \"127.0.0.1\";\nprivate static final int SERVER_PORT = 8080;\nprivate static final int FAIL = -1;\npublic void login() {\n  String username = null;\n  String password = null;\n  Socket socket = null;\n  int result = FAIL;\n  try {\n    socket = new Socket(SERVER_IP, SERVER_PORT);\n    //인증 실패에 대해 제한을 두지 않아 안전하지 않다.\n    while (result == FAIL) {\n      ...\n      result = verifyUser(username, password);\n    }\n  }\n}",
+      "safe": "private static final String SERVER_IP = \"127.0.0.1\";\nprivate static final int SERVER_PORT = 8080;\nprivate static final int FAIL = -1;\nprivate static final int MAX_ATTEMPTS = 5;\npublic void login() {\n  String username = null;\n  String password = null;\n  Socket socket = null;\n  int result = FAIL;\n  int count = 0;\n  try {\n    socket = new Socket(SERVER_IP, SERVER_PORT);\n    //인증 실패 및 시도 횟수에 제한을 두어 안전하다.\n    while (result == FAIL && count < MAX_ATTEMPTS) {\n      ...\n      result = verifyUser(username, password);\n      count++;\n    }\n  }\n}",
+      "note": "사용자 인증시도 횟수를 기록하는 MAX_ATTEMPTS 변수를 정의하고, 이를 인증시도 횟수를 제한하는 카운터로 사용함으로써 무차별 공격에 대응한다."
+    },
+    {
+      "lang": "csharp",
+      "vulnerable": "//로그인 실패 시 아무런 제약이 없음\noverride protected void OnLoginError(EventArgs e)\n{\n  //do nothing\n}",
+      "safe": "override protected void OnLoginError(EventArgs e)\n{\n  // 연속적인 사용자 인증 시도에 대한 횟수를 제한\n  if(ViewState[\"LoginErrors\"] == null)\n    ViewState[\"LoginErrors\"] = 0;\n  int ErrorCount = (int)ViewState[\"LoginErrors\"] + 1;\n  ViewState[\"LoginErrors\"] = ErrorCount;\n\n  if((ErrorCount > 3) && Login1.PasswordRecoveryUrl != string.Empty)\n    Response.Redirect(Login1.PasswordRecoveryUrl);\n}",
+      "note": "로그인 시도에 대한 횟수를 제한한다."
+    },
+    {
+      "lang": "c",
+      "vulnerable": "int validateUser(char *host, int port) {\n  int socket = openSocketConnection(host, port);\n  if (socket < 0) {\n    printf(\"Unable to open socket connection\");\n    return(FAIL);\n  }\n  int isValidUser = 0;\n  char nm[NAME_SIZE];\n  char pw[PSWD_SIZE];\n  // 인증시도 횟수를 제한하고 있지 않음\n  while (isValidUser==0) {\n    if (getNextMsg(socket, nm, NAME_SIZE) > 0) {\n      if (getNextMsg(socket, pw, PSWD_SIZE) > 0) {\n        isValidUser = AuthenticateUser(nm, pw);\n      }\n    }\n  }\n  return(SUCCESS);\n}",
+      "safe": "#define MAX_ATTEMPTS 5\n\nint validateUser(char *host, int port) {\n  ......\n  // 연속적인 사용자 인증 시도에 대한 횟수를 제한\n  int count = 0;\n  while ((isValidUser==0) && (count<MAX_ATTEMPTS)) {\n    if (getNextMsg(socket, nm, NAME_SIZE) > 0) {\n      if (getNextMsg(socket, pw, PSWD_SIZE) > 0) {\n        isValidUser = AuthenticateUser(nm, pw);\n      }\n    }\n    count++;\n  }\n  if (isValidUser) {\n    return(SUCCESS);\n  } else {\n    return(FAIL);\n  }\n}",
+      "note": "연속적인 사용자 인증 시도에 대한 횟수를 제한한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "인증을 위한 함수를 호출하는 경우, 이 함수의 호출 횟수를 확인하고 함수의 호출을 제한하는 코드가 존재하는지 확인한다. 그렇지 않은 경우는 취약하다고 판단한다.",
+    "true_positive": [
+      {
+        "desc": "인증 시도에 대한 제한 없이 반복문 안에서 계속 인증 시도를 하는 코드이다. 인증 시도 회수에 대한 검사 루틴이 존재하지 않으므로 보안약점이 존재하는 코드라고 진단할 수 있다.",
+        "code": "int validateUser(char *host, int port)\n{\n  int socket = openSocketConnection(host, port);\n  if (socket < 0)\n  {\n    printf(\"Unable to open socket connection\");\n    return(FAIL);\n  }\n  int isValidUser = 0;\n  char username[USERNAME_SIZE];\n  char password[PASSWORD_SIZE];\n  while (isValidUser == 0)\n  {\n    if (getNextMessage(socket, username, USERNAME_SIZE) > 0)\n    {\n      if (getNextMessage(socket, password, PASSWORD_SIZE) > 0)\n      {\n        isValidUser = AuthenticateUser(username, password);\n      }\n    }\n  }\n  return(SUCCESS);\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-307 Improper Restriction of Excessive Authentication Attempts, MITRE — http://cwe.mitre.org/data/definitions/307.html",
+    "Blocking Brute Force Attacks, OWASP — https://www.owasp.org/index.php/Blocking_Brute_Force_Attacks"
+  ],
+  "tags": ["인증", "무차별 대입", "brute force", "계정 잠금", "인증시도 제한", "보안기능", "CWE-307"],
+  "question_hooks": {
+    "keywords": ["인증시도 제한", "무차별 대입", "brute force", "계정 잠금", "MAX_ATTEMPTS", "사전 공격", "카운터"],
+    "mcq_seed": "인증 실패 제한이 없는 코드와 MAX_ATTEMPTS 카운터로 제한하는 코드를 제시 → 보안약점 설명으로 잘못된 것 / 취약·안전 판정",
+    "diagnosis_seed": "반복문 안에서 인증을 시도하는 코드 제시 → 인증 시도 횟수 제한 루틴 존재 여부로 정탐·오탐 판정"
+  }
+}

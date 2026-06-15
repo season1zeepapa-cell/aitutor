@@ -1,0 +1,59 @@
+{
+  "chapter_code": "IMP-SF-02",
+  "title": "부적절한 인가",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-285",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §2. 부적절한 인가",
+    "pages": "319-324"
+  },
+  "overview": "프로그램이 모든 가능한 실행경로에 대해서 접근제어를 검사하지 않거나 불완전하게 검사하는 경우, 공격자는 접근 가능한 실행경로 정보를 유출할 수 있다.",
+  "countermeasure": "응용프로그램이 제공하는 정보와 기능을 역할에 따라 배분함으로써 공격자에게 노출되는 공격노출면(Attack Surface)을 최소화하고 사용자의 권한에 따른 ACL(Access Control List)을 관리한다. JAAS Authorization Framework나 OWASP ESAPI Access Control 등의 프레임워크를 사용해서 취약점을 제거할 수도 있다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n//요청을 하는 사용자의 delete 작업 권한 확인 없이 수행하고 있어 안전하지 않다.\nif (action != null && action.equals(\"delete\")) {\n  boardDao.delete(contentId);\n}",
+      "safe": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n// 세션에 저장된 사용자 정보를 얻어온다.\nUser user = (User)session.getAttribute(\"user\");\n//사용자정보에서 해당 사용자가 delete작업의 권한이 있는지 확인한 뒤 삭제 작업을 수행한다.\nif (action != null && action.equals(\"delete\") && checkAccessControlList(user,action)) {\n  boardDao.delete(contentId);\n}",
+      "note": "세션에 저장된 사용자 정보로 삭제작업 권한이 있는지 확인한 뒤 권한이 있는 경우에만 수행하도록 해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 운영자 권한 검사 없이 컨트롤러와 내부의 개별 액션에 접근 가능\npublic class AdministrationController : Controller\n{\n  ...\n}",
+      "safe": "// 운영자 권한 검사 후 개별 액션에 접근\n[Authorize(Roles = \"Administrator\")]\npublic class AdministrationController : Controller\n{\n  ...\n}",
+      "note": "운영자 권한 검사 후에 개별 액션에 접근해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "#define FIND_DN \"uid=han,ou=staff,dc=example,dc=com\"\nint searchData2LDAP(LDAP *ld, char *username) {\n  unsigned long rc;\n  char filter[20];\n  LDAPMessage *result;\n  snprintf(filter, sizeof(filter),\"(name=%s)\", username);\n  // 사용자의 인증 없이 LDAP 검색을 시도합니다.\n  rc = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter, NULL, 0,\n    NULL,NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n  return rc;\n}",
+      "safe": "#define FIND_DN \"uid=han,ou=staff,dc=example,dc=com\"\nint searchData2LDAP(LDAP *ld, char *username, char *password) {\n  unsigned long rc;\n  char filter[20];\n  LDAPMessage *result\n  //username을 인증합니다.\n  if ( ldap_simple_bind_s(ld, username, password) != LDAP_SUCCESS ) {\n    printf(\"authorization error\");\n    return(FAIL);\n  }\n  // username 이 로그인 정보와 일치하는지 검사합니다.\n  if ( strcmp(username,getLoginName()) != 0 ) {\n    printf(\"Login error\");\n    return(FAIL);\n  }\n  snprintf(filter, sizeof(filter), \"(name=%s)\", username);\n  rc = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter, NULL, 0, NULL,\n    NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n  return rc;\n}",
+      "note": "사용자 자격인증 및 로그인 정보와 일치하는지 검사 후 LDAP 검색을 진행해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "해당 취약점은 보안특성 중 외부 시스템(웹서버, DB서버, LDAP 등)의 권한 설정과 관련된 취약점으로 정적도구를 사용하여 판단하기 쉽지 않다. 먼저 중요정보를 저장할 수 있는 외부시스템이 존재하는지 식별하고 해당 시스템에 접근(열람) 및 변경(생성·삭제·수정 등)에 대한 권한을 사전에 적절하게 정의하였는지 확인한다. 해당 정보 또는 기능(접근·변경)을 호출하는 함수에서 사전에 정의한 권한 소유여부를 검사하는지 확인한다(①). 또한 접근제어를 서버측이 아닌 JavaScript 등과 같이 클라이언트측에서 제어하여 우회가 가능한지 확인한다.",
+    "true_positive": [
+      {
+        "desc": "외부의 입력인 name 값이 필터가 아닌 동적인 LDAP 쿼리문에서 사용자명으로 사용되었으며, 사용자 인증을 위한 별도의 접근제어 방법이 사용되지 않고 있다. anonymous binding을 허용하는 것으로 볼 수 있어 임의 사용자의 정보를 외부에서 접근할 수 있게 되므로 취약하다고 판정한다.",
+        "code": "public void f(String sSingleId, int iFlag, String sServiceProvider, String sUid, String sPwd) {\n  ...\n  env.put(Context.INITIAL_CONTEXT_FACTORY, CommonMySingleConst.INITCTX);\n  env.put(Context.PROVIDER_URL, sServiceProvider);\n  // 익명으로 LDAP 인증을 사용\n  env.put(Context.SECURITY_AUTHENTICATION, \"none\");\n  env.put(Context.SECURITY_PRINCIPAL, sUid);\n  env.put(Context.SECURITY_CREDENTIALS, sPwd);\n  ...\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "세션에 저장된 사용자 정보로 해당 사용자가 삭제작업을 수행할 권한이 있는지 확인한 뒤 권한이 있는 경우에만 수행하므로 취약하지 않음(오탐 주의)",
+        "code": "public String doSometing(HttpServletRequest request, HttpServletResponse response, HttpSession session) {\n  String action = request.getParameter(\"action\");\n  // 세션에 저장된 사용자 정보를 얻어온다.\n  User user = (User)session.getAttribute(\"user\");\n  // 사용자정보에서 해당 사용자가 delete작업의 권한이 있는지 확인한 뒤 삭제 작업을 수행한다.\n  if (action != null && action.equals(\"delete\") && checkAccessControlList(user,action)) {\n    // 삭제작업을 수행한다.\n  }\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-285 Improper Authorization, MITRE — http://cwe.mitre.org/data/definitions/285.html",
+    "Access Control, OWASP — https://www.owasp.org/index.php/Access_Control_Cheat_Sheet"
+  ],
+  "tags": ["authorization", "access-control", "acl", "security_feature", "ldap", "anonymous-binding"],
+  "question_hooks": {
+    "keywords": ["접근제어(Access Control)", "ACL", "권한 검사", "checkAccessControlList", "Authorize(Roles)", "anonymous binding", "공격노출면(Attack Surface)"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

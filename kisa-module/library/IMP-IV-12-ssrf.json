@@ -1,0 +1,59 @@
+{
+  "chapter_code": "IMP-IV-12",
+  "title": "서버사이드 요청 위조 (SSRF)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-918",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §12. 서버사이드 요청 위조",
+    "pages": "276-283"
+  },
+  "overview": "적절한 검증절차를 거치지 않은 사용자 입력 값을 서버간의 요청에 사용하여 악의적인 행위가 발생할 수 있는 보안약점이다. 외부에 노출된 웹 서버에 취약한 애플리케이션이 존재하는 경우 공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크에 있는 데이터를 획득할 수 있다.",
+  "countermeasure": "식별할 수 있는 범위 내에서 사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력 값을 화이트리스트 방식으로 필터링한다. 사용자가 지정하는 무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다. 또한 동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  // 사용자 입력값(url)을 검증없이 사용하여 안전하지 않다.\n  URL url = new URL(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}",
+      "safe": "public class Connect {\n  // key, value 형식으로 URL의 리스트를 작성한다.\n  private Map<String, URL> urlMap;\n  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n    // 사용자에게 urlMap의 key를 입력받아 urlMap에서 URL값을 참조한다.\n    URL url = urlMap.get(req.getParameter(\"url\"));\n    // urlMap에서 참조한 값으로 Connection을 만들어 접속한다.\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n  }\n}",
+      "note": "공격자는 URL을 조작하여 내부 서버에 질의하게 하여 데이터를 획득할 수 있다(예: ?url=http://192.168.0.45/member/list.json, 외부 차단된 admin 페이지 접근, user:x@사설IP 도메인체크 우회, 단축 URL 필터 우회 등). 사전에 정의된 URL 목록을 Map 객체에 정의하고 키 값으로 입력받아 키에 매칭되는 URL만 사용하면 URL값을 임의로 조작할 수 없다."
+    }
+  ],
+  "diagnosis": {
+    "method": "다른 시스템의 서비스를 호출하는 함수가 존재하는지 확인하고(①), 다른 시스템을 호출할 때 사용되는 입력 값이(②) 신뢰할 수 있는 값인지 확인한다. 만약 입력 값이 신뢰할 수 없고 별도의 검증절차가 없으면 안전하지 않다고 판정한다.",
+    "true_positive": [
+      {
+        "desc": "openConnection에 사용하는 URL을 properties에서 참조함. properties는 다른 공격 등으로 위변조될 수 있으므로 취약 판정",
+        "code": "public class ConnectProperties {\n  FileReader newFile = new FileReader(\"File.properties\");\n  Properties properties = new Properties();\n  properties.load(newFile);\n\n  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException{\n    URL url = new URL(properties.getProperty(\"connectUrl\"));\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n  }\n}"
+      },
+      {
+        "desc": "inURL 값이 추가 검증 없이 new URL(url).openStream() 에 전달됨. 공격자가 inURL 입력 값을 악의적으로 조작하여 피해를 끼칠 수 있으므로 취약 판정",
+        "code": "private String getRemoteContent(String url) throws IOException {\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}\n\npublic String getContent(String inUrl) throws IOException {\n  try {\n    String str = getRemoteContent(inUrl);\n    str = str.replace(\"<head>\", \"<head><base href='\" + inUrl\n      + \"' /><base target='_blank' /><script>top.studio.startPageIFrameLoaded();\"\n      + \"</script>\");\n    return str;\n  } catch (Exception e) {\n    return \"\";\n  }\n}"
+      },
+      {
+        "desc": "host 파라미터를 별도 검증 없이 전달하여 \"http://\"+host+\"/favicon.ico\" 로 요청. 공격자가 host를 조작(/getFavicon?host=192.168.176.1:8080/secrets.txt?)하여 내부 서버 데이터가 외부로 유출될 수 있으므로 취약 판정",
+        "code": "public void doGet(HttpServletRequest request, HttpServletResponse response) {\n  String host = request.getParameter(\"host\");\n\n  byte[] bytes = getImage(host, defaultBytes);\n  if (bytes != null) {\n    writeBytesToStream(bytes, response);\n  }\n}\n\nprivate byte[] getImage(String host, byte[] defaultImage) {\n  byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n  ...\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "11라인에서 Public Cloud 메타데이터 서비스 주소 169.254.169.254를 블랙리스트로 필터링하여 에러를 리턴, 메타서버 크레덴셜 조회를 차단하므로 취약하지 않다고 판정",
+        "code": "<?php\n  require_once('./htmlpurifier/library/HTMLPurifier.includes.php');\n  $purifier = new HTMLPurifier();\n\n  $ch = curl_init();\n  $url = $_GET['url'];\n  $urlinfo = parse_url($url); // URL 파싱\n  $scheme = $urlinfo['scheme'];\n  $host = $urlinfo['host'];\n  $ip = gethostbyname($host);\n  if ($ip === \"169.254.169.254\") { // 퍼블릭클라우드 메타데이터 서비스 IP를 검증\n    die(\"Invalid host\");\n  } elseif ($scheme !== 'http' && $scheme !== 'https') { // HTTP(S) 스킴 체크\n    die(\"Invalid scheme\");\n  }\n  curl_setopt($ch, CURLOPT_URL, $url);\n  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n\n  $html = curl_exec($ch);\n  echo $purifier->purify($html);"
+      },
+      {
+        "desc": "내부 대역 IP 접근 시도를 블랙리스트 방식으로 필터링. isPrivateIP()로 입력 값을 블랙리스트와 비교하여 허용되지 않은 접근에 오류를 리턴 → 취약하지 않으나, 블랙리스트 우회 공격을 감안해 필터링하는지 검토 후 취약 여부 판단 필요",
+        "code": "private static String getRemoteContent(String url) throws IOException {\n  if ( isPrivateIP(url) == true ) {\n    return \"invalid url\";\n  }\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}\n\npublic static boolean isPrivateIP(String r){\n  //블랙리스트 목록(lookback 주소, IPv4 및 IPv6 주소)\n  String private_ip[] = {\n    //loopback addresses\n    \"127.\", \"0.\",\n    //IP V4 prefix for private addresses\n    \"10.\",\n    \"172.16.\", \"172.17.\", \"172.18.\", \"172.19.\", \"172.20.\", \"172.21.\",\n    \"172.22.\", \"172.23.\", \"172.24.\", \"172.25.\", \"172.26.\", \"172.27.\",\n    \"172.28.\", \"172.29.\", \"172.30.\", \"172.31.\", \"192.168.\", \"169.254.\",\n    //IP V6 prefix for private addresses\n    \"fc\", \"fd\", \"fe\", \"ff\", \"::1\"\n  };\n\n  for(int i = 0; i<private_ip.length; i++){\n    if(r.toLowerCase().trim().startsWith(private_ip[i])){\n      return true;\n    }\n  }\n  return false;\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-918: Server-Side Request Forgery (SSRF), MITRE — https://cwe.mitre.org/data/definitions/918.html",
+    "Server Side Request Forgery, OWASP — https://owasp.org/www-community/attacks/Server_Side_Request_Forgery"
+  ],
+  "tags": ["ssrf", "url", "internal-network", "input_validation", "whitelist"],
+  "question_hooks": {
+    "keywords": ["URL 화이트리스트", "내부 URL 블랙리스트", "메타데이터 서비스(169.254.169.254)", "사설IP(isPrivateIP)", "도메인 체크 우회", "URL Map 키 참조", "블랙리스트 우회"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

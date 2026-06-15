@@ -1,0 +1,54 @@
+{
+  "chapter_code": "IMP-SF-12",
+  "title": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-539",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+    "pages": "382-385"
+  },
+  "overview": "대부분의 웹 응용프로그램에서 쿠키는 메모리에 상주하며, 브라우저의 실행이 종료되면 사라진다. 프로그래머가 원하는 경우 쿠키를 디스크에 저장할 수 있으며, 다음 브라우저 세션이 시작되었을 때 메모리에 로드된다. 개인정보, 인증정보 등이 이와 같은 영속적인 쿠키(Persistent Cookie)에 저장된다면, 공격자는 쿠키에 접근할 수 있는 보다 많은 기회를 가지게 되어 시스템을 취약하게 만든다.",
+  "countermeasure": "쿠키의 만료시간은 세션이 지속되는 시간을 고려하여 최소한으로 설정하고 영속적인 쿠키에는 사용자 권한 등급, 세션ID 등 중요정보가 포함되지 않도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다.\nloginCookie.setMaxAge(60*60*24*365);\nresponse.addCookie(loginCookie);",
+      "safe": "Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 쿠키의 만료시간은 해당 기능에 맞춰 최소로 사용한다.\nloginCookie.setMaxAge(60*60*24);\nresponse.addCookie(loginCookie);",
+      "note": "쿠키의 유효기간이 긴 경우 사용자 하드디스크에 쿠키가 저장되며 저장된 쿠키는 쉽게 도용될 수 있으므로 취약하다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "HttpCookie cookie = Request.Cookies.Get(\"ExampleCookie\");\n// 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다.\ncookie.Expires = DateTime.Now.AddMinutes(60.0*24.0*365.0);\nResponse.Cookies.Add(cookie);",
+      "safe": "HttpCookie cookie = Request.Cookies.Get(\"ExampleCookie\");\n// 쿠키의 만료시간은 해당 기능에 맞춰 최소로 사용한다.\ncookie.Expires = DateTime.Now.AddMinutes(10d);\nResponse.Cookies.Add(cookie);",
+      "note": "만료시간을 10분으로 설정하여 사용한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "사용자 브라우저로 쿠키를 전송하는지 확인하고(①), 쿠키 유효기간을 확인한다(②). 쿠키 설정 값에 id 정보 등 중요 정보 포함 여부를 확인한다(③).",
+    "true_positive": [
+      {
+        "desc": "쿠키의 만료시간을 1년(60*60*24*30*12)으로 과도하게 길게 설정 → 사용자 하드디스크에 저장되어 도용 가능 → 취약 판정",
+        "code": "protected void doPost(HttpServletRequest request, HttpServletResponse response) {\n  ……\n  String username = request.getParameter(\"username\");\n  char[] password = request.getParameter(\"password\").toCharArray();\n  boolean rememberMe = Boolean.valueOf(request.getParameter(\"rememberme\"));\n\n  LoginService loginService = new LoginServiceImpl();\n  if (rememberMe) {\n    Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n    loginCookie.setMaxAge(60*60*24*30*12);\n    response.addCookie(loginCookie);\n    ……\n  } else {\n    ……"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "쿠키의 만료시간을 해당 기능에 맞춰 최소(60*60*24)로 설정하고 있어 안전(오탐 주의)",
+        "code": "protected void doPost(HttpServletRequest request, HttpServletResponse response) {\n  ……\n  String username = request.getParameter(\"username\");\n  char[] password = request.getParameter(\"password\").toCharArray();\n  boolean rememberMe = Boolean.valueOf(request.getParameter(\"rememberme\"));\n\n  LoginService loginService = new LoginServiceImpl();\n  if (rememberMe) {\n    Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n    loginCookie.setMaxAge(60*60*24);\n    response.addCookie(loginCookie);\n    ……\n  } else {\n    ……\n  }\n  Arrays.fill(password, ' ');\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-539 Information Exposure Through Persistent Cookies, MITRE — http://cwe.mitre.org/data/definitions/539.html",
+    "Do not store unencrypted sensitive information on the client side, CERT (FIO52-J)",
+    "Expire and Max-Age Attributes, OWASP — Session Management Cheat Sheet"
+  ],
+  "tags": ["cookie", "persistent-cookie", "session", "max-age", "security_feature", "information-exposure"],
+  "question_hooks": {
+    "keywords": ["영속적인 쿠키(Persistent Cookie)", "setMaxAge", "쿠키 만료시간 최소화", "하드디스크 저장", "중요정보 미포함", "세션ID/권한등급"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

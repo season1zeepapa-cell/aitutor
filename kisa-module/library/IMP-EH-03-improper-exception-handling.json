@@ -1,0 +1,48 @@
+{
+  "chapter_code": "IMP-EH-03",
+  "title": "부적절한 예외 처리",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-754",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 제4절 §3. 부적절한 예외 처리",
+    "pages": "429-432"
+  },
+  "overview": "프로그램 수행 중에 함수의 결과값에 대한 적절한 처리 또는 예외상황에 대한 조건을 적절하게 검사하지 않을 경우, 예기치 않은 문제를 야기할 수 있는 보안약점이다.",
+  "countermeasure": "값을 반환하는 모든 함수의 결과값을 검사하여 그 값이 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에 광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "try {\n    ...\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n    //예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생 할 수 있다.\n} catch (Exception e) {\n    System.err.println(\"Exception : \" + e.getMessage());\n}",
+      "safe": "try {\n    ...\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n    // 발생할 수 있는 오류의 종류와 순서에 맞춰서 예외 처리 한다.\n} catch (MalformedURLException e) {\n    System.err.println(\"MalformedURLException : \" + e.getMessage());\n} catch (IOException e) {\n    System.err.println(\"IOException : \" + e.getMessage());\n} catch (ParseException e) {\n    System.err.println(\"ParseException : \" + e.getMessage());\n}",
+      "note": "try 블록에서 다양한 예외가 발생할 수 있음에도 광범위한 예외 클래스인 Exception 으로 처리하면 안 된다. 발생 가능한 예외를 세분화하고 발생 가능한 순서에 따라 예외를 처리해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "try {\n    InvokeMtd();\n    //예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생 할 수 있다.\n} catch (Exception e) {\n\n}",
+      "safe": "try {\n    InvokeMtd();\n    // 발생할 수 있는 오류의 종류와 순서에 맞춰서 예외 처리 한다.\n} catch (IOException e) {\n    logger.Debug(\"IOException log here\");\n} catch (SQLException e){\n    logger.Debug(\"SQLException log here\");\n}"
+    }
+  ],
+  "diagnosis": {
+    "method": "함수 또는 메소드에 대하여 반환값을 검사하고 예외를 발생시키는 경우(①) 구체적인 예외처리를 수행하는지 확인한다.",
+    "true_positive": [
+      {
+        "desc": "광범위한 Exception 으로만 예외를 잡고 있어 구체적인 예외 처리가 이루어지지 않음 → 취약 판정",
+        "code": "public void readFromFile(String fileName) {\n  try {\n    …\n    File myFile = new File(fileName);\n    FileReader fr = new FileReader(myFile);\n    …\n  } catch(Exception ex){…} //①\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-754 Improper Check for Unusual or Exceptional Conditions, MITRE — http://cwe.mitre.org/data/definitions/754.html",
+    "Do not complete abruptly from a finally block (ERR04-J), CERT — http://www.securecoding.cert.org/confluence/display/java/ERR04-J.+Do+not+complete+abruptly+from+a+finally+block",
+    "Exception Handling in Spring MVC, Spring — http://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc"
+  ],
+  "tags": ["error_handling", "exception", "구체적-예외처리", "반환값-검사", "java", "csharp"],
+  "question_hooks": {
+    "keywords": ["구체적인 예외 처리", "광범위한 예외 처리", "Exception", "반환값 검사", "예외 세분화", "발생 순서"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍을 제시하고 '광범위한 Exception 처리의 문제점' 또는 '안전한 예외 처리 방식'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

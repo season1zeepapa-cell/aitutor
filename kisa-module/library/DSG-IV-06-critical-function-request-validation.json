@@ -1,0 +1,73 @@
+{
+  "chapter_code": "DSG-IV-06",
+  "title": "웹 기반 중요 기능 수행 요청 유효성 검증",
+  "stage": "design",
+  "category": "input_validation",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제3장 분석·설계단계 §1.6 웹 기반 중요 기능 수행 요청 유효성 검증",
+    "pages": "71-75"
+  },
+  "design_item": "웹 기반 중요 기능 수행 요청 유효성 검증",
+  "description": "비밀번호 변경, 결제 등 사용자 권한 확인이 필요한 중요기능을 수행할 때 웹 서비스 요청에 대한 유효성 검증방법 설계 및 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+  "overview": "공격자는 세션탈취, XSS 등으로 자신이 의도한 행위(수정, 삭제, 등록 등)를 사이트가 신뢰하는 인증된 사용자의 권한으로 실행되게 할 수 있다(크로스 사이트 요청 위조, CSRF). 웹은 URL 기반으로 요청을 처리하는 구조이므로, 해당 요청이 특정 사용자의 정상적인 요청인지를 구분하기 위한 정책이 적용되지 않으면 스크립트나 자동화된 도구에 의해 보내지는 요청이 검증절차 없이 처리될 수 있다.",
+  "security_measures": [
+    "① 시스템으로 전송되는 모든 요청에 대해 정상적인 사용자의 유효한 요청인지, 아닌지 여부를 판별할 수 있도록 해야 한다."
+  ],
+  "design_considerations": [
+    {
+      "point": "① 모든 요청의 유효성 판별 — (ㄱ) CSRF 토큰 사용",
+      "detail": "해당 요청이 정상적인 사용자의 정상적인 절차에 의한 요청인지를 구분하기 위해 세션별로 CSRF 토큰을 생성하여 세션에 저장하고, 사용자가 작업페이지를 요청할 때마다 hidden값으로 클라이언트에게 토큰을 전달한 뒤, 해당 클라이언트의 데이터처리 요청 시 전달되는 CSRF 토큰값과 세션에 저장된 토큰값을 비교하여 유효성을 검사하도록 설계한다. CSRF 토큰값 검사는 MVC프레임워크의 컴포넌트를 이용하여 데이터 처리 요청 수신 시 자동으로 검사되도록 설계한다. Spring·Struts와 같은 MVC프레임워크의 경우 사용자의 요청을 중간에 가로채 값의 유효성을 검사할 수 있는 Interceptor 컴포넌트를 이용한다. 대응 프레임워크/라이브러리: Java(Spring Security 3.2 이상, Apache Struts, OWASP CSRFGuard), Python(Django), PHP(CSRF Protector)."
+    },
+    {
+      "point": "① (ㄴ) 사용자와 상호 처리 기능 적용",
+      "detail": "CSRF 토큰 방식도 XSS 취약점이 있는 사이트를 공격하면 무력화될 수 있으므로, CAPTCHA와 같은 사용자와 상호 처리 가능한 기법을 적용하여 위조된 요청이 차단될 수 있도록 설계한다."
+    },
+    {
+      "point": "① (ㄷ) 재인증 요구",
+      "detail": "중요기능의 경우 재인증으로 안전하게 실제 요청 여부를 확인하도록 설계한다."
+    }
+  ],
+  "diagnosis": {
+    "requirements": [
+      {
+        "requirement": "① 시스템으로 전송되는 모든 요청에 대해 정상적인 사용자의 유효한 요청인지, 아닌지 판별할 수 있도록 해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 중요기능 요청에 대한 데이터 처리 요청에 대해 요청 유효성을 판단하여 처리할 수 있도록 설계되어 있는가?",
+            "methods": [
+              { "method": "1-1 요구사항정의서에 설계항목 대책이 수립되어 있고, 아키텍처설계서에 적용계획이 수립되어 있으며, 요구사항추적표로 추적 가능 여부 확인", "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토" },
+              { "method": "1-2 데이터 처리 요청(request)에 대한 정상적인 절차에 따른 요청인지를 검증하는 기능이 안전하게 설계되어 있는지 확인 (CSRF 토큰을 사용한 요청 유효성 검증, CAPTCHA를 이용한 요청 유효성 검증)", "artifacts": "프로그램명세서, 클래스설계서, 아키텍처설계서 등 검토" },
+              { "method": "1-3 요청유효성 점검 기능이 안전하게 적용되도록 설계되어 있는지 확인 (모든 데이터 처리 요청에 적용, 각 데이터를 처리하는 기능에서 적용)", "artifacts": "아키텍처설계서의 보안요구항목 적용 계획을 검토, 개별 적용의 경우 클래스설계서·개발가이드 추가 검토" },
+              { "method": "1-4 주요기능에 대해 재인증/재인가 처리할 방법과 모듈이 설계되어 있는지 확인", "artifacts": "클래스설계서 검토" }
+            ]
+          },
+          {
+            "question": "2. 요청에 대한 유효성 검증 기능을 점검하는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              { "method": "2-1 데이터 처리를 요청하는 주요기능이 자동화된 스크립트나 프로그램을 이용한 자동 요청을 식별하여 요청이 차단되는지를 점검할 수 있는 테스트 계획이 수립되어 있는지 확인", "artifacts": "단위테스트케이스 검토" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "related_weaknesses": [
+    { "category": "입력데이터 검증 및 표현", "weakness": "크로스사이트 요청 위조" }
+  ],
+  "references": [
+    "“Cross-Site Request Forgery”, Wikipedia",
+    "2013 OWASP Top 10 - A8 Cross-Site Request Forgery(CSRF), OWASP",
+    "CSRF Prevention Cheat Sheet, OWASP",
+    "Spring MVC support for CSRF prevention, eyallupu",
+    "Cross-Site Request Forgery: Demystified, ynori7",
+    "Cross-Site Request Forgeries: Exploitation and Prevention, William Zeller and Edward W. Felten",
+    "Cross Site Request Forgery Protection, Django"
+  ],
+  "tags": ["csrf", "request_forgery", "token", "captcha", "input_validation", "design", "재인증"],
+  "question_hooks": {
+    "keywords": ["CSRF 토큰", "세션 저장", "hidden 값", "MVC Interceptor", "CAPTCHA", "재인증", "자동화 스크립트 차단", "요구사항추적표", "단위테스트케이스"],
+    "mcq_seed": "CSRF 방어 설계 보안대책(CSRF 토큰·CAPTCHA·재인증) 또는 진단방법/관련산출물 짝 중 '옳지 않은 것'을 묻는 객관형",
+    "diagnosis_seed": "요구사항정의서·아키텍처설계서·클래스설계서 산출물을 제시하고 중요기능 요청 유효성 검증(CSRF 방어) 적용 여부를 진단보고서로 작성하는 복합서술형(붙임2 8점형). 채점은 checklist 의 진단방법·관련산출물 포함 여부로 판정"
+  }
+}

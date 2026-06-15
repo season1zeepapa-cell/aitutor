@@ -1,0 +1,122 @@
+{
+  "chapter_code": "IMP-IV-04",
+  "title": "크로스사이트 스크립트 (XSS)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-79",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §4. 크로스사이트 스크립트",
+    "pages": "211-222"
+  },
+  "overview": "웹 페이지에 악의적인 스크립트를 포함시켜 사용자 측에서 실행되게 유도할 수 있는 보안약점이다. 검증되지 않은 외부 입력이 동적 웹페이지 생성에 사용될 경우, 전송된 동적 웹페이지를 열람하는 접속자의 권한으로 부적절한 스크립트가 수행되어 정보유출 등의 공격을 유발할 수 있다. XSS는 크게 Reflected XSS(서버가 외부 입력 악성 스크립트가 포함된 URL 파라미터를 응답에 반영), Stored XSS(게시판·코멘트 등으로 악성 스크립트가 DB에 저장되어 사용자에게 전달), DOM기반 XSS(서버를 거치지 않고 DOM 생성 과정에서 실행)의 3가지 공격 방법이 존재한다.",
+  "countermeasure": "외부입력값에 스크립트가 삽입되지 못하도록 문자변환 함수 또는 메서드를 사용하여 < > & \" 등을 &lt; &gt; &amp; &quot;로 치환한다. HTML태그를 허용하는 게시판에서는 허용되는 HTML 태그들을 화이트리스트로 만들어 해당 태그만 지원하도록 한다. 동작 상황에 따라 잘 만들어진 외부 XSS방지 라이브러리(NAVER Lucy-XSS-Filter, OWASP ESAPI, OWASP Java-Encoder-Project)를 적절하게 사용하는 것을 권장한다.",
+  "code_examples": [
+    {
+      "lang": "Java (Reflected/Stored/DOM)",
+      "vulnerable": "<% String keyword = request.getParameter(\"keyword\"); %>\n// 외부 입력값에 대하여 검증 없이 화면에 출력될 경우 공격스크립트가 포함된 URL을 생성할 수 있어 안전하지 않다.(Reflected XSS)\n검색어 : <%=keyword%>\n\n// 게시판 등의 입력form으로 외부값이 DB에 저장되고, 이를 검증 없이 화면에 출력될 경우 공격스크립트가 실행되어 안전하지 않다.(Stored XSS)\n검색결과 : ${m.content}\n<script type=\"text/javascript\">\n// 외부 입력값에 대하여 검증 없이 브라우저에서 실행되는 경우 서버를 거치지 않는 공격스크립트가 포함된 URL을 생성할 수 있어 안전하지 않다.(DOM 기반 XSS)\ndocument.write(\"keyword:\" + <%=keyword%>);\n</script>",
+      "safe": "<% String keyword = request.getParameter(\"keyword\"); %>\n// 방법1. 입력값에 대하여 스크립트 공격가능성이 있는 문자열을 치환한다.\nkeyword = keyword.replaceAll(\"&\", \"&amp;\");\nkeyword = keyword.replaceAll(\"<\", \"&lt;\");\nkeyword = keyword.replaceAll(\">\", \"&gt;\");\nkeyword = keyword.replaceAll(\"\\\"\", \"&quot;\");\nkeyword = keyword.replaceAll(\"'\", \"&#x27;\");\nkeyword = keyword.replaceAll(\"/\", \"&#x2F;\");\nkeyword = keyword.replaceAll(\"(\", \"&#x28;\");\nkeyword = keyword.replaceAll(\")\", \"&#x29;\");\n검색어 : <%=keyword%>\n// 방법2. JSP에서 출력값에 JSTL c:out 을 사용하여 처리한다.\n<%@ taglib prefix=\"c\" uri=\"http://java.sun.com/jsp/jstl/core\"%>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\" %>\n검색결과 : <c:out value=\"${m.content}\"/>\n<script type=\"text/javascript\">\n// 방법3. 잘 만들어진 외부 라이브러리를 활용(NAVER Lucy-XSS-Filter, OWASP ESAPI, OWASP Java-Encoder-Project)\ndocument.write(\"keyword:\" + <%=Encoder.encodeForJS(Encoder.encodeForHTML(keyword))%>);\n</script>",
+      "note": "치환 함수, JSTL c:out, 외부 XSS 방지 라이브러리 중 동작 상황에 맞는 방법을 적용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "string usrInput = Request.QueryString[\"ID\"];\n// 외부 입력 값이 검증 없이 화면에 출력 됩니다.\nstring str = \"ID : \" + usrinput;\nRequest.Write(str);",
+      "safe": "string usrInput = Request.QueryString[\"ID\"];\nstring str = \"ID : \" + usrinput;\n// AntiXss 패키지 등을 이용하여 외부 입력값을 필터링 합니다.\nvar sanitizedStr = Sanitizer.GetSafeHtmlFragment(str);\nRequest.Write(sanitizedStr);",
+      "note": "AntiXss 패키지 등을 사용하여 XSS 공격을 예방할 수 있다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "int XSS(int argc, char* argv[]) {\n     unsigned int i = 0;\n     char data[1024];\n     ...\n     // cgiFromString으로 받아온 사용자 입력값이 검증 없이 화면에 출력됩니다.\n     cgiFromString(\"user input\", data, sizeof(data));\n     fprintf(cgiOut, \"Print user input = %s<br/>\", data);\n     fprintf(cgiOut, \"</body></html>\\n\");\n     return 0;\n}",
+      "safe": "cgiFromString(\"user input\", data, sizeof(data));\n// data에 위험한 문자열을 검사하는 코드를 추가한다.\nif(strchr(p, '<')) return;\nif(strchr(p, '>')) return;\n...\nfprintf(cgiOut, \"Print user input = %s<br/>\", data);\nfprintf(cgiOut, \"</body></html>\\n\");",
+      "note": "cgi에 출력하기 전에 사용자 입력값을 검증하여야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "웹 페이지로 출력하는 변수값이 존재하는지 확인하고(①), 해당 변수값이 외부 입력값 또는 사용자 입력 데이터 폼에 의해 저장된 데이터베이스 값인지 확인한(②) 후 변수값이 적절하게 필터를 거치는지 확인한다. 적절한 필터를 거친 후 출력되는 경우나 프레임워크 등을 사용하여 자체적인 검증 기능이 존재하면 안전하지만 그 외에는 취약하다. Stored XSS는 입력 폼에 의해 DB에 저장된 데이터가 출력될 경우 취약하며, 메뉴 이름 등 사용자 입력으로 수정되지 않는 DB 값이 출력될 경우 취약하지 않다.",
+    "true_positive": [
+      {
+        "desc": "[Reflected] 20라인에서 외부 입력값 target을 저장하고 26라인에서 response output stream에 출력하면서 필터링이 없으므로 취약 판정",
+        "code": "@RequestMapping(\"/aps/common/makeCommonCode.do\")\npublic void makeCommonCode(HttpSession session, @ModelAttribute(\"apApsCommonCodeVO\")\nApApsCommonCodeVO apApsCommonCodeVO, HttpServletRequest request, HttpServletResponse\nresponse, ModelMap model) throws Exception {\nString target = apApsCommonCodeVO.getTarget();\nList resultList = apApsExcelService.selectCommonCode(apApsCommonCodeVO);\nJSONArray jsonArray = new JSONArray();\njsonArray = JSONArray.fromObject(resultList);\nresponse.setContentType(\"text/xml;charset=utf-8\");\nPrintWriter printWriter = response.getWriter();\nprintWriter.print(target);\nprintWriter.print(jsonArray.toString());\nprintWriter.flush();\nprintWriter.close();\n}"
+      },
+      {
+        "desc": "[Reflected] JSTL <c:out>에서 escapeXml을 false로 설정하여 스크립트가 실행될 수 있어 취약 판정",
+        "code": "<%@ taglib prefix=\"c\" url=\"http://java.sun.com/jsp/jstl/core\"%>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\"%>\n...\n<c:out value=\"${param.name}\" escapeXml=\"false\" />"
+      },
+      {
+        "desc": "[Reflected] <script> 문장을 공백으로 치환했으나 <sc<script>ript> 등으로 우회 공격 시 스크립트가 실행되어 취약 판정",
+        "code": "<%\nString param = request.getParameter(\"param\");\nif ( param != null ) {\n       param = param.replaceAll(\"<script>\",\"\");\n       param = param.replaceAll(\"</script>\",\"\");\n}\n%>\n...\n<p> 제목 : <%=title%> </p>"
+      },
+      {
+        "desc": "[Reflected] 2라인 request.getQueryString()를 입력받아 6라인에서 URL을 구성하여 출력하여 취약 판정",
+        "code": "<%\n    String query = request.getQueryString();\n    String nextUrl = request.getRequestURL().toString() + query;\n%>\n...\n<input type=\"hidden\" name=\"nextUrl\" value= \"<%=nextUrl%>\" />"
+      },
+      {
+        "desc": "[Reflected] 외부 입력값이 html 주석으로 되어있어 수행되지 않으나, 공격 시 주석을 닫는 부분과 함께 공격 스크립트(--><script>...</script>)를 삽입하면 취약 판정",
+        "code": "<%\nString param = request.getParameter(\"param\");\n%>\n<!-- <%=param%> -->"
+      },
+      {
+        "desc": "[DOM] request.getParameter()의 외부 입력(name)이 document.write() 인자값 생성에 그대로 사용되어 취약 판정",
+        "code": "<%\n// 외부로 부터 입력을 받는다.\nString name = request.getParameter(\"name\");\n%>\n<SCRIPT language=\"javascript\">\n// 외부의 입력을 그대로 출력한다.\ndocument.write(\"name:\" + <%=name%> );"
+      },
+      {
+        "desc": "[DOM] 외부 입력(name)이 필터링되고 있으나 ;) alert(document.cookie);<%-- 를 파라미터에 입력하면 악성 스크립트가 실행되어 취약 판정. ; % - 등도 필터링 문자에 추가해야 한다",
+        "code": "<%\nString name = request.getParameter(\"name\");\nname = name.replaceAll(\"<\",\"&lt;\");\nname = name.replaceAll(\">\",\"&gt;\");\nname = name.replaceAll(\"&\",\"&amp;\");\nname = name.replaceAll(\"\\\"\",\"&quot;\");\nname = name.replaceAll(\"'\", \"&#x27;\");\nname = name.replaceAll(\"/\", \"&#x2F;\");\n%>\n<SCRIPT language=\"javascript\">\ndocument.write(\"name:\" + <%=name%> );"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "[Reflected] 외부 입력값에 스크립트 공격을 시도하더라도 URL로 포함되어 이동(sendRedirect)하므로 공격이 수행되지 않아 안전(오탐 주의)",
+        "code": "<%=respose.sendRedirect(requst.getParameter(\"url\"))%>"
+      },
+      {
+        "desc": "[Reflected] 외부 입력값 공격이 URL로 포함되어 이동(location.href)하므로 공격이 수행되지 않아 안전(오탐 주의)",
+        "code": "<script language=\"javascript\">\nlocation.href('<%=request.getParameter(\"url\")%>');"
+      },
+      {
+        "desc": "[Reflected] JSTL <c:out>으로 외부 값을 출력하여 안전(오탐 주의)",
+        "code": "<%@ taglib prefix=\"c\" url=\"http://java.sun.com/jsp/jstl/core\"%>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\"%>\n...\n<c:out value=\"${param.name}\"/>"
+      },
+      {
+        "desc": "[Reflected] JSTL의 escapeXml(fn:escapeXml)을 이용하여 외부 값을 출력하여 안전(오탐 주의)",
+        "code": "<%@ taglib prefix=\"c\" url=\"http://java.sun.com/jsp/jstl/core\"%>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\"%>\n...\n${fn:escapeXml(param.name)}"
+      },
+      {
+        "desc": "출력값이 문자형이 아닌 경우(Integer.parseInt)에는 안전(오탐 주의)",
+        "code": "int pageNm = Integer.parseInt(request.getParameter(\"pageNm\"));\n<input type=text size=10 name=\"pageNm\" value='<%=pageNm%>' />"
+      },
+      {
+        "desc": "substring을 이용하여 글자 수가 짧은 글자 수 이하로 제한된 경우에는 안전(오탐 주의)",
+        "code": "<%\nString date = request.getParameter(\"date\");\nString year = date.substring(0, 4);\nString month = date.substring(4, 6);\nString day = date.substring(6, 8);\nout.println(year + \"년\" + month + \"월\" + day + \"일\" );\n%>"
+      },
+      {
+        "desc": "출력값이 프로그램 내부에서 정해진 경우에는 안전(오탐 주의)",
+        "code": "g1 = new WKTReader().read(geometryParam);\np1 = (Polygon) g1.buffer(Double.parseDouble(bufferSizeParam));\nresponse.setContentType(\"text/plain;charset=EUC-KR\");\nresponse.setHeader(\"Cache-Control\", \"no-cache\");\nresponse.getWriter().write(p1.toText());"
+      },
+      {
+        "desc": "웹페이지가 아닌 System 콘솔에 출력하는 경우에는 안전(오탐 주의)",
+        "code": "String exam_tgt_se = request.getParameter(\"exam_tgt_se\");\nString mw_take_no = request.getParameter(\"mw_take_no\");\nString apv_perm_reg_mgt_no = request.getParameter(\"apv_perm_reg_mgt_no\");\nSystem.out.println(\"exam_tgt_se : \" + exam_tgt_se);\nSystem.out.println(\"mw_take_no : \" + mw_take_no);\nSystem.out.println(\"apv_perm_reg_mgt_no : \" + apv_perm_reg_mgt_no);"
+      },
+      {
+        "desc": "사용자 입력값이 아닌 경우(request.getRequestURL())에는 안전(오탐 주의)",
+        "code": "var CompPath = \"%XPLATFORM%\\\\\" + sKey + \"\\\\component\";\nXLauncher.onlyone = \"false\";\nvar iconStr = \"<%= request.getRequestURL() %>\";"
+      },
+      {
+        "desc": "[Stored] 메뉴 이름 등과 같이 사용자 입력으로 수정되지 않는 DB 값이 출력될 경우 안전(오탐 주의). 입력 폼으로 저장된 데이터(게시판 제목·내용·사용자 정보)가 출력되면 취약",
+        "code": "<%\n...\nrs = pstmt.executeQuery(query);\nwhile(rs.next()){\nboard_contents = rs.getString(\"board_contents\");\n... }\n%>\n...\n<p> 제목 : <%=board_contents%> </p>"
+      }
+    ]
+  },
+  "references": [
+    "CWE-79 Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting'), MITRE — http://cwe.mitre.org/data/definitions/79.html",
+    "Properly encode or escape output (IDS51-J), CERT",
+    "XSS (Cross Site Scripting) Prevention Cheat Sheet, OWASP — http://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet",
+    "DOM based XSS Prevention Cheat Sheet, OWASP — https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet",
+    "Understanding Malicious Content Mitigation for Web Developers — http://www.cert.org/tech_tips/malicious_code_mitigation.html"
+  ],
+  "tags": ["xss", "cross-site-scripting", "reflected", "stored", "dom-based", "input_validation", "output-encoding"],
+  "question_hooks": {
+    "keywords": ["Reflected/Stored/DOM XSS", "문자치환(< > & \" → &lt; &gt; &amp; &quot;)", "JSTL c:out", "escapeXml", "외부 XSS 라이브러리(Lucy/ESAPI/Java-Encoder)", "화이트리스트 태그", "<script> 우회(중첩)"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "chapter_code": "IMP-IV-13",
+  "title": "HTTP 응답분할 (HTTP Response Splitting)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-113",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §13. HTTP 응답분할",
+    "pages": "284-289"
+  },
+  "overview": "HTTP 요청에 들어 있는 파라미터(Parameter)가 HTTP 응답헤더에 포함되어 사용자에게 다시 전달될 때, 입력값에 CR(Carriage Return)이나 LF(Line Feed)와 같은 개행문자가 존재하면 HTTP 응답이 2개 이상으로 분리될 수 있다. 이 경우 공격자는 개행문자를 이용하여 첫 번째 응답을 종료시키고, 두 번째 응답에 악의적인 코드를 주입하여 XSS 및 캐시 훼손(Cache Poisoning) 공격 등을 수행할 수 있다.",
+  "countermeasure": "요청 파라미터의 값을 HTTP 응답헤더(예를 들어, Set-Cookie 등)에 포함시킬 경우 CR, LF와 같은 개행문자를 제거한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "//외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 쿠키는 Set-Cookie 응답헤더로 전달되므로 개행문자열 포함 여부 검증이 필요\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\nresponse.setContentType(\"text/html\");",
+      "safe": "String lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 외부 입력값에서 개행문자(\\r\\n)를 제거한 후 쿠키의 값으로 설정\nlastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\");\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);",
+      "note": "공격자가 'Wiley Hacker\\r\\nHTTP/1.1 200 OK\\r\\n'를 lastLogin 값으로 설정하면 응답이 분리되어 전달되며 분리된 응답 본문 내용을 마음대로 수정할 수 있다. 외부 입력값의 null 여부를 체크하고 개행문자를 제거한 후 응답헤더 값으로 사용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "//외부 입력값을 검증 없이 사용하는 것은 안전하지 않다.\nstring usrInput = Request.QueryString[\"ID\"];\nResponse.AddHeader(\"foo\", \"bar\" + usrInput);",
+      "safe": "string usrInput = Request.QueryString[\"ID\"];\n//개행문자를 제거 한 이후에 사용해야 합니다.\nstring validatedInput = usrInput.Replace(\"\\n\", \"\").Replace(\"\\r\",\"\");\nResponse.AddHeader(\"foo\", \"bar\" + validatedInput);",
+      "note": "외부 입력값으로 반환되는 쿠키값(또는 헤더값)을 설정할 때 개행문자를 모두 제거한 이후에 사용해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "Response 헤더에 변수가 사용되는 것을 확인하고(①), 변수가 외부 입력값인지 확인한 후(②), 개행문자(\\r, \\n) 제거를 위한 필터링 또는 검증절차가 있는지 확인한다. 외부 입력값에 대한 필터링 절차가 없다면 취약하다.",
+    "true_positive": [
+      {
+        "desc": "5번 라인에서 request 파라미터에서 filename 값을 가져오고 7번 라인에서 filename 값을 Content-Disposition 헤더에 설정함. 개행문자 필터링이 없어 취약 판정",
+        "code": "public voidservice(HttpServletRequest request, HttpServletResponse res) throws ServletException, IOException {\n  String contextRealPath = request.getSession().getServletContext().getRealPath(\"/\");\n  String savePath = contextRealPath + \"upfolder\"\n  res.setContentType(\"utf-8\");\n  String filename = request.getParameter(\"file\");\n  res.setContentType(\"application/octet;charset=utf-8\");\n  res.setHeader(\"Content-Disposition\", \"attachment;filename=\" + filename);"
+      },
+      {
+        "desc": "2번 라인에서 request의 last_login 파라미터 값을 가져오고 7번 라인에서 lastLogin 값을 쿠키에 설정함. 개행문자 필터링이 없어 취약 판정",
+        "code": "......\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 쿠키는 Set-Cookie 응답헤더로 전달되므로 개행문자열 포함 여부 검증이 필요\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\nresponse.setContentType(\"text/html\");\n......"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "2번 라인에서 가져온 last_login 값을 6번 라인에서 개행문자를 필터링한 후 7번 라인에서 쿠키에 설정함 → 취약하지 않다고 판정",
+        "code": "String lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 외부 입력값에서 개행문자를 제거한 후 쿠키의 값으로 설정\nlastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\");\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\nresponse.setContentType(\"text/html\");\n......"
+      },
+      {
+        "desc": "HttpRequest.getContextPath() 함수는 내장함수로 context path를 리턴하므로 HTTP 응답 분할이 이루어지지 않음 → 취약하지 않음",
+        "code": "response.sendRedirect(request.getContextPath() + \"/login.do\");"
+      },
+      {
+        "desc": "Long, Integer 등 Numeric 값은 문자열로 치환했을 때 \\r\\n 등의 문자열이 포함될 수 없으므로 취약하지 않음",
+        "code": "response.setHeader(\"Content-Length\", Long.toString(file.length()));"
+      }
+    ]
+  },
+  "references": [
+    "CWE-113 HTTP Response Splitting, MITRE — http://cwe.mitre.org/data/definitions/113.html",
+    "HTTP Response Splitting, OWASP — https://www.owasp.org/index.php/HTTP_Response_Splitting"
+  ],
+  "tags": ["http-response-splitting", "crlf", "header-injection", "input_validation", "cache-poisoning"],
+  "question_hooks": {
+    "keywords": ["개행문자(CR/LF) 제거", "응답헤더 분할", "Set-Cookie", "replaceAll(\"[\\r\\n]\",\"\")", "캐시 훼손(Cache Poisoning)", "getContextPath() 내장함수", "Numeric 값 안전"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

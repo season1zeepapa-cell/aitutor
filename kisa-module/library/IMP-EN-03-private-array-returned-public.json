@@ -1,0 +1,62 @@
+{
+  "chapter_code": "IMP-EN-03",
+  "title": "Public 메소드부터 반환된 Private 배열",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-495",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 제6절 캡슐화 §3. Public 메소드부터 반환된 Private 배열",
+    "pages": "481-485"
+  },
+  "overview": "private로 선언된 배열을 public으로 선언된 메소드로 반환(return)하면, 그 배열의 레퍼런스가 외부에 공개되어 외부에서 배열수정과 객체 속성변경이 가능해지는 보안약점이다.",
+  "countermeasure": "private로 선언된 배열을 public으로 선언된 메소드로 반환하지 않도록 한다. private 배열에 대한 복사본을 반환하도록 하고 배열의 원소에 대해서는 clone() 메소드로 복사된 원소를 저장하도록 하여 private 선언된 배열과 객체속성이 의도하지 않게 수정되는 것을 방지한다. 만약 배열의 원소가 String 타입 등과 같이 변경이 되지 않는 경우에는 private 배열의 복사본을 만들고 이를 반환하도록 작성한다.",
+  "code_examples": [
+    {
+      "lang": "Java (배열 원소가 일반객체)",
+      "vulnerable": "// private 인 배열을 public인 메소드가 return한다.\nprivate Color[] colors;\npublic Color[] getUserColors(Color[] userColors) { return colors; }",
+      "safe": "private Color[] colors;\n//메소드를 private으로 하거나, 복제본 반환, 수정하는 public 메소드를 별도로 만든다.\npublic void onCreate(Bundle savedInstanceState) {\n  super.onCreate(savedInstanceState);\n  Color[] newColors = getUserColors();\n  ......\n}\npublic Color[] getUserColors(Color[] userColors) {\n  //배열을 복사한다.\n  Color[] colors = new Color[userColors.length];\n  for (int i = 0; i < colors.length; i++)\n    //clone()메소드를 이용하여 배열의 원소도 복사한다.\n    colors[i] = this.colors[i].clone();\n  return colors;\n}",
+      "note": "원소가 일반 객체이면 배열뿐 아니라 원소도 clone() 으로 복사해야 한다."
+    },
+    {
+      "lang": "Java (배열 원소가 String 등 불변 타입)",
+      "vulnerable": "// private 인 배열을 public인 메소드가 return한다.\nprivate String[] colors;\npublic String[] getColors() { return colors; }",
+      "safe": "private String[] colors;\n// 메소드를 private으로 하거나, 복제본 반환, 수정하는 public 메소드를 별도로 만든다.\npublic void onCreate(Bundle savedInstanceState) {\n  super.onCreate(savedInstanceState);\n  String[] newColors = getColors();\n  ......\n}\npublic String[] getColors() {\n  String[] ret = null;\n  if ( this.colors != null ) {\n    ret = new String[colors.length];\n    for (int i = 0; i < colors.length; i++) { ret[i] = this.colors[i]; }\n  }\n  return ret;\n}",
+      "note": "원소가 불변 타입(String 등)이면 배열의 복사본만 만들어 반환해도 안전하다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// private 인 collection을 public인 메소드가 return한다.\nprivate List<Color> colors;\npublic List<Color> getUserColors() { return colors; }",
+      "safe": "private List<Color> colors;\n//메소드를 private으로 하거나, 복제본 반환, 수정하는 public 메소드를 별도로 만든다.\npublic List<Color> getUserColors() {\n  //배열을 복사한다.\n  List<ICloneable> newList = new List<ICloneable>(colors.Count);\n  //Clone()메소드를 이용하여 collection의 원소도 복사한다.\n  colors.ForEach((item) =>\n  {\n    newList.Add((ICloneable)item.Clone());\n  });\n  return newList;\n}"
+    }
+  ],
+  "diagnosis": {
+    "method": "private 배열이 선언되어 있는지 확인하고(①), 해당 배열이 public 메소드에서 반환될 경우 취약하다고 판단한다(②). 이때 선언된 private 배열의 원소가 일반 객체일 경우 각 원소별로 객체를 생성하고 객체 내부의 값을 복사하는지 확인한다. 함수 안에서 멤버필드의 배열을 리턴하면 해당 배열을 리턴 받아 그 값을 바꿀 수 있으며, private의 의도에 벗어나므로 취약하다.",
+    "true_positive": [
+      {
+        "desc": "private String[] checkb 를 public getChkb() 가 this.checkb 를 그대로 반환 → 취약 판정",
+        "code": "public class AddManager extends BaseManager {\n  private String[] checkb;\n  private String[] prsn_info_sn;\n  private String login_dept_id;\n  private String login_user_id;\n  private String[] prsn_group_se;\n  private String[] isInterested;\n  private String act;\n  public String[] getChkb() {\n    return this.checkb;\n  }\n}"
+      },
+      {
+        "desc": "retColors 배열을 새로 생성하고 for문으로 복사했으나 원소가 일반 객체(Color)라 원본(myColors)의 주소값만 복사됨 → 취약 판정",
+        "code": "// private 인 배열을 public인 메소드가 return한다\nprivate Color[] myColors;\n…\npublic Color[] getColors() {\n  Color[] retColors = new Color[myColors.length];\n  for(int i =0; i < myColors.length; i++) {\n    retColors[i] = this.myColors[i]; // 일반 객체일 경우 주소값만 복사된다.\n  }\n  return retColors;\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "private도 아니고 final 이므로 외부에서 재할당/원소 교체로 인한 의도치 않은 수정 위험이 낮음 → 취약하지 않음(오탐 주의)",
+        "code": "public static final String[] XML_TAG = { \"<?xml version=\\\"1.0\\\" encoding=\\\"\", \"\\\"?>\" }"
+      }
+    ]
+  },
+  "references": [
+    "CWE-495 Private Array-Typed Field Returned From A Public Method, MITRE — http://cwe.mitre.org/data/definitions/495.html",
+    "Do not return references to private mutable class members (OBJ05-J), CERT"
+  ],
+  "tags": ["encapsulation", "private-array", "return", "clone", "reference-leak", "cwe-495"],
+  "question_hooks": {
+    "keywords": ["private 배열", "public 메소드 반환", "레퍼런스 공개", "복사본 반환", "clone()", "주소값만 복사", "일반객체 vs 불변타입"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "chapter_code": "IMP-SF-06",
+  "title": "하드코드된 중요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-259",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §6. 하드코드된 중요정보",
+    "pages": "350-359"
+  },
+  "overview": "프로그램 코드 내부에 하드코드된 비밀번호 또는 암호화키를 포함하여 내부 인증에 사용하거나 암호화를 수행하면 중요정보(관리자 정보, 암호화된 정보 등)가 유출될 수 있는 보안약점이다.",
+  "countermeasure": "비밀번호는 암호화하여 별도의 파일에 저장하여 사용한다. 또한 중요정보를 암호화하면, 상수가 아닌 암호화 키를 사용하도록 하며 소스코드 내부에 상수형태의 암호화 키를 저장해서 사용하지 않도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java (하드코드된 비밀번호)",
+      "vulnerable": "public class MemberDAO {\n   private static final String DRIVER = \"oracle.jdbc.driver.OracleDriver\";\n   private static final String URL = \"jdbc:oracle:thin:@192.168.0.3:1521:ORCL\";\n   private static final String USER = \"SCOTT\"; // DB ID;\n   //DB 비밀번호가 소스코드에 평문으로 저장되어 있다.\n   private static final String PASS = \"SCOTT\"; // DB PW;\n......\n   public Connection getConn() {\n     Connection con = null;\n     try {\n       Class.forName(DRIVER);\n       con = DriverManager.getConnection(URL, USER, PASS);\n     ……",
+      "safe": "public class MemberDAO {\n   private static final String DRIVER = \"oracle.jdbc.driver.OracleDriver\";\n   private static final String URL = \"jdbc:oracle:thin:@192.168.0.3:1521:ORCL\";\n   private static final String USER = \"SCOTT\"; // DB ID\n……\n   public Connection getConn() {\n     Connection con = null;\n     try {\n        Class.forName(DRIVER);\n        //암호화된 비밀번호를 프로퍼티에서 읽어들여 복호화해서 사용해야한다.\n        String PASS = props.getProperty(\"EncryptedPswd\");\n        byte[] decryptedPswd = cipher.doFinal(PASS.getBytes());\n        PASS = new String(decryptedPswd);\n        con = DriverManager.getConnection(URL, USER, PASS);\n        ……",
+      "note": "DB 연결 비밀번호를 소스코드에 상수로 하드코딩하면 접속정보가 노출된다. 암호화하여 별도 파일에 저장하고 복호화하여 사용한다."
+    },
+    {
+      "lang": "C# (하드코드된 비밀번호)",
+      "vulnerable": "string UserName = \"username\";\nstring Password = \"password\";\n// 평문으로 저장된 비밀번호를 이용하여 NetworkCredential 생성\nNetworkCredential myCred = new NetworkCredential(UserName, Password);",
+      "safe": "string UserName = \"username\";\nstring Password = \"password\";\nSecureString SecurelyStoredPassword = new SecureString();\nforeach (char c in Password)\n{\n    SecurelyStoredPassword.AppendChar(c);\n}\n// 암호화된 비밀번호를 사용하여 NetworkCredential 생성\n    NetworkCredential secure_myCred = new NetworkCredential(UserName, SecurelyStoredPassword);",
+      "note": "Credential 객체 생성용 비밀번호를 상수로 하드코딩하면 접속정보가 노출된다. 암호화된 비밀번호로 Credential 객체를 생성한다."
+    },
+    {
+      "lang": "C (하드코드된 비밀번호)",
+      "vulnerable": "int dbaccess(char *server, char *user){\nSQLHENV henv;\nSQLHDBC hdbc;\nchar *password = \"password\";\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\n// 하드코드된 비밀번호를 사용\nSQLConnect(hdbc,(SQLCHAR*)server,strlen(server),user,strlen(user), password, strlen(password));\nreturn 0;",
+      "safe": "int dbaccess(char *server, char *user, char *passwd){\nSQLHENV henv;\nSQLHDBC hdbc;\n// 비밀번호를 외부에서 불러와서 사용\nchar *password = getenv(\"password\");\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\nSQLConnect(hdbc, (SQLCHAR*) server, strlen(server), user, strlen(user), password, strlen(password));\nSQLFreeHandle(SQL_HANDLE_DBC, hdbc);\nSQLFreeHandle(SQL_HANDLE_ENV, henv);\nreturn 0;\n}",
+      "note": "하드코드된 비밀번호는 코드 접근 권한자가 알 수 있다. 환경 변수 등 외부에서 불러와 코드 상에서 보이지 않게 사용한다."
+    },
+    {
+      "lang": "Java (하드코드된 암호화 키)",
+      "vulnerable": "import javax.crypto.KeyGenerator;\nimport javax.crypto.spec.SecretKeySpec;\nimport javax.crypto.Cipher;\n    ……\npublic String encriptString(String usr) {\n//암호화 키를 소스코드 내부에 사용하는 것은 안전하지 않다.\n    String key = \"22df3023sf~2;asn!@#/>as\";\n    if (key != null) {\n       byte[] bToEncrypt = usr.getBytes(\"UTF-8\");\n       SecretKeySpec sKeySpec = new SecretKeySpec(key.getBytes(), \"AES\");",
+      "safe": "import javax.crypto.KeyGenerator;\nimport javax.crypto.spec.SecretKeySpec;\nimport javax.crypto.Cipher;\n……\npublic String encriptString(String usr) {\n//암호화 키는 외부 파일에서 암호화 된 형태로 저장하고, 사용시 복호화 한다.\n    String key = getPassword(\"./password.ini\");\n    key = decrypt(key);\n    if (key != null) {\n       byte[] bToEncrypt = usr.getBytes(\"UTF-8\");\n       SecretKeySpec sKeySpec = new SecretKeySpec(key.getBytes(), \"AES\");",
+      "note": "소스코드 내부에 암호화 키를 상수로 하드코딩하면 공격자에게 키가 노출된다. 외부 공간(파일)에 암호화하여 보관하고 복호화하여 사용한다."
+    },
+    {
+      "lang": "C# (하드코드된 암호화 키)",
+      "vulnerable": "//암호화 키를 소스코드 내부에 사용하는 것은 안전하지 않다.\nbyte[] key = new byte[] { 0x43, 0x87, 0x23, 0x72 };\nbyte[] iv = new byte[] { 0x43, 0x87, 0x23, 0x72 };\nFileStream fStream = File.Open(fileName, FileMode.OpenOrCreate);\nCryptoStream cStream = new CryptoStream(fStream,\n    new TripleDESCryptoServiceProvider().CreateEncryptor(key, iv),\n    CryptoStreamMode.Write);",
+      "safe": "//암호화 키는 외부 파일에서 암호화 된 형태로 저장하고, 사용시 복호화 한다.\nbyte[] key = GetKey(./password.ini);\nbyte[] iv = GetIV(./password.ini);\nFileStream fStream = File.Open(fileName, FileMode.OpenOrCreate);\nCryptoStream cStream = new CryptoStream(fStream, new\n    TripleDESCryptoServiceProvider().CreateEncryptor(Decrypt(key),\n   Decrypt(iv)),\n    CryptoStreamMode.Write);",
+      "note": "암호화 키를 상수로 하드코딩하면 노출된다. 외부 파일에 암호화하여 보관하고 사용 시 복호화한다."
+    },
+    {
+      "lang": "C (하드코드된 암호화 키/솔트)",
+      "vulnerable": "typedef int SQLSMALLINT;\nint dbaccess(char *user, char *passwd){\nchar *server = \"DBserver\";\nchar *cpasswd;\nSQLHENV henv;\nSQLHDBC hdbc;\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\n//암호화된 비밀번호와 솔트를 사용합니다. 코드에 접근 권한이 있는 사용자는 해당 비밀번호와 솔트를 획득할 수 있습니다.\ncpasswd = crypt(passwd, \"salt\");\nif (strcmp(cpasswd, \"68af404b513073582b6c63e6b\") != 0) {\n// USE_OF_HARDCODED_CRYPTOGRAPHIC_KEY\nprintf(\"Incorrect password\\n\");\nreturn -1;\n}\n}",
+      "safe": "extern char *salt;\ntypedef int SQLSMALLINT;\nint dbaccess(char *user, char *passwd){\nchar *server = \"DBserver\";\nchar *cpasswd;\n// 외부에 있는 암호화된 비밀번호와 솔트를 불러옵니다.\nchar* storedpasswd = getenv(\"password\");\nchar* salt = getenv(\"salt\");\nSQLHENV henv;\nSQLHDBC hdbc;\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\n// 외부에서 불러온 솔트 값을 사용해 비빌번호를 암호화합니다.\ncpasswd = crypt(passwd, salt);\n// 암호화된 비밀번호와 외부에서 불러온 값을 비교합니다.\nif (strcmp(cpasswd, storedpasswd) != 0){\nprintf(\"Incorrect password\\n\");\nSQLFreeHandle(SQL_HANDLE_DBC, &hdbc);\nSQLFreeHandle(SQL_HANDLE_ENV, &henv);\nreturn -1;\n}\n}",
+      "note": "하드코드된 솔트·암호값을 사용하면 코드 접근 권한자가 획득할 수 있다. 암호화되어 저장된 암호와 솔트를 외부에서 불러와 비교한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "[하드코드된 비밀번호] 사용자·관리자 로그인페이지(식별·인증)를 요청하는 모듈·함수를 확인하여 비밀번호가 소스코드 안에 직접 코딩되어 있는지 확인하고, 내·외부 서버(업무서버, DB 등) 접속을 관리하는 모듈·함수를 확인하여 서버 접속 비밀번호가 소스코드 안에 직접 코딩되어 있는지 확인한다. 비밀번호를 별도 파일에 저장하지 않고 소스코드 안에 하드코딩되어 있으면 취약하다고 판정한다. [하드코드된 암호화 키] DB접속 등 비밀번호 사용이 필요한 로직을 확인하고(①), 사용된 비밀번호의 암호화 여부를 확인한다(②). 암호화된 비밀번호가 소스 내에 존재하는지 여부를 확인한다(③). 소스코드 내에 암호화된 비밀번호를 저장하는 경우 취약하다. 암호화에 사용되는 암호화 키를 소스에 하드코딩해서 사용하는 경우 취약하다.",
+    "true_positive": [
+      {
+        "desc": "암호화에 사용되는 private key를 상수로 정의하고 이를 사용해 보안키를 생성하여 암호화된 password를 복호화 → 암호화 키 하드코딩 → 취약 판정",
+        "code": "public class U321 {\npublic void foo(String url, String usr) {\n    try {\n        String encryptedPwd = getpassword();\n        // private key를 상수로 정의\n    byte[] privateKey = { '6', '8', 'a', 'f', '4', '0', '4', 'b', '5', '1', '3', '0', '7' };\n    javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(\"RSA\");\n    // 상수 key를 사용하여 보안키 생성\n    javax.crypto.SecretKey myDesKey = new javax.crypto.spec.SecretKeySpec(privateKey,\n\"DES\");\ncipher.init(javax.crypto.Cipher.DECRYPT_MODE, myDesKey);\n// 암호화된 password를 복호화\nbyte[] plainTextPwdBytes = cipher.doFinal(encryptedPwd.getBytes());\n// DB 연결\njava.sql.DriverManager.getConnection(url, usr, new String(plainTextPwdBytes));\n} catch (SQLException e) {\n…"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "암호화를 위한 암호화 키가 아닌 알고리즘명(\"DESede\")을 지정하는 경우 → 취약하지 않음(오탐 주의)",
+        "code": "// 키를 설정한다.\nsKey = new SecretKeySpec( key, \"DESede\" );"
+      }
+    ]
+  },
+  "references": [
+    "CWE-259 Use of Hard-coded Password, MITRE — http://cwe.mitre.org/data/definitions/259.html",
+    "Be careful while handling sensitive data, such as passwords, in program code (MSC18-C), CERT",
+    "Password Management: Hardcoded Password, OWASP — https://www.owasp.org/index.php/Password_Management:_Hardcoded_Password",
+    "CWE-321 Use of Hard-coded Cryptographic Key, MITRE — http://cwe.mitre.org/data/definitions/321.html",
+    "Use of hard-coded password, OWASP — https://www.owasp.org/index.php/Use_of_hard-coded_password"
+  ],
+  "tags": ["security_feature", "hardcoded-password", "hardcoded-key", "credential", "encryption-key", "secret-management"],
+  "question_hooks": {
+    "keywords": ["하드코드된 비밀번호", "하드코드된 암호화 키", "상수 형태", "별도 파일 저장", "복호화", "환경 변수(getenv)", "SecureString", "프로퍼티 읽기", "알고리즘명 vs 키"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '하드코드된 중요정보 보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

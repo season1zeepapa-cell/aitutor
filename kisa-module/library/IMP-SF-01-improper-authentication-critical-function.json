@@ -1,0 +1,52 @@
+{
+  "chapter_code": "IMP-SF-01",
+  "title": "적절한 인증 없는 중요기능 허용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-306",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 §1. 적절한 인증 없는 중요기능 허용",
+    "pages": "314-318"
+  },
+  "overview": "적절한 인증과정이 없이 중요정보(계좌이체 정보, 개인정보 등)를 열람(또는 변경)할 때 발생하는 보안약점이다.",
+  "countermeasure": "클라이언트의 보안검사를 우회하여 서버에 접근하지 못하도록 설계하고, 중요한 정보가 있는 페이지는 재인증을 적용(은행 계좌이체 등)한다. 또한 안전하다고 검증된 라이브러리나 프레임워크(OpenSSL이나 ESAPI의 보안기능 등)를 사용하는 것이 중요하다.",
+  "code_examples": [
+    {
+      "lang": "Java (Spring MVC)",
+      "vulnerable": "@RequestMapping(value = \"/modify.do\", method = RequestMethod.POST)\npublic ModelAndView memberModifyProcess(@ModelAttribute(\"MemberModel\")\n    MemberModel memberModel, BindingResult result, HttpServletRequest request,\n    HttpSession session) {\n  ModelAndView mav = new ModelAndView();\n  //1. 로그인한 사용자를 불러온다.\n  String userId = (String) session.getAttribute(\"userId\");\n  String passwd = request.getParameter(\"oldUserPw\");\n  ...\n  //2. 실제 수정하는 사용자와 일치 여부를 확인하지 않고, 회원정보를 수정하여 안전하지 않다.\n  if (service.modifyMember(memberModel)) {\n    mav.setViewName(\"redirect:/board/list.do\");\n    session.setAttribute(\"userName\", memberModel.getUserName());\n    return mav;\n  } else {\n    mav.addObject(\"errCode\", 2);\n    mav.setViewName(\"/board/member_modify\");\n    return mav;\n  }\n}",
+      "safe": "@RequestMapping(value = \"/modify.do\", method = RequestMethod.POST)\npublic ModelAndView memberModifyProcess(@ModelAttribute(\"MemberModel\")\n    MemberModel memberModel, BindingResult result, HttpServletRequest request,\n    HttpSession session) {\n  ModelAndView mav = new ModelAndView();\n  //1. 로그인한 사용자를 불러온다.\n  String userId = (String) session.getAttribute(\"userId\");\n  String passwd = request.getParameter(\"oldUserPw\");\n  //2. 회원정보를 실제 수정하는 사용자와 로그인 사용자와 동일한지 확인한다.\n  String requestUser = memberModel.getUserId();\n  if (userId != null && requestUser != null && !userId.equals(requestUser)) {\n    mav.addObject(\"errCode\", 1);\n    mav.addObject(\"member\", memberModel);\n    mav.setViewName(\"/board/member_modify\");\n    return mav;\n  }\n  ...\n  //3. 동일한 경우에만 회원정보를 수정해야 안전하다.\n  if (service.modifyMember(memberModel)) {\n    ...\n  }\n}",
+      "note": "회원정보 수정 시 수정을 요청한 사용자와 로그인한 사용자의 일치 여부를 확인한 후 처리해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "protected void LoginButton_Click(object sender, EventArgs e) {\n  // 사용자의 자격인증 과정이 없이 로그인 기능을 수행합니다.\n  FormsAuthentication.RedirectFromLoginPage(UserName.Text, RememberMe.Checked);\n}",
+      "safe": "protected void LoginButton_Click(object sender, EventArgs e) {\n  // 사용자의 자격인증 과정을 수행합니다.\n  if(Membership.ValidateUser(UserName.Text, Password.Text)) {\n    FormsAuthentication.RedirectFromLoginPage(UserName.Text, RememberMe.Checked);\n  }\n}",
+      "note": "사용자의 자격인증 후 로그인 기능을 수행해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "해당 취약점은 보안특성 중 개인정보와 관련된 취약점으로 정적도구를 사용하여 판단하기 쉽지 않으므로 진단원이 직접 코드를 보며 해당 정보가 중요정보인지 파악해야 한다. 비밀번호, 개인정보(주민등록번호, 여권번호, 외국인 식별번호 등), 금융정보(카드번호, 계좌정보 등), 게시글 수정·삭제 등을 포함하여 접근 및 사용이 제한되어야 하는 중요정보 및 기능을 정의하였는지 확인하고 사용여부를 확인한다(①). 중요정보를 사용하는 경우 접근·변경 시 적절한 인증 여부를 확인하여 허용하는 기능이 구현되었는지 확인한다(②). 적절한 인증여부를 확인하는 경우 안전하다고 판단하고, 인증여부를 확인하지 않는 경우 취약하다고 판단한다.",
+    "true_positive": [
+      {
+        "desc": "재인증을 거치지 않고 계좌이체를 하고 있으므로 취약하다고 판정한다.",
+        "code": "public void sendBankAccount(String accountNumber,double balance) {\n  ...\n  BankAccount account = new BankAccount();\n  account.setAccountNumber(accountNumber);\n  account.setToPerson(toPerson);\n  account.setBalance(balance);\n  AccountManager.send(account);\n  ...\n}"
+      },
+      {
+        "desc": "클라이언트 측에서 인증을 수행하고 있어 우회가 가능하므로 취약하다고 판정한다.",
+        "code": "<script type='text/javascript'>\n  if (${command.allowedIp} == false) {\n    document.write(\"Check Administrator IP ...\");\n    alert(\"권한이 없습니다.\")\n    history.back(-1);\n  }"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-306 Missing Authentication for Critical Function, MITRE — http://cwe.mitre.org/data/definitions/306.html",
+    "Access Control, OWASP — https://www.owasp.org/index.php/Access_Control_Cheat_Sheet"
+  ],
+  "tags": ["authentication", "critical-function", "security_feature", "re-authentication", "server-side-check"],
+  "question_hooks": {
+    "keywords": ["재인증", "자격인증", "ValidateUser", "로그인 사용자 일치 확인", "클라이언트 우회", "서버측 인증", "중요정보(계좌이체/개인정보)"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "chapter_code": "IMP-CE-01",
+  "title": "Null Pointer 역참조",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-476",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 제5절 코드오류 §1. Null Pointer 역참조",
+    "pages": "433-444"
+  },
+  "overview": "널 포인터(Null Pointer) 역참조는 '일반적으로 그 객체가 널(Null)이 될 수 없다'라고 하는 가정을 위반했을 때 발생한다. 공격자가 의도적으로 널 포인터 역참조를 발생시키는 경우, 그 결과 발생하는 예외 상황을 이용하여 추후의 공격을 계획하는 데 사용될 수 있다.",
+  "countermeasure": "널이 될 수 있는 레퍼런스(Reference)는 참조하기 전에 널 값인지를 검사하여 안전한 경우에만 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "public static int cardinality (Object obj, final Collection col) {\n  int count = 0;\n  if (col == null) {\n    return count;\n  }\n  Iterator it = col.iterator();\n  while (it.hasNext()) {\n    Object elt = it.next();\n    //obj가 null이고 elt가 null이 아닐 경우, Null.equals 가 되어 널(Null) 포인터 역참조가 발생한다.\n    if ((null == obj && null == elt) || obj.equals(elt)) {\n      count++;\n    }\n  }\n  return count;\n}",
+      "safe": "public static int cardinality (Object obj, final Collection col) {\n  int count = 0;\n  if (col == null) {\n    return count;\n  }\n  Iterator it = col.iterator();\n  while (it.hasNext()) {\n    Object elt = it.next();\n    //obj가 null이 아닌 경우에만 obj.equal를 실행한다.\n    if ((null == obj && null == elt) || (null != obj && obj.equals(elt))) {\n      count++;\n    }\n  }\n  return count;\n}",
+      "note": "obj가 null이고 elt가 null이 아닌 경우 null.equals 가 되어 널 포인터 역참조가 발생한다. obj가 null인지 검사 후 참조해야 한다."
+    },
+    {
+      "lang": "Java",
+      "vulnerable": "String url = reuqest.getParamter(\"url\");\n//url 에 null이 들어오면 널(Null) 포인터 역참조가 발생한다.\nif (url.equals(\"\"))",
+      "safe": "String url = reuqest.getParamter(\"url\");\n//null값을 가지는 참조 변수를 사용할 경우, null 검사를 수행하고 사용한다.\nif ( url != null || url.equals(\"\") )",
+      "note": "request.getParameter 에 의해 null이 들어오면 널 포인터 역참조가 발생한다. null을 가질 수 있는 참조 변수로 객체의 속성·메소드를 사용하는 경우 null 검사를 수행하고 사용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "protected void Page_Load(object sender, EventArgs e) {\n  // url 파라미터에 name이 없으면 username은 null 값을 가지게 된다.\n  string username = Request.QueryString[\"name\"];\n  // null 값을 가지는 username을 참조하여 널(Null) 포인터 역참조가 발생한다.\n  if (username.Length > 20) {\n    // length error\n  }\n}",
+      "safe": "protected void Page_Load(object sender, EventArgs e) {\n  // url 파라미터에 name 이 없으면 username은 null 값을 가지게 된다.\n  string username = Request.QueryString[\"name\"];\n  // null 값을 가지는 username을 참조하기 전에 null 검사를 수행하므로 안전하다.\n  if ( username != null && username > 20) {\n    // length error\n  }\n}",
+      "note": "url 파라미터에 name이 없으면 QueryString[\"name\"]은 null을 리턴하여 username이 null 값을 가지게 되고, 참조 시 널 포인터 역참조가 발생한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void NullPointerDereference(int count) {\n  // IntegerAddressReturn()이 0을 return 하면 p는 null 값을 가지게 된다.\n  int *p = IntegerAddressReturn();\n  // null 값을 가지는 p 값을 참조하여 널(Null) 포인터 역참조가 발생한다.\n  *p = count;\n}",
+      "safe": "void NullPointerDereference(int count) {\n  // IntegerAddressReturn()이 0을 return 하면 p는 null 값을 가지게 된다.\n  int *p = IntegerAddressReturn();\n  // 참조하기전에 null 검사를 수행하므로 안전하다.\n  If(p != 0) *p = count;\n}",
+      "note": "null 값을 반환할 수 있는 함수 IntegerAddressReturn()을 호출하여 p가 null인 상태에서 p를 참조하면 널 포인터 역참조가 발생한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "표현된 객체가 널(Null) 값이 될 수 있는지 확인한다. 만약 널 값이 될 수 있는지 체크하여 예외 처리를 한 경우 안전으로 판단하고 널 체크를 하지 않은 경우 취약한 것으로 판단한다(①). 널 값이 될 가능성은 다음 기준으로 확인한다: 초기값이 널로 할당된 값, 선언 후 객체가 생성되지 않은 값, 널인 객체로 필드 접근·메소드 호출한 결과 값, 문자열 등 'Nullable' 객체들의 연산 결과 값.",
+    "true_positive": [
+      {
+        "desc": "널 체크 없이 cmd 를 바로 trim() 호출 → 취약 판정 (일반적인 진단의 예)",
+        "code": "public void f() {\n  String cmd = System.getProperty(\"cmd\");\n  // cmd가 널(null)인지 체크하지 않았다.\n  cmd = cmd.trim();\n  System.out.println(cmd); //①\n}"
+      },
+      {
+        "desc": "3라인에서 vmrs를 null로 초기화한 뒤 조건 분기로 초기화되지 않은 채 14라인에서 vmrs를 참조 → 취약 판정",
+        "code": "public Hashtable deleteAll(Connection con, GenericModel model) throws Exception {\n  Hashtable<String, Object> m = new Hashtable<String, Object>();\n  VMResultSet vmrs = null;\n  int rValue = 0;\n  try {\n    ArrayList grid = null;\n    ….\n    con.commit();\n    con.setAutoCommit(true);\n    if(rValue > 0) {\n      vmrs = dao.listGoodKnowQuestion(con, model);\n      vmrs.setMessage(UtilMsg.getInstance().getMsg(\"SUC003\"));\n    } else {\n      vmrs.setMessage(UtilMsg.getInstance().getMsg(\"ERR000\"));\n    }\n    m.put(\"result\", vmrs);\n  } catch (Exception e) { …. } finally { …. }\n  return m;\n}"
+      },
+      {
+        "desc": "Statement를 null로 초기화하고 prepareStatement 전에 예외 발생 시 finally의 statement.close()에서 null 참조 → 취약 판정",
+        "code": "private static void makeList() {\n  Connection con = null;\n  StringBuffer sql = new StringBuffer();\n  PreparedStatement statement = null;\n  ResultSet rs = null;\n  list.clear();\n  try {\n    con = GenericDAO.getDataSource().getConnection();\n    ……..\n    statement = con.prepareStatement(sql.toString());\n    rs = statement.executeQuery();\n    while (rs.next()) {\n      String authGrp = rs.getString(\"AUTHORITY_GROUP\");\n      …….\n    }\n  } catch (Exception e) {\n    if (verbose) { ……….. }\n  } finally {\n    try { rs.close(); } catch (Exception e1) {}\n    try { statement.close(); } catch (Exception e1) {}\n    if (con != null) {\n      try { con.close(); } catch (SQLException e) { e.printStackTrace(); }\n    }\n  }\n}"
+      },
+      {
+        "desc": "enter2br()이 data가 null일 때 null을 리턴하므로 strContent가 null일 수 있어 5라인 strContent.equals 에서 역참조 → 취약 판정",
+        "code": "// [program_view.jsp]\nString strContent = UTIL.enter2br((String)hsROW.get(\"content\"));\nString linkPage= \"\";\nif (!strContent.equals(\"\")) {\n  linkPage = strContent.replaceAll(\"상세보기\", \"<img src='\n  …\n\n// [Util.java]\npublic static String enter2br(String data) {\n  if(data == null)\n    return null;\n  StringTokenizer st = new StringTokenizer(data, \"\\n\");\n  …\n}"
+      },
+      {
+        "desc": "널 검사를 수행했으나 조건문에서 널 객체를 참조하는 구문(str.length())을 null 검사보다 먼저 비교 → 취약 판정",
+        "code": "if ( str.length() == 0 || str == null )"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "StringTokenizer 등 설계상 null을 리턴하지 않는 함수의 리턴 값을 참조 → 역참조 발생하지 않음(오탐 주의). Javadoc 확인 필요",
+        "code": "StringTokenizer st = new StringTokenizer(info_url,\"?\");\nint sti=0;\nwhile (st.hasMoreTokens()) {\n  if(sti==0) jsonUrl=st.nextToken();\n  if(sti==1) jsparam=st.nextToken();\n  sti++;\n}\nString [] jsonParams = jsparam.split(\"&\");"
+      },
+      {
+        "desc": "catch 절에서 throw 하므로 catch 이후 코드(After Throw 1 등)는 실행되지 않음 → 역참조 발생하지 않음(오탐 주의)",
+        "code": "public static void testFunction(String dateStr1) throws Exception {\n  SimpleDateFormat sdf = new SimpleDateFormat(\"yyyyMMdd\",Locale.getDefault());\n  Date date1 = null;\n  try {\n    date1 = sdf.parse(dateStr1);\n  } catch (ParseException e) {\n    System.err.println(\"Inner Function\");\n    e.printStackTrace();\n    throw new Exception(e);\n  }\n  System.out.println(\"After Throw 1\");\n  int days1 = (int)((date1.getTime()/100000)/24);\n  System.out.println(\"After Throw 2\");\n}"
+      },
+      {
+        "desc": "date1이 null이면 days1 계산에서 역참조가 발생해 다음 단계로 진행되지 않으므로 days2 문은 실행되지 않음 → 추가 역참조 없음(오탐 주의)",
+        "code": "SimpleDateFormat sdf = new SimpleDateFormat(\"yyyyMMdd\",Locale.getDefault());\nDate date1 = null;\ntry {\n  date1 = sdf.parse(dateStr1);\n} catch (ParseException e) {\n  System.err.println(\"Inner Function\");\n  e.printStackTrace();\n}\nSystem.out.println(\"After Throw 1\");\nint days1 = (int)((date1.getTime()/100000)/24);\nint days2 = (int)((date1.getTime()/100000)/24);\nSystem.out.println(\"After Throw 2\");"
+      },
+      {
+        "desc": "단락 평가(short-circuit): a == null 이 참이면 뒤의 OR 조건 a.length()는 판단하지 않음 → 역참조 발생하지 않음(오탐 주의)",
+        "code": "if (a == null || a.length() == 0) {\n  // 처리한다.\n}"
+      },
+      {
+        "desc": "catch 절 안에서 return 하므로 예외로 f에 값을 넣지 못해도 f.write()는 실행되지 않음 → 역참조 발생하지 않음(오탐 주의)",
+        "code": "FileOutputStream f = null;\ntry {\n  f = new FileOutputStream(\"toctou\");\n  f.write();\n} catch (FileNotFoundException e) {\n  // TODO Auto-generated catch block\n  e.printStackTrace();\n}"
+      },
+      {
+        "desc": "JSP 내장 객체(pageContext)를 참조 → 널 포인터 역참조 발생하지 않음(오탐 주의)",
+        "code": "<td align=\"center\" colspan='2'><input type='button' value='다시로그인' onclick=\"location.href='${pageContext.request.contextPath}/utl/sec/certLogin.do'\"></td>"
+      },
+      {
+        "desc": "Integer 클래스의 static 함수 호출은 Integer가 객체가 아니므로 null 값을 참조하지 않음 → 역참조 발생하지 않음(오탐 주의)",
+        "code": "Integer.parseInt(stringValue);"
+      },
+      {
+        "desc": "Data Flow 상이 아닌 단일 함수에서 파라미터가 null일 경우는 취약하지 않음(호출 측에서 null 체크) → 오탐 주의",
+        "code": "public SmsConnection sendRequsest(SmsConnection smsConn) throws Exception {\n  SmsSender sender = null;\n  SmsConnection result = null;\n  try {\n    sender = new SmsSender(smeConfigPath);\n    sender.open();\n    result = sendRequsest(smsConn, sender);\n  } finally {\n    if (sender != null) {\n      sender.close();\n    }\n  }\n  smsConn.setResult(result.getResult());\n  smsConn.setResultMessage(result.getResultMessage());\n  return smsConn;\n}"
+      },
+      {
+        "desc": "JRE 기본 패키지 클래스의 생성자는 null 반환이 명시되지 않은 한 null을 리턴한다고 판단하지 않음 → 오탐 주의",
+        "code": "if(infoList == null) infoList = new ArrayList();\nfor(int i=0; containers != null && i < containers.length; i++) {\n  hm = new HashMap();\n  for(int j=0; j < paramRecvData.length; j++) {\n    hm.put(paramRecvData[j], containers[i].getField(paramRecvData[j]).getValueAsString());\n  }\n  infoList.add(hm);\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-476 NULL Pointer Dereference, MITRE — http://cwe.mitre.org/data/definitions/476.html",
+    "Do not dereference null pointers (EXP34-C), CERT — http://www.securecoding.cert.org/confluence/display/c/EXP34-C.+Do+not+dereference+null+pointers",
+    "Null Dereference, OWASP — https://www.owasp.org/index.php/Null_Dereference"
+  ],
+  "tags": ["code_error", "null-pointer", "역참조", "null-검사", "단락평가", "java", "csharp", "c"],
+  "question_hooks": {
+    "keywords": ["널 포인터 역참조", "null 검사", "단락 평가(short-circuit)", "조건문 순서", "null 초기화", "Nullable 객체", "참조 전 검사"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '널 포인터 역참조 발생 여부' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 또는 false_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

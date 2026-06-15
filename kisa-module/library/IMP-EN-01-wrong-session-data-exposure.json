@@ -1,0 +1,72 @@
+{
+  "chapter_code": "IMP-EN-01",
+  "title": "잘못된 세션에 의한 데이터 정보 노출",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-488",
+  "source": {
+    "doc": "소프트웨어 보안약점 진단가이드(2021)",
+    "section": "제4장 구현단계 보안약점 진단 제6절 캡슐화 §1. 잘못된 세션에 의한 데이터 정보 노출",
+    "pages": "469-475"
+  },
+  "overview": "다중 스레드 환경에서는 싱글톤(Singleton) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다. 따라서 다중 스레드 환경인 Java의 서블릿(Servlet) 등에서는 정보를 저장하는 멤버변수가 포함되지 않도록 하여, 서로 다른 세션에서 데이터를 공유하지 않도록 해야 한다.",
+  "countermeasure": "싱글톤 패턴을 사용하는 경우 변수 범위(Scope)에 주의를 기울여야 한다. 특히 Java에서는 HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 지역 변수를 선언하여 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (JSP)",
+      "vulnerable": "<%@page import=\"javax.xml.namespace.*\"%>\n<%@page import=\"gov.mogaha.ntis.web.frs.gis.cmm.util.*\" %>\n<%\n  // JSP에서 String 필드들이 멤버 변수로 선언됨\n  String username = \"/\";\n  String imagePath = commonPath + \"img/\";\n  String imagePath_gis = imagePath + \"gis/cmm/btn/\";\n  ……\n%>",
+      "safe": "<%@page import=\"javax.xml.namespace.*\"%>\n<%@page import=\"gov.mogaha.ntis.web.frs.gis.cmm.util.*\" %>\n<%\n  // JSP에서 String 필드들이 로컬 변수로 선언됨\n  String commonPath = \"/\";\n  String imagePath = commonPath + \"img/\";\n  String imagePath_gis = imagePath + \"gis/cmm/btn/\";\n……\n%>",
+      "note": "JSP 선언부(<%! %>)에 선언한 변수는 해당 JSP에 접근하는 모든 사용자에게 공유된다. 먼저 호출한 사용자가 값을 설정하고 사용하기 전에 다른 사용자의 호출이 발생하면, 뒤에 호출한 사용자가 설정한 값이 모든 사용자에게 적용된다. JSP 서블릿(<% %>)에 정의한 변수는 _jspService 메소드의 지역변수로 선언되므로 공유가 발생하지 않아 안전하다."
+    },
+    {
+      "lang": "Java (Spring Controller)",
+      "vulnerable": "@Controller\npublic class TrendForecastController {\n  // Controller에서 int 필드가 멤버 변수로 선언되어 스레드간에 공유됨\n  private int currentPage = 1;\n  public void doSomething(HttpServletRequest request) {\n    currentPage = Integer.parseInt(request.getParameter(\"page\"));\n  }\n……",
+      "safe": "@Controller\npublic class TrendForecastController {\n  public void doSomething(HttpServletRequest request) {\n  // 지역변수로 사용하여 스레드간 공유되지 못하도록 한다.\n  int currentPage = Integer.parseInt(request.getParameter(\"page\"));\n  }\n……",
+      "note": "Controller에 멤버 변수를 사용하면 공유가 발생하여 동기화 오류가 발생할 수 있다. 멤버 변수 대신 지역 변수로 사용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "class DataLeakBetweenSessions : IHttpHandler\n  {\n      //다중 스레드 환경에서 IHttpHandler 를 구현하는 클래스에 정보를 저장하는 필드가 포함되어서는 안됩니다.\n      private String id;\n\n      public void ProcessRequest(HttpContext ctx)\n      {\n          var json = new JSONResonse()\n          {\n              Success = ctx.Request.QueryString[\"name\"] != null,\n              Name = ctx.Request.QueryString[\"name\"]\n          };\n          ctx.Response.ContentType = \"application/json\";\n          ctx.Response.Write(JsonConvert.SerializeObject(json));\n      }\n\n      public bool IsReusable\n      {\n          get { return false; }\n      }\n}",
+      "safe": "class DataLeakBetweenSessions : IHttpHandler\n   {\n       public void ProcessRequest(HttpContext ctx)\n       {\n       //지역 변수나 세션변수를 선언해서 사용해야 합니다.\n           ctx.Session[\"id\"] = ctx.Request.QueryString[\"id\"];\n\n           var json = new JSONResonse()\n           {\n                Success = ctx.Request.QueryString[\"name\"] != null,\n                Name = ctx.Request.QueryString[\"name\"]\n           };\n           ctx.Response.ContentType = \"application/json\";\n           ctx.Response.Write(JsonConvert.SerializeObject(json));\n       }\n\n       public bool IsReusable\n       {\n           get { return false; }\n       }\n}",
+      "note": "다중 스레드 환경에서 IHttpHandler 클래스에 정보를 저장하는 필드가 포함되어서는 안 된다. 해당 내용을 지역 변수나 세션변수를 이용하여 처리하여야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 final이 아닌 경우는 취약한 것으로 판단한다. 서블릿(JSP 포함)에서 상수로 사용하지 않는 멤버 변수를 사용하면 취약하다.",
+    "true_positive": [
+      {
+        "desc": "HttpServlet 하위클래스에 final이 아닌 멤버필드 name이 선언되어 있고 doPost에서 외부 입력값을 저장·출력함 → 취약 판정",
+        "code": "public class U488 extends HttpServlet\n{\nprivate String name;\nprotected void doPost(HttpServletRequest request, HttpServletResponse response)\n   throws ServletException, IOException\n{\nname = request.getParameter(\"name\");\n…\nout.println(name + \", thanks for visiting!\");\n}\n}"
+      },
+      {
+        "desc": "JSP 선언부(<%! %>)에 상수가 아닌 멤버 변수를 선언하여 사용 → 취약 판정",
+        "code": "<%@ page import=\"javax.xml.namespace.*\" %>\n<%@ page import=\"maha.ns.web.fta.gaa.comm.util.*\" %>\n<%@ page import=\"maha.ns.web.fta.gaa.comm.util.SSOSessionUtil\"%>\n<%!\nString commonPath = \"/\";\nString imagePath= commonPath +\"img/\";\nString imagePath_gis = imagePath +\"gis/cmm/btn/\";"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "JSP 페이지나 서블릿 내에서의 내부 클래스 사용은 멤버필드가 아니므로 취약하지 않음(오탐 주의)",
+        "code": "<%@ page language=\"java\" import=\"java.io.*, java.text.* ,java.util.*, java.net.*, com.ins.system.config.*, com.ins.system.exception.*\"%>\n<%!\n    private class CacheEntity {\n        String name;\n        String lastModified;\n        String expires;\n        String eTag;\n    }"
+      },
+      {
+        "desc": "Final 필드의 경우 클래스 내부에서 상수로 사용되는 값이므로 취약하지 않음(오탐 주의)",
+        "code": "<%@ page import=\"java.util.*\" %>\n<%@ page import=\"maha.ns.comm.util.StringUtil\" %>\n<%@ page import=\"maha.ns.comm.util.Page\" %>\n<%@ taglib uri=\"comm.tld\" prefix=\"comm\" %>\n<%!\nfinal String imagePath = \"/img/\";\nString treeImagePath = imagePath+\"/port/tree.gif\";\n%>"
+      },
+      {
+        "desc": "Spring 기반 eGov 프레임워크는 IoC를 사용하여 프레임워크가 인스턴스를 관리하므로 안전함(오탐 주의)",
+        "code": "@Resource(name = \"fileMngService\")\nprivate FileMngService fileService;"
+      }
+    ]
+  },
+  "references": [
+    "CWE-488 Exposure of Data Element to Wrong Session, MITRE — http://cwe.mitre.org/data/definitions/488.html",
+    "CWE-543 Use of Singleton Pattern Without Synchronization in a Multithreaded Context, MITRE — http://cwe.mitre.org/data/definitions/543.html",
+    "Do not let session information leak within a servlet, CERT — http://www.securecoding.cert.org/confluence/display/java/MSC11-J.+Do+not+let+session+information+leak+within+a+servlet"
+  ],
+  "tags": ["encapsulation", "session", "singleton", "race-condition", "servlet", "member-variable", "thread-safety"],
+  "question_hooks": {
+    "keywords": ["싱글톤", "경쟁조건(Race Condition)", "멤버 변수", "지역 변수", "HttpServlet", "JSP 선언부", "final 필드", "세션변수", "IoC"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}
