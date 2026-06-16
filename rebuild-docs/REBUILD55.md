@@ -56,6 +56,18 @@ composite 풀이 경로(드릴):
 - 시험 모드(`kisa-exam.js`)는 이전부터 `artifacts/report_template`을 SELECT하므로 영향 없음. 시험에는 라이브러리 버튼을 두지 않음(컨닝 방지).
 - 드릴 인증은 정수형 `uid`(JWT payload). 검증 시 가짜 UUID는 타입 불일치로 500 → 실제 정수 uid로 정상 응답.
 
+## §6. 관련 지식 모달 "검색·조회" 강화 (`QuestionLibraryModal.jsx`)
+
+> 사용자 피드백 — 버튼을 누르면 현재 페이지(문제)에 **관련된 항목이 검색되어 조회**되어야 함.
+
+- 기존: `chapter_code` 정확매칭 **1건**만 표시.
+- 변경: 검색·목록형으로 재구성.
+  1. **이 문제의 핵심 자료** — `chapter_code` 정확매칭 항목(펼친 상태, 상세+코드).
+  2. **관련 지식** — 정확매칭 항목의 `keywords` 교집합(×2) + 같은 `category`(+1) 점수순 **상위 8건**을 접이식 목록으로 조회(진단가이드+교재 혼합).
+  3. **검색창** — 제목·분류·id·키워드·요약 전체 검색(상위 30건). 입력 시 검색 결과 모드로 전환.
+- props 변경 없음(`chapterCode`만으로 동작) → DrillSession/StudyDetail 수정 불필요.
+- 코드 렌더는 `LibraryFab.CodeSection` 재사용 유지.
+
 ---
 
 **완료 일시**: 2026-06-16 KST
