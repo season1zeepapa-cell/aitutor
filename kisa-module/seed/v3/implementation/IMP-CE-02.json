@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-CE-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-M1",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "부적절한 자원 해제(CWE-404) 보안약점과 그 대응방안에 대한 설명으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "열린 파일디스크립터·힙 메모리·소켓 등 유한한 자원을 사용 후 반환하지 못하면 발생하는 보안약점이다."},
+        {"num": 2, "text": "Java에서는 자원 해제 코드를 try 블록의 마지막에 두기만 하면 예외 발생과 무관하게 항상 실행된다."},
+        {"num": 3, "text": "자원 해제 코드는 catch 블록에 두어 예외가 발생했을 때만 자원을 반환하는 것이 권장된다."},
+        {"num": 4, "text": "자원은 유한하지 않으므로 사용 후 반환하지 않아도 시스템 자원이 고갈되지 않는다."}
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        {"num": 1, "correct": true, "why": "정답. overview와 정확히 일치한다. '열린 파일디스크립터, 힙 메모리, 소켓 등은 유한한 자원이며, 할당받아 사용한 후 더 이상 사용하지 않을 때 적절히 반환하여야 하는데 프로그램 오류 또는 에러로 반환하지 못하는 경우의 보안약점'이라는 정의 그대로다."},
+        {"num": 2, "correct": false, "why": "틀림. try 블록 안의 자원 해제 코드는 그 앞에서 오류가 발생하면 실행되지 않는다. note가 지적하듯 항상 실행되는 finally 블록에서 자원을 반환해야 한다."},
+        {"num": 3, "correct": false, "why": "틀림. course는 자원 해제 코드를 catch 블록에 두면 예외가 없을 때 자원이 해제되지 않는다고 지적한다. 예외 발생 여부와 무관하게 항상 실행되는 finally 블록에 두어야 한다."},
+        {"num": 4, "correct": false, "why": "틀림. overview는 자원이 '유한한 자원'이라고 명시한다. 반환하지 않으면 course가 지적하듯 자원이 고갈되어 더 이상 할당할 수 없는 상태가 된다."}
+      ],
+      "explanation": "정답은 1번. IMP-CE-02 라이브러리 overview('파일디스크립터·힙 메모리·소켓 등 유한한 자원을 사용 후 반환하지 못하는 보안약점')와 countermeasure('예외 발생 여부와 무관하게 항상 실행되는 finally 블록에서 모든 자원 반환')로 검증한다. 1번은 overview와 정확히 일치한다. 2번은 try 블록 해제의 함정(오류 시 미실행), 3번은 catch 블록 해제의 함정(예외 없을 때 미실행), 4번은 '유한한 자원' 정의에 어긋난다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제(pp.445-452), CWE-404 — overview/countermeasure",
+      "tags": ["code_error", "implementation", "자원해제", "finally", "자원-고갈", "CWE-404"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-M2",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 자원 해제에 대한 설명으로 옳지 않은 것은?\n\n```java\nInputStream in = null;\nOutputStream out = null;\ntry {\n  in = new FileInputStream(inputFile);\n  out = new FileOutputStream(outputFile);\n  ...\n  FileCopyUtils.copy(fis, os);\n  in.close();\n  out.close();\n} catch (IOException e) {\n  logger.error(e);\n}\n```",
+      "choices": [
+        {"num": 1, "text": "FileCopyUtils.copy() 등에서 오류가 발생하면 in.close()·out.close()가 실행되지 않아 자원이 반환되지 않는다."},
+        {"num": 2, "text": "자원 해제 코드가 try 블록 안에 있어, 해제 전에 예외가 발생하면 자원 누수가 발생할 수 있다."},
+        {"num": 3, "text": "항상 실행되는 finally 블록에서 in·out 각각에 null 검사 후 close()하도록 수정하는 것이 안전하다."},
+        {"num": 4, "text": "자원 해제 코드를 try 블록 마지막에 두면 finally 블록에 두는 것보다 모든 흐름에서 확실히 실행된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 'try 구문 내 처리 중 오류가 발생하면 close()가 실행되지 않아 자원이 반환되지 않는다'고 명시한 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 해제 코드가 try 블록 안에 위치하므로 그 앞 구문(copy 등)에서 예외가 발생하면 close()에 도달하지 못해 자원 누수가 발생한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 finally 블록에서 in·out 각각에 null 검사 후 try-catch로 close()를 호출하는 방식으로 수정한다. note도 '항상 실행되는 finally 블록에서 모든 자원을 반환해야 한다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답. try 블록 마지막의 해제 코드는 그 앞에서 예외가 발생하면 실행되지 않으므로 모든 흐름에서 확실히 실행되지 않는다. 예외 발생 여부와 무관하게 항상 실행되는 것은 finally 블록이므로, try 블록이 더 확실하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-02 code_examples(Java)의 vulnerable 코드다. note('try 구문 내 처리 중 오류 발생 시 close()가 실행되지 않아 자원 미반환, 항상 실행되는 finally 블록에서 모든 자원 반환')로 검증한다. 4번은 try 블록 해제가 finally보다 확실하다고 진술하지만, try 블록은 앞 구문에서 예외 시 도달하지 못하므로 정반대로 틀렸다. 1·2·3번은 vulnerable/safe 코드 및 note와 일치하는 옳은 설명이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — code_examples(Java) vulnerable/safe/note",
+      "tags": ["code_error", "implementation", "자원해제", "finally", "자원-누수", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-M3",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "부적절한 자원 해제의 진단 방법과 언어별 안전 처리에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "진단자는 제어문·예외처리문 등의 분기에 따라 모든 제어 흐름(control flow)을 판단하여 자원 해제 여부를 체크한다."},
+        {"num": 2, "text": "finally 블록에서 여러 자원의 close()를 하나의 try로 묶으면, 앞 자원의 close()에서 예외 발생 시 이후 자원이 해제되지 않아 취약하다."},
+        {"num": 3, "text": "C#에서는 using 구문을 활용하면 구문이 끝나는 지점에서 자동으로 자원이 해제된다."},
+        {"num": 4, "text": "C언어에서 파일을 연 뒤 오류로 조기 return 하더라도 운영체제가 자동 회수하므로 fclose는 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '제어문·예외처리문 등의 분기에 따라 모든 흐름(control flow)을 판단하여 자원해제 여부를 체크해야 한다'고 명시한 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). true_positive 사례로, finally 안에서 rs.close()·pstmt.close()·conn.close()를 하나의 try로 묶으면 rs.close()에서 예외 발생 시 이하 자원 해제가 이루어지지 않아 자원 유출(취약)이다. safe는 각 close()를 개별 try-catch로 분리한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). C# code_examples note가 'using 구문을 사용하면 구문이 끝나는 지점에서 자동으로 자원이 해제된다'고 명시한 그대로다."},
+        {"num": 4, "correct": true, "why": "정답. C code_examples는 파일을 연 상태에서 오류로 조기 return 하면 fclose가 실행되지 않아 자원 누수가 발생하므로, 모든 분기에서 자원을 해제하도록 fclose를 추가해야 한다고 한다. 'OS가 자동 회수하므로 fclose 불필요'라는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-02 diagnosis.method, true_positive(finally 단일 try 묶음), false_positive(개별 try-catch 분리), C#/C code_examples로 검증한다. 1번은 진단 방법, 2번은 true_positive(취약), 3번은 C# using 자동 해제로 옳은 진술이다. 4번은 C 예제(조기 return 시 fclose 미실행 → 모든 분기에서 fclose 추가)와 정반대로, OS 자동 회수를 이유로 fclose가 불필요하다고 잘못 진술하여 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — diagnosis.method/true_positive, code_examples(C#/C)",
+      "tags": ["code_error", "implementation", "자원해제", "진단", "using", "fclose", "control-flow"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-D1",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 자원 해제에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\ntry {\n  conn = DriverManager.getConnection(url, id, pw);\n  pstmt = conn.prepareStatement(sqlSelect);\n  rs = pstmt.executeQuery();\n  while (rs.next()) { ... }\n  conn.commit();\n} catch (Exception e) {\n  e.printStackTrace();\n} finally {\n  try {\n    rs.close();\n    pstmt.close();\n    conn.close();\n  } catch (Exception e) { }\n}\n```",
+      "vulnerable_code": "1  try {\n2    conn = DriverManager.getConnection(url, id, pw);\n3    pstmt = conn.prepareStatement(sqlSelect);\n4    rs = pstmt.executeQuery();\n5    while (rs.next()) { ... }\n6    conn.commit();\n7  } catch (Exception e) {\n8    e.printStackTrace();\n9  } finally {\n10   try {\n11     rs.close();\n12     pstmt.close();\n13     conn.close();\n14   } catch (Exception e) { }\n15 }",
+      "code_language": "java",
+      "vulnerable_lines": [11, 12, 13],
+      "rationale_keywords": ["하나의 try로 묶음", "rs.close() 예외", "이하 자원 미해제", "자원 유출", "개별 try-catch 필요"],
+      "fix_keywords": ["개별 try-catch", "각 자원 분리", "null 검사"],
+      "safe_code": "1  } finally {\n2    if (rs != null)   try { rs.close(); }    catch (Exception e) { }\n3    if (pstmt != null) try { pstmt.close(); } catch (Exception e) { }\n4    if (conn != null) try { conn.close(); }  catch (Exception e) { }\n5  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. finally 블록(10~14번 라인)에서 rs.close(), pstmt.close(), conn.close()를 하나의 try로 묶고 있어, 11번 라인 rs.close()에서 예외가 발생하면 12·13번 라인의 pstmt.close()·conn.close()가 실행되지 않는다. 그 결과 일부 자원이 해제되지 않아 자원 유출(부적절한 자원 해제, CWE-404)이 발생한다.",
+        "fix_description": "finally 블록에서 각 자원(rs, pstmt, conn)의 close()를 개별 try-catch로 분리하고 각각 null 검사를 수행하여, 한 자원의 예외가 다른 자원 해제를 막지 않도록 모든 흐름에서 자원이 반드시 해제되게 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-CE-02 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '하나의 try로 묶음': finally 안에서 rs·pstmt·conn의 close()를 단일 try로 처리함.\n- 'rs.close() 예외'/'이하 자원 미해제': 앞 자원의 close()에서 예외가 발생하면 뒤 자원의 close()가 실행되지 않음.\n- '자원 유출': 일부 자원이 해제되지 않아 발생하는 결과(CWE-404).\n- '개별 try-catch 필요': safe 방식의 핵심.\n\n[수정 키워드 의미] 각 자원의 close()를 개별 try-catch로 분리하고 null 검사를 수행한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(11~13번 등 finally 단일 try 내 close 라인 지목) 20점 / rationale(단일 try 묶음·앞 자원 예외 시 이하 미해제·자원 유출 등 키워드 포함) 30점 / fix(개별 try-catch 분리 + null 검사) 30점.\n\n[자가확인 체크리스트] (1) 자원 해제가 finally에 있는가? (2) 여러 자원의 close()를 하나의 try로 묶었는가? → 묶었다면 앞 자원 예외 시 이하 미해제로 취약. (3) 각 자원이 개별 try-catch로 분리되었는가? → 아니면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — diagnosis.true_positive, CWE-404",
+      "tags": ["code_error", "implementation", "자원해제", "정탐", "finally", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-D2",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 자원 해제에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\ntry {\n  conn = DriverManager.getConnection(url, id, pw);\n  pstmt = conn.prepareStatement(sqlSelect);\n  rs = pstmt.executeQuery();\n  while (rs.next()) { ... }\n  conn.commit();\n} catch (Exception e) {\n  e.printStackTrace();\n} finally {\n  try { rs.close(); }    catch (Exception e) { }\n  try { pstmt.close(); } catch (Exception e) { }\n  try { conn.close(); }  catch (Exception e) { }\n}\n```",
+      "vulnerable_code": "1  try {\n2    conn = DriverManager.getConnection(url, id, pw);\n3    pstmt = conn.prepareStatement(sqlSelect);\n4    rs = pstmt.executeQuery();\n5    while (rs.next()) { ... }\n6    conn.commit();\n7  } catch (Exception e) {\n8    e.printStackTrace();\n9  } finally {\n10   try { rs.close(); }    catch (Exception e) { }\n11   try { pstmt.close(); } catch (Exception e) { }\n12   try { conn.close(); }  catch (Exception e) { }\n13 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["finally 블록", "개별 try-catch", "한 자원 예외 무관", "모든 자원 해제", "자원 유출 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — finally 블록에서 rs·pstmt·conn의 close()를 각각 개별 try-catch로 분리하여\n2  // 한 자원의 close() 예외가 다른 자원 해제를 막지 않으므로 모든 자원이 반드시 해제된다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 자원 해제가 예외 발생 여부와 무관하게 항상 실행되는 finally 블록에 위치하며, rs.close(), pstmt.close(), conn.close()를 각각 개별 try-catch로 분리하고 있다. 따라서 한 자원의 close()에서 예외가 발생하더라도 나머지 자원의 해제에 영향을 주지 않아 모든 자원이 반드시 해제된다. 이는 가이드가 제시하는 안전한 자원 해제 방식이다.",
+        "fix_description": "수정 불필요. finally 블록에서 각 자원을 개별 try-catch로 분리하여 모든 흐름에서 자원이 해제되는 안전한 형태이므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-CE-02 diagnosis.false_positive(개별 try-catch 분리) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] finally에 자원 해제가 있다거나 try-catch가 여러 개라고 무조건 취약한 것이 아니다. 취약한 것은 여러 close()를 '하나의 try'로 묶은 경우이고, 이 코드처럼 각 close()를 '개별 try-catch'로 분리하면 한 자원의 예외가 다른 자원 해제를 막지 않아 안전하다.\n\n[안전 판정 근거 키워드 의미]\n- 'finally 블록': 예외 발생 여부와 무관하게 항상 실행되는 위치에 해제 코드가 있음.\n- '개별 try-catch': 각 자원의 close()를 독립된 try-catch로 분리함.\n- '한 자원 예외 무관'/'모든 자원 해제': 한 close()의 예외가 다른 close()에 영향을 주지 않아 전부 해제됨.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인이 없음을 정확히 판단) 20점 / rationale(finally 위치·개별 try-catch 분리·모든 자원 해제 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 자원 해제가 finally 블록에 있는가? → 그렇다. (2) 각 자원의 close()가 개별 try-catch로 분리되었는가? → 그렇다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — diagnosis.false_positive(개별 try-catch 분리)",
+      "tags": ["code_error", "implementation", "자원해제", "오탐", "finally", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-B1",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "부적절한 자원 해제의 대응방안에 관한 다음 설명의 빈칸을 채우시오.\n\n자원을 획득하여 사용한 다음에는 반드시 자원을 해제하여 반환한다. 예외상황 발생 여부와 상관없이 항상 실행되는 (가) 블록에서 할당받은 모든 자원을 반환하도록 하고, C#은 (나) 구문을 활용한다.",
+      "blank_template": "예외상황 발생 여부와 상관없이 항상 실행되는 ___(가)___ 블록에서 할당받은 모든 자원을 반환하도록 하고, C#은 ___(나)___ 구문을 활용한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["finally"], "synonyms": ["finally"]},
+        {"idx": 2, "answers": ["using"], "synonyms": ["using"]}
+      ],
+      "explanation": "정답: (가) finally, (나) using. IMP-CE-02 countermeasure 원문('예외상황 발생 여부와 상관없이 항상 실행되는 finally 블록에서 할당받은 모든 자원을 반환하도록 하고, C#은 using 구문을 활용한다')을 그대로 묻는 문제다. Java는 finally 블록, C#은 using 구문으로 자원을 확실히 해제한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — countermeasure",
+      "tags": ["code_error", "implementation", "자원해제", "빈칸", "finally", "using"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-02-B2",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "chapter_code": "IMP-CE-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 파일 입출력 자원을 안전하게 해제하도록 수정한 Java 코드다. 항상 실행되는 블록과 null 검사 위치를 고려하여 빈칸을 채우시오.\n\n```java\ntry {\n  in = new FileInputStream(inputFile);\n  out = new FileOutputStream(outputFile);\n  ...\n  FileCopyUtils.copy(fis, os);\n} catch (IOException e) {\n  logger.error(e);\n} (가) {\n  if (in != (나)) {\n    try { in.close(); } catch (IOException e) { logger.error(e); }\n  }\n  if (out != (나)) {\n    try { out.close(); } catch (IOException e) { logger.error(e); }\n  }\n}\n```",
+      "blank_template": "} catch (IOException e) { logger.error(e); } ___(가)___ { if (in != ___(나)___) { try { in.close(); } ... } if (out != ___(나)___) { try { out.close(); } ... } }",
+      "blank_answers": [
+        {"idx": 1, "answers": ["finally"], "synonyms": ["finally"]},
+        {"idx": 2, "answers": ["null"], "synonyms": ["널", "Null", "NULL"]}
+      ],
+      "explanation": "정답: (가) finally, (나) null. IMP-CE-02 code_examples(Java) safe 코드 그대로다. note가 '항상 수행되는 finally 블록에서 할당받은 모든 자원에 대해 각각 null 검사를 수행 후 예외처리를 하여 자원을 해제하여야 한다'고 명시한다. try 블록에서 오류가 나도 finally는 항상 실행되며, in·out 각각 null 검사 후 개별 try-catch로 close()한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 자원 해제 — code_examples(Java) safe/note",
+      "tags": ["code_error", "implementation", "자원해제", "빈칸", "finally", "java"]
+    }
+  ]
+}

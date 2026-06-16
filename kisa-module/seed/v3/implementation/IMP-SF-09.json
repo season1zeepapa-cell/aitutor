@@ -1,0 +1,178 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-09",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-M1",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 '취약한 비밀번호 허용'에 대한 설명이다. 옳지 않은 것은?\n\n취약한 비밀번호 허용은 사용자에게 강한 비밀번호 조합규칙을 요구하지 않아 사용자 계정이 취약해지는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "비밀번호 생성 시 강한 조건 검증을 수행하고, 숫자·영문자·특수문자 등을 혼합하여 사용하도록 한다."},
+        {"num": 2, "text": "안전한 비밀번호 생성을 위해 한국인터넷진흥원 「암호이용안내서(패스워드 선택 및 이용 안내서)」의 설정규칙을 적용한다."},
+        {"num": 3, "text": "비밀번호 조합규칙이 미흡하면 무작위 대입 공격이나 추측 공격으로 계정 정보가 노출될 수 있다."},
+        {"num": 4, "text": "비밀번호는 한 번 강하게 설정하면 충분하므로 주기적으로 변경할 필요는 없으며, 변경 시 조합규칙 검증도 생략해도 된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). countermeasure가 '비밀번호 생성 시 강한 조건 검증을 수행하고, 숫자와 영문자, 특수문자 등을 혼합하여 사용'하도록 요구하므로 정확한 설명이다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 '안전한 비밀번호를 생성하기 위해서는 한국인터넷진흥원 「암호이용안내서」의 비밀번호 설정규칙을 적용해야 한다'고 명시하므로 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course의 위협 항목이 '패스워드 무작위 대입·추측 공격으로 계정 정보가 노출될 수 있다'고 명시하므로 정확한 설명이다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). countermeasure는 비밀번호를 '주기적으로 변경하여 사용하도록 해야 한다'고 요구하고, course 진단 흐름은 '변경 시에도 동일 규칙을 적용해야 안전'하다고 한다. 따라서 변경 불필요·변경 시 검증 생략은 가이드와 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-09 라이브러리 overview·countermeasure와 course의 위협·진단 흐름으로 검증한다. 가이드는 ① 비밀번호 생성 시 강한 조건 검증(숫자·영문자·특수문자 혼합), ② KISA 암호이용안내서 규칙 적용, ③ 주기적 변경 및 변경 시에도 동일 조합규칙 적용을 요구한다. 4번은 '변경 불필요·변경 시 검증 생략'으로 ③을 정반대로 뒤집었으므로 틀렸다. 1·2·3번은 각각 countermeasure·overview·위협 설명과 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용(pp.370-374), CWE-521 — overview·countermeasure",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "조합규칙", "주기적-변경", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-M2",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 회원가입 처리 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nString id = request.getParameter(\"id\");\nString pass = request.getParameter(\"pass\");\nUserVo userVO = new UserVo(id, pass);\n……\n// 복잡도를 체크하지 않고 등록\nString result = registerDAO.register(userVO);\n```",
+      "choices": [
+        {"num": 1, "text": "입력받은 비밀번호의 자릿수·특수문자 포함 여부 등 복잡도를 검증하지 않고 곧바로 등록하므로 취약하다."},
+        {"num": 2, "text": "CWE-521(취약한 비밀번호 허용)에 해당하며, 약한 비밀번호로 인해 계정이 무작위 대입·추측 공격에 노출될 수 있다."},
+        {"num": 3, "text": "Pattern.compile(\"((?=.*[a-zA-Z])(?=.*[0-9@#$%]).{9,})\") 등 정규표현식으로 복잡도를 검증한 뒤 등록하면 안전하게 개선된다."},
+        {"num": 4, "text": "비밀번호 복잡도 검증은 보안과 무관한 사용성 저하 요소이므로, 검증 없이 등록하는 이 코드는 안전한 처리 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). code_examples의 vulnerable 코드 주석 그대로 '비밀번호의 자릿수, 특수문자 포함 여부 등 복잡도를 체크하지 않고 등록'하는 것이 이 코드의 취약점이다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 이 약점은 CWE-521이며 course 위협 항목이 무작위 대입·추측 공격으로 계정 정보가 노출될 수 있다고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 정확히 Pattern.compile(\"((?=.*[a-zA-Z])(?=.*[0-9@#$%]).{9,})\")으로 복잡도를 검증하고 매칭 실패 시 '비밀번호 조합규칙 오류'를 반환하므로 정확한 개선 방안이다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 복잡도 검증 생략은 안전한 처리가 아니라 CWE-521 보안약점 그 자체다. countermeasure가 강한 조건 검증을 요구하므로 '검증 없이 등록하는 것이 안전하다'는 진술은 명백히 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-09 code_examples(Java) vulnerable/safe 쌍을 기반으로 한다. vulnerable 코드는 복잡도 검증 없이 등록하여 취약하고(1·2번 옳음), safe 코드는 정규표현식으로 영문자·숫자/특수문자 포함과 길이를 검증한 뒤 등록한다(3번 옳음). 4번은 복잡도 검증을 '불필요한 사용성 저하'로 격하하고 검증 없는 등록을 안전하다고 하여 countermeasure를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용 — code_examples(Java) vulnerable/safe, CWE-521",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "복잡도검증", "정규표현식", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-M3",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'취약한 비밀번호 허용'의 진단 방법과 안전한 비밀번호 조합규칙에 대한 설명으로 옳지 않은 것은?\n\n진단원은 비밀번호 생성·변경 시 안전한 조합규칙으로 입력값을 검사하는 모듈이 존재하는지 확인한다.",
+      "choices": [
+        {"num": 1, "text": "비밀번호 입력에서 널(Null) 체크, 자릿수, 특수문자 포함 등 요구 조건이 없거나 약하면 취약하다고 진단한다."},
+        {"num": 2, "text": "안전한 조합규칙은 영문자(대·소 구별)·숫자·특수문자를 조합해 8~10자리 이상 길이로 하고, 2종 이상 문자 구성 8자리 이상 또는 숫자만 제외 10자리 이상을 만족하게 한다."},
+        {"num": 3, "text": "사용자 ID와 연관된 단어, 사전적 단어, 패턴이 존재하는 비밀번호, 시스템 초기 설정 패스워드 등은 사용을 금지한다."},
+        {"num": 4, "text": "로그인 시 입력한 비밀번호를 확인(인증)하는 코드는 비밀번호를 저장하는 동작이므로, 복잡도 검증이 없으면 항상 취약하다고 진단한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '널(Null) 체크, 비밀번호의 자릿수, 특수문자 포함 등 비밀번호 요구 조건이 없거나 약하면 취약하다고 진단한다'고 그대로 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method의 참고와 course 대책이 영문·숫자·특수문자 조합 8~10자리 이상, 2종 이상 문자 8자리 이상 또는 숫자 제외 10자리 이상을 안전한 조합규칙으로 제시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 대책의 '특정 정보 이용 및 패턴조건 제약'이 사전 단어·ID 연관 단어·패턴 비밀번호·시스템 초기 설정 패스워드 사용 금지를 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). diagnosis.false_positive가 '로그인 시 비밀번호를 확인하는 것은 비밀번호를 저장하는 것이 아니므로 취약하지 않다(오탐 주의)'고 명시한다. 로그인 확인을 '저장 동작'으로 보고 항상 취약하다고 판정하면 오탐이므로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-09 diagnosis.method/false_positive와 course 대책으로 검증한다. 1번은 method의 취약 판정 기준, 2번은 안전한 조합규칙(길이·구성), 3번은 금지 조건과 그대로 일치하는 옳은 진술이다. 4번은 false_positive가 '로그인 시 확인은 저장이 아니므로 취약하지 않다'고 한 것을 정반대로 진술하여, 저장이 아닌 확인 목적 코드를 항상 취약하다고 오판하게 만들므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용 — diagnosis.method/false_positive; 2025년 SW보안약점 진단원 기본과정 Ⅴ.2-9 대책",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "진단방법", "조합규칙", "오탐"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-D1",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 회원가입 코드의 비밀번호 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString id = request.getParameter(\"id\");\nString pass = request.getParameter(\"pass\");\nUserVo userVO = new UserVo(id, pass);\nString result = registerDAO.register(userVO);\n```",
+      "vulnerable_code": "1  String id = request.getParameter(\"id\");\n2  String pass = request.getParameter(\"pass\");\n3  UserVo userVO = new UserVo(id, pass);\n4  String result = registerDAO.register(userVO);",
+      "code_language": "java",
+      "vulnerable_lines": [3, 4],
+      "rationale_keywords": ["비밀번호 복잡도 미검증", "조합규칙", "널 체크 없음", "무작위 대입/추측 공격", "CWE-521"],
+      "fix_keywords": ["복잡도 정규표현식", "영문자/숫자/특수문자", "조합규칙 오류 반환"],
+      "safe_code": "1  String id = request.getParameter(\"id\");\n2  String pass = request.getParameter(\"pass\");\n3  // 비밀번호 복잡도(자릿수·영문자·숫자·특수문자 포함)를 검증한 뒤 등록한다.\n4  Pattern pattern = Pattern.compile(\"((?=.*[a-zA-Z])(?=.*[0-9@#$%]).{9,})\");\n5  Matcher matcher = pattern.matcher(pass);\n6  if (!matcher.matches()) {\n7    return \"비밀번호 조합규칙 오류\";\n8  }\n9  UserVo userVO = new UserVo(id, pass);\n10 String result = registerDAO.register(userVO);",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 입력받은 pass에 대해 널(Null) 체크나 자릿수·영문자·숫자·특수문자 포함 등 비밀번호 복잡도(조합규칙)를 전혀 검증하지 않고, 3번 라인에서 그대로 UserVo를 생성하여 4번 라인에서 등록(register)하고 있다. 강한 비밀번호 조합규칙을 요구하지 않으므로 무작위 대입·추측 공격으로 계정 정보가 노출될 수 있는 취약한 비밀번호 허용(CWE-521)이다.",
+        "fix_description": "UserVo 생성·등록 전에 비밀번호 복잡도를 검증한다. Pattern.compile(\"((?=.*[a-zA-Z])(?=.*[0-9@#$%]).{9,})\") 등 정규표현식으로 영문자·숫자/특수문자 포함과 길이를 검사하고, 매칭에 실패하면 '비밀번호 조합규칙 오류'를 반환하여 약한 비밀번호의 등록을 차단한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-09 diagnosis.true_positive 및 code_examples(Java) vulnerable 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '비밀번호 복잡도 미검증'/'조합규칙'/'널 체크 없음': pass에 대한 자릿수·특수문자·널 체크 등 요구 조건 없이 등록한다는 취약 판정 핵심.\n- '무작위 대입/추측 공격': 약한 비밀번호 허용 시 발생 가능한 위협.\n- 'CWE-521': 취약한 비밀번호 허용의 CWE 분류.\n\n[수정 키워드 의미] 정규표현식으로 영문자·숫자·특수문자 포함과 길이를 검증하고 실패 시 조합규칙 오류를 반환한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(복잡도 검증 없이 UserVo 생성·등록하는 3·4번 라인 지목) 20점 / rationale(복잡도·조합규칙 미검증, 무작위 대입/추측 공격, CWE-521 키워드 포함) 30점 / fix(정규표현식 복잡도 검증 + 조합규칙 오류 반환) 30점.\n\n[자가확인 체크리스트] (1) 비밀번호 저장/등록 경로인가? (2) 등록 전 자릿수·문자구성·특수문자·널 체크 등 복잡도 검증이 있는가? → 없으면 취약. (3) 변경 기능에도 동일 규칙이 적용되는가?",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용 — diagnosis.true_positive, code_examples(Java), CWE-521",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "정탐", "복잡도검증", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-D2",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 비밀번호 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\n// 로그인 시 입력한 값을 받아 인증(확인)하는 코드\nString id = request.getParameter(\"id\");\nString pass = request.getParameter(\"pass\");\nif (loginService.authenticate(id, pass)) {\n    // 인증 성공 처리\n}\n```",
+      "vulnerable_code": "1  // 로그인 시 입력한 값을 받아 인증(확인)하는 코드\n2  String id = request.getParameter(\"id\");\n3  String pass = request.getParameter(\"pass\");\n4  if (loginService.authenticate(id, pass)) {\n5    // 인증 성공 처리\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["로그인 확인 목적", "비밀번호 저장 아님", "복잡도 검증 대상 아님", "오탐 주의", "CWE-521 미해당"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전 — 이 코드는 비밀번호를 '저장(등록/변경)'하는 것이 아니라\n2  // 로그인 시 입력값을 '확인(인증)'하는 목적이므로 비밀번호 복잡도 검증 대상이 아니다.\n3  // (복잡도 검증은 가입·비밀번호 변경 등 저장 경로에서 수행한다.)",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 이 코드는 비밀번호를 새로 저장(등록·변경)하는 것이 아니라 로그인 시 사용자가 입력한 값을 받아 인증(확인)하는 목적이다. diagnosis.false_positive가 '로그인 시 비밀번호를 확인하는 것은 비밀번호를 저장하는 것이 아니므로 취약하지 않다'고 명시한 사례에 해당한다. 따라서 인증 경로에 비밀번호 복잡도 검증이 없다는 이유로 취약한 비밀번호 허용(CWE-521)으로 판정해서는 안 된다.",
+        "fix_description": "수정 불필요. 비밀번호 복잡도(조합규칙) 검증은 가입·비밀번호 변경 등 비밀번호를 저장하는 경로에서 수행해야 하며, 확인(인증) 목적인 본 코드는 그 대상이 아니다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-09 diagnosis.false_positive 코드를 기반으로 한다. 핵심은 '확인(인증) 목적 코드를 저장 경로로 오인해 취약하다고 오판하지 않기'다.\n\n[오판 주의] 비밀번호를 다루는 코드라고 해서 무조건 복잡도 검증이 필요한 것이 아니다. 복잡도 검증은 비밀번호를 '저장'하는 가입·변경 경로의 책임이며, 로그인 시 입력값을 '확인'하는 인증 경로는 그 대상이 아니다.\n\n[안전 판정 근거 키워드 의미]\n- '로그인 확인 목적'/'비밀번호 저장 아님': 이 코드는 인증을 위한 입력값 확인이지 등록/변경이 아니다.\n- '복잡도 검증 대상 아님': 조합규칙 검증은 저장 경로에서 수행한다.\n- 'CWE-521 미해당': 약한 비밀번호 저장을 허용하는 상황이 아니다.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — 정확히 없다고 판단) 20점 / rationale(확인 목적·저장 아님·복잡도 검증 대상 아님 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·복잡도 검증은 저장 경로 책임 명시) 30점.\n\n[자가확인 체크리스트] (1) 이 코드가 비밀번호를 새로 저장/등록/변경하는가? → 아니다(인증 확인). (2) 따라서 복잡도 검증 책임이 이 경로에 있는가? → 아니다. — 저장이 아니므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용 — diagnosis.false_positive, CWE-521",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "오탐", "로그인-확인", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-B1",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '취약한 비밀번호 허용'의 안전한 비밀번호 조합규칙에 대한 설명이다. 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "blank_template": "안전한 비밀번호는 영문자(대·소 구별)·숫자·특수문자를 조합하여 길이를 8~10자리 이상으로 하며, 구체적으로는 2종 이상 문자 구성 시 (1)자리 이상, 숫자로만 구성 시는 제외하고 (2)자리 이상으로 한다. 또한 사용자 ID와 연관된 단어나 (3)이(가) 존재하는 비밀번호는 사용을 금지한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["8", "8자리", "여덟"], "synonyms": ["8자", "8 자리"]},
+        {"idx": 2, "answers": ["10", "10자리", "열"], "synonyms": ["10자", "10 자리"]},
+        {"idx": 3, "answers": ["패턴"], "synonyms": ["반복 패턴", "규칙적 패턴", "pattern"]}
+      ],
+      "explanation": "course(2-9) 대책의 '문자 구성 및 길이 조건'은 2가지 종류 이상의 문자 구성 시 8자리 이상, 또는 숫자로만 구성한 경우를 제외하고 10자리 이상으로 규정한다. '특정 정보 이용 및 패턴조건 제약'에서 사용자 ID 연관 단어·사전 단어·패턴이 존재하는 비밀번호 사용 금지를 명시한다. 빈칸 (1)=8, (2)=10, (3)=패턴.",
+      "reference": "2025년 SW보안약점 진단원 기본(양성)과정 Ⅴ.2-9 취약한 비밀번호 허용 — 대책(문자 구성·길이·패턴 제약); 소프트웨어 보안약점 진단가이드(2021) 제4장 §9 diagnosis 참고",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "조합규칙", "길이조건", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-09-B2",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "chapter_code": "IMP-SF-09",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 회원가입 시 비밀번호 복잡도를 검증하는 안전한 Java 코드이다. 빈칸에 들어갈 알맞은 표현을 쓰시오.\n\n```java\nPattern pattern = Pattern.compile(\"((?=.*[a-zA-Z])(?=.*[0-9@#$%]).{9,})\");\nMatcher matcher = pattern.____(1)____(pass);\nif (!matcher.____(2)____()) {\n    return \"비밀번호 조합규칙 오류\";\n}\nUserVo userVO = new UserVo(id, pass);\n```",
+      "blank_template": "Pattern.compile(...)로 만든 정규표현식 객체에 대해 pattern.____(1)____(pass)로 검사할 문자열을 지정한 Matcher를 얻고, matcher.____(2)____()의 결과가 false이면 '비밀번호 조합규칙 오류'를 반환한다. 정규표현식의 전방 탐색 (?=.*[a-zA-Z])는 적어도 하나의 ____(3)____를(을) 포함할 것을 요구한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["matcher"], "synonyms": ["matcher()", ".matcher"]},
+        {"idx": 2, "answers": ["matches"], "synonyms": ["matches()", ".matches"]},
+        {"idx": 3, "answers": ["영문자"], "synonyms": ["영문자(대소문자)", "알파벳", "영어 문자", "a-zA-Z"]}
+      ],
+      "explanation": "IMP-SF-09 code_examples(Java) safe 코드는 Pattern.compile(...) 후 pattern.matcher(pass)로 Matcher를 얻고 matcher.matches()로 전체 일치 여부를 판정하여, 실패 시 '비밀번호 조합규칙 오류'를 반환한다. course 정규표현식 해설에 따르면 (?=.*[a-zA-Z])는 적어도 하나의 영문자(대소문자 무관) 포함을 요구하는 전방 탐색(lookahead)이다. 빈칸 (1)=matcher, (2)=matches, (3)=영문자.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §9. 취약한 비밀번호 허용 — code_examples(Java) safe; 2025년 SW보안약점 진단원 기본과정 Ⅴ.2-9 정규표현식 해설",
+      "tags": ["security_feature", "implementation", "취약한-비밀번호", "정규표현식", "Matcher", "빈칸"]
+    }
+  ]
+}

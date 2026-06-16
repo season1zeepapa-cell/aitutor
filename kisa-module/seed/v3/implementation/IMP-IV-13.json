@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-13",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-M1",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "HTTP 응답분할(HTTP Response Splitting) 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "HTTP 요청 파라미터가 응답헤더에 포함되어 전달될 때, 입력값에 CR(\\r)·LF(\\n) 같은 개행문자가 있으면 응답이 2개 이상으로 분리될 수 있다."},
+        {"num": 2, "text": "공격자는 개행문자로 첫 번째 응답을 종료시키고 두 번째 응답에 악의적인 코드를 주입하여 XSS·캐시 훼손(Cache Poisoning) 공격을 수행할 수 있다."},
+        {"num": 3, "text": "쿠키는 Set-Cookie 응답헤더로 전달되므로 외부 입력값을 쿠키 값으로 설정할 때 개행문자 포함 여부를 검증해야 한다."},
+        {"num": 4, "text": "응답헤더에 사용되는 개행문자는 정상적인 헤더 구분자이므로 외부 입력값에 포함되어 있어도 제거하지 않고 그대로 사용하는 것이 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview와 일치한다. 요청 파라미터가 응답헤더에 포함될 때 입력값의 CR/LF 개행문자로 인해 HTTP 응답이 2개 이상으로 분리될 수 있다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview·course 공격영향과 일치한다. 개행문자로 첫 응답을 종료시키고 둘째 응답에 악성 코드를 주입해 XSS·캐시 훼손 공격을 수행한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 라이브러리 code_examples note와 일치한다. 쿠키는 Set-Cookie 응답헤더로 전달되므로 개행문자 포함 여부를 검증해야 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). countermeasure는 '요청 파라미터 값을 응답헤더에 포함시킬 경우 CR, LF와 같은 개행문자를 제거한다'이다. 외부 입력값의 개행문자를 제거하지 않고 그대로 사용하면 응답분할이 발생하므로 명백히 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-13 라이브러리 overview·countermeasure와 대조한다. HTTP 응답분할은 외부 입력값의 CR/LF 개행문자가 응답헤더에 쓰일 때 발생하며, 대책은 '응답헤더에 포함시킬 경우 개행문자를 제거'하는 것이다. 4번은 이를 정반대로 뒤집어 '개행문자를 제거하지 않고 그대로 쓰는 것이 안전하다'고 진술하므로 틀렸다. 1·2·3번은 각각 overview·공격영향·code_examples note와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할(pp.284-289), CWE-113 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "crlf", "개행문자", "응답헤더"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-M2",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\n```",
+      "choices": [
+        {"num": 1, "text": "request.getParameter(\"last_login\")로 받은 외부 입력값을 개행문자 검증 없이 쿠키 값으로 사용하고 있어 HTTP 응답분할에 취약하다."},
+        {"num": 2, "text": "공격자가 'Wiley Hacker\\r\\nHTTP/1.1 200 OK\\r\\n' 같은 값을 입력하면 응답이 분리되어 본문 내용이 임의로 변조될 수 있다."},
+        {"num": 3, "text": "안전하게 하려면 lastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\"); 와 같이 개행문자를 제거한 후 쿠키 값으로 설정해야 한다."},
+        {"num": 4, "text": "null·빈 문자열을 체크하고 c.setSecure(true)를 설정했으므로 개행문자 제거 없이도 응답분할로부터 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 외부 입력값(last_login)을 개행문자 필터링 없이 쿠키 값으로 쓰므로 응답분할에 취약하다. diagnosis method·vulnerable 코드와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 라이브러리 note에 명시된 공격 예시 그대로다. CR/LF가 포함된 입력으로 응답이 분리되어 본문 변조가 가능하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 제시하는 정확한 대책이다. replaceAll(\"[\\\\r\\\\n]\", \"\")로 개행문자를 제거한 후 쿠키 값으로 설정한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). null·빈 문자열 체크와 setSecure(true)는 응답분할과 무관하다. 응답분할은 개행문자(CR/LF) 제거로만 방지되며, 개행문자 필터링이 없으면 setSecure 여부와 관계없이 여전히 취약하다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-13 code_examples(Java) vulnerable 코드다. null/빈 문자열 검사와 setSecure(true)는 응답분할 방어와 무관하며, countermeasure가 요구하는 핵심은 개행문자(CR/LF) 제거다. 4번은 이를 충족하지 않은 상태에서 '안전하다'고 진술하므로 틀렸다. 1·2·3번은 각각 취약 근거·공격 예시·safe 코드의 대책과 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — code_examples(Java) vulnerable/safe, note",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "set-cookie", "개행문자", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-M3",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "HTTP 응답분할 진단 시, 다음 코드 중 '취약하지 않다'고 판정하는 것이 잘못된 것은? (진단방법: ① 응답헤더에 변수 사용 확인 → ② 변수가 외부 입력값인지 확인 → ③ 개행문자 필터링 절차 확인)",
+      "choices": [
+        {"num": 1, "text": "response.sendRedirect(request.getContextPath() + \"/login.do\"); — getContextPath()는 내장함수로 context path를 리턴하므로 안전"},
+        {"num": 2, "text": "response.setHeader(\"Content-Length\", Long.toString(file.length())); — Numeric 값은 문자열 치환 시 \\r\\n이 포함될 수 없으므로 안전"},
+        {"num": 3, "text": "lastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\"); 후 쿠키 값으로 설정 — 개행문자를 필터링했으므로 안전"},
+        {"num": 4, "text": "String filename = request.getParameter(\"file\"); 후 res.setHeader(\"Content-Disposition\", \"attachment;filename=\" + filename); — 안전"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. getContextPath()는 내장함수로 context path를 리턴하므로 외부 입력값이 아니며 응답분할이 발생하지 않아 안전하다."},
+        {"num": 2, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. Long·Integer 등 Numeric 값은 문자열로 치환해도 \\r\\n이 포함될 수 없으므로 안전하다."},
+        {"num": 3, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. replaceAll(\"[\\\\r\\\\n]\", \"\")로 개행문자를 제거한 후 쿠키 값으로 설정하므로 안전하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 안전 판정). filename은 request.getParameter로 받은 외부 입력값이며(②), Content-Disposition 응답헤더에 개행문자 필터링 없이 그대로 사용(③ 미충족)되므로 응답분할에 취약하다. 이를 안전하다고 판정하면 틀렸다(true_positive 사례)."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-13 diagnosis의 true_positive/false_positive 사례를 섞어 제시했다. 1·2·3번은 모두 false_positive(안전) 사례 — 내장함수 결과, Numeric 값, 개행문자 필터링 적용 — 이므로 안전 판정이 옳다. 4번은 true_positive 사례로, 외부 입력값 filename을 개행문자 검증 없이 Content-Disposition 헤더에 사용하므로 취약하다. 따라서 '안전하지 않다고 판정하는 것이 잘못된' 보기를 고르라는 질문에서 4번이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — diagnosis.true_positive / false_positive",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "진단", "정탐", "오탐", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-D1",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 HTTP 응답분할 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void service(HttpServletRequest request, HttpServletResponse res) throws ServletException, IOException {\n  String contextRealPath = request.getSession().getServletContext().getRealPath(\"/\");\n  String savePath = contextRealPath + \"upfolder\";\n  res.setContentType(\"utf-8\");\n  String filename = request.getParameter(\"file\");\n  res.setContentType(\"application/octet;charset=utf-8\");\n  res.setHeader(\"Content-Disposition\", \"attachment;filename=\" + filename);\n}\n```",
+      "vulnerable_code": "1  public void service(HttpServletRequest request, HttpServletResponse res) throws ServletException, IOException {\n2    String contextRealPath = request.getSession().getServletContext().getRealPath(\"/\");\n3    String savePath = contextRealPath + \"upfolder\";\n4    res.setContentType(\"utf-8\");\n5    String filename = request.getParameter(\"file\");\n6    res.setContentType(\"application/octet;charset=utf-8\");\n7    res.setHeader(\"Content-Disposition\", \"attachment;filename=\" + filename);\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [5, 7],
+      "rationale_keywords": ["외부 입력값", "개행문자(CR/LF)", "응답헤더", "필터링 없음", "응답분할"],
+      "fix_keywords": ["replaceAll(\"[\\\\r\\\\n]\",\"\")", "개행문자 제거", "필터링 후 사용"],
+      "safe_code": "1  public void service(HttpServletRequest request, HttpServletResponse res) throws ServletException, IOException {\n2    String contextRealPath = request.getSession().getServletContext().getRealPath(\"/\");\n3    String savePath = contextRealPath + \"upfolder\";\n4    res.setContentType(\"utf-8\");\n5    String filename = request.getParameter(\"file\");\n6    // 외부 입력값에서 개행문자(CR/LF)를 제거한 후 응답헤더 값으로 사용\n7    filename = filename.replaceAll(\"[\\\\r\\\\n]\", \"\");\n8    res.setContentType(\"application/octet;charset=utf-8\");\n9    res.setHeader(\"Content-Disposition\", \"attachment;filename=\" + filename);\n10 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인에서 request.getParameter(\"file\")로 외부 입력값(filename)을 가져오고, 7번 라인에서 이 값을 개행문자(CR/LF) 필터링 없이 Content-Disposition 응답헤더에 그대로 포함시킨다. 입력값에 \\r\\n이 포함되면 HTTP 응답이 분리되어 두 번째 응답에 악성 코드를 주입할 수 있는 HTTP 응답분할(CWE-113)에 취약하다.",
+        "fix_description": "filename을 응답헤더에 사용하기 전에 filename = filename.replaceAll(\"[\\\\r\\\\n]\", \"\"); 와 같이 개행문자(CR/LF)를 제거한 후 setHeader에 사용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-13 diagnosis.true_positive 첫 번째 사례를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력값': 5번 라인 request.getParameter(\"file\")로 받은 filename.\n- '개행문자(CR/LF)': \\r\\n. 응답헤더에서 헤더 경계로 해석되어 응답 분할에 악용됨.\n- '응답헤더'/'필터링 없음': 7번 라인 Content-Disposition 헤더에 개행문자 제거 없이 그대로 사용.\n- '응답분할': 결과적으로 발생하는 HTTP Response Splitting.\n\n[수정 키워드 의미] replaceAll(\"[\\\\r\\\\n]\", \"\")로 개행문자를 제거한 후 응답헤더 값으로 사용한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(5·7번 라인 지목) 20점 / rationale(외부 입력값·개행문자·응답헤더·필터링 부재 키워드 포함) 30점 / fix(개행문자 제거 후 사용) 30점.\n\n[자가확인 체크리스트] (1) 응답헤더에 변수가 사용되는가? (2) 그 변수가 외부 입력값인가? (3) 개행문자(CR/LF) 제거·필터링 절차가 있는가? — (1)(2) 예 + (3) 아니오이면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — diagnosis.true_positive, CWE-113",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "정탐", "개행문자", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-D2",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 HTTP 응답분할 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 외부 입력값에서 개행문자를 제거한 후 쿠키의 값으로 설정\nlastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\");\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\n```",
+      "vulnerable_code": "1  String lastLogin = request.getParameter(\"last_login\");\n2  if (lastLogin == null || \"\".equals(lastLogin)) {\n3    return;\n4  }\n5  // 외부 입력값에서 개행문자를 제거한 후 쿠키의 값으로 설정\n6  lastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\");\n7  Cookie c = new Cookie(\"LASTLOGIN\", lastLogin);\n8  c.setMaxAge(1000);\n9  c.setSecure(true);\n10 response.addCookie(c);",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["개행문자 제거", "replaceAll", "필터링 적용", "응답분할 없음", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 6번 라인에서 외부 입력값(lastLogin)의 개행문자(CR/LF)를\n2  // replaceAll(\"[\\\\r\\\\n]\", \"\")로 제거한 후 쿠키(Set-Cookie 응답헤더) 값으로 사용하므로\n3  // HTTP 응답분할이 발생하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 1번 라인에서 외부 입력값(last_login)을 받지만, 6번 라인에서 lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\")로 개행문자(CR/LF)를 제거한 후 7번 라인에서 쿠키 값으로 설정한다. 쿠키는 Set-Cookie 응답헤더로 전달되지만 개행문자 필터링 절차가 적용되어 응답이 분리될 수 없으므로 HTTP 응답분할에 안전하다.",
+        "fix_description": "수정 불필요. 이미 countermeasure가 요구하는 개행문자 제거 필터링을 적용하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-13 diagnosis.false_positive 첫 번째 사례(safe 코드)를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] request.getParameter로 외부 입력을 받고 쿠키(Set-Cookie 헤더)에 사용한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 6번 라인에서 개행문자를 제거하고 있어 가이드가 제시하는 안전한 처리 모범이다.\n\n[안전 판정 근거 키워드 의미]\n- '개행문자 제거'/'replaceAll'/'필터링 적용': 6번 라인 replaceAll(\"[\\\\r\\\\n]\", \"\")로 CR/LF를 제거함.\n- '응답분할 없음': 개행문자가 제거되어 응답이 분리될 수 없음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(개행문자 제거·필터링 적용·응답분할 없음 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 응답헤더에 외부 입력값 변수가 사용되는가? → 그렇다. (2) 개행문자(CR/LF) 제거·필터링 절차가 있는가? → 그렇다(6번 라인). — 필터링이 적용되어 있으므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — diagnosis.false_positive(safe 코드)",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "오탐", "개행문자 제거", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-B1",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "HTTP 응답분할의 발생 원리와 보안대책에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "HTTP 요청 파라미터가 HTTP 응답헤더에 포함되어 전달될 때, 입력값에 ___(1)___(CR)이나 LF와 같은 개행문자가 존재하면 HTTP 응답이 2개 이상으로 분리될 수 있다. 공격자는 이를 이용해 첫 응답을 종료시키고 둘째 응답에 악성 코드를 주입하여 XSS 및 ___(2)___(Cache Poisoning) 공격을 수행할 수 있다. 따라서 요청 파라미터 값을 응답헤더(예: Set-Cookie)에 포함시킬 경우 CR, LF와 같은 ___(3)___를 제거해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["Carriage Return", "캐리지 리턴"], "synonyms": ["CR", "캐리지리턴"]},
+        {"idx": 2, "answers": ["캐시 훼손", "캐시 오염"], "synonyms": ["Cache Poisoning", "캐시 포이즈닝", "캐시훼손"]},
+        {"idx": 3, "answers": ["개행문자"], "synonyms": ["줄바꿈 문자", "CR/LF", "개행 문자", "newline"]}
+      ],
+      "explanation": "정답: (1) Carriage Return(CR) / (2) 캐시 훼손(Cache Poisoning) / (3) 개행문자. IMP-IV-13 overview·countermeasure 기반이다. CR(Carriage Return, \\r)과 LF(Line Feed, \\n)는 응답헤더에서 헤더 경계로 해석되는 개행문자로, 외부 입력값에 포함되면 응답이 분리된다. 공격 결과는 XSS와 캐시 훼손(Cache Poisoning)이며, 대책은 응답헤더에 외부 입력값을 포함할 때 개행문자(CR/LF)를 제거하는 것이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "빈칸", "개행문자", "캐시훼손"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-13-B2",
+      "weakness_name_ko": "HTTP 응답분할",
+      "chapter_code": "IMP-IV-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 HTTP 응답분할을 방지하기 위한 안전한 Java 코드의 일부다. 빈칸을 채우시오.",
+      "blank_template": "String lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 외부 입력값에서 개행문자를 제거한 후 쿠키의 값으로 설정\nlastLogin = lastLogin.___(1)___(\"[\\\\r\\\\n]\", \"\");\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.___(2)___(true);\nresponse.addCookie(c);",
+      "blank_answers": [
+        {"idx": 1, "answers": ["replaceAll"], "synonyms": ["replaceall"]},
+        {"idx": 2, "answers": ["setSecure"], "synonyms": ["setsecure"]}
+      ],
+      "explanation": "정답: (1) replaceAll / (2) setSecure. IMP-IV-13 code_examples(Java) safe 코드 기반이다. (1) lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\")로 외부 입력값에서 개행문자(CR/LF)를 제거한 후 쿠키 값으로 설정해야 응답분할을 막을 수 있다. (2) c.setSecure(true)는 쿠키를 HTTPS 전송으로 한정하는 보안 설정이다. 응답분할 방어의 핵심은 (1)의 개행문자 제거다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 HTTP 응답분할 — code_examples(Java) safe",
+      "tags": ["input_validation", "implementation", "http-response-splitting", "빈칸", "replaceAll", "java"]
+    }
+  ]
+}

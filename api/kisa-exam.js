@@ -25,13 +25,14 @@ const { scoreAttempt } = require('./_kisa/scorer');
 
 // 시험 모드별 구성
 // theory60 30문항은 mcq 20 + blank 10 으로 혼합 출제 (실제 이수시험 이론 30문항 대비)
+// composite(복합서술형)은 실기 영역에 포함 — practical100/full3h 에 일부 출제
 const EXAM_CONFIG = {
-  theory60:     { timeLimit: 60 * 60,   mcq: 20, blank: 10, practical: 0  },
-  practical100: { timeLimit: 100 * 60,  mcq: 0,  blank: 0,  practical: 15 },
-  full3h:       { timeLimit: 180 * 60,  mcq: 20, blank: 10, practical: 15 },
+  theory60:     { timeLimit: 60 * 60,   mcq: 20, blank: 10, practical: 0,  composite: 0 },
+  practical100: { timeLimit: 100 * 60,  mcq: 0,  blank: 0,  practical: 13, composite: 2 },
+  full3h:       { timeLimit: 180 * 60,  mcq: 20, blank: 10, practical: 13, composite: 2 },
 };
 
-/** 시험용 문항 랜덤 샘플링 — 이론(mcq) + 단답형(blank) + 실기(diagnosis4) */
+/** 시험용 문항 랜덤 샘플링 — 이론(mcq) + 단답형(blank) + 실기(diagnosis4 + composite) */
 async function sampleQuestions(cfg) {
   const ids = [];
 
@@ -60,6 +61,15 @@ async function sampleQuestions(cfg) {
       ORDER BY RANDOM() LIMIT $1
     `, [cfg.practical]);
     ids.push(...diag.rows.map(r => r.id));
+  }
+
+  if (cfg.composite > 0) {
+    const composite = await query(`
+      SELECT id FROM kisa_questions
+      WHERE question_type = 'composite' AND is_active = TRUE
+      ORDER BY RANDOM() LIMIT $1
+    `, [cfg.composite]);
+    ids.push(...composite.rows.map(r => r.id));
   }
 
   return ids;
@@ -99,7 +109,7 @@ module.exports = withAuth(async (req, res) => {
       [userId]
     );
 
-    const requested = (cfg.mcq || 0) + (cfg.blank || 0) + (cfg.practical || 0);
+    const requested = (cfg.mcq || 0) + (cfg.blank || 0) + (cfg.practical || 0) + (cfg.composite || 0);
     const questionIds = await sampleQuestions(cfg);
     if (questionIds.length < requested) {
       return res.status(503).json({
@@ -139,6 +149,8 @@ module.exports = withAuth(async (req, res) => {
     const qRes = await query(`
       SELECT id, question_type, weakness_category, weakness_code, weakness_name_ko,
              language, difficulty, body, vulnerable_code, code_language, choices,
+             -- composite 응시에 필요한 산출물/보고서 양식 (rubric=정답키워드는 제외)
+             artifacts, report_template,
              (CASE WHEN question_type = 'diagnosis4'
                    THEN array_length(rationale_keywords, 1)
                    ELSE NULL END) AS rationale_keyword_count,
@@ -239,10 +251,12 @@ module.exports = withAuth(async (req, res) => {
         fix_text: ans.fix_text || '',
         fix_code: ans.fix_code || '',
         blank_answers_user: Array.isArray(ans.blank_answers_user) ? ans.blank_answers_user : [],
+        report_text: ans.report_text || '',  // composite 답안 본문
       });
 
       totalScore += scored.autoScore;
       // mcq, blank 모두 이론(theory) 점수에 합산 (실제 이수시험 이론 영역 기준)
+      // diagnosis4 + composite 는 실기(practical) 영역에 합산
       if (q.question_type === 'mcq' || q.question_type === 'blank') {
         theoryScore += scored.autoScore;
         theoryCount++;
@@ -275,8 +289,9 @@ module.exports = withAuth(async (req, res) => {
           user_id, question_id, mode, exam_session_id,
           mcq_selected, verdict_yn, cited_lines,
           rationale_text, fix_text, fix_code,
+          report_text, rubric_hits,
           auto_score, final_score, keyword_hits
-        ) VALUES ($1, $2, 'exam', $3, $4, $5, $6, $7, $8, $9, $10, $10, $11::jsonb)
+        ) VALUES ($1, $2, 'exam', $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12, $12, $13::jsonb)
       `, [
         userId, a.question_id, sessionId,
         typeof a.ans.mcq_selected === 'number' ? a.ans.mcq_selected : null,
@@ -285,6 +300,9 @@ module.exports = withAuth(async (req, res) => {
         a.ans.rationale_text || '',
         a.ans.fix_text || '',
         a.ans.fix_code || '',
+        // composite 답안 본문 + 루브릭 채점 결과 (다른 타입은 빈값)
+        a.ans.report_text || '',
+        JSON.stringify(a.scored.rubricHits || []),
         a.scored.autoScore,
         JSON.stringify(a.scored.keywordHits || {}),
       ]);

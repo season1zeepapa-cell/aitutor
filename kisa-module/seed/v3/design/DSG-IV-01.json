@@ -1,0 +1,241 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-IV-01",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-M1",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계 'DBMS 조회 및 결과 검증' 설계항목의 보안대책이다. 옳지 않은 것은?\n\nDBMS 조회 시 질의문(SQL) 내 입력값과 그 조회결과에 대한 유효성 검증방법(필터링 등)을 설계하고, 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+      "choices": [
+        {"num": 1, "text": "애플리케이션에서 DB연결을 수행할 때 최소권한의 계정을 사용해야 한다."},
+        {"num": 2, "text": "외부입력값이 삽입되는 SQL질의문을 동적으로 생성해서 실행하지 않도록 해야 한다."},
+        {"num": 3, "text": "외부입력값을 이용해 동적으로 SQL질의문을 생성해야 하는 경우, 입력값에 대한 검증을 수행한 뒤 사용해야 한다."},
+        {"num": 4, "text": "성능 향상을 위해 DB연결 계정에는 모든 테이블에 대한 DROP·ALTER 등 관리자(DBA) 권한을 부여하여 운영해야 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "보안대책 ①과 일치하는 옳은 진술이다. 침해사고가 발생하더라도 피해를 국한하도록 DB연결 계정에는 최소권한만 부여해야 하므로 함정(옳은 진술)이다."},
+        {"num": 2, "correct": false, "why": "보안대책 ②와 일치하는 옳은 진술이다. 외부입력값이 SQL질의문 구조에 영향을 주지 않도록 정적쿼리(PreparedStatement, ORM 등)를 사용해야 하므로 함정(옳은 진술)이다."},
+        {"num": 3, "correct": false, "why": "보안대책 ③과 일치하는 옳은 진술이다. 동적 쿼리가 불가피하면 클라이언트·서버 양측에서 입력값을 검증한 뒤 사용해야 하므로 함정(옳은 진술)이다."},
+        {"num": 4, "correct": true, "why": "정답. 설계 고려사항 ①은 침해사고 발생 시 피해를 국한하도록 DB연결 계정에 해당 애플리케이션이 사용하는 데이터에 대한 읽기·쓰기·삭제·업데이트 권한만 부여하는 '최소권한' 원칙을 요구한다. DROP·ALTER를 포함한 관리자(DBA) 권한을 부여하는 것은 최소권한 원칙을 정면으로 위배하므로 명백히 잘못된 설계다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-01 라이브러리 security_measures ①②③의 세 축(최소권한 계정 / 정적쿼리 / 동적쿼리 시 입력값 검증)과 대조하여 확인한다. 1·2·3번은 각각 보안대책 ①②③과 그대로 일치하는 옳은 진술이라 오답 함정으로 배치되었다. 4번은 design_considerations ①의 '읽기·쓰기·삭제·업데이트 권한만 설정'(최소권한)을 정반대로 뒤집어 관리자 권한 부여를 주장하므로 잘못된 것이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증(pp.43-49) — security_measures ①②③, design_considerations ①",
+      "tags": ["input_validation", "design", "sql", "dbms", "최소권한", "정적쿼리", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-M2",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 두 Java 코드는 동일한 board 검색 기능의 (가) 취약 코드와 (나) 안전 코드이다. 설명으로 옳지 않은 것은?\n\n```java\n// (가)\nString gubun = request.getParameter(\"gubun\");\nString sql = \"SELECT * FROM board WHERE b_gubun = '\" + gubun + \"'\";\nStatement stmt = con.createStatement();\nResultSet rs = stmt.executeQuery(sql);\n\n// (나)\nString gubun = request.getParameter(\"gubun\");\nString sql = \"SELECT * FROM board WHERE b_gubun = ?\";\nPreparedStatement pstmt = con.prepareStatement(sql);\npstmt.setString(1, gubun);\nResultSet rs = pstmt.executeQuery();\n```",
+      "choices": [
+        {"num": 1, "text": "(가)는 외부입력값 gubun을 문자열 결합으로 쿼리에 삽입해 동적쿼리를 생성하므로 SQL 삽입에 취약하다."},
+        {"num": 2, "text": "(가)에서 gubun에 a' or 'a' = 'a 를 입력하면 조건절이 항상 참이 되어 board 전체가 조회될 수 있다."},
+        {"num": 3, "text": "(나)는 ? 바인딩 변수와 PreparedStatement.setString을 사용해 정적쿼리 구조를 유지하므로 입력값이 쿼리 구조를 바꿀 수 없다."},
+        {"num": 4, "text": "(나)처럼 PreparedStatement를 사용하더라도, 쿼리 문자열 자체를 외부입력값과 결합해 동적으로 생성하면 여전히 안전하다고 단정할 수 있다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). (가)는 gubun을 검증 없이 문자열 결합으로 SQL에 직접 삽입하여 동적쿼리를 만들므로 설계 고려사항 ②(정적쿼리 사용)를 위반한 SQL 삽입 취약 코드다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). IMP-IV-01 note의 공격 예시 그대로다. a' or 'a' = 'a 를 입력하면 조건절이 b_gubun = 'a' or 'a' = 'a' 가 되어 항상 참이 되므로 board 전체가 조회된다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). (나)는 쿼리 골격을 상수 문자열(? 바인딩)로 고정하고 setString으로 파라미터를 전달하므로 외부입력값이 쿼리 구조를 변경할 수 없는 정적쿼리다."},
+        {"num": 4, "correct": true, "why": "정답. PreparedStatement를 쓰더라도 쿼리 문자열 자체를 외부입력값과 문자열 결합으로 동적 생성하면(예: \"... WHERE Name = '\" + name + \"'\" 를 prepareStatement에 넘기는 경우) 외부입력이 쿼리 구조를 바꿀 수 있어 여전히 취약하다(IMP-IV-01 true_positive). '여전히 안전하다고 단정할 수 있다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-01 design_considerations ②(정적쿼리 사용)와 관련약점 IMP-IV-01(SQL 삽입)의 code_examples·true_positive로 검증한다. 1·2·3번은 (가)의 취약성과 (나)의 안전성을 정확히 설명한 옳은 진술이다. 4번은 PreparedStatement를 사용해도 쿼리 골격을 외부입력값과 결합해 동적으로 만들면 안전을 보장할 수 없다는 IMP-IV-01 true_positive 사례(동적 문자열로 prepareStatement 생성)를 정반대로 진술하여 틀렸다. 핵심은 'PreparedStatement 사용' 자체가 아니라 '쿼리 구조를 상수로 고정했는가'이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증; 제4장 §1 SQL 삽입(pp.180-193), CWE-89 — code_examples(Java JDBC) vulnerable/safe, true_positive",
+      "tags": ["input_validation", "design", "sql", "PreparedStatement", "정적쿼리", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-M3",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "DBMS 조회 및 결과 검증 설계항목의 진단방법과 확인 대상 산출물의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·개발가이드·단위테스트케이스 등 산출물을 검토하여 DBMS 조회 보안설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "애플리케이션별 DB연결 계정할당과 해당 계정에 대한 최소 권한 할당 여부 확인 — 아키텍처설계서·초기데이터설계서 검토"},
+        {"num": 2, "text": "안전한 정적 쿼리 코딩 방법(myBatis #{변수}, PreparedStatement 등 정적쿼리 API)이 정의되어 있는지 확인 — 개발가이드 검토"},
+        {"num": 3, "text": "입력값이 DB 쿼리의 구조를 변경시키는지 점검하기 위한 테스트 계획(특수문자·예약어·함수명 입력)이 수립되어 있는지 확인 — 단위테스트케이스 검토"},
+        {"num": 4, "text": "안전한 쿼리 실행환경을 제공하는 ORM 프레임워크 사용 여부 확인 — 단위테스트케이스 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-2 method가 '애플리케이션별 DB연결 계정할당과 최소 권한 할당 여부 확인'이며 artifacts가 '아키텍처설계서, 초기데이터설계서 검토'로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항②의 checklist 1-3 method가 '개발가이드로 안전한 정적 쿼리 코딩 방법(ibatis/mybatis #{변수}, PreparedStatement 등) 정의 여부 확인'이며 artifacts가 '개발가이드 검토'로 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항②·③의 checklist 2-1 method가 '쿼리 구조를 변경할 수 있는 입력값(특수문자·예약어·함수명) 점검 테스트 계획 수립 여부 확인'이며 artifacts가 '단위테스트케이스 검토'로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항②의 checklist 1-2 method '안전한 쿼리 실행환경을 제공하는 ORM 프레임워크 사용 여부 확인'의 관련산출물은 '아키텍처설계서의 보안요구항목 적용 계획 검토'이다. ORM 사용 여부는 설계 적용계획에 대한 확인이므로 '단위테스트케이스'가 아니라 '아키텍처설계서'와 연결되어야 한다. 단위테스트케이스는 테스트 계획 수립 여부(checklist 2번) 확인에 쓰이는 산출물이라는 점이 함정이다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-01 라이브러리 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 요구사항①1-2, ②1-3, ②/③2-1의 method-artifacts 짝과 정확히 일치한다. 4번은 'ORM 프레임워크 사용 여부'(②1-2) 확인의 올바른 산출물이 '아키텍처설계서'인데 '단위테스트케이스'로 잘못 연결되었다. ORM 적용은 설계 단계의 적용계획 검토 대상이며, 단위테스트케이스는 입력값으로 쿼리 구조 변경 여부를 점검하는 테스트 계획 확인에 쓰인다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증 — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["input_validation", "design", "sql", "진단방법", "산출물", "ORM", "아키텍처설계서"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-D1",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 DBMS 조회 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString gubun = request.getParameter(\"gubun\");\nString sql = \"SELECT * FROM board WHERE b_gubun = '\" + gubun + \"'\";\nConnection con = db.getConnection();\nStatement stmt = con.createStatement();\nResultSet rs = stmt.executeQuery(sql);\n```",
+      "vulnerable_code": "1  String gubun = request.getParameter(\"gubun\");\n2  String sql = \"SELECT * FROM board WHERE b_gubun = '\" + gubun + \"'\";\n3  Connection con = db.getConnection();\n4  Statement stmt = con.createStatement();\n5  ResultSet rs = stmt.executeQuery(sql);",
+      "code_language": "java",
+      "vulnerable_lines": [2, 5],
+      "rationale_keywords": ["외부입력값", "문자열 결합", "동적쿼리", "SQL 삽입", "CWE-89"],
+      "fix_keywords": ["PreparedStatement", "바인딩 변수(?)", "setString", "정적쿼리"],
+      "safe_code": "1  String gubun = request.getParameter(\"gubun\");\n2  String sql = \"SELECT * FROM board WHERE b_gubun = ?\";\n3  Connection con = db.getConnection();\n4  PreparedStatement pstmt = con.prepareStatement(sql);\n5  pstmt.setString(1, gubun);\n6  ResultSet rs = pstmt.executeQuery();",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 외부입력값 gubun(request.getParameter)을 검증·바인딩 없이 문자열 결합으로 SQL 질의문에 직접 삽입하여 동적쿼리를 생성하고, 5번 라인에서 Statement.executeQuery로 그대로 실행한다. gubun에 a' or 'a' = 'a 같은 값을 입력하면 조건절이 항상 참이 되어 board 전체가 조회되는 SQL 삽입(CWE-89)이 발생한다. 이는 설계 고려사항 ②(정적쿼리 사용)를 위반한다.",
+        "fix_description": "외부입력값이 쿼리 구조를 변경하지 못하도록 PreparedStatement와 ? 바인딩 변수를 사용한다. 쿼리 골격을 상수 문자열로 고정하고 pstmt.setString(1, gubun)으로 파라미터를 바인딩하여 정적쿼리 구조를 유지한다. 또는 myBatis #{변수}·ORM 등 정적쿼리 API를 사용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-01 code_examples(Java JDBC)의 vulnerable 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부입력값'/'문자열 결합': 2번 라인이 request.getParameter로 받은 gubun을 + 연산으로 쿼리에 직접 결합함.\n- '동적쿼리': 입력값에 따라 쿼리 구조가 바뀌는 Dynamic Query 생성.\n- 'SQL 삽입'/'CWE-89': overview·CWE 분류상 이 약점의 결과.\n\n[수정 키워드 의미] PreparedStatement + ? 바인딩 변수 + setString으로 쿼리 구조를 상수로 고정한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2번·5번 라인 지목) 20점 / rationale(외부입력값 문자열 결합·동적쿼리·SQL 삽입 키워드 포함) 30점 / fix(PreparedStatement·바인딩 변수·setString 등 정적쿼리화) 30점.\n\n[자가확인 체크리스트] (1) 쿼리 문자열이 외부입력값과 문자열 결합(+)으로 만들어지는가? (2) 바인딩 변수(?, #{}) 없이 Statement로 실행되는가? (3) 입력값에 대한 필터링·검증 모듈이 없는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 SQL 삽입 — code_examples(Java JDBC) vulnerable/safe, CWE-89",
+      "tags": ["input_validation", "design", "sql", "정탐", "동적쿼리", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-D2",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java(Hibernate) 코드의 DBMS 조회 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString name = request.getParameter(\"name\");\nQuery query = session.createQuery(\"from Student where studentName = :name\");\nquery.setParameter(\"name\", name);\nList students = query.list();\n```",
+      "vulnerable_code": "1  String name = request.getParameter(\"name\");\n2  Query query = session.createQuery(\"from Student where studentName = :name\");\n3  query.setParameter(\"name\", name);\n4  List students = query.list();",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["명명 파라미터 바인딩", ":name", "정적쿼리 구조", "쿼리 구조 변경 불가", "문자열 결합 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 쿼리 골격을 상수 문자열로 고정하고 명명 파라미터(:name)에\n2  // 외부입력값을 setParameter로 바인딩하므로 입력값이 쿼리 구조를 변경할 수 없다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 2번 라인에서 쿼리 골격을 'from Student where studentName = :name' 상수 문자열로 고정하고, 3번 라인에서 명명 파라미터 :name 에 외부입력값을 setParameter로 바인딩하고 있다. 외부입력값이 문자열 결합으로 쿼리에 직접 삽입되지 않고 파라미터로 바인딩되므로 입력값이 쿼리 구조를 변경할 수 없다. 이는 IMP-IV-01 false_positive(명명 파라미터 바인딩) 사례로, 설계 고려사항 ②(정적쿼리 사용)를 충족하는 안전한 코드다.",
+        "fix_description": "수정 불필요. 이미 명명 파라미터(:name) 바인딩으로 정적쿼리 구조를 유지하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-01 diagnosis.false_positive(명명 파라미터 :name 바인딩) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] createQuery/session 같은 ORM/Hibernate API가 보인다고 무조건 취약하다고 단정해서는 안 된다. Hibernate는 문자열 결합으로 쿼리를 만들면 취약하지만, 이 코드는 :name 명명 파라미터로 바인딩하므로 안전한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '명명 파라미터 바인딩'/':name': 외부입력값을 setParameter로 바인딩함.\n- '정적쿼리 구조'/'쿼리 구조 변경 불가': 쿼리 골격이 상수로 고정되어 입력값이 구조를 바꿀 수 없음.\n- '문자열 결합 없음': + 연산으로 입력값을 쿼리에 직접 붙이지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(명명 파라미터 바인딩·정적쿼리 구조·문자열 결합 없음 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 쿼리 골격이 외부입력값과 문자열 결합으로 만들어지는가? → 아니다. (2) 외부입력값이 바인딩 변수(:name, ?, #{})로 전달되는가? → 그렇다. (3) 입력값이 쿼리 구조를 바꿀 수 있는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 SQL 삽입 — diagnosis.false_positive(명명 파라미터 바인딩)",
+      "tags": ["input_validation", "design", "sql", "오탐", "파라미터바인딩", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-C1",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 3종(요구사항정의서·아키텍처설계서·개발가이드)이다. 'DBMS 조회 및 결과 검증' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 최소권한 DB 계정, ② 정적쿼리(동적 생성 금지), ③ 동적쿼리 시 입력값 검증의 세 축과, 각 요구사항의 진단방법(요구사항정의서·아키텍처설계서·개발가이드 반영 여부)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — DBMS 조회(SR-DB)",
+          "content": "SR-DB-01 애플리케이션 DB연결은 최소권한 계정을 사용한다.\nSR-DB-02 외부입력값이 삽입되는 SQL질의문을 동적으로 생성·실행하지 않는다(정적쿼리 사용).\nSR-DB-03 동적 쿼리가 불가피한 경우 입력값을 검증한 뒤 사용한다.\n(주: 본 정의서의 세 항목은 아키텍처설계서·개발가이드로 추적 가능하도록 요구사항추적표에 매핑되어 있다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "DBMS 접근 아키텍처 — 계정·ORM",
+          "content": "[DB계정] 애플리케이션별로 DB접속 계정을 분리 할당한다. 그러나 각 계정의 권한 범위(읽기·쓰기·삭제·수정으로 제한)에 대한 최소권한 설계 기술이 본 설계서에 누락되어 있다.\n[쿼리 실행환경] 안전한 정적 쿼리 구조를 제공하는 ORM 프레임워크(MyBatis)를 사용하도록 개발환경을 설정한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "DBMS 조회 시큐어코딩 가이드 + 예시 코드",
+          "content": "정적 쿼리 코딩 규칙을 정의한다: MyBatis 사용 시 외부입력값은 #{변수}로 바인딩한다. 단, 불가피하게 동적 쿼리를 사용해야 하는 기능에 대한 입력값 필터링(특수문자·예약어·함수명 제거) 코딩 규칙은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java JDBC)\nString gubun = request.getParameter(\"gubun\");\nString sql = \"SELECT * FROM board WHERE b_gubun = '\" + gubun + \"'\";\nStatement stmt = con.createStatement();\nResultSet rs = stmt.executeQuery(sql);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "최소권한 계정 — DB연결 계정의 최소권한 설계 누락 진단(계정 분리는 있으나 권한 범위 제한 누락)",
+          "points": 2,
+          "required_keywords": ["최소권한", "읽기·쓰기·삭제·수정", "아키텍처설계서"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-2: 애플리케이션별 DB연결 계정할당과 최소 권한 할당 여부 확인. 계정 분리는 있으나 권한을 읽기·쓰기·삭제·수정으로 제한하는 최소권한 설계가 누락됨."
+        },
+        {
+          "item": "정적쿼리 — ORM 프레임워크 사용 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["ORM 프레임워크", "정적쿼리", "MyBatis"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항②1-2: 안전한 쿼리 실행환경을 제공하는 ORM 프레임워크 사용 여부 확인. 아키텍처설계서가 MyBatis 사용을 명시하여 이 항목은 적합."
+        },
+        {
+          "item": "동적쿼리 입력값 검증 — 입력값 필터링(특수문자·예약어·함수명) 코딩 규칙 누락 진단",
+          "points": 2,
+          "required_keywords": ["입력값 필터링", "특수문자·예약어·함수명", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항③1-4: 동적 쿼리 시 SQL 필터링 적용 코딩 규칙이 개발가이드에 정의되어 있는지 확인. 본 가이드에 동적 쿼리 입력값 필터링 규칙이 누락됨."
+        },
+        {
+          "item": "정적쿼리 — 개발가이드 첨부 예시 코드의 SQL 삽입 결함 진단(문자열 결합 동적쿼리)",
+          "points": 2,
+          "required_keywords": ["문자열 결합", "동적쿼리", "PreparedStatement"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항②1-3: 안전한 정적 쿼리 코딩 방법이 개발가이드에 정의·예시되어 있는지 확인. 첨부 예시 코드가 외부입력값 gubun을 문자열 결합으로 쿼리에 삽입(Statement)하여 정적쿼리 규칙을 위반."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-IV-01 diagnosis.requirements checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 세 축(①②③)이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 최소권한 계정 설계·ORM 적용계획 확인 → (3) 개발가이드에서 정적쿼리 코딩 규칙·동적쿼리 입력값 필터링 규칙 확인 → (4) 첨부 예시 코드의 실제 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — 최소권한 DB 계정(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 애플리케이션별 DB계정 분리는 설계되었으나, 각 계정의 권한을 읽기·쓰기·삭제·수정으로 제한하는 최소권한 설계가 누락되어 침해 시 피해 국한이 보장되지 않는다.\n  · 개선방안: 각 DB연결 계정에 해당 애플리케이션이 사용하는 데이터에 대한 읽기·쓰기·삭제·수정 권한만 부여하도록 아키텍처설계서를 보강한다.\n■ 진단항목 2 — 정적쿼리 ORM 적용(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: MyBatis ORM으로 안전한 정적 쿼리 실행환경을 사용하도록 설계되어 요구사항②의 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 3 — 동적쿼리 입력값 검증(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 불가피한 동적 쿼리에 대한 입력값 필터링(특수문자·예약어·함수명 제거) 코딩 규칙이 개발가이드에 정의되어 있지 않다.\n  · 개선방안: 동적 쿼리 사용 기능에 대해 특수문자(' \" = 등)·예약어(UNION/SELECT 등)·함수명(DATABASE()/CONCAT() 등)을 필터링하는 코딩 규칙을 개발가이드에 추가한다.\n■ 진단항목 4 — 정적쿼리 예시 코드(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 개발가이드 첨부 예시 코드가 외부입력값 gubun을 문자열 결합으로 쿼리에 삽입하고 Statement로 실행하여 SQL 삽입에 취약하다(정적쿼리 규칙 위반).\n  · 개선방안: 예시 코드를 PreparedStatement + ? 바인딩(또는 MyBatis #{변수})으로 수정하여 정적쿼리 모범 사례로 제시한다.\n\n[정탐/오탐 판정 근거] 진단항목 1·3·4는 산출물에 명시적 누락/결함이 존재하므로 정탐(결함)으로 지적한다. 진단항목 2는 ORM(MyBatis) 사용이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증 — diagnosis.requirements①②③ checklist methods; 제4장 §1 SQL 삽입 code_examples",
+      "tags": ["input_validation", "design", "sql", "복합서술형", "진단보고서", "산출물", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-B1",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "DBMS 조회 및 결과 검증 설계항목의 보안대책에 대한 빈칸을 채우시오.",
+      "blank_template": "외부입력값이 SQL질의문의 구조를 변경하지 못하도록, 쿼리문의 구조가 외부입력값에 의해 변경되지 않는 {{1}} 쿼리를 사용한다. 대표적으로 Java에서는 {{2}} 객체에 ? 바인딩 변수를 사용하거나 myBatis의 #{변수}, ORM 프레임워크 등을 사용한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["정적"], "synonyms": ["정적(Static)", "Static"]},
+        {"idx": 2, "answers": ["PreparedStatement"], "synonyms": ["프리페어드스테이트먼트", "PreparedStatement 객체"]}
+      ],
+      "explanation": "정답: (1) 정적, (2) PreparedStatement. 설계 고려사항 ②는 'SQL 질의문의 구조가 외부 입력값에 의해 변경되지 않는 API를 사용'하는 정적(Static) 쿼리를 요구한다. 정적쿼리는 PreparedStatement의 ? 바인딩 변수, myBatis/iBatis의 #{변수}, ORM 프레임워크 등으로 구현하여 외부입력값이 쿼리 구조를 바꿀 수 없도록 한다. 반대로 문자열 결합으로 입력값을 직접 삽입하는 동적쿼리는 SQL 삽입(CWE-89)에 취약하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증 — design_considerations ②; 제4장 §1 SQL 삽입 countermeasure",
+      "tags": ["input_validation", "design", "sql", "빈칸", "정적쿼리", "PreparedStatement"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-01-B2",
+      "weakness_name_ko": "DBMS 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "DBMS 조회 보안대책의 DB 계정 권한 원칙에 대한 빈칸을 채우시오.",
+      "blank_template": "침해사고가 발생하더라도 피해를 국한하도록, 애플리케이션이 사용하는 DB연결 계정에는 해당 애플리케이션이 사용하는 데이터에 대한 읽기·쓰기·삭제·업데이트 권한만 부여하는 {{1}} 원칙을 적용한다. 이 설계항목과 관련된 구현단계 보안약점은 입력 데이터 검증 및 표현 카테고리의 {{2}}이다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["최소권한"], "synonyms": ["최소 권한", "최소권한 계정", "Least Privilege"]},
+        {"idx": 2, "answers": ["SQL 삽입"], "synonyms": ["SQL Injection", "SQL인젝션", "SQL 인젝션"]}
+      ],
+      "explanation": "정답: (1) 최소권한, (2) SQL 삽입. 보안대책 ①과 설계 고려사항 ①은 침해사고 발생 시 피해를 국한하도록 DB연결 계정에 읽기·쓰기·삭제·업데이트 권한만 부여하는 최소권한(Least Privilege) 원칙을 요구한다. DBMS 조회 및 결과 검증 설계항목과 연관된 구현단계 보안약점은 '입력 데이터 검증 및 표현 > SQL 삽입'(IMP-IV-01, CWE-89)이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.1 DBMS 조회 및 결과 검증 — security_measures ①, design_considerations ①, related_weaknesses",
+      "tags": ["input_validation", "design", "sql", "빈칸", "최소권한", "SQL삽입"]
+    }
+  ]
+}

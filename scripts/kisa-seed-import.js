@@ -58,66 +58,59 @@ function normalizeQuestion(q) {
     is_active: q.is_active !== false,
     stage: q.stage || null,
     chapter_code: q.chapter_code || null,
+    // REBUILD53 신규: 해설/선지별/blank/composite
+    explanation: q.explanation || null,
+    choice_explanations: q.choice_explanations ? JSON.stringify(q.choice_explanations) : null,
+    blank_template: q.blank_template || null,
+    blank_answers: q.blank_answers ? JSON.stringify(q.blank_answers) : null,
+    artifacts: q.artifacts ? JSON.stringify(q.artifacts) : null,
+    rubric: q.rubric ? JSON.stringify(q.rubric) : null,
+    report_template: q.report_template ? JSON.stringify(q.report_template) : null,
   };
 }
 
+// UPSERT 컬럼 정의 (한 곳에서 관리 — 컬럼 추가 시 여기만 수정)
+// weakness_code/created_by 는 INSERT 전용이라 별도 처리.
+const UPSERT_COLS = [
+  'question_type', 'weakness_category', 'weakness_name_ko', 'language', 'difficulty',
+  'body', 'vulnerable_code', 'code_language', 'choices', 'answer_index',
+  'vulnerable_lines', 'rationale_keywords', 'fix_keywords', 'safe_code', 'model_answer',
+  'reference', 'tags', 'is_active', 'stage', 'chapter_code',
+  'explanation', 'choice_explanations', 'blank_template', 'blank_answers',
+  'artifacts', 'rubric', 'report_template',
+];
+const JSONB_COLS = new Set([
+  'choices', 'model_answer', 'choice_explanations', 'blank_answers', 'artifacts', 'rubric', 'report_template',
+]);
+const cast = (c, i) => `$${i + 1}${JSONB_COLS.has(c) ? '::jsonb' : ''}`;
+
 async function upsertQuestion(q, createdBy) {
   const n = normalizeQuestion(q);
+  const vals = UPSERT_COLS.map((c) => n[c]);
 
-  // UPSERT 키: weakness_code + language + difficulty 조합
-  // (같은 약점이어도 언어·난이도 변종은 별도 문항으로 관리)
+  // UPSERT 키: weakness_code + language + difficulty (언어·난이도 변종은 별도 문항)
   if (n.weakness_code) {
     const existing = await query(
       'SELECT id FROM kisa_questions WHERE weakness_code = $1 AND language = $2 AND difficulty = $3 LIMIT 1',
       [n.weakness_code, n.language, n.difficulty]
     );
     if (existing.rows.length > 0) {
-      await query(`
-        UPDATE kisa_questions SET
-          question_type = $1, weakness_category = $2, weakness_name_ko = $3,
-          body = $4, vulnerable_code = $5, code_language = $6,
-          choices = $7::jsonb, answer_index = $8,
-          vulnerable_lines = $9, rationale_keywords = $10, fix_keywords = $11,
-          safe_code = $12, model_answer = $13::jsonb, reference = $14, tags = $15,
-          is_active = $16, stage = $17, chapter_code = $18
-        WHERE id = $19
-      `, [
-        n.question_type, n.weakness_category, n.weakness_name_ko,
-        n.body, n.vulnerable_code, n.code_language,
-        n.choices, n.answer_index,
-        n.vulnerable_lines, n.rationale_keywords, n.fix_keywords,
-        n.safe_code, n.model_answer, n.reference, n.tags,
-        n.is_active, n.stage, n.chapter_code,
-        existing.rows[0].id,
-      ]);
+      const setClause = UPSERT_COLS.map((c, i) => `${c} = ${cast(c, i)}`).join(', ');
+      await query(
+        `UPDATE kisa_questions SET ${setClause} WHERE id = $${UPSERT_COLS.length + 1}`,
+        [...vals, existing.rows[0].id]
+      );
       return { id: existing.rows[0].id, action: 'updated' };
     }
   }
 
-  const result = await query(`
-    INSERT INTO kisa_questions (
-      question_type, weakness_category, weakness_code, weakness_name_ko,
-      language, difficulty,
-      body, vulnerable_code, code_language,
-      choices, answer_index,
-      vulnerable_lines, rationale_keywords, fix_keywords,
-      safe_code, model_answer, reference, tags,
-      is_active, created_by, stage, chapter_code
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9,
-      $10::jsonb, $11, $12, $13, $14,
-      $15, $16::jsonb, $17, $18, $19, $20, $21, $22
-    )
-    RETURNING id
-  `, [
-    n.question_type, n.weakness_category, n.weakness_code, n.weakness_name_ko,
-    n.language, n.difficulty,
-    n.body, n.vulnerable_code, n.code_language,
-    n.choices, n.answer_index,
-    n.vulnerable_lines, n.rationale_keywords, n.fix_keywords,
-    n.safe_code, n.model_answer, n.reference, n.tags,
-    n.is_active, createdBy, n.stage, n.chapter_code,
-  ]);
+  const insCols = [...UPSERT_COLS, 'weakness_code', 'created_by'];
+  const insVals = [...vals, n.weakness_code, createdBy];
+  const placeholders = insCols.map((c, i) => cast(c, i)).join(', ');
+  const result = await query(
+    `INSERT INTO kisa_questions (${insCols.join(', ')}) VALUES (${placeholders}) RETURNING id`,
+    insVals
+  );
   return { id: result.rows[0].id, action: 'inserted' };
 }
 

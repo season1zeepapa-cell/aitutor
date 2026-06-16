@@ -1,0 +1,175 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-CE-01",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-M1",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "Null Pointer 역참조(CWE-476) 보안약점과 그 대응방안에 대한 설명으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "'일반적으로 그 객체가 널(Null)이 될 수 없다'는 가정을 위반했을 때 발생한다."},
+        {"num": 2, "text": "공격자가 의도적으로 널 포인터 역참조를 발생시키더라도 추후 공격에 활용될 가능성은 전혀 없다."},
+        {"num": 3, "text": "널이 될 수 있는 레퍼런스는 참조한 직후에 널 값인지 검사하면 안전하게 사용할 수 있다."},
+        {"num": 4, "text": "request.getParameter()의 반환값은 결코 널이 되지 않으므로 별도의 널 검사가 필요 없다."}
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        {"num": 1, "correct": true, "why": "정답. overview와 정확히 일치한다. '널 포인터 역참조는 일반적으로 그 객체가 널(Null)이 될 수 없다라고 하는 가정을 위반했을 때 발생한다'는 정의 그대로다."},
+        {"num": 2, "correct": false, "why": "틀림. overview는 '공격자가 의도적으로 널 포인터 역참조를 발생시키는 경우, 그 결과 발생하는 예외 상황을 이용하여 추후의 공격을 계획하는 데 사용될 수 있다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "틀림. countermeasure는 '참조하기 전에 널 값인지를 검사하여 안전한 경우에만 사용한다'고 한다. 참조한 '직후'가 아니라 참조하기 '전'에 검사해야 한다."},
+        {"num": 4, "correct": false, "why": "틀림. code_examples는 request.getParameter()에 null이 들어오면 널 포인터 역참조가 발생할 수 있으므로 null 검사 후 사용해야 한다고 명시한다."}
+      ],
+      "explanation": "정답은 1번. IMP-CE-01 라이브러리 overview('객체가 널이 될 수 없다는 가정 위반 시 발생, 공격자가 예외 상황을 추후 공격에 이용')와 countermeasure('참조하기 전에 널 값인지 검사하여 안전한 경우에만 사용')로 검증한다. 1번은 overview와 정확히 일치한다. 2번은 추후 공격 활용 가능성을 부정했고, 3번은 검사 시점(참조 전 vs 직후)을 뒤바꿨으며, 4번은 getParameter() 반환값이 null이 될 수 있다는 code_examples 설명에 어긋난다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조(pp.433-444), CWE-476 — overview/countermeasure",
+      "tags": ["code_error", "implementation", "null-pointer", "역참조", "null-검사", "CWE-476"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-M2",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에서 널 포인터 역참조가 발생할 수 있는 이유로 옳은 것은?\n\n```java\npublic static int cardinality(Object obj, final Collection col) {\n  int count = 0;\n  if (col == null) { return count; }\n  Iterator it = col.iterator();\n  while (it.hasNext()) {\n    Object elt = it.next();\n    if ((null == obj && null == elt) || obj.equals(elt)) {\n      count++;\n    }\n  }\n  return count;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "obj가 null이고 elt가 null이 아닐 때 앞 조건이 false가 되어 obj.equals(elt)가 평가되며 null.equals가 호출된다."},
+        {"num": 2, "text": "col이 null일 때 count를 반환하지 않고 col.iterator()를 호출하기 때문이다."},
+        {"num": 3, "text": "Iterator의 hasNext()가 항상 null을 반환하여 while 조건에서 역참조가 발생하기 때문이다."},
+        {"num": 4, "text": "count 변수가 0으로 초기화되어 정수 연산 중 널 포인터가 만들어지기 때문이다."}
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        {"num": 1, "correct": true, "why": "정답. note·course가 설명하듯 obj가 null이고 elt가 null이 아니면 (null==obj && null==elt)는 false가 되고, || 뒤의 obj.equals(elt)가 평가되어 null.equals(elt) 즉 널 포인터 역참조가 발생한다. safe 코드는 (null != obj && obj.equals(elt))로 obj가 null이 아닐 때만 equals를 호출하도록 수정한다."},
+        {"num": 2, "correct": false, "why": "틀림. 코드는 if(col == null) { return count; }로 col이 null이면 먼저 반환하므로 col.iterator()에서 역참조가 발생하지 않는다. 이 부분은 이미 안전하게 처리되어 있다."},
+        {"num": 3, "correct": false, "why": "틀림. hasNext()가 항상 null을 반환한다는 것은 사실이 아니다. hasNext()는 boolean을 반환하며 본 약점의 원인이 아니다."},
+        {"num": 4, "correct": false, "why": "틀림. count는 int 기본형으로 null이 될 수 없고 정수 연산에서 널 포인터가 만들어지지 않는다. 역참조의 원인은 obj 객체에 대한 equals 호출이다."}
+      ],
+      "explanation": "정답은 1번. IMP-CE-01 code_examples(Java) 첫 예제의 vulnerable 코드다. note('obj가 null이고 elt가 null이 아닌 경우 null.equals 가 되어 역참조 발생')와 course 예제①(단락 평가 설명)으로 검증한다. obj==null이고 elt!=null이면 앞 조건이 false가 되어 || 뒤의 obj.equals(elt)가 평가되며 null.equals 역참조가 발생한다. 2·3·4번은 코드 동작과 무관한 오답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — code_examples(Java) vulnerable/note; 진단원 양성과정 Ⅴ.5-1 예제①",
+      "tags": ["code_error", "implementation", "null-pointer", "equals", "단락평가", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-M3",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "널 포인터 역참조 진단 시 다음 코드들에 대한 취약/안전 판정으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "`if (str.length() == 0 || str == null)` — 널 검사보다 str.length()를 먼저 참조하므로 취약하다."},
+        {"num": 2, "text": "`if (a == null || a.length() == 0)` — a가 null이면 단락 평가로 뒤 조건을 평가하지 않으므로 안전하다."},
+        {"num": 3, "text": "`Integer.parseInt(stringValue)` — Integer의 static 함수 호출로 객체 참조가 아니므로 역참조가 발생하지 않아 안전하다."},
+        {"num": 4, "text": "`StringTokenizer st = new StringTokenizer(info_url, \"?\");` 의 결과를 참조 — null을 리턴할 수 있는 함수이므로 반드시 취약하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 판정(함정). true_positive 사례로, 널 검사(str == null)보다 널 객체를 참조하는 str.length()를 먼저 비교하므로 역참조가 발생하여 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 판정(함정). false_positive 사례로, ||는 앞 조건 a == null이 true면 뒤 a.length()를 평가하지 않는 단락 평가가 적용되어 역참조가 발생하지 않으므로 안전하다."},
+        {"num": 3, "correct": false, "why": "옳은 판정(함정). false_positive 사례로, Integer.parseInt는 Integer 클래스의 static 함수 호출이며 Integer가 객체가 아니므로 null 값을 참조하지 않아 역참조가 발생하지 않는다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 판정). false_positive 사례로, StringTokenizer는 설계상 null을 리턴하지 않는 함수이므로 그 결과를 참조해도 역참조가 발생하지 않아 안전하다(오탐 주의). Javadoc 확인이 필요하며, '반드시 취약'이라는 판정은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-01 diagnosis의 true_positive/false_positive 사례 판정을 묻는다. 1번은 true_positive(널 검사 전에 str.length() 참조 → 취약), 2번은 false_positive(단락 평가 → 안전), 3번은 false_positive(Integer static 함수 → 안전)로 옳은 판정이다. 4번은 false_positive 사례인데, StringTokenizer는 설계상 null을 리턴하지 않으므로 그 결과 참조는 역참조가 발생하지 않아 안전하다. '반드시 취약'은 오탐을 유발하는 잘못된 판정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — diagnosis.true_positive/false_positive",
+      "tags": ["code_error", "implementation", "null-pointer", "진단", "단락평가", "오탐", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-D1",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 널 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void f() {\n  String cmd = System.getProperty(\"cmd\");\n  cmd = cmd.trim();\n  System.out.println(cmd);\n}\n```",
+      "vulnerable_code": "1  public void f() {\n2    String cmd = System.getProperty(\"cmd\");\n3    cmd = cmd.trim();\n4    System.out.println(cmd);\n5  }",
+      "code_language": "java",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["널 검사 없음", "getProperty null 반환", "참조 전 검사", "널 포인터 역참조", "CWE-476"],
+      "fix_keywords": ["cmd != null", "null 검사 추가", "참조 전 검사"],
+      "safe_code": "1  public void f() {\n2    String cmd = System.getProperty(\"cmd\");\n3    if (cmd != null) {\n4      cmd = cmd.trim();\n5      System.out.println(cmd);\n6    }\n7  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 cmd가 널(null)인지 체크하지 않고 바로 cmd.trim()을 호출한다. System.getProperty(\"cmd\")는 해당 시스템 속성이 없으면 null을 반환하는 'Nullable' 함수이므로, cmd가 null인 상태에서 trim()을 호출하면 널 포인터 역참조(CWE-476)가 발생한다. 널이 될 수 있는 레퍼런스는 참조하기 전에 널 값인지 검사해야 한다.",
+        "fix_description": "cmd를 참조하기 전에 if (cmd != null) 등으로 널 검사를 수행하고, 안전한 경우에만 cmd.trim()을 호출하도록 수정한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-CE-01 diagnosis.true_positive 첫 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '널 검사 없음': 3번 라인에서 cmd의 null 여부를 검사하지 않고 바로 참조함.\n- 'getProperty null 반환': System.getProperty는 속성이 없으면 null을 반환하는 Nullable 함수.\n- '참조 전 검사': countermeasure가 요구하는 '참조하기 전에 널 값인지 검사' 원칙.\n- '널 포인터 역참조'/'CWE-476': 본 약점의 분류.\n\n[수정 키워드 의미] 참조 전에 cmd != null 검사를 추가하여 안전한 경우에만 사용한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(3번 라인 지목) 20점 / rationale(널 검사 부재·Nullable 반환값·참조 전 검사 원칙 등 키워드 포함) 30점 / fix(참조 전 null 검사 추가) 30점.\n\n[자가확인 체크리스트] (1) 참조하는 변수가 Nullable 함수의 반환값/초기 null 등으로 null이 될 수 있는가? (2) 참조 전에 null 검사를 수행했는가? — null이 될 수 있는데 검사가 없으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — diagnosis.true_positive, CWE-476",
+      "tags": ["code_error", "implementation", "null-pointer", "정탐", "널-검사", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-D2",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 널 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nif (a == null || a.length() == 0) {\n  // 처리한다.\n}\n```",
+      "vulnerable_code": "1  if (a == null || a.length() == 0) {\n2    // 처리한다.\n3  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["단락 평가", "short-circuit", "OR 앞 조건 true", "뒤 조건 미평가", "역참조 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — || 단락 평가로 a == null 이 true면 뒤의 a.length()를 평가하지 않으므로\n2  // a가 null일 때 a.length() 역참조가 발생하지 않는다. 널 검사가 참조보다 앞에 위치한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). || 연산은 단락 평가(short-circuit)가 적용되어 앞 조건 a == null 이 true이면 뒤의 a.length()를 평가하지 않는다. 따라서 a가 null인 경우 a.length() 참조가 실행되지 않아 널 포인터 역참조가 발생하지 않는다. 널 검사(a == null)가 널 객체 참조(a.length())보다 앞에 올바르게 위치하므로 안전하다.",
+        "fix_description": "수정 불필요. 단락 평가로 널 검사가 참조보다 먼저 이뤄지는 안전한 형태이므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-CE-01 diagnosis.false_positive(단락 평가) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] a.length()라는 널 객체 참조 구문이 보인다고 무조건 취약한 것이 아니다. || 단락 평가로 a == null이 true면 뒤 조건은 평가되지 않아 역참조가 발생하지 않는다. 반대로 `if (str.length() == 0 || str == null)`처럼 참조가 널 검사보다 앞에 오면 취약하므로 조건의 '순서'가 핵심이다.\n\n[안전 판정 근거 키워드 의미]\n- '단락 평가'/'short-circuit': || 앞 조건이 true면 뒤 조건을 평가하지 않음.\n- 'OR 앞 조건 true': a == null이 true이면 a.length()는 평가되지 않음.\n- '역참조 없음': a가 null이어도 a.length()가 실행되지 않아 역참조가 일어나지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인이 없음을 정확히 판단) 20점 / rationale(단락 평가·널 검사가 참조 앞에 위치 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 널 검사(a == null)가 널 객체 참조(a.length())보다 앞에 위치하는가? → 그렇다. (2) || 단락 평가로 a가 null일 때 참조가 실행되지 않는가? → 그렇다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — diagnosis.false_positive(단락 평가)",
+      "tags": ["code_error", "implementation", "null-pointer", "오탐", "단락평가", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-B1",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "Null Pointer 역참조의 대응방안에 관한 다음 설명의 빈칸을 채우시오.\n\n널이 될 수 있는 레퍼런스(Reference)는 (가) 널 값인지를 검사하여 (나) 경우에만 사용한다.",
+      "blank_template": "널이 될 수 있는 레퍼런스(Reference)는 ___(가)___ 널 값인지를 검사하여 ___(나)___ 경우에만 사용한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["참조하기 전에"], "synonyms": ["참조하기 전", "참조 전에", "참조 전", "사용하기 전에", "사용 전에"]},
+        {"idx": 2, "answers": ["안전한"], "synonyms": ["안전할", "안전"]}
+      ],
+      "explanation": "정답: (가) 참조하기 전에, (나) 안전한. IMP-CE-01 countermeasure 원문('널이 될 수 있는 레퍼런스는 참조하기 전에 널 값인지를 검사하여 안전한 경우에만 사용한다')을 그대로 묻는 문제다. 참조한 직후가 아니라 참조하기 '전에' 널 검사를 수행하는 것이 핵심이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — countermeasure",
+      "tags": ["code_error", "implementation", "null-pointer", "빈칸", "대응방안", "널-검사"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-01-B2",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "chapter_code": "IMP-CE-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 cardinality() 메서드를 널 포인터 역참조로부터 안전하게 수정한 코드의 조건문이다. obj가 null이 아닐 때만 equals를 호출하도록 빈칸을 채우시오.\n\n```java\nif ((null == obj && null == elt) || ( (가) != obj && obj.equals(elt))) {\n  count++;\n}\n```",
+      "blank_template": "if ((null == obj && null == elt) || ( ___(가)___ != obj && obj.equals(elt))) { count++; }",
+      "blank_answers": [
+        {"idx": 1, "answers": ["null"], "synonyms": ["널", "Null", "NULL"]}
+      ],
+      "explanation": "정답: (가) null. IMP-CE-01 code_examples(Java) 첫 예제의 safe 코드 그대로다. vulnerable 코드는 obj가 null이고 elt가 null이 아닐 때 obj.equals(elt)가 평가되어 null.equals 역참조가 발생한다. safe 코드는 `(null != obj && obj.equals(elt))`로 obj가 null이 아닐 때만(&& 단락 평가) equals를 호출하여 역참조를 방지한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 Null Pointer 역참조 — code_examples(Java) safe",
+      "tags": ["code_error", "implementation", "null-pointer", "빈칸", "단락평가", "java"]
+    }
+  ]
+}

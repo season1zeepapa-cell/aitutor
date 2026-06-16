@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-15",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-M1",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "'보안기능 결정에 사용되는 부적절한 입력값' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "개발자들이 흔히 쿠키, 환경변수, 히든필드 같은 입력값은 조작될 수 없다고 가정하지만, 공격자는 다양한 방법으로 이러한 값을 변경할 수 있다."},
+        {"num": 2, "text": "인증·인가와 같은 보안결정이 외부에서 조작 가능한 입력값에 기반하면 공격자가 보안 메커니즘을 우회하거나 권한상승을 시도할 수 있다."},
+        {"num": 3, "text": "상태정보·민감한 데이터·사용자 세션정보와 같은 중요한 정보는 서버에 저장하고 보안확인 절차도 서버에서 실행해야 한다."},
+        {"num": 4, "text": "쿠키나 히든필드는 사용자 브라우저가 관리하므로 서버보다 신뢰할 수 있어, 인증 여부 등 보안결정 값을 쿠키에 저장하는 것이 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview와 일치한다. 개발자는 쿠키·환경변수·히든필드가 조작 불가하다고 가정하지만 공격자는 이를 변경할 수 있다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview·course 공격영향과 일치한다. 조작 가능한 입력값에 보안결정을 기반하면 우회·권한상승이 가능하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure와 일치한다. 세션정보 등 중요 정보는 서버에 저장하고 보안확인도 서버에서 실행한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 쿠키·히든필드는 클라이언트가 조작할 수 있어 신뢰할 수 없으며, 보안결정 값은 서버 세션 등 내부 값을 사용해야 한다. '쿠키가 서버보다 신뢰할 수 있어 보안결정 값을 쿠키에 저장하는 것이 권장된다'는 진술은 대책과 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-15 라이브러리 overview·countermeasure와 대조한다. 쿠키·환경변수·히든필드는 클라이언트가 조작 가능한 신뢰할 수 없는 입력값이며, 보안결정(인증·인가·단가 등)에는 서버 내부 세션값을 사용해야 한다. 4번은 쿠키가 더 신뢰할 수 있다며 보안결정 값을 쿠키에 저장하라고 진술하므로 정반대로 틀렸다. 1·2·3번은 각각 overview·공격영향·countermeasure와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값(pp.297-302), CWE-807 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "security-decision", "쿠키", "히든필드", "세션"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-M2",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java/JSP 코드에 대한 설명으로 옳지 않은 것은?\n\n```html\n<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n```\n```java\ntry {\n    price = request.getParameter(\"price\");\n    quantity = request.getParameter(\"quantity\");\n    total = Integer.parseInt(quantity) * Float.parseFloat(price);\n} catch (Exception e) { ... }\n```",
+      "choices": [
+        {"num": 1, "text": "히든필드(price)로 전달된 단가를 그대로 받아 전체 가격 계산에 사용하므로, 사용자가 단가를 임의 값으로 변경할 수 있어 취약하다."},
+        {"num": 2, "text": "히든필드는 사용자 브라우저에서 조작 가능하므로 가격 같은 보안결정 값을 클라이언트 입력에 의존해서는 안 된다."},
+        {"num": 3, "text": "안전하게 하려면 price를 클라이언트에서 받지 않고 item 항목만 받아, 서버가 보유한 가격 정보(productService.getPrice(item))로 전체 가격을 계산해야 한다."},
+        {"num": 4, "text": "히든필드는 화면에 보이지 않으므로 일반 입력 필드와 달리 사용자가 값을 변경할 수 없어, price를 그대로 신뢰해 사용해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 그대로다. 히든필드 price를 그대로 받아 가격 계산에 쓰므로 사용자가 단가를 변경할 수 있어 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure·note와 일치한다. 히든필드는 조작 가능하므로 보안결정 값을 클라이언트 입력에 의존하면 안 된다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드의 대책이다. item만 받아 서버가 보유한 가격(productService.getPrice(item))으로 계산한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 히든필드는 화면에 안 보일 뿐 HTML 소스·프록시 등으로 값을 얼마든지 변경할 수 있다. '변경할 수 없어 그대로 신뢰해도 안전하다'는 진술은 overview의 핵심(공격자가 히든필드를 변경 가능)과 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-15 code_examples(Java) vulnerable 코드다. overview는 '개발자가 히든필드를 조작 불가로 가정하지만 공격자는 변경할 수 있다'고 명시한다. 4번은 히든필드를 변경 불가로 보고 그대로 신뢰해도 안전하다고 진술하므로 틀렸다. 1·2·3번은 각각 취약 근거·대책·safe 코드와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — code_examples(Java) vulnerable/safe, note",
+      "tags": ["input_validation", "implementation", "security-decision", "히든필드", "단가조작", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-M3",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'보안기능 결정에 사용되는 부적절한 입력값' 진단 및 대책에 대한 설명으로 옳지 않은 것은? (진단방법: ① 인증여부 확인에 사용하는 변수 확인 → ② 그 변수가 세션정보 등 서버내부에서 검증된 값인지 확인)",
+      "choices": [
+        {"num": 1, "text": "평문으로 인증정보(authenticated=\"1\")를 쿠키에 저장하는 코드는, 공격자가 쿠키 값을 변경할 수 있어 보안결정에 부적절하므로 취약하다."},
+        {"num": 2, "text": "중요한 정보를 쿠키에 저장할 때는 암호화하여 사용하고, 되도록이면 해당 정보를 서버의 세션에 저장하도록 한다."},
+        {"num": 3, "text": "온라인 라이선스 검증 시 인증 서버 주소를 환경변수(getenv)에서 가져와 그대로 사용하면, 사용자가 환경변수를 조작해 검증을 우회할 수 있어 취약하다."},
+        {"num": 4, "text": "히든필드로 전달된 price 값을 사용하지 않고 서버가 정한 고정 가격(1000)을 사용하는 코드도, 히든필드가 폼에 존재한다는 사실만으로 취약하다고 판정해야 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). true_positive 사례다. 평문 authenticated=\"1\" 쿠키는 공격자가 변경 가능하므로 보안결정에 부적절하여 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). C# note·countermeasure와 일치한다. 중요 정보는 쿠키 저장 시 암호화하고 되도록 서버 세션에 저장한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). C note와 일치한다. 환경변수로 서버 주소를 가져와 그대로 쓰면 사용자가 조작해 검증을 우회할 수 있어 취약하다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). false_positive 사례다. price 히든필드가 폼에 있어도 보안결정(가격)에는 서버가 정한 고정 가격(1000)을 사용하므로 외부 입력값을 보안결정에 쓰지 않아 취약하지 않다. 히든필드 존재만으로 취약 판정하면 오탐이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-15 diagnosis의 true_positive/false_positive와 code_examples note를 종합했다. 1·3번은 true_positive·note 기반의 취약 판정, 2번은 countermeasure 기반의 옳은 대책이다. 4번은 false_positive 사례 — 히든필드가 폼에 있어도 실제 보안결정에 서버 고정값(1000)을 쓰므로 안전 — 인데, 히든필드 존재만으로 취약 판정하라고 진술하므로 오탐을 유발하는 틀린 설명이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — diagnosis.true_positive / false_positive, code_examples note",
+      "tags": ["input_validation", "implementation", "security-decision", "진단", "정탐", "오탐"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-D1",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 JSP 코드의 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```jsp\n<%\nString username = request.getParameter(\"username\");\nString password = request.getParameter(\"password\");\nif (username==null || password==null || !isAuthenticatedUser(username, password)) {\n    throw new MyException(\"인증 에러\");\n}\nCookie userCookie = new Cookie(\"user\", username);\nCookie authCookie = new Cookie(\"authenticated\", \"1\");\nresponse.addCookie(userCookie);\nresponse.addCookie(authCookie);\n%>\n```",
+      "vulnerable_code": "1  <%\n2  String username = request.getParameter(\"username\");\n3  String password = request.getParameter(\"password\");\n4  if (username==null || password==null || !isAuthenticatedUser(username, password)) {\n5    throw new MyException(\"인증 에러\");\n6  }\n7  Cookie userCookie = new Cookie(\"user\", username);\n8  Cookie authCookie = new Cookie(\"authenticated\", \"1\");\n9  response.addCookie(userCookie);\n10 response.addCookie(authCookie);\n11 %>",
+      "code_language": "java",
+      "vulnerable_lines": [8, 9, 10],
+      "rationale_keywords": ["평문 인증정보", "쿠키 조작 가능", "보안결정 부적절", "권한상승/우회", "서버 세션 미사용"],
+      "fix_keywords": ["서버 세션 저장", "session.setAttribute", "쿠키 암호화"],
+      "safe_code": "1  <%\n2  String username = request.getParameter(\"username\");\n3  String password = request.getParameter(\"password\");\n4  if (username==null || password==null || !isAuthenticatedUser(username, password)) {\n5    throw new MyException(\"인증 에러\");\n6  }\n7  // 인증 여부 등 보안결정 값은 클라이언트 쿠키가 아닌 서버 세션에 저장한다\n8  HttpSession session = request.getSession();\n9  session.setAttribute(\"user\", username);\n10 session.setAttribute(\"authenticated\", \"1\");\n11 %>",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 8번 라인에서 인증 여부를 나타내는 authenticated=\"1\" 값을 평문으로 쿠키에 저장하고 9·10번 라인에서 클라이언트로 내려보낸다. 쿠키는 공격자가 변경할 수 있으므로, 인증되지 않은 사용자가 authenticated 쿠키 값을 조작해 보안 메커니즘을 우회·권한상승할 수 있는 '보안기능 결정에 사용되는 부적절한 입력값'(CWE-807) 약점에 해당한다. 인증 여부 같은 보안결정 값은 서버 내부 세션에서 검증되어야 한다.",
+        "fix_description": "인증 여부·사용자 식별 같은 보안결정 정보는 클라이언트 쿠키가 아니라 서버 세션(session.setAttribute)에 저장하고 보안확인 절차도 서버에서 수행한다. 부득이 쿠키에 중요 정보를 저장해야 하면 암호화·무결성 체크를 적용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-15 diagnosis.true_positive 사례를 기반으로 한다.\n\n[근거 키워드 의미]\n- '평문 인증정보': 8번 라인 authenticated=\"1\"을 암호화 없이 쿠키에 저장.\n- '쿠키 조작 가능': 클라이언트가 쿠키 값을 변경할 수 있음.\n- '보안결정 부적절'/'권한상승/우회': 조작된 인증 쿠키로 인증을 우회·권한상승.\n- '서버 세션 미사용': 인증 여부를 서버 세션에서 검증하지 않음.\n\n[수정 키워드 의미] 인증 여부 등 보안결정 값을 서버 세션(session.setAttribute)에 저장하고, 부득이한 경우 쿠키 암호화를 적용한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(8·9·10번 라인 지목) 20점 / rationale(평문 인증정보·쿠키 조작·보안결정 부적절·세션 미사용 키워드 포함) 30점 / fix(서버 세션 저장 + 쿠키 암호화) 30점.\n\n[자가확인 체크리스트] (1) 인증여부 확인에 사용하는 변수가 있는가? (2) 그 변수가 세션정보 등 서버내부에서 검증된 값인가, 아니면 클라이언트가 조작 가능한 쿠키/히든필드/환경변수인가? — (1) 예 + (2) 클라이언트 조작 가능이면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — diagnosis.true_positive, CWE-807",
+      "tags": ["input_validation", "implementation", "security-decision", "정탐", "쿠키", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-D2",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java/JSP 코드의 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```html\n<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n```\n```java\ntry {\n    // 서버가 보유하고 있는 정보를 이용하여 가격을 처리\n    price = 1000;\n    quantity = request.getParameter(\"quantity\");\n    total = quantity * Float.parseFloat(price);\n} catch (Exception e) { ... }\n```",
+      "vulnerable_code": "1  <input type=\"hidden\" name=\"price\" value=\"1000\"/>\n2  try {\n3    // 서버가 보유하고 있는 정보를 이용하여 가격을 처리\n4    price = 1000;\n5    quantity = request.getParameter(\"quantity\");\n6    total = quantity * Float.parseFloat(price);\n7  } catch (Exception e) { ... }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["서버 보유 값 사용", "히든필드 price 미사용", "보안결정에 외부 입력 미사용", "고정 가격(1000)", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 폼에 price 히든필드가 존재하지만 보안결정(가격 계산)에는\n2  // 클라이언트가 보낸 price 값을 사용하지 않고 서버가 정한 고정 가격(1000)을 사용하므로\n3  // 단가 조작이 불가능하다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 폼에 price 히든필드가 존재하지만, 4번 라인에서 가격을 클라이언트가 보낸 request.getParameter(\"price\")가 아니라 서버가 정한 고정 가격(price = 1000)으로 설정하여 전체 가격을 계산한다. 보안결정(단가)에 외부 입력값을 사용하지 않고 서버 보유 값을 사용하므로 사용자가 단가를 조작할 수 없어 안전하다.",
+        "fix_description": "수정 불필요. 보안결정에 서버 보유 값(고정 가격)을 사용하고 있어 'price = request.getParameter(...)' 패턴과 달리 단가 조작이 불가능하므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-15 diagnosis.false_positive 사례를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 폼에 price 히든필드가 보인다는 사실만으로 단가 조작 취약점이라고 단정해서는 안 된다. 실제 가격 계산(4번 라인)은 클라이언트 입력이 아니라 서버 고정값(1000)을 사용한다.\n\n[안전 판정 근거 키워드 의미]\n- '서버 보유 값 사용'/'고정 가격(1000)': 4번 라인에서 price=1000 서버 값을 사용함.\n- '히든필드 price 미사용': request.getParameter(\"price\")를 보안결정에 쓰지 않음.\n- '보안결정에 외부 입력 미사용': 단가 결정에 클라이언트 입력을 의존하지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(서버 보유 값 사용·히든필드 미사용·외부 입력 미사용 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 인증·가격 등 보안결정에 사용하는 변수가 있는가? → 있다(price). (2) 그 값이 클라이언트 입력인가, 서버 내부 값인가? → 서버 고정값(1000). — 보안결정에 외부 입력을 쓰지 않으므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — diagnosis.false_positive",
+      "tags": ["input_validation", "implementation", "security-decision", "오탐", "히든필드", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-B1",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'보안기능 결정에 사용되는 부적절한 입력값'의 원리와 보안대책에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "응용프로그램이 외부입력값에 대한 신뢰를 전제로 보호메커니즘을 사용하는 경우, 공격자가 입력값을 조작할 수 있다면 보호메커니즘을 ___(1)___할 수 있다. 개발자들이 흔히 조작될 수 없다고 가정하는 입력값으로는 쿠키, ___(2)___, 히든필드 등이 있다. 따라서 상태정보·민감한 데이터·사용자 세션정보와 같은 중요한 정보는 ___(3)___에 저장하고 보안확인 절차도 그곳에서 실행해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["우회"], "synonyms": ["bypass", "회피", "무력화"]},
+        {"idx": 2, "answers": ["환경변수"], "synonyms": ["환경 변수", "environment variable", "env"]},
+        {"idx": 3, "answers": ["서버"], "synonyms": ["서버 세션", "서버측", "server", "서버 내부"]}
+      ],
+      "explanation": "정답: (1) 우회 / (2) 환경변수 / (3) 서버. IMP-IV-15 overview·countermeasure 기반이다. 외부입력값을 신뢰해 보호메커니즘을 구성하면 공격자가 입력값을 조작해 메커니즘을 우회한다. 흔히 조작 불가로 오인되는 입력값은 쿠키·환경변수·히든필드이며, 중요 정보(상태·민감데이터·세션)는 서버에 저장하고 보안확인도 서버에서 실행해야 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "security-decision", "빈칸", "환경변수", "서버세션"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-15-B2",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "chapter_code": "IMP-IV-15",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 단가 조작을 방지하기 위한 안전한 Java 코드의 일부다. 빈칸을 채우시오.",
+      "blank_template": "try {\n    item = request.getParameter(\"item\");\n    // 가격이 아니라 item 항목을 가져와서 서버가 보유한 가격 정보를 이용\n    price = productService.___(1)___(item);\n    quantity = request.getParameter(\"quantity\");\n    total = Integer.parseInt(quantity) * price;\n} catch (Exception e) { ... }\n\n// C# 예: 인증정보를 쿠키가 아닌 ___(2)___에 저장\n// Session[\"Authentificated\"] = \"1\";",
+      "blank_answers": [
+        {"idx": 1, "answers": ["getPrice"], "synonyms": ["getprice"]},
+        {"idx": 2, "answers": ["세션"], "synonyms": ["서버 세션", "Session", "session"]}
+      ],
+      "explanation": "정답: (1) getPrice / (2) 세션. IMP-IV-15 code_examples(Java/C#) safe 코드 기반이다. (1) 클라이언트의 price 대신 item만 받아 서버가 보유한 가격 정보 productService.getPrice(item)로 전체 가격을 계산해야 단가 조작을 막을 수 있다. (2) C# 예시처럼 인증정보(Authentificated)는 클라이언트 쿠키가 아니라 서버의 세션(Session[\"...\"])에 저장해야 한다. 두 경우 모두 보안결정 값을 서버 내부 값으로 처리하는 것이 핵심이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §15 보안기능 결정에 사용되는 부적절한 입력값 — code_examples(Java/C#) safe",
+      "tags": ["input_validation", "implementation", "security-decision", "빈칸", "getPrice", "세션", "java"]
+    }
+  ]
+}

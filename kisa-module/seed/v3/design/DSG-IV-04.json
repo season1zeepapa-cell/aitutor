@@ -1,0 +1,246 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-IV-04",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-M1",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계 '시스템 자원 접근 및 명령어 수행 입력값 검증' 설계항목의 보안대책에 대한 설명이다. 옳지 않은 것은?\n\n시스템 자원접근 및 명령어를 수행할 때 입력값에 대한 유효성 검증방법과 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+      "choices": [
+        {"num": 1, "text": "외부입력값으로 시스템자원(IP, PORT번호, 프로세스, 메모리, 파일 등)을 식별하는 경우 허가되지 않은 자원이 사용되지 않도록 해야 한다."},
+        {"num": 2, "text": "사용해야 하는 리소스 목록을 정의하여 지정된 범위 안에서 선택해 사용하도록 하고, 리소스 목록은 프로퍼티파일이나 XML파일로 관리한다."},
+        {"num": 3, "text": "서버프로그램 안에서 셸을 생성하여 명령어를 실행해야 하는 경우, 외부입력값에 의해 악의적인 명령어가 실행되지 않도록 해야 한다."},
+        {"num": 4, "text": "셸 명령어 실행 시 외부입력값을 명령어 문자열에 직접 결합하여 사용하면 유연성이 높아지므로, 별도의 허용목록 없이 입력값을 그대로 명령어로 조립하는 것이 바람직하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "보안대책 ①과 일치하는 옳은 진술이다. 외부입력값으로 시스템자원을 식별할 때 허가되지 않은 자원이 사용되지 않도록 해야 하므로 함정(옳은 진술)이다."},
+        {"num": 2, "correct": false, "why": "설계 고려사항 ①과 일치하는 옳은 진술이다. 사용 리소스 목록을 정의해 지정 범위 내에서만 선택하고 목록을 프로퍼티/XML 파일로 관리하는 것은 권장 설계이므로 함정(옳은 진술)이다."},
+        {"num": 3, "correct": false, "why": "보안대책 ②와 일치하는 옳은 진술이다. 셸을 생성해 명령어를 실행해야 하는 경우 외부입력값에 의해 악의적 명령어가 실행되지 않도록 해야 하므로 함정(옳은 진술)이다."},
+        {"num": 4, "correct": true, "why": "정답. 설계 고려사항 ②는 외부입력값이 직접 명령어의 일부로 사용되지 않도록 하고, 명령어에 사용되는 값을 목록화하여 목록 내 값으로만 명령어가 조립·실행되도록 하며 외부입력값은 목록을 검색하는 인덱스로만 사용하도록 요구한다. 입력값을 그대로 명령어 문자열에 결합하면 운영체제 명령어 삽입(CWE-78)이 발생하므로 명백히 잘못된 설계다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-04 라이브러리 security_measures ①②와 design_considerations ①②와 대조하여 확인한다. 1·2·3번은 각각 보안대책·설계 고려사항에 그대로 일치하는 옳은 진술이라 함정으로 배치되었다. 4번은 design_considerations ②의 '외부입력값이 직접 명령어 일부로 사용되지 않도록 목록화·인덱스 참조'를 정반대로 뒤집어 '허용목록 없이 입력값 직접 결합'을 주장하므로, 이는 운영체제 명령어 삽입을 유발하는 잘못된 것이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행 입력값 검증(pp.58-63) — security_measures ①②, design_considerations ①②",
+      "tags": ["input_validation", "design", "system-resource", "os-command", "허용목록", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-M2",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 두 Java 코드는 동일한 외부 프로그램 실행 기능의 (가) 취약 코드와 (나) 안전 코드이다. 설명으로 옳지 않은 것은?\n\n```java\n// (가)\nString cmd = args[0];\nProcess ps = Runtime.getRuntime().exec(cmd);\n\n// (나)\nList<String> allowedCommands = new ArrayList<String>();\nallowedCommands.add(\"notepad\");\nallowedCommands.add(\"calc\");\nString cmd = args[0];\nif (!allowedCommands.contains(cmd)) {\n    System.err.println(\"허용되지 않은 명령어입니다.\");\n    return;\n}\nProcess ps = Runtime.getRuntime().exec(cmd);\n```",
+      "choices": [
+        {"num": 1, "text": "(가)는 실행할 프로그램을 제한하지 않아 외부입력값(args[0])으로 전달되는 모든 프로그램이 실행될 수 있어 안전하지 않다."},
+        {"num": 2, "text": "(나)는 allowedCommands 허용목록(화이트리스트)에 포함된 명령어만 실행되도록 제한하여 외부의 부적절한 입력이 명령어로 사용될 가능성을 배제한다."},
+        {"num": 3, "text": "(나)처럼 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하도록 하는 것은 권장되는 설계 방식이다."},
+        {"num": 4, "text": "(가)처럼 Runtime.getRuntime().exec()는 내부적으로 명령어를 검증하므로, 외부입력값을 그대로 전달해도 임의 명령 실행 위험이 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). (가)는 실행할 프로그램을 제한하지 않아 args[0]로 전달되는 모든 프로그램이 실행될 수 있는 운영체제 명령어 삽입 취약 코드다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). (나)는 allowedCommands 화이트리스트(notepad, calc)에 포함된 명령어만 실행하므로 부적절한 입력이 명령어로 사용될 가능성을 배제한 안전 코드다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 설계 고려사항 ②와 IMP-IV-05 note가 '명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택'하도록 요구하므로 권장 설계 방식에 대한 정확한 설명이다."},
+        {"num": 4, "correct": true, "why": "정답. Runtime.getRuntime().exec()는 전달된 명령어를 검증하지 않고 그대로 실행한다. 외부입력값을 검증·허용목록 없이 그대로 전달하면 공격자가 원하는 임의 명령을 실행할 수 있는 운영체제 명령어 삽입(CWE-78)이 발생하므로 '위험이 없다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-04 design_considerations ②(허용목록·인덱스 참조)와 관련약점 IMP-IV-05(운영체제 명령어 삽입)의 code_examples(Java exec 화이트리스트) vulnerable/safe로 검증한다. 1·2·3번은 (가)의 취약성과 (나)의 안전성·권장 설계를 정확히 설명한 옳은 진술이다. 4번은 exec()가 명령어를 자체 검증한다는 잘못된 전제로 '위험 없음'을 주장하여 틀렸다. exec()는 검증 기능이 없으므로 호출 전에 화이트리스트 검증이 반드시 필요하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행; 제4장 §5 운영체제 명령어 삽입(pp.223-231), CWE-78 — code_examples(Java exec 화이트리스트) vulnerable/safe",
+      "tags": ["input_validation", "design", "os-command", "화이트리스트", "exec", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-M3",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "시스템 자원 접근 및 명령어 수행 입력값 검증 설계항목의 진단방법과 확인 대상 산출물의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·DB설계서·클래스설계서·개발가이드·단위테스트케이스 등 산출물을 검토하여 보안설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "접근이 허가된 시스템자원이 식별되고 사용 가능한 기능과 매핑되어 있는지 확인 — 아키텍처설계서·DB설계서 검토"},
+        {"num": 2, "text": "시스템자원 접근 이력이 로그(시간·사용자ID·사용자IP·입력값 포함, 권한 없는 접근도 기록)로 기록되도록 설계되어 있는지 확인 — 아키텍처설계서·유즈케이스설계서·클래스설계서 검토"},
+        {"num": 3, "text": "프로그램 내 명령어 실행 기능을 식별하고 실행 가능한 명령어 또는 파라미터가 제한되도록 설계되어 있는지 확인 — 아키텍처설계서·클래스설계서·유즈케이스설계서 검토"},
+        {"num": 4, "text": "조작된 입력으로 허가되지 않은 자원·명령어 실행 가능 여부를 점검하는 테스트 계획(경로조작 문자 .. / \\, 명령어 특수문자 | & ;)이 수립되어 있는지 확인 — DB설계서 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-2 method가 '접근 허가된 시스템자원이 식별되고 사용가능한 기능과 매핑되어 있는지 확인'이며 artifacts가 '아키텍처설계서·DB설계서 검토'로 정확히 일치한다(자원-기능 매핑은 DB설계서)."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-3 method가 '시스템자원 접근 이력 로그(시간·사용자ID·사용자IP·입력값, 권한 없는 접근도 기록) 설계 확인'이며 artifacts가 '아키텍처설계서·유즈케이스설계서·클래스설계서 검토'로 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항②의 checklist 1-2 method가 '명령어 실행 기능 식별 및 실행 가능한 명령어·파라미터가 제한되도록 설계되어 있는지 확인'이며 artifacts가 '아키텍처설계서·클래스설계서·유즈케이스설계서 검토'로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항①·②의 checklist 2-1 method '조작된 입력으로 허가되지 않은 자원·명령어 실행 가능 여부 점검 테스트 계획 수립 여부 확인(테스트 입력값: .. / \\, | & ;)'의 관련산출물은 '단위테스트케이스 검토'이다. 테스트 계획 수립 여부 확인은 '단위테스트케이스'와 연결되어야 하며 'DB설계서'로 연결한 것은 틀렸다. DB설계서는 자원-기능 매핑 확인(①1-2)에 쓰이는 산출물이라는 점이 함정이다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-04 라이브러리 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 요구사항①1-2, ①1-3, ②1-2의 짝과 정확히 일치한다. 4번은 '허가되지 않은 자원·명령어 점검 테스트 계획'(①/②2-1)의 올바른 산출물이 '단위테스트케이스'인데 'DB설계서'로 잘못 연결되었다. DB설계서는 자원-기능 매핑(①1-2) 확인에, 단위테스트케이스는 테스트 계획 확인에 쓰이는 산출물이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행 — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["input_validation", "design", "system-resource", "진단방법", "산출물", "DB설계서", "단위테스트케이스"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-D1",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 파일 접근 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString fileName = request.getParameter(\"P\");\nresponse.setHeader(\"Content-Disposition\", \"attachment;filename=\" + fileName + \";\");\nFileInputStream fis = new FileInputStream(\"C:/datas/\" + fileName);\nBufferedInputStream bis = new BufferedInputStream(fis);\nBufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());\n```",
+      "vulnerable_code": "1  String fileName = request.getParameter(\"P\");\n2  response.setHeader(\"Content-Disposition\", \"attachment;filename=\" + fileName + \";\");\n3  FileInputStream fis = new FileInputStream(\"C:/datas/\" + fileName);\n4  BufferedInputStream bis = new BufferedInputStream(fis);\n5  BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());",
+      "code_language": "java",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["외부입력값", "경로순회(directory traversal)", "경로조작 문자(.. / \\)", "경로 조작 및 자원 삽입", "CWE-22"],
+      "fix_keywords": ["경로조작 문자 제거", "replaceAll", "허용목록/매핑표", "getRealPath"],
+      "safe_code": "1  String fileName = request.getParameter(\"P\");\n2  response.setHeader(\"Content-Disposition\", \"attachment;filename=\" + fileName + \";\");\n3  // 경로순회 문자열(.. / \\)을 제거하고 사용한다.\n4  fileName = fileName.replaceAll(\"\\\\.\", \"\").replaceAll(\"/\", \"\").replaceAll(\"\\\\\\\\\", \"\");\n5  FileInputStream fis = new FileInputStream(\"C:/datas/\" + fileName);\n6  BufferedInputStream bis = new BufferedInputStream(fis);\n7  BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 외부입력값 fileName(request.getParameter)을 경로조작 문자 제거·검증 없이 파일 경로(\"C:/datas/\" + fileName) 생성에 직접 사용하여 FileInputStream으로 접근한다. 공격자가 P에 ../../../rootFile.txt 같은 값을 전달하면 경로순회(directory traversal)로 지정된 디렉토리를 벗어나 시스템이 보호하는 임의 파일에 접근할 수 있는 경로 조작 및 자원 삽입(CWE-22)이 발생한다. 이는 설계 고려사항 ①(허가된 자원만 접근)을 위반한다.",
+        "fix_description": "외부입력값에서 경로순회 유발 문자(.. / \\)를 제거(replaceAll)한 뒤 파일 경로를 생성한다. 더 안전하게는 접근 가능한 파일을 허용목록(매핑표)으로 정의하여 외부입력값을 인덱스로만 사용하거나, getRealPath() 등 시스템 함수로 경로를 구성한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-03 code_examples(Java 파일 다운로드)의 vulnerable 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부입력값': request.getParameter로 받은 fileName.\n- '경로순회'/'경로조작 문자(.. / \\)': ../ 등으로 지정 디렉토리를 벗어나는 공격.\n- '경로 조작 및 자원 삽입'/'CWE-22': 이 약점의 분류.\n\n[수정 키워드 의미] 경로조작 문자 제거(replaceAll) 또는 허용목록/매핑표·getRealPath 사용.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(3번 라인 지목) 20점 / rationale(외부입력값·경로순회·경로조작 문자·CWE-22 키워드 포함) 30점 / fix(경로조작 문자 제거 또는 허용목록) 30점.\n\n[자가확인 체크리스트] (1) 파일 경로가 외부입력값과 결합(+)으로 만들어지는가? (2) .. / \\ 등 경로조작 문자에 대한 제거·검증이 없는가? (3) 허용목록/매핑표나 getRealPath 등 시스템 함수를 쓰지 않는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 경로 조작 및 자원 삽입 — code_examples(Java 파일 다운로드) vulnerable/safe, CWE-22",
+      "tags": ["input_validation", "design", "path-traversal", "정탐", "경로조작", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-D2",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 외부 명령어 실행 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nList<String> allowedCommands = new ArrayList<String>();\nallowedCommands.add(\"notepad\");\nallowedCommands.add(\"calc\");\nString cmd = args[0];\nif (!allowedCommands.contains(cmd)) {\n    System.err.println(\"허용되지 않은 명령어입니다.\");\n    return;\n}\nProcess ps = Runtime.getRuntime().exec(cmd);\n```",
+      "vulnerable_code": "1  List<String> allowedCommands = new ArrayList<String>();\n2  allowedCommands.add(\"notepad\");\n3  allowedCommands.add(\"calc\");\n4  String cmd = args[0];\n5  if (!allowedCommands.contains(cmd)) {\n6    System.err.println(\"허용되지 않은 명령어입니다.\");\n7    return;\n8  }\n9  Process ps = Runtime.getRuntime().exec(cmd);",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["허용목록(화이트리스트)", "allowedCommands.contains", "지정된 값만 실행", "임의 명령 차단", "검증 후 실행"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 외부입력값 cmd가 허용목록(allowedCommands: notepad, calc)에\n2  // 포함될 때만 exec를 실행하므로 허가되지 않은 명령은 실행되지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 1~3번 라인에서 실행 가능한 명령어를 notepad, calc로 한정한 허용목록(allowedCommands)을 구성하고, 5~8번 라인에서 외부입력값 cmd가 이 허용목록에 포함되지 않으면 처리를 중단한다. 따라서 9번 라인의 exec에는 사전에 지정된 안전한 명령어만 전달되어 외부의 부적절한 입력이 명령어로 사용될 가능성이 배제된다. 이는 IMP-IV-05 safe 코드(화이트리스트)이자 설계 고려사항 ②(허용목록·지정된 값만 실행)를 충족하는 안전한 코드다.",
+        "fix_description": "수정 불필요. 이미 허용목록(화이트리스트)으로 지정된 명령어만 실행하도록 검증한 뒤 exec를 호출하므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-05 code_examples(Java exec 화이트리스트)의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] Runtime.getRuntime().exec(cmd)에 외부입력값(args[0])이 전달된다는 것만 보고 무조건 취약하다고 단정해서는 안 된다. exec 호출 직전 5~8번 라인에서 allowedCommands 허용목록 검증을 통과한 값만 전달되므로, 허가되지 않은 명령은 실행될 수 없다.\n\n[안전 판정 근거 키워드 의미]\n- '허용목록(화이트리스트)'/'allowedCommands.contains': notepad, calc만 허용.\n- '지정된 값만 실행': 목록에 없으면 return으로 중단.\n- '임의 명령 차단': 부적절한 입력이 명령어로 사용될 수 없음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(허용목록 검증·지정된 값만 실행·임의 명령 차단 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) exec/system에 전달되는 값이 외부입력값과 직접 결합되는가? → 아니다(허용목록 검증 후 전달). (2) 허용목록(화이트리스트)으로 명령어가 제한되는가? → 그렇다. (3) 검증을 통과한 명령어가 임의 명령을 실행할 수 있는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입 — code_examples(Java exec 화이트리스트) safe",
+      "tags": ["input_validation", "design", "os-command", "오탐", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-C1",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 4종(요구사항정의서·아키텍처설계서·DB설계서·개발가이드)이다. '시스템 자원 접근 및 명령어 수행 입력값 검증' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 시스템자원 식별(허가된 자원만 접근), ② 셸 명령어 실행(악의적 명령 차단)의 두 축과, 각 요구사항의 진단방법(허용목록·자원-기능 매핑·접근 로그·실행 명령어 제한·테스트 계획)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 시스템 자원·명령어(SR-SYS)",
+          "content": "SR-SYS-01 외부입력값으로 시스템자원(IP·PORT·프로세스·메모리·파일)을 식별할 때 허가되지 않은 자원이 사용되지 않도록 한다.\nSR-SYS-02 서버 프로그램 안에서 셸을 생성하여 명령어를 실행해야 하는 경우 외부입력값에 의해 악의적 명령어가 실행되지 않도록 한다.\n(주: 본 항목들은 아키텍처설계서에 적용계획이 수립되고 요구사항추적표로 추적 가능하다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "자원·명령어 실행 아키텍처 — 허용목록·로깅",
+          "content": "[자원 식별] 접근 가능한 파일 자원을 허용목록으로 정의하고 외부입력값은 목록을 검색하는 인덱스로만 사용하도록 설계한다.\n[명령어 실행] 실행 가능한 명령어를 허용목록으로 제한하도록 설계한다.\n(결함 후보) 그러나 시스템자원 접근 이력 및 운영체제 명령어 실행 이력을 로그(시간·사용자ID·사용자IP·입력값, 권한 없는 접근/실행 명령어 포함)로 기록하는 로깅 설계가 본 설계서에 누락되어 있다."
+        },
+        {
+          "type": "DB설계서",
+          "title": "자원-기능 매핑 테이블 설계",
+          "content": "접근이 허가된 시스템자원을 식별하고, 각 자원이 사용 가능한 기능과 매핑되도록 자원-기능 매핑 테이블을 설계한다. 매핑 테이블은 허가된 자원 외의 접근을 차단하는 기준으로 사용된다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "자원접근·명령어 시큐어코딩 가이드 + 예시 코드",
+          "content": "파일 접근 시 경로조작 문자(.. / \\)를 제거하는 코딩 규칙을 정의한다. 단, 셸 명령어 실행 시 멀티라인·리다이렉트 특수문자(| & ; > 등) 필터링 코딩 규칙은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java)\nString date = request.getParameter(\"date\");\nString command = new String(\"cmd.exe /c backuplog.bat\");\nRuntime.getRuntime().exec(command + date);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "시스템자원 식별 — 허용목록·인덱스 참조 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["허용목록", "인덱스 참조", "아키텍처설계서"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①: 접근 가능한 자원을 허용목록으로 정의하고 외부입력값을 인덱스로만 사용하도록 설계되어 있는지 확인. 아키텍처설계서가 허용목록·인덱스 참조를 명시하여 이 항목은 적합."
+        },
+        {
+          "item": "자원-기능 매핑 — DB설계서의 자원-기능 매핑 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["자원-기능 매핑", "DB설계서", "허가된 자원"],
+          "artifact_ref": "DB설계서",
+          "method": "요구사항①1-2: 접근 허가된 시스템자원이 식별되고 사용 가능한 기능과 매핑되어 있는지 확인. DB설계서가 자원-기능 매핑 테이블을 설계하여 이 항목은 적합."
+        },
+        {
+          "item": "접근·실행 이력 로깅 — 로그(시간·사용자ID·IP·입력값) 설계 누락 진단",
+          "points": 2,
+          "required_keywords": ["로그 기록", "시간·사용자ID·IP·입력값", "아키텍처설계서"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-3·②1-3: 시스템자원 접근·명령어 실행 이력이 로그(시간·사용자ID·사용자IP·입력값, 권한 없는 접근/실행 명령어 포함)로 기록되도록 설계되어 있는지 확인. 로깅 설계가 누락됨."
+        },
+        {
+          "item": "명령어 특수문자 필터링 — 예시 코드의 OS 명령어 삽입 + 필터링 코딩 규칙 누락 진단",
+          "points": 2,
+          "required_keywords": ["명령어 특수문자(| & ;)", "운영체제 명령어 삽입", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항②1-2·2-1: 셸 명령어 특수문자(| & ; >) 필터링 코딩 규칙이 개발가이드에 정의되어 있는지 확인. 규칙이 누락되었고, 첨부 예시 코드가 외부입력값 date를 명령어 문자열에 그대로 결합(exec(command + date))하여 운영체제 명령어 삽입에 취약."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-IV-04 diagnosis.requirements①②  checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 두 축(①②)이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 허용목록·인덱스 참조·접근/실행 로그 설계 확인 → (3) DB설계서에서 자원-기능 매핑 확인 → (4) 개발가이드에서 경로조작/명령어 특수문자 필터링 코딩규칙 및 첨부 예시 코드 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — 시스템자원 허용목록(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 접근 가능한 자원을 허용목록으로 정의하고 외부입력값을 인덱스로만 사용하도록 설계되어 요구사항①의 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 2 — 자원-기능 매핑(DB설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 접근 허가된 자원이 식별되고 사용 가능한 기능과 매핑되는 자원-기능 매핑 테이블이 DB설계서에 설계되어 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지.\n■ 진단항목 3 — 접근·실행 이력 로깅(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 시스템자원 접근 및 운영체제 명령어 실행 이력을 로그(시간·사용자ID·사용자IP·입력값, 권한 없는 접근/실행 명령어 포함)로 기록하는 로깅 설계가 누락되었다.\n  · 개선방안: 접근·명령어 실행 이력을 시간·사용자ID·사용자IP·입력값(및 실행 명령어·파라미터)과 함께 기록하고 권한 없는 접근도 기록하도록 로깅 설계를 아키텍처설계서에 보강한다.\n■ 진단항목 4 — 명령어 특수문자 필터링(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 셸 명령어 특수문자(| & ; >) 필터링 코딩 규칙이 개발가이드에 누락되었고, 첨부 예시 코드가 외부입력값 date를 명령어 문자열에 그대로 결합(exec(command + date))하여 운영체제 명령어 삽입에 취약하다.\n  · 개선방안: 멀티라인·리다이렉트 특수문자(| & ; > >>)를 제거하는 코딩 규칙을 개발가이드에 추가하고, 예시 코드를 허용목록/특수문자 필터링 적용 코드로 수정한다.\n\n[정탐/오탐 판정 근거] 진단항목 3·4는 산출물에 명시적 누락/결함이 존재하므로 정탐(결함)으로 지적한다. 진단항목 1·2는 허용목록·자원-기능 매핑이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행 — diagnosis.requirements①② checklist methods; 제4장 §3 경로 조작 및 자원 삽입·§5 운영체제 명령어 삽입 code_examples",
+      "tags": ["input_validation", "design", "system-resource", "os-command", "복합서술형", "진단보고서", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-B1",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "시스템 자원 접근 보안설계의 자원 식별 방식에 대한 빈칸을 채우시오.",
+      "blank_template": "외부입력값이 프로그램 내부에서 사용하는 리소스를 결정하는 데 직접 사용되지 않도록, 사용해야 하는 리소스 {{1}}을(를) 정의하여 지정된 범위 안에서 선택해 사용하도록 설계한다. 이 목록은 변경 시 프로그램 수정을 최소화하도록 프로퍼티파일이나 {{2}}파일로 관리한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["목록"], "synonyms": ["허용목록", "허용 목록", "리스트", "Allow List", "화이트리스트"]},
+        {"idx": 2, "answers": ["XML"], "synonyms": ["XML파일", "xml", "XML 파일"]}
+      ],
+      "explanation": "정답: (1) 목록, (2) XML. 설계 고려사항 ①은 외부입력값이 리소스를 직접 결정하지 않도록 사용 리소스 '목록(허용목록)'을 정의하여 지정된 범위 안에서만 선택하게 하고, 리소스 변경 시 프로그램 수정을 최소화하도록 그 목록을 프로퍼티파일이나 'XML'파일로 관리할 것을 요구한다. 외부입력값은 이 목록을 검색하는 인덱스로만 사용한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행 — design_considerations ①",
+      "tags": ["input_validation", "design", "system-resource", "빈칸", "허용목록", "리소스목록"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-04-B2",
+      "weakness_name_ko": "시스템 자원 접근 및 명령어 수행 입력값 검증",
+      "chapter_code": "DSG-IV-04",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "시스템 자원 접근 및 명령어 수행 보안설계의 테스트 입력값에 대한 빈칸을 채우시오.",
+      "blank_template": "진단 시 허가되지 않은 자원 접근 가능 여부를 점검하기 위한 테스트 입력값으로는 경로조작에 사용되는 {{1}} 문자 등을 사용한다. 또한 허가되지 않은 명령어 실행 가능 여부를 점검하기 위한 검증 문자열로는 멀티라인을 지원하는 {{2}} 등의 특수문자를 정의한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": [".. / \\"], "synonyms": ["..", "/", "\\", ".. , / , \\", "../"]},
+        {"idx": 2, "answers": ["| & ;"], "synonyms": ["|", "&", ";", "| , & , ;", "파이프(|)·앰퍼샌드(&)·세미콜론(;)"]}
+      ],
+      "explanation": "정답: (1) .. / \\, (2) | & ;. 진단기준 checklist 2(테스트 계획)에 따르면, 허가되지 않은 자원 접근 점검 테스트 입력값은 경로조작 유발 문자(.. / \\)이고, 허가되지 않은 명령어 실행 점검 검증 문자열은 멀티라인을 지원하는 특수문자(| & ;)이다. 전자는 경로 조작 및 자원 삽입(CWE-22), 후자는 운영체제 명령어 삽입(CWE-78)을 점검하기 위한 입력값이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.4 시스템 자원 접근 및 명령어 수행 — diagnosis checklist 2-1 테스트 입력값(① .. / \\, ② | & ;)",
+      "tags": ["input_validation", "design", "system-resource", "os-command", "빈칸", "테스트입력값"]
+    }
+  ]
+}

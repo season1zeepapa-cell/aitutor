@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-12",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-M1",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 '서버사이드 요청 위조(SSRF)' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\nSSRF는 적절한 검증절차를 거치지 않은 사용자 입력 값을 서버 간의 요청에 사용하여 악의적인 행위가 발생할 수 있는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크의 데이터를 획득할 수 있다."},
+        {"num": 2, "text": "식별할 수 있는 범위 내에서 사용자 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우 화이트리스트 방식으로 필터링한다."},
+        {"num": 3, "text": "사용자가 지정하는 무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다."},
+        {"num": 4, "text": "동일한 내부 네트워크에 있는 요청은 신뢰할 수 있으므로 기기 인증·접근권한 확인 없이 처리해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크에 있는 데이터를 획득할 수 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력 값을 화이트리스트 방식으로 필터링한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. countermeasure는 '동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다'고 명시한다. 따라서 '인증·접근권한 확인 없이 처리해도 안전'은 정반대의 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-12 overview·countermeasure와 대조한다. 1번은 overview, 2·3번은 countermeasure와 일치하는 옳은 진술이다. 4번은 내부 네트워크 요청을 무조건 신뢰해도 된다고 오인하게 만드는 함정이며, 가이드는 내부 네트워크라도 기기 인증·접근권한 확인을 요구한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조(pp.276-283), CWE-918 — overview, countermeasure",
+      "tags": ["input_validation", "implementation", "ssrf", "화이트리스트", "블랙리스트", "보안약점설명"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-M2",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nprotected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  URL url = new URL(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}\n```",
+      "choices": [
+        {"num": 1, "text": "사용자 입력값(req.getParameter(\"url\"))을 검증 없이 사용하여 URL을 생성·접속하므로 안전하지 않다."},
+        {"num": 2, "text": "공격자가 ?url=http://192.168.0.45/member/list.json 처럼 URL을 조작하여 내부 서버에 질의하게 하고 데이터를 획득할 수 있다."},
+        {"num": 3, "text": "사전에 정의된 URL 목록을 Map 객체에 두고 키 값으로 입력받아 키에 매칭되는 URL만 사용하면 URL을 임의로 조작할 수 없다."},
+        {"num": 4, "text": "URL을 new URL()로 객체화하면 라이브러리가 내부 IP 접근을 자동으로 차단하므로 입력값 검증은 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 '사용자 입력값(url)을 검증없이 사용하여 안전하지 않다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '공격자는 URL을 조작하여 내부 서버에 질의하게 하여 데이터를 획득할 수 있다(예: ?url=http://192.168.0.45/member/list.json)'고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드·note가 '사전에 정의된 URL 목록을 Map 객체(urlMap)에 정의하고 키 값으로 입력받아 키에 매칭되는 URL만 사용하면 URL값을 임의로 조작할 수 없다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답. new URL()은 입력값을 URL 객체로 만들 뿐 내부 IP 접근을 자동 차단하지 않는다. 따라서 검증 없이 사용한 vulnerable 코드는 그대로 SSRF에 취약하며, '자동 차단되어 검증 불필요'는 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-12 code_examples Java의 vulnerable/safe 쌍과 note로 검증한다. 1·2번은 vulnerable 코드와 note, 3번은 safe 코드(urlMap 키 참조)와 일치하는 옳은 진술이다. 4번은 new URL()이 내부 IP를 자동 차단한다고 오인하게 만드는 함정이며, 실제로는 화이트리스트(urlMap) 등 별도 검증이 필요하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — code_examples Java vulnerable/safe·note",
+      "tags": ["input_validation", "implementation", "ssrf", "urlmap", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-M3",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "SSRF 진단방법과 대책에 대한 설명으로 옳지 않은 것은?\n\n진단원은 다른 시스템의 서비스를 호출하는 함수와 그 입력 값의 신뢰성·검증절차를 점검한다.",
+      "choices": [
+        {"num": 1, "text": "다른 시스템의 서비스를 호출하는 함수가 존재하는지 확인하고, 호출 시 사용되는 입력 값이 신뢰할 수 있는 값인지 확인한다."},
+        {"num": 2, "text": "입력 값이 신뢰할 수 없고 별도의 검증절차가 없으면 안전하지 않다고 판정한다."},
+        {"num": 3, "text": "퍼블릭 클라우드 메타데이터 서비스 IP(169.254.169.254)를 검증·차단하여 메타서버 크레덴셜 조회를 막으면 위험성을 줄일 수 있다."},
+        {"num": 4, "text": "openConnection에 사용하는 URL을 properties 파일에서 참조하면 외부 입력이 아니므로 위변조 위험 없이 항상 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '다른 시스템의 서비스를 호출하는 함수가 존재하는지 확인하고(①), 다른 시스템을 호출할 때 사용되는 입력 값이(②) 신뢰할 수 있는 값인지 확인한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '입력 값이 신뢰할 수 없고 별도의 검증절차가 없으면 안전하지 않다고 판정한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). false_positive 코드가 메타데이터 서비스 IP 169.254.169.254를 검증하여 차단(die(\"Invalid host\"))함으로써 메타서버 크레덴셜 조회를 막아 안전하다고 판정된다."},
+        {"num": 4, "correct": true, "why": "정답. true_positive 코드는 openConnection에 사용하는 URL을 properties에서 참조하지만, properties는 다른 공격 등으로 위변조될 수 있으므로 취약하다고 판정한다. 따라서 'properties 참조면 항상 안전'은 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-12 diagnosis.method·true_positive·false_positive를 근거로 한다. 1·2번은 진단방법, 3번은 false_positive(메타데이터 IP 차단)와 일치한다. 4번은 properties 참조를 무조건 안전하다고 오인하게 만드는 함정이며, true_positive 첫 코드처럼 properties도 위변조될 수 있어 취약 판정 대상이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — diagnosis.method·true_positive·false_positive",
+      "tags": ["input_validation", "implementation", "ssrf", "진단방법", "메타데이터", "properties위변조"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-D1",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 SSRF 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void doGet(HttpServletRequest request, HttpServletResponse response) {\n  String host = request.getParameter(\"host\");\n  byte[] bytes = getImage(host, defaultBytes);\n  if (bytes != null) writeBytesToStream(bytes, response);\n}\nprivate byte[] getImage(String host, byte[] defaultImage) {\n  byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n  ...\n}",
+      "vulnerable_code": "1  public void doGet(HttpServletRequest request, HttpServletResponse response) {\n2    String host = request.getParameter(\"host\");\n3    byte[] bytes = getImage(host, defaultBytes);\n4    if (bytes != null) writeBytesToStream(bytes, response);\n5  }\n6  private byte[] getImage(String host, byte[] defaultImage) {\n7    byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n8    ...\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [7],
+      "rationale_keywords": ["외부 입력 host", "검증 없이 서버 요청", "내부 서버 데이터 유출", "접근통제 우회", "CWE-918"],
+      "fix_keywords": ["화이트리스트 필터링", "내부 URL 블랙리스트", "접근권한 확인"],
+      "safe_code": "1  public void doGet(HttpServletRequest request, HttpServletResponse response) {\n2    String hostKey = request.getParameter(\"host\");\n3    // 사전에 정의된 허용 host만 키로 입력받아 참조한다(화이트리스트).\n4    String host = ALLOWED_HOSTS.get(hostKey);\n5    if (host == null) { response.sendError(400); return; }\n6    byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n7    if (bytes != null) writeBytesToStream(bytes, response);\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 7번 라인이 외부 입력값 host를 별도 검증 없이 \"http://\"+host+\"/favicon.ico\" 요청에 사용하고 있다(CWE-918). 공격자가 host를 조작(예: /getFavicon?host=192.168.176.1:8080/secrets.txt?)하면 서버가 내부 서버에 요청을 보내 접근통제를 우회하고 내부 서버 데이터가 외부로 유출될 수 있다.",
+        "fix_description": "host 입력값을 화이트리스트 방식으로 필터링하거나(사전 정의된 허용 host만 키로 입력받아 참조), 무작위 입력을 허용해야 하면 내부 URL을 블랙리스트로 차단한다. 또한 내부 네트워크 요청이라도 기기 인증·접근권한을 확인한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-12 diagnosis.true_positive 세 번째 코드(host favicon)를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력 host'/'검증 없이 서버 요청': host를 검증 없이 서버 간 요청 URL에 연결함.\n- '내부 서버 데이터 유출'/'접근통제 우회': host 조작으로 내부 서버 데이터를 외부로 빼낼 수 있음.\n- 'CWE-918': SSRF의 CWE 분류.\n\n[수정 키워드 의미] 화이트리스트 필터링·내부 URL 블랙리스트·접근권한 확인으로 임의 URL 요청을 차단한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(7번 라인 지목) 20점 / rationale(외부 입력 host·검증 없는 서버 요청·내부 데이터 유출 키워드 포함) 30점 / fix(화이트리스트 또는 블랙리스트 필터링·접근권한 확인) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — diagnosis.true_positive, CWE-918",
+      "tags": ["input_validation", "implementation", "ssrf", "정탐", "내부서버유출", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-D2",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 PHP 코드의 SSRF 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```php\n$url = $_GET['url'];\n$urlinfo = parse_url($url);\n$scheme = $urlinfo['scheme'];\n$host = $urlinfo['host'];\n$ip = gethostbyname($host);\nif ($ip === \"169.254.169.254\") { die(\"Invalid host\"); }\nelseif ($scheme !== 'http' && $scheme !== 'https') { die(\"Invalid scheme\"); }\ncurl_setopt($ch, CURLOPT_URL, $url);\ncurl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n$html = curl_exec($ch);\n```",
+      "vulnerable_code": "1  $url = $_GET['url'];\n2  $urlinfo = parse_url($url);\n3  $scheme = $urlinfo['scheme'];\n4  $host = $urlinfo['host'];\n5  $ip = gethostbyname($host);\n6  if ($ip === \"169.254.169.254\") { die(\"Invalid host\"); }\n7  elseif ($scheme !== 'http' && $scheme !== 'https') { die(\"Invalid scheme\"); }\n8  curl_setopt($ch, CURLOPT_URL, $url);\n9  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n10 $html = curl_exec($ch);",
+      "code_language": "etc",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["메타데이터 IP 차단", "169.254.169.254", "블랙리스트 검증", "스킴 검증", "FOLLOWLOCATION false"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 퍼블릭 클라우드 메타데이터 서비스 IP(169.254.169.254)를\n2  // 블랙리스트로 검증·차단하여 메타서버 크레덴셜 조회를 막고,\n3  // http/https 외 스킴을 차단하며 CURLOPT_FOLLOWLOCATION을 false로 두어\n4  // 리다이렉트 우회도 방지한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). parse_url·gethostbyname으로 입력 URL의 IP를 구한 뒤 퍼블릭 클라우드 메타데이터 서비스 IP(169.254.169.254)를 블랙리스트로 검증하여 차단하므로 메타서버 크레덴셜 조회를 막는다. 또한 스킴이 http·https가 아니면 차단하고, CURLOPT_FOLLOWLOCATION을 false로 두어 리다이렉트를 통한 우회도 방지한다. 내부 URL 블랙리스트 필터링이라는 대책을 충족하므로 안전하다고 판정한다.",
+        "fix_description": "수정 불필요. 이미 IMP-IV-12 false_positive 코드가 권장하는 메타데이터 IP 차단·스킴 검증·리다이렉트 차단을 수행하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-12 diagnosis.false_positive 첫 번째 코드(PHP)를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 사용자 입력($_GET['url'])으로 curl 요청을 보낸다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 메타데이터 IP·스킴을 검증하여 위험 요청을 차단하는 안전한 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '메타데이터 IP 차단'/'169.254.169.254'/'블랙리스트 검증': 클라우드 메타데이터 서비스 IP를 차단함.\n- '스킴 검증': http·https 외 스킴을 차단함.\n- 'FOLLOWLOCATION false': 리다이렉트를 통한 우회를 막음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음) 20점 / rationale(메타데이터 IP 차단·블랙리스트 검증·스킴 검증 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — diagnosis.false_positive(PHP)",
+      "tags": ["input_validation", "implementation", "ssrf", "오탐", "메타데이터차단", "블랙리스트"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-B1",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 'SSRF(서버사이드 요청 위조)' 보안약점의 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 식별할 수 있는 범위 내에서 사용자 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 입력 값을 (가) 방식으로 필터링한다.\n· 무작위의 URL을 받아들여야 한다면 내부의 URL을 (나) 로 지정하여 필터링한다.",
+      "blank_template": "· 식별할 수 있는 범위 내에서 사용자 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 입력 값을 {{1}} 방식으로 필터링한다.\n· 무작위의 URL을 받아들여야 한다면 내부의 URL을 {{2}} 로 지정하여 필터링한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["화이트리스트"], "synonyms": ["whitelist", "허용목록", "화이트 리스트"]},
+        {"idx": 2, "answers": ["블랙리스트"], "synonyms": ["blacklist", "차단목록", "블랙 리스트"]}
+      ],
+      "explanation": "정답: (가) 화이트리스트, (나) 블랙리스트. IMP-IV-12 countermeasure는 '사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우 화이트리스트 방식으로 필터링'하고, '무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — countermeasure",
+      "tags": ["input_validation", "implementation", "ssrf", "빈칸", "화이트리스트", "블랙리스트"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-12-B2",
+      "weakness_name_ko": "서버사이드 요청 위조(SSRF)",
+      "chapter_code": "IMP-IV-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 SSRF를 방지하는 안전한 Java 코드다. 빈칸에 들어갈 내용을 채우시오. (가)는 허용 URL을 보관하는 자료구조 변수, (나)는 사용자 입력 키로 값을 참조하는 메소드다.\n\n```java\nprivate Map<String, URL> urlMap;\nprotected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  URL url = (가).(나)(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}\n```",
+      "blank_template": "private Map<String, URL> urlMap;\nprotected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  URL url = {{1}}.{{2}}(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["urlMap"], "synonyms": ["urlmap"]},
+        {"idx": 2, "answers": ["get"], "synonyms": ["get()"]}
+      ],
+      "explanation": "정답: (가) urlMap, (나) get. IMP-IV-12 code_examples Java safe 코드는 key-value 형식의 urlMap에 허용 URL 리스트를 작성하고, 사용자에게 키만 입력받아 urlMap.get(req.getParameter(\"url\"))으로 사전 정의된 URL만 참조한다. 따라서 사용자가 URL을 임의로 조작할 수 없다(화이트리스트).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 서버사이드 요청 위조 — code_examples Java safe·note",
+      "tags": ["input_validation", "implementation", "ssrf", "빈칸", "urlmap", "화이트리스트", "java"]
+    }
+  ]
+}

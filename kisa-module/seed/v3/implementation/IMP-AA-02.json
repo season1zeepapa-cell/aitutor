@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-AA-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-M1",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "구현 단계 API 오용 항목 중 '취약한 API 사용' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "취약한 API는 보안상 금지된(banned) 함수이거나 부주의하게 사용될 가능성이 많은 API를 의미한다."},
+        {"num": 2, "text": "스트링 관련 strcat(), strcpy(), strncat(), strncpy(), sprintf() 등은 금지된 함수의 대표적인 예다."},
+        {"num": 3, "text": "보안 문제로 금지된 함수는 strcat_s(), strcpy_s(), sprintf_s()과 같이 이를 대체할 수 있는 안전한 함수를 사용한다."},
+        {"num": 4, "text": "금지된 함수라도 인자와 반환값을 검사하지 않고 그대로 사용하면 보안상 항상 안전하므로 별도 조치가 필요 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '취약한 API는 보안상 금지된(banned) 함수이거나, 부주의하게 사용될 가능성이 많은 API'라고 정의한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 금지된 API의 대표 예로 strcat()·strcpy()·strncat()·strncpy()·sprintf()를 든다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 금지 함수를 strcat_s()·strcpy_s()·sprintf_s() 등 안전한 함수로 대체하도록 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 금지된 함수는 안전한 함수로 대체해야 하며, 대체 API가 없어 부득이 사용할 때만 인자와 반환값을 검사해야 한다. '검사 없이 사용해도 항상 안전'은 약점의 본질에 정반대로 어긋난다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-02 overview·countermeasure·diagnosis와 대조한다. 금지된 함수는 안전한 함수(_s 계열)로 대체하고, 대체 API가 없을 때만 인자·반환값 검사를 수행한다(CWE-676). 따라서 '검사 없이 사용해도 항상 안전'은 4번이 잘못된 설명이다. 1·2·3번은 overview·countermeasure와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 취약한 API 사용(pp.497-501), CWE-676 — overview/countermeasure",
+      "tags": ["api_abuse", "implementation", "banned-function", "안전한-함수", "strcpy", "cwe-676"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-M2",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드(J2EE)에 대한 설명으로 옳지 않은 것은?\n\n```java\npublic class U382 extends HttpServlet {\n  public void doPost(HttpServletRequest request, HttpServletResponse response) {\n    try {\n      do_something(logger);\n    } catch (IOException ase) {\n      logger.info(\"ERROR\");\n      System.exit(1);\n    }\n  }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "J2EE 응용프로그램에서 System.exit()을 사용하면 웹 애플리케이션 컨테이너까지 종료되어 서비스가 중단될 수 있다."},
+        {"num": 2, "text": "이 코드는 취약한 API 사용(API 오용) 보안약점의 정탐 사례에 해당한다."},
+        {"num": 3, "text": "안전하게 만들려면 catch 블록에서 System.exit() 대신 logger.info() 등 로깅으로 처리하고 컨테이너를 종료시키지 않아야 한다."},
+        {"num": 4, "text": "System.exit()은 예외 발생 시 자원을 정리하는 J2EE 표준 권장 방식이므로 catch 블록에서 적극 사용해야 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note·course가 System.exit()은 웹 애플리케이션 컨테이너를 종료시킬 수 있어 J2EE 프로그램에서 사용하지 않아야 한다고 한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.true_positive 두 번째 사례가 J2EE의 System.exit() 사용을 취약 판정한다(CWE-382)."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 System.exit()을 제거하고 logger.info(\"ERROR\")로 로깅 처리하여 서비스 종료를 막는다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). System.exit()은 JVM(컨테이너)을 종료시키므로 J2EE에서 사용을 금지하는 취약한 API다. '표준 권장 방식이라 적극 사용해야 한다'는 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-02 code_examples(Java System.exit)의 vulnerable 코드를 제시했다. J2EE 응용프로그램에서 System.exit()은 컨테이너까지 종료시켜 서비스를 중단시키므로 사용하지 않아야 하며(CWE-382), safe 코드처럼 로깅으로 대체한다. 따라서 4번이 잘못된 설명이다. 1·2·3번은 note·diagnosis·safe 코드와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 — code_examples(Java System.exit) vulnerable/safe, diagnosis.true_positive, CWE-382",
+      "tags": ["api_abuse", "implementation", "system-exit", "j2ee", "컨테이너-종료", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-M3",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드(J2EE)에 대한 진단으로 옳지 않은 것은?\n\n```java\npublic class S246 extends javax.servlet.http.HttpServlet {\n  private Socket socket;\n  protected void doGet(HttpServletRequest request, HttpServletResponse response) {\n    try {\n      socket = new Socket(\"kisa.or.kr\", 8080);\n    } catch (UnknownHostException e) {\n    }\n  }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "J2EE 애플리케이션이 프레임워크 메소드 호출 대신 소켓(Socket)을 직접 사용하면 채널 보안·에러 처리·세션 관리 등 프레임워크 보안기능을 제공받지 못한다."},
+        {"num": 2, "text": "안전하게 만들려면 소켓 직접 사용 대신 URL/URLConnection 등 프레임워크가 제공하는 메소드를 사용한다."},
+        {"num": 3, "text": "이 코드는 취약한 API 사용(소켓 직접 사용, CWE-246) 보안약점에 해당한다."},
+        {"num": 4, "text": "WAS 환경에서도 Socket을 직접 생성해 통신하는 방식이 프레임워크 메소드보다 더 안전하므로 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 주석·course가 소켓을 직접 사용하면 프레임워크가 제공하는 보안기능(채널 보안·에러 처리·세션 관리 등)을 받지 못한다고 한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드·note가 타겟이 WAS인 경우 소켓 직접 사용 대신 URLConnection 등 프레임워크 메소드를 사용하라고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 소켓 직접 사용은 J2EE Bad Practices(CWE-246)로 취약한 API 사용에 해당한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). WAS에서 소켓 직접 사용은 프레임워크 보안기능을 받지 못하는 취약한 방식이며, 프레임워크 메소드보다 안전하지 않다. '직접 소켓이 더 안전해 권장된다'는 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-02 code_examples(Java 소켓 직접 사용)의 vulnerable 코드를 제시했다. J2EE에서 소켓을 직접 사용하면 프레임워크의 보안기능을 받지 못하므로(CWE-246), safe 코드처럼 URL/URLConnection 등 프레임워크 메소드를 사용해야 한다. 따라서 4번이 잘못된 진단이다. 1·2·3번은 vulnerable 주석·safe note·CWE 분류와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 — code_examples(Java 소켓) vulnerable/safe, CWE-246",
+      "tags": ["api_abuse", "implementation", "socket", "j2ee", "프레임워크-메소드", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-D1",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 API 사용에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\nvoid manipulate_string(char * string) {\n  char buf[24];\n  strcpy(buf, string);\n}\n```",
+      "vulnerable_code": "1  void manipulate_string(char * string) {\n2    char buf[24];\n3    strcpy(buf, string);\n4  }",
+      "code_language": "c",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["금지된 함수", "strcpy", "버퍼 오버플로우", "길이 제한 불가", "CWE-676"],
+      "fix_keywords": ["strcpy_s", "안전한 함수", "길이 제한"],
+      "safe_code": "1  void manipulate_string(char * string) {\n2    char buf[24];\n3    // 안전한 함수로 대체하여 대상 버퍼 크기만큼만 복사한다.\n4    strcpy_s(buf, sizeof(buf), string);\n5  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 보안상 금지된 함수 strcpy()를 사용해 매개변수 string을 buf[24]에 복사한다. strcpy()는 복사 길이를 제한할 수 없어 string의 길이가 버퍼(24바이트)보다 크면 버퍼 오버플로우가 발생하는 취약한 API 사용(CWE-676)이다.",
+        "fix_description": "금지된 strcpy() 대신 대상 버퍼 크기를 인자로 받아 복사 길이를 제한하는 안전한 함수 strcpy_s()(또는 strncpy_s 등)로 대체한다. 부득이 사용할 경우 인자(입력 길이)와 반환값을 검사하여 버퍼 크기를 넘지 않도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-AA-02 diagnosis.true_positive 첫 사례(strcpy 버퍼 오버플로우)를 기반으로 한다.\n\n[근거 키워드 의미]\n- '금지된 함수'/'strcpy': 보안상 금지된 banned 함수를 사용함.\n- '버퍼 오버플로우'/'길이 제한 불가': strcpy()는 복사 길이를 제한하지 못해 buf[24]를 넘는 입력 시 오버플로우 발생.\n- 'CWE-676': Use of Potentially Dangerous Function.\n\n[수정 키워드 의미] strcpy_s() 등 길이를 제한하는 안전한 대체 함수를 사용한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(3번 라인) 20점 / rationale(금지된 함수 strcpy·버퍼 오버플로우·길이 제한 불가 키워드) 30점 / fix(strcpy_s 등 안전한 함수·길이 제한) 30점.\n\n[자가확인 체크리스트] (1) 보안상 금지된 함수(strcpy/strcat/sprintf/gets 등)를 사용하는가? (2) 복사·입력 길이를 제한하지 못하는가? (3) 대상 버퍼 크기를 넘는 입력 시 오버플로우 가능한가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 — diagnosis.true_positive, CWE-676",
+      "tags": ["api_abuse", "implementation", "strcpy", "정탐", "버퍼-오버플로우", "c"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-D2",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드(J2EE)의 API 사용에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic class U382 extends HttpServlet {\n  public void doPost(HttpServletRequest request, HttpServletResponse response) {\n    try {\n      do_something(logger);\n    } catch (IOException ase) {\n      logger.info(\"ERROR\");\n    }\n  }\n}\n```",
+      "vulnerable_code": "1  public class U382 extends HttpServlet {\n2    public void doPost(HttpServletRequest request, HttpServletResponse response) {\n3      try {\n4        do_something(logger);\n5      } catch (IOException ase) {\n6        logger.info(\"ERROR\");\n7      }\n8    }\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["System.exit 미사용", "로깅 처리", "컨테이너 종료 없음", "안전한 API", "프레임워크 보안기능"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — catch 블록에서 System.exit() 등 컨테이너를\n2  // 종료시키는 취약한 API를 사용하지 않고 logger.info(\"ERROR\")로 로깅만 수행한다.\n3  // J2EE 서비스(컨테이너)가 종료되지 않으므로 안전하다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). catch 블록에서 J2EE 응용프로그램의 서비스를 중단시키는 System.exit() 같은 취약한 API를 사용하지 않고, logger.info(\"ERROR\")로 예외를 로깅 처리한다. 컨테이너(JVM)를 종료시키지 않으므로 서비스가 유지되며, 이는 IMP-AA-02 safe 코드가 권장하는 'System.exit() 미사용·로깅 처리' 방식과 일치한다.",
+        "fix_description": "수정 불필요. IMP-AA-02 code_examples의 safe 코드(System.exit() 제거 후 로깅 처리)를 그대로 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-AA-02 code_examples(Java System.exit)의 safe 코드를 기반으로 한다. 핵심은 'System.exit()이 제거된 안전한 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] try-catch가 있고 예외만 로깅한다는 사실, 혹은 'J2EE 서블릿'이라는 점만으로 취약하다고 단정해서는 안 된다. 이 코드는 컨테이너를 종료시키는 취약한 API(System.exit)를 쓰지 않아 가이드의 안전 코드 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'System.exit 미사용'/'컨테이너 종료 없음': catch에서 System.exit()을 호출하지 않아 J2EE 서비스가 종료되지 않음.\n- '로깅 처리'/'안전한 API': logger.info()로 예외를 안전하게 기록함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음으로 정확히 판단) 20점 / rationale(System.exit 미사용·로깅 처리·컨테이너 종료 없음 등 안전 근거 키워드) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) catch에서 System.exit()/Application.Exit() 등 컨테이너를 종료시키는 취약 API를 쓰는가? → 아니다. (2) 소켓 직접 사용 등 다른 취약 API가 있는가? → 아니다. (3) 예외를 안전하게 로깅하는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 — code_examples(Java System.exit) safe",
+      "tags": ["api_abuse", "implementation", "system-exit", "오탐", "로깅", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-B1",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '취약한 API 사용' 보안약점의 원인과 대책에 대한 설명이다. 빈칸을 채우시오.",
+      "blank_template": "취약한 API는 보안상 ①______(banned) 함수이거나 부주의하게 사용될 가능성이 많은 API를 의미한다. 대표적인 금지 함수로 strcpy(), sprintf(), gets() 등이 있으며, 이를 대체할 수 있는 ②______ 함수(strcpy_s, gets_s 등)를 사용한다. 한편 J2EE 응용프로그램에서 ③______()을(를) 호출하면 컨테이너까지 종료되어 서비스가 중단될 수 있으므로 사용하지 않는다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["금지된"], "synonyms": ["금지", "banned", "금지 된", "사용 금지된"]},
+        {"idx": 2, "answers": ["안전한"], "synonyms": ["safe", "대체", "안전"]},
+        {"idx": 3, "answers": ["System.exit"], "synonyms": ["System.exit()", "system.exit", "시스템 exit"]}
+      ],
+      "explanation": "①은 '금지된'. overview가 취약한 API를 보안상 금지된(banned) 함수로 정의한다. ②는 '안전한'. countermeasure가 금지 함수를 _s 계열 안전한 함수로 대체하라고 한다. ③은 'System.exit'. note·course가 J2EE에서 System.exit()은 컨테이너까지 종료시키므로 사용하지 않아야 한다고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2(pp.497-501); 2025 진단원 기본과정 API오용 7-2 — overview/countermeasure",
+      "tags": ["api_abuse", "implementation", "banned-function", "안전한-함수", "system-exit"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-02-B2",
+      "weakness_name_ko": "취약한 API 사용",
+      "chapter_code": "IMP-AA-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 C 안전 코드는 금지된 함수를 안전한 함수로 대체한 것이다. 빈칸을 채워 코드를 완성하시오.",
+      "blank_template": "void requestString() {\n  char str[100];\n  // gets() 함수는 문자열 길이를 제한할 수 없어 안전하지 않다.\n  // 길이 제한이 가능한 안전한 함수로 대체한다.\n  ①______(str, ②______(str));\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["gets_s"], "synonyms": ["gets_s()", "fgets"]},
+        {"idx": 2, "answers": ["sizeof"], "synonyms": ["sizeof()"]}
+      ],
+      "explanation": "①은 'gets_s'. code_examples(C)의 safe 코드가 길이 제한이 불가능한 gets() 대신 길이 제한이 가능한 gets_s()를 사용한다(fgets()도 대안). ②는 'sizeof'. gets_s(str, sizeof(str))처럼 버퍼 크기를 sizeof로 전달하여 입력 길이를 버퍼 크기로 제한해 버퍼 오버플로우를 막는다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §2 — code_examples(C) safe/note",
+      "tags": ["api_abuse", "implementation", "gets", "gets_s", "안전한-함수", "c"]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EH-03",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-M1",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "부적절한 예외 처리(CWE-754) 보안약점과 그 대응방안에 대한 설명으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "함수의 결과값에 대한 적절한 처리나 예외상황 조건을 제대로 검사하지 않으면 예기치 않은 문제를 야기할 수 있다."},
+        {"num": 2, "text": "예외 처리를 사용할 때는 광범위한 예외 처리가 구체적인 예외 처리보다 안전하므로 Exception 하나로 잡는 것이 권장된다."},
+        {"num": 3, "text": "값을 반환하는 함수의 결과값은 의도한 값인지 검사할 필요가 없으며, 반환값은 항상 신뢰해도 된다."},
+        {"num": 4, "text": "여러 종류의 예외가 발생할 수 있어도 발생 순서와 무관하게 하나의 방식으로 처리하면 정확한 정보가 로깅된다."}
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        {"num": 1, "correct": true, "why": "정답. overview와 정확히 일치한다. '프로그램 수행 중에 함수의 결과값에 대한 적절한 처리 또는 예외상황에 대한 조건을 적절하게 검사하지 않을 경우, 예기치 않은 문제를 야기할 수 있는 보안약점'이라는 정의 그대로다."},
+        {"num": 2, "correct": false, "why": "틀림. countermeasure는 '광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다'고 명시한다. 광범위한 Exception 처리가 더 안전하다는 진술은 정반대로 뒤집은 것이다."},
+        {"num": 3, "correct": false, "why": "틀림. countermeasure는 '값을 반환하는 모든 함수의 결과값을 검사하여 그 값이 의도했던 값인지 검사'하라고 요구한다. 반환값을 검사하지 않고 신뢰하라는 진술은 잘못이다."},
+        {"num": 4, "correct": false, "why": "틀림. 광범위한 단일 방식 처리는 각 상황에 적절히 대응할 수 없고 정확한 정보가 로깅되지 않아 사후 처리가 어렵다(course summary). 발생 가능한 예외는 종류와 순서에 맞춰 세분화해야 한다."}
+      ],
+      "explanation": "정답은 1번. IMP-EH-03 라이브러리 overview('함수의 결과값에 대한 적절한 처리 또는 예외상황 조건을 적절히 검사하지 않으면 예기치 않은 문제 발생')와 countermeasure('반환값 검사 + 광범위한 예외 처리 대신 구체적인 예외 처리')로 검증한다. 1번은 overview와 정확히 일치한다. 2번은 countermeasure를 정반대로 뒤집었고, 3번은 반환값 검사 요구를 부정했으며, 4번은 course가 지적한 '단일 방식 처리의 폐해(상황별 대응 불가·부정확한 로깅)'에 어긋난다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리(pp.429-432), CWE-754 — overview/countermeasure",
+      "tags": ["error_handling", "implementation", "예외처리", "구체적-예외처리", "반환값-검사", "CWE-754"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-M2",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 예외 처리에 대한 설명으로 옳지 않은 것은?\n\n```java\ntry {\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n} catch (Exception e) {\n    System.err.println(\"Exception : \" + e.getMessage());\n}\n```",
+      "choices": [
+        {"num": 1, "text": "try 블록에서는 IOException, ParseException 등 서로 다른 종류의 예외가 발생할 수 있다."},
+        {"num": 2, "text": "광범위한 Exception 클래스 하나로 모든 예외를 잡고 있어 예외를 세분화하여 처리하지 못한다."},
+        {"num": 3, "text": "발생 가능한 예외를 세분화하고 발생 가능한 순서에 따라 catch 절로 분리해 처리하는 것이 안전하다."},
+        {"num": 4, "text": "예외를 세분화할 수 있음에도 광범위하게 처리하는 것이 예기치 않은 문제를 줄여주는 권장 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 해당 try 블록은 url.openStream()/readLine()에서 IOException, format.parse()에서 ParseException 등 서로 다른 예외가 발생할 수 있다. safe 코드가 이를 분리하여 catch한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). catch(Exception e)가 광범위한 상위 클래스 하나로만 잡아 예외를 세분화하지 못하는 것이 바로 이 코드의 문제점(부적절한 예외 처리, CWE-754)이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). note가 '발생 가능한 예외를 세분화하고 발생 가능한 순서에 따라 예외를 처리해야 한다'고 명시하므로 안전한 방식에 대한 정확한 설명이다."},
+        {"num": 4, "correct": true, "why": "정답. code_examples 주석이 '예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생 할 수 있다'고 명시한다. 광범위한 처리는 예기치 않은 문제를 줄이는 것이 아니라 오히려 유발하므로 권장 방식이라는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EH-03 code_examples(Java)의 vulnerable 코드가 그대로 제시되었다. 코드 주석('세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제 발생')과 note('예외를 세분화하고 발생 가능한 순서에 따라 처리')로 검증한다. 4번은 광범위 처리가 문제를 줄여주는 권장 방식이라고 진술하여 틀렸다. 1·2·3번은 vulnerable/safe 코드와 일치하는 옳은 설명이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리(pp.429-432), CWE-754 — code_examples(Java) vulnerable/safe/note",
+      "tags": ["error_handling", "implementation", "예외처리", "광범위한-예외처리", "구체적-예외처리", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-M3",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "부적절한 예외 처리 보안약점의 영향과 진단 방법에 대한 설명으로 옳지 않은 것은?\n\n진단자는 여러 명령문을 하나의 try로 묶어 모든 예외를 단일 방식으로 처리하는지 등을 점검한다.",
+      "choices": [
+        {"num": 1, "text": "각각의 예외 상황에 대해 적절한 대응을 할 수 없어 부적절한 리소스 관리로 시스템이 중지될 수 있다."},
+        {"num": 2, "text": "예외 상황에 대한 정확한 정보가 로깅되지 않아 사후 처리에 어려움이 발생할 수 있다."},
+        {"num": 3, "text": "반환값을 검사하고 예외를 발생시키는 함수에 대해 구체적인 예외 처리를 수행하는지 확인한다."},
+        {"num": 4, "text": "파일 처리는 열기·쓰기·닫기를 하나의 try-catch에 묶어 단일 catch(Exception)로 처리하는 것이 진단상 안전한 코드로 판정된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). course 개요가 '각각의 상황에 대해 적절한 대응을 할 수 없어, 부적절한 리소스 관리로 시스템이 중지될 수 있다'고 명시한 영향 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course 개요가 '예외 상황에 대한 정확한 정보가 로깅되지 않아 사후 처리에 어려움이 발생할 수 있다'고 명시한 영향 그대로다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '함수 또는 메소드에 대하여 반환값을 검사하고 예외를 발생시키는 경우 구체적인 예외처리를 수행하는지 확인한다'고 명시한 진단 방법 그대로다."},
+        {"num": 4, "correct": true, "why": "정답. course 예제2는 파일 열기/쓰기/닫기를 단계별 try-catch로 분리(ERROR-001~003)하여 각 IOException을 구체적으로 처리하는 것이 안전한 코드라고 한다. 하나의 try에 묶어 단일 catch(Exception)로 처리하는 것은 안전한 코드가 아니라 부적절한 예외 처리이므로 진술이 틀렸다."}
+      ],
+      "explanation": "정답은 4번. course summary·sections(개요 영향, 예제2 파일 처리)와 library diagnosis.method를 근거로 검증한다. 1·2번은 course가 명시한 영향(시스템 중지·부정확한 로깅), 3번은 library 진단 방법과 일치하는 옳은 진술이다. 4번은 course 예제2가 제시한 안전 코드(파일 열기/쓰기/닫기 단계별 try-catch 분리)와 정반대로, 하나의 try와 단일 catch(Exception)가 안전하다고 잘못 진술하여 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — diagnosis.method; 2025년 진단원 양성과정 Ⅴ.4-3(pp.449-454) 개요·예제2",
+      "tags": ["error_handling", "implementation", "예외처리", "진단방법", "단계별-try-catch", "리소스관리"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-D1",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 예외 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void readFromFile(String fileName) {\n  try {\n    File myFile = new File(fileName);\n    FileReader fr = new FileReader(myFile);\n    BufferedReader br = new BufferedReader(fr);\n    String line = br.readLine();\n  } catch (Exception ex) {\n  }\n}\n```",
+      "vulnerable_code": "1  public void readFromFile(String fileName) {\n2    try {\n3      File myFile = new File(fileName);\n4      FileReader fr = new FileReader(myFile);\n5      BufferedReader br = new BufferedReader(fr);\n6      String line = br.readLine();\n7    } catch (Exception ex) {\n8    }\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [7],
+      "rationale_keywords": ["광범위한 Exception", "구체적인 예외 처리", "예외 세분화", "예기치 않은 문제", "CWE-754"],
+      "fix_keywords": ["FileNotFoundException", "IOException", "분리 catch", "발생 순서"],
+      "safe_code": "1  public void readFromFile(String fileName) {\n2    try {\n3      File myFile = new File(fileName);\n4      FileReader fr = new FileReader(myFile);\n5      BufferedReader br = new BufferedReader(fr);\n6      String line = br.readLine();\n7    } catch (FileNotFoundException ex) {\n8      logger.warning(\"FileNotFoundException 발생\");\n9    } catch (IOException ex) {\n10     logger.warning(\"IOException 발생\");\n11   }\n12 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 7번 라인이 광범위한 상위 클래스인 Exception 하나로만 예외를 잡고 있어 구체적인 예외 처리가 이루어지지 않는다. FileReader 생성 시 FileNotFoundException, readLine() 시 IOException 등 서로 다른 예외가 발생할 수 있음에도 세분화하지 않아 예기치 않은 문제를 야기할 수 있는 부적절한 예외 처리(CWE-754)다. 또한 catch 블록이 비어 있어 예외 발생 시 수행해야 할 기능(로깅 등)도 구현되어 있지 않다.",
+        "fix_description": "광범위한 Exception 대신 FileNotFoundException, IOException 등 발생 가능한 구체적 예외로 분리하고, 발생 가능한 순서에 맞춰 catch 절을 작성한다. 각 catch 블록에서는 예외 발생 시 수행해야 할 기능(예: Logger를 통한 로깅)이 구현되도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EH-03 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '광범위한 Exception': 7번 라인 catch(Exception ex)가 상위 클래스로 모든 예외를 한꺼번에 포착함.\n- '구체적인 예외 처리'/'예외 세분화': countermeasure가 요구하는 안전한 방식. 발생 가능한 예외를 구체적 타입으로 나눠 처리해야 함.\n- '예기치 않은 문제'/'CWE-754': overview·CWE 분류상 부적절한 예외 처리가 야기하는 결과.\n\n[수정 키워드 의미] FileNotFoundException·IOException으로 분리하고 발생 순서에 맞춰 catch 절을 배치한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(7번 라인 지목) 20점 / rationale(광범위한 Exception·구체적 예외처리 미흡·세분화 부재 등 키워드 포함) 30점 / fix(구체적 예외 분리 catch + 발생 순서 + 로깅 등 기능 구현) 30점.\n\n[자가확인 체크리스트] (1) catch가 Exception/Throwable 등 광범위 클래스인가? (2) try 안에서 둘 이상의 서로 다른 예외가 발생 가능한가? (3) catch 블록이 비어 있거나 예외 발생 시 수행할 기능이 누락되었는가? — 셋 중 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — diagnosis.true_positive, CWE-754",
+      "tags": ["error_handling", "implementation", "예외처리", "정탐", "광범위한-예외처리", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-D2",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 예외 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\ntry {\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n} catch (MalformedURLException e) {\n    System.err.println(\"MalformedURLException : \" + e.getMessage());\n} catch (IOException e) {\n    System.err.println(\"IOException : \" + e.getMessage());\n} catch (ParseException e) {\n    System.err.println(\"ParseException : \" + e.getMessage());\n}\n```",
+      "vulnerable_code": "1  try {\n2    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n3    String line = reader.readLine();\n4    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n5    Date date = format.parse(line);\n6  } catch (MalformedURLException e) {\n7    System.err.println(\"MalformedURLException : \" + e.getMessage());\n8  } catch (IOException e) {\n9    System.err.println(\"IOException : \" + e.getMessage());\n10 } catch (ParseException e) {\n11   System.err.println(\"ParseException : \" + e.getMessage());\n12 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["구체적인 예외 처리", "예외 세분화", "발생 순서", "Exception 미사용", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 발생 가능한 예외(MalformedURLException, IOException, ParseException)를\n2  // 구체적으로 세분화하고 발생 가능한 순서에 맞춰 분리 catch하여 처리한다.\n3  // 광범위한 Exception 으로 뭉뚱그리지 않으므로 가이드의 안전한 예외 처리 방식과 일치한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). MalformedURLException, IOException, ParseException 등 발생 가능한 예외를 광범위한 Exception 으로 뭉뚱그리지 않고 구체적으로 세분화하여 분리 catch하고 있으며, 발생 가능한 종류와 순서에 맞춰 처리하고 있다. 이는 countermeasure와 note가 요구하는 '구체적인 예외 처리(예외 세분화·발생 순서)' 방식과 일치하므로 부적절한 예외 처리에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 이미 IMP-EH-03 safe 코드가 권장하는 구체적·순서 기반 예외 처리를 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EH-03 code_examples(Java)의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] catch 절이 여러 개라거나 try-catch가 있다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 오히려 가이드가 제시하는 안전한 예외 처리의 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '구체적인 예외 처리'/'예외 세분화': MalformedURLException·IOException·ParseException으로 나눠 처리함.\n- '발생 순서': 발생 가능한 종류와 순서에 맞춰 catch 절을 배치함.\n- 'Exception 미사용': 광범위한 상위 클래스 Exception 으로 잡지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인이 없음을 정확히 판단) 20점 / rationale(구체적 예외 세분화·발생 순서·Exception 미사용 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) catch가 광범위한 Exception/Throwable이 아니라 구체적 예외 타입인가? → 그렇다. (2) 발생 가능한 예외가 모두 분리 처리되었는가? → 그렇다. (3) 발생 순서에 맞춰 catch가 배치되었는가? → 그렇다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — code_examples(Java) safe/note",
+      "tags": ["error_handling", "implementation", "예외처리", "오탐", "구체적-예외처리", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-B1",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "부적절한 예외 처리의 대응방안에 관한 다음 설명의 빈칸을 채우시오.\n\n값을 반환하는 모든 함수의 결과값을 검사하여 그 값이 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에 (가) 예외 처리 대신 (나) 예외 처리를 수행한다.",
+      "blank_template": "값을 반환하는 모든 함수의 결과값을 검사하여 그 값이 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에 ___(가)___ 예외 처리 대신 ___(나)___ 예외 처리를 수행한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["광범위한"], "synonyms": ["광범위", "포괄적인", "포괄적"]},
+        {"idx": 2, "answers": ["구체적인"], "synonyms": ["구체적", "세분화한", "세분화된"]}
+      ],
+      "explanation": "정답: (가) 광범위한, (나) 구체적인. IMP-EH-03 countermeasure 원문('광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다')을 그대로 묻는 문제다. 광범위한 Exception 하나로 모든 예외를 잡으면 상황별 대응이 불가능하므로, 발생 가능한 예외를 구체적으로 세분화하여 처리해야 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — countermeasure",
+      "tags": ["error_handling", "implementation", "예외처리", "빈칸", "대응방안", "구체적-예외처리"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-03-B2",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "chapter_code": "IMP-EH-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 안전한 예외 처리로 수정한 Java 코드다. try 블록에서 발생 가능한 예외를 종류와 순서에 맞춰 분리 catch하도록 빈칸을 채우시오.\n\n```java\ntry {\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n} catch (MalformedURLException e) {\n    System.err.println(\"MalformedURLException : \" + e.getMessage());\n} catch ( (가) e) {\n    System.err.println(\"IOException : \" + e.getMessage());\n} catch ( (나) e) {\n    System.err.println(\"ParseException : \" + e.getMessage());\n}\n```",
+      "blank_template": "} catch (MalformedURLException e) { ... } catch ( ___(가)___ e) { ... } catch ( ___(나)___ e) { ... }",
+      "blank_answers": [
+        {"idx": 1, "answers": ["IOException"], "synonyms": ["java.io.IOException"]},
+        {"idx": 2, "answers": ["ParseException"], "synonyms": ["java.text.ParseException"]}
+      ],
+      "explanation": "정답: (가) IOException, (나) ParseException. IMP-EH-03 code_examples(Java) safe 코드 그대로다. url.openStream()/readLine()에서 IOException, format.parse()에서 ParseException이 발생할 수 있으므로, 광범위한 Exception 하나로 잡지 않고 MalformedURLException → IOException → ParseException 순으로 발생 가능한 종류와 순서에 맞춰 분리 catch한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — code_examples(Java) safe",
+      "tags": ["error_handling", "implementation", "예외처리", "빈칸", "구체적-예외처리", "java"]
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-11",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-M1",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 '부적절한 인증서 유효성 검증'에 대한 설명이다. 옳지 않은 것은?\n\n인증서를 확인하지 않거나 확인 절차를 적절히 수행하지 않으면 악의적인 호스트에 연결되거나 신뢰할 수 없는 호스트에서 생성된 데이터를 수신하게 된다.",
+      "choices": [
+        {"num": 1, "text": "인증서를 사용하기 전에 인증서의 유효성을 확인하는 절차를 구현해야 한다."},
+        {"num": 2, "text": "유효성 확인 항목에는 Common Name과 실제 호스트 일치 여부, 신뢰된 발급기관(CA, RootCA)의 서명 여부, 유효기간, 해지 여부, 안전한 암호화 알고리즘 사용 여부 등이 있다."},
+        {"num": 3, "text": "Common Name을 확인하지 않으면 공격자가 CN을 위조하는 중간자 공격(MITM)을 탐지하지 못할 수 있다."},
+        {"num": 4, "text": "인증서 검증 결과가 X509_V_OK이면 그것만으로 충분하므로, Common Name 일치나 해지 여부는 추가로 확인할 필요가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). countermeasure가 '인증서를 사용하기 전에 인증서의 유효성을 확인한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 Common Name 일치·CA/RootCA 서명·유효기간·해지 여부·안전한 암호화 알고리즘 사용 여부를 유효성 검증 항목으로 열거한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). code_examples note와 course가 CN 미확인 시 공격자가 Common Name을 위조한 중간자 공격(MITM)을 탐지하지 못한다고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 두 번째 vulnerable 사례의 note가 '검증 결과가 X509_V_OK로 반환되더라도 호스트가 Common Name과 일치하는지 확인하지 않으면 허가된 호스트용임을 확신할 수 없다'고 명시한다. X509_V_OK만으로 충분하며 CN·해지 확인이 불필요하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-11 overview·countermeasure·code_examples note로 검증한다. 가이드는 인증서 사용 전 유효성을 확인하고(1번), CN 일치·CA 서명·유효기간·해지·안전한 알고리즘을 검증 항목으로 제시하며(2번), CN 미확인 시 MITM 탐지 실패를 경고한다(3번). 4번은 X509_V_OK만으로 충분하다며 CN/해지 확인을 불필요하다고 하여 note를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증(pp.379-381), CWE-295 — overview·countermeasure·code_examples note",
+      "tags": ["security_feature", "implementation", "인증서검증", "Common-Name", "MITM", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-M2",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 인증서 검증 방식에 대한 설명으로 옳지 않은 것은?\n\n```c\ncert = SSL_get_peer_certificate(ssl);\nif (cert && (SSL_get_verify_result(ssl) == X509_V_OK)) {\n  /* CN을 확인하지 않았지만 신뢰하고 진행한다. */\n}\n```",
+      "choices": [
+        {"num": 1, "text": "검증 결과가 X509_V_OK인지는 확인했으나 Common Name이 실제 호스트와 일치하는지 확인하지 않아 취약하다."},
+        {"num": 2, "text": "공격자가 Common Name을 www.attack.com으로 설정한 중간자 공격에서 데이터가 중간에 복호화되고 있음을 탐지하지 못할 수 있다."},
+        {"num": 3, "text": "SSL_set1_host로 Common Name 일치를 확인하고 SSL_set_verify로 피어 확인을 수행하도록 개선할 수 있다."},
+        {"num": 4, "text": "SSL_get_verify_result가 X509_V_OK를 반환하면 인증서가 반드시 해당 호스트용임이 보장되므로, CN 확인은 생략해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 이 코드는 X509_V_OK는 확인했지만 CN을 확인하지 않아 인증서가 허가된 호스트용임을 확신할 수 없는 취약 사례다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note·course가 CN 미확인 시 공격자가 Common Name을 www.attack.com으로 설정한 중간자 공격을 탐지하지 못한다고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). false_positive 안전 코드가 SSL_set1_host로 CN 일치를 확인하고 SSL_set_verify(SSL_VERIFY_PEER, ...)로 피어 확인을 수행한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). note가 'X509_V_OK로 반환되더라도 호스트가 Common Name과 일치하는지 확인하지 않으면 인증서가 허가된 호스트용이라는 것을 확신할 수 없다'고 명시한다. X509_V_OK만으로 호스트용임이 보장되어 CN 확인이 불필요하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-11 code_examples(C) 두 번째 vulnerable 코드와 note, false_positive 안전 코드를 기반으로 한다. 이 코드는 X509_V_OK만 확인하고 CN을 확인하지 않아 취약하며(1번), CN 미확인 시 MITM 탐지 실패 위험이 있고(2번), SSL_set1_host + SSL_set_verify로 개선한다(3번). 4번은 X509_V_OK만으로 호스트용임이 보장된다고 하여 note를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — code_examples(C) vulnerable·note, diagnosis.false_positive, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "Common-Name", "X509_V_OK", "etc"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-M3",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 인증서 검증 코드와 그 진단에 대한 설명으로 옳지 않은 것은?\n\n```java\nprivate boolean verifySignature(X509Certificate toVerify, X509Certificate signingCert) {\n  if (!toVerify.getIssuerDN().equals(signingCert.getSubjectDN())) return false;\n  toVerify.verify(signingCert.getPublicKey());\n  toVerify.checkValidity();\n  return true;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "toVerify의 IssuerDN과 signingCert의 SubjectDN이 일치하는지 확인하여 발급 관계(DN)를 검증한다."},
+        {"num": 2, "text": "toVerify.verify(signingCert.getPublicKey())로 호스트 인증서가 CA 인증서로 서명되었는지 확인한다."},
+        {"num": 3, "text": "toVerify.checkValidity()로 인증서의 유효기간 만료 여부를 확인한다. 유효기간이 남았더라도 해지 여부는 CRL/OCSP로 별도 확인이 필요하다."},
+        {"num": 4, "text": "이 코드는 DN·서명·유효기간을 확인하므로, 인증서의 해지 여부(revoked)까지 항상 자동으로 확인되어 CRL/OCSP가 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). safe 코드가 toVerify.getIssuerDN()과 signingCert.getSubjectDN()의 일치 여부로 DN을 검증하며 불일치 시 false를 반환한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). toVerify.verify(signingCert.getPublicKey())로 호스트 인증서가 CA 인증서로 서명되었는지 확인한다고 주석이 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). checkValidity()는 유효기간 만료를 확인하며, note는 '유효기간이 남아 있는 인증서의 해지여부 확인을 위해 CRL 또는 OCSP가 필요하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). DN·서명·유효기간(checkValidity) 확인만으로는 해지 여부가 자동 확인되지 않는다. note가 해지 여부는 CRL/OCSP로 별도 확인해야 한다고 명시하므로, '해지까지 자동 확인되어 CRL/OCSP 불필요'라는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-11 code_examples(Java) safe 코드와 note를 기반으로 한다. safe 코드는 IssuerDN==SubjectDN(1번), verify(PublicKey)로 서명 확인(2번), checkValidity()로 유효기간 확인을 수행하고, note는 해지 여부 확인을 위해 CRL/OCSP가 별도로 필요하다고 명시한다(3번). 4번은 checkValidity()만으로 해지 여부까지 자동 확인된다며 CRL/OCSP를 불필요하다고 하여 note를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — code_examples(Java) safe·note, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "DN", "유효기간", "CRL/OCSP", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-D1",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 인증서 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\ncert = SSL_get_peer_certificate(ssl);\nif (cert) {\n  // 인증서를 확인하지 않고 작업 수행\n  ...\n}\n```",
+      "vulnerable_code": "1  cert = SSL_get_peer_certificate(ssl);\n2  if (cert) {\n3    // 인증서를 확인하지 않고 작업 수행\n4    ...\n5  }",
+      "code_language": "etc",
+      "vulnerable_lines": [2, 3],
+      "rationale_keywords": ["인증서 유효성 미검증", "SSL_get_verify_result 없음", "X509_V_OK 미확인", "악의적 호스트/MITM", "CWE-295"],
+      "fix_keywords": ["SSL_get_verify_result==X509_V_OK", "Common Name 확인", "유효기간/해지 확인"],
+      "safe_code": "1  cert = SSL_get_peer_certificate(ssl);\n2  if (cert && (SSL_get_verify_result(ssl) == X509_V_OK)) {\n3    SSL_set_hostflags(ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);\n4    if (!SSL_set1_host(ssl, \"www.securecoding_example.com\")) {\n5      error(\"Invalid Common Name\");\n6      return -1;\n7    }\n8    SSL_set_verify(ssl, SSL_VERIFY_PEER, NULL);\n9    ...\n10 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. cert가 존재하는지(if (cert))만 확인하고, SSL_get_verify_result로 검증 결과가 X509_V_OK인지, Common Name이 실제 호스트와 일치하는지, 유효기간·해지 여부 등 인증서 유효성을 전혀 확인하지 않은 채 작업을 수행한다(2~3번 라인). 인증서 확인 절차를 적절히 수행하지 않아 악의적인 호스트에 연결되거나 중간자 공격(MITM)에 노출될 수 있는 부적절한 인증서 유효성 검증(CWE-295)이다.",
+        "fix_description": "SSL_get_verify_result(ssl) == X509_V_OK로 검증 결과를 확인하고, SSL_set1_host(또는 CN 비교)로 Common Name과 실제 호스트의 일치를 확인하며, SSL_set_verify(SSL_VERIFY_PEER, ...)로 피어 확인을 수행한다. 추가로 유효기간·해지 여부(CRL/OCSP)와 신뢰된 CA 서명 여부도 확인한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-11 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '인증서 유효성 미검증'/'SSL_get_verify_result 없음'/'X509_V_OK 미확인': cert 존재만 확인하고 검증 결과를 보지 않는 취약 판정 핵심.\n- '악의적 호스트/MITM': 유효성 미검증 시 발생 가능한 위협.\n- 'CWE-295': 부적절한 인증서 유효성 검증의 CWE 분류.\n\n[수정 키워드 의미] X509_V_OK 확인, Common Name 일치 확인, 유효기간/해지 확인을 추가한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(검증 없이 작업을 수행하는 2·3번 라인 지목) 20점 / rationale(유효성 미검증·X509_V_OK 미확인·악의적 호스트/MITM·CWE-295 포함) 30점 / fix(X509_V_OK 확인 + CN 일치 확인 + 유효기간/해지 확인) 30점.\n\n[자가확인 체크리스트] (1) 인증서 존재만 확인하고 검증 결과(X509_V_OK)를 확인하지 않는가? (2) Common Name 일치를 확인하는가? (3) 유효기간·해지 여부를 확인하는가? — 빠진 항목이 있으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — diagnosis.true_positive, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "정탐", "X509_V_OK", "etc"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-D2",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 C 코드의 인증서 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```c\ncert = SSL_get_peer_certificate(ssl);\nif (cert && (SSL_get_verify_result(ssl) == X509_V_OK)) {\n  SSL_set_hostflags(ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);\n  if (!SSL_set1_host(ssl, \"www.securecoding_example.com\")) {\n    error(\"Invalid Common Name\");\n    return -1;\n  }\n  SSL_set_verify(ssl, SSL_VERIFY_PEER, NULL);\n  ...\n}\n```",
+      "vulnerable_code": "1  cert = SSL_get_peer_certificate(ssl);\n2  if (cert && (SSL_get_verify_result(ssl) == X509_V_OK)) {\n3    SSL_set_hostflags(ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);\n4    if (!SSL_set1_host(ssl, \"www.securecoding_example.com\")) {\n5      error(\"Invalid Common Name\");\n6      return -1;\n7    }\n8    SSL_set_verify(ssl, SSL_VERIFY_PEER, NULL);\n9    ...\n10 }",
+      "code_language": "etc",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["X509_V_OK 확인", "SSL_set1_host로 CN 확인", "SSL_set_verify 피어 확인", "유효성 검증 수행", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전 — SSL_get_verify_result == X509_V_OK로 검증 결과를 확인하고,\n2  // SSL_set1_host로 Common Name 일치를 확인하며,\n3  // SSL_set_verify(SSL_VERIFY_PEER, ...)로 피어 확인을 수행하므로 추가 조치가 필요 없다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). SSL_get_verify_result(ssl) == X509_V_OK로 인증서 검증 결과를 확인하고, SSL_set1_host로 Common Name이 실제 호스트(www.securecoding_example.com)와 일치하는지 확인하여 불일치 시 오류를 반환하며, SSL_set_verify(SSL_VERIFY_PEER, ...)로 피어 확인을 수행한다. 이는 diagnosis.false_positive가 제시한 안전 사례와 일치하므로, 유효성 검증이 적절히 수행된 코드를 취약하다고 판정하면 오탐이다.",
+        "fix_description": "수정 불필요. 검증 결과(X509_V_OK)·Common Name 일치·피어 확인을 모두 수행하고 있어 부적절한 인증서 유효성 검증(CWE-295)에 해당하지 않는다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-11 diagnosis.false_positive 안전 코드를 기반으로 한다. 핵심은 '유효성 검증이 제대로 된 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] SSL 인증서를 다룬다는 사실이나 코드가 복잡하다는 이유만으로 취약하다고 단정해서는 안 된다. 이 코드는 검증 결과·CN·피어 확인을 모두 수행하는 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'X509_V_OK 확인': SSL_get_verify_result로 검증 결과를 확인함.\n- 'SSL_set1_host로 CN 확인': Common Name과 실제 호스트 일치를 확인함.\n- 'SSL_set_verify 피어 확인': SSL_VERIFY_PEER로 피어 확인을 수행함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — 정확히 없다고 판단) 20점 / rationale(X509_V_OK 확인·SSL_set1_host CN 확인·피어 확인·유효성 검증 수행 등 안전 근거 포함) 30점 / fix(수정 불필요·검증 결과/CN/피어 확인 모두 수행 명시) 30점.\n\n[자가확인 체크리스트] (1) 검증 결과가 X509_V_OK인지 확인하는가? → 그렇다. (2) Common Name 일치를 확인하는가? → 그렇다(SSL_set1_host). (3) 피어 확인을 수행하는가? → 그렇다(SSL_set_verify). — 모두 충족이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — diagnosis.false_positive, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "오탐", "Common-Name", "etc"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-B1",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '부적절한 인증서 유효성 검증'에서 인증서를 사용하기 전 확인해야 하는 유효성 검증 항목에 대한 설명이다. 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "blank_template": "인증서 유효성 검증 시 인증서의 ____(1)____와(과) 실제 호스트가 일치하는지, 신뢰된 발급기관인 ____(2)____(RootCA)의 서명 여부, 인증서의 유효기간, 인증서의 해지 여부 등을 확인한다. 특히 ____(1)____을(를) 확인하지 않으면 공격자가 이를 위조한 ____(3)____ 공격을 탐지하지 못할 수 있다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["Common Name", "CN", "커먼네임"], "synonyms": ["Common Name(CN)", "공통 이름", "common name"]},
+        {"idx": 2, "answers": ["CA", "인증기관"], "synonyms": ["CA(인증기관)", "발급기관", "Certificate Authority"]},
+        {"idx": 3, "answers": ["중간자", "MITM", "중간자 공격(MITM)"], "synonyms": ["중간자 공격", "man-in-the-middle", "맨인더미들"]}
+      ],
+      "explanation": "IMP-SF-11 countermeasure와 course에 따르면 인증서의 Common Name과 실제 호스트 일치 여부, 신뢰된 발급기관(CA, RootCA)의 서명 여부, 유효기간, 해지 여부, 안전한 암호화 알고리즘 사용 여부를 확인해야 한다. CN을 확인하지 않으면 공격자가 Common Name을 위조한 중간자 공격(MITM)을 탐지하지 못한다. 빈칸 (1)=Common Name(CN), (2)=CA, (3)=중간자 공격(MITM).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — countermeasure·code_examples note, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "Common-Name", "MITM", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-11-B2",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "chapter_code": "IMP-SF-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 인증서를 안전하게 검증하는 Java 코드이다. 빈칸에 들어갈 알맞은 표현을 쓰시오.\n\n```java\nif (!toVerify.getIssuerDN().equals(signingCert.____(1)____())) return false;\ntoVerify.____(2)____(signingCert.getPublicKey());\ntoVerify.____(3)____();\nreturn true;\n```",
+      "blank_template": "호스트 인증서(toVerify)의 IssuerDN과 CA 인증서(signingCert)의 ____(1)____()이(가) 일치하는지 확인하고, toVerify.____(2)____(signingCert.getPublicKey())로 CA 인증서로 서명되었는지 확인하며, toVerify.____(3)____()로 유효기간 만료 여부를 확인한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["getSubjectDN"], "synonyms": ["getSubjectDN()", ".getSubjectDN", "SubjectDN"]},
+        {"idx": 2, "answers": ["verify"], "synonyms": ["verify()", ".verify"]},
+        {"idx": 3, "answers": ["checkValidity"], "synonyms": ["checkValidity()", ".checkValidity"]}
+      ],
+      "explanation": "IMP-SF-11 code_examples(Java) safe 코드는 toVerify.getIssuerDN()과 signingCert.getSubjectDN()의 일치 여부를 확인하고(불일치 시 false), toVerify.verify(signingCert.getPublicKey())로 CA 인증서 서명 여부를, toVerify.checkValidity()로 유효기간 만료 여부를 확인한다. 빈칸 (1)=getSubjectDN, (2)=verify, (3)=checkValidity.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11. 부적절한 인증서 유효성 검증 — code_examples(Java) safe, CWE-295",
+      "tags": ["security_feature", "implementation", "인증서검증", "DN", "checkValidity", "빈칸"]
+    }
+  ]
+}

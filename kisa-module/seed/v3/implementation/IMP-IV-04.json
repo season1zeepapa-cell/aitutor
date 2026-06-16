@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-04",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-M1",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음 중 '크로스사이트 스크립트(XSS)' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "검증되지 않은 외부 입력이 동적 웹페이지 생성에 사용될 때, 페이지를 열람하는 접속자의 권한으로 부적절한 스크립트가 실행될 수 있는 보안약점이다."},
+        {"num": 2, "text": "Reflected XSS, Stored XSS, DOM 기반 XSS의 세 가지 공격 방법이 존재한다."},
+        {"num": 3, "text": "클라이언트에서 악성코드가 실행되어 PC 좀비화, 피싱 유도, 쿠키 노출을 통한 세션 하이재킹으로 이어질 수 있다."},
+        {"num": 4, "text": "< > & \" 같은 특수문자를 별도 치환 없이 그대로 출력해도 브라우저가 자동으로 무해하게 처리하므로 출력값 인코딩은 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview('검증되지 않은 외부 입력이 동적 웹페이지 생성에 사용될 경우, 동적 웹페이지를 열람하는 접속자의 권한으로 부적절한 스크립트가 수행')와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 XSS를 Reflected XSS, Stored XSS, DOM기반 XSS 3가지로 분류한 것과 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 영향 ①②③(PC 좀비화 / 피싱 유도 정보 탈취 / 쿠키 노출로 세션 하이재킹)과 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 설명). 브라우저는 < > & \" 등을 그대로 출력하면 HTML/스크립트로 해석하여 악성 스크립트를 실행한다. 자동으로 무해화하지 않는다. 따라서 문자변환 함수로 &lt; &gt; &amp; &quot; 등으로 치환(HTML 인코딩)하거나 JSTL c:out, XSS 방지 라이브러리를 적용해야 하므로 '출력값 인코딩 불필요'는 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-04 overview·countermeasure 및 course를 근거로 한다. 1·2번은 overview(정의·3종 분류), 3번은 course 영향과 일치하는 옳은 설명이다. 4번은 countermeasure('< > & \" 등을 &lt; &gt; &amp; &quot;로 치환')의 핵심 대책을 부정하며 '브라우저가 자동 처리해 인코딩 불필요'라고 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트(pp.211-222), CWE-79 — overview/countermeasure",
+      "tags": ["input_validation", "implementation", "xss", "reflected", "stored", "dom-based"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-M2",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 JSP 코드의 XSS 취약점과 대책에 대한 설명으로 옳지 않은 것은?\n\n```jsp\n<% String keyword = request.getParameter(\"keyword\"); %>\n검색어 : <%=keyword%>\n```",
+      "choices": [
+        {"num": 1, "text": "외부 입력값 keyword를 검증 없이 화면에 출력하므로 공격 스크립트가 포함된 URL로 Reflected XSS가 가능하다."},
+        {"num": 2, "text": "keyword.replaceAll(\"<\", \"&lt;\"), replaceAll(\">\", \"&gt;\") 등으로 특수문자를 치환한 뒤 출력하면 안전하게 보완할 수 있다."},
+        {"num": 3, "text": "JSTL <c:out value=\"${...}\"/>를 사용하여 출력하면 텍스트로 처리(기본 escapeXml=true)되어 XSS를 방어할 수 있다."},
+        {"num": 4, "text": "출력값을 JSTL <c:out>에 escapeXml=\"false\"로 설정하면 스크립트가 실행되지 않도록 더 강하게 보호된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석('외부 입력값에 대하여 검증 없이 화면에 출력될 경우 공격스크립트가 포함된 URL을 생성할 수 있어 안전하지 않다(Reflected XSS)')과 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드 방법1('keyword.replaceAll(\"<\", \"&lt;\"), replaceAll(\">\", \"&gt;\") 등으로 치환')과 일치하는 옳은 대책이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드 방법2(<c:out value=\"${m.content}\"/>)와 course('c:out으로 텍스트 처리, 기본 escapeXml=true')와 일치하는 옳은 대책이다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 설명). <c:out>의 escapeXml=\"false\"는 인코딩을 '끄는' 설정이라 스크립트가 그대로 실행되어 오히려 취약해진다(diagnosis.true_positive: 'escapeXml을 false로 설정하여 스크립트가 실행될 수 있어 취약'). XSS를 막으려면 escapeXml은 기본값 true여야 하므로 '더 강하게 보호된다'는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-04 code_examples(Reflected/Stored/DOM)의 vulnerable/safe와 diagnosis.true_positive(escapeXml=false)를 근거로 한다. 1·2·3번은 각각 취약 원인, 치환 대책, c:out 대책과 일치하는 옳은 설명이다. 4번은 escapeXml=false가 인코딩을 끄는 취약 설정인데 '더 강하게 보호'한다고 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — code_examples(safe), diagnosis.true_positive(escapeXml=false)",
+      "tags": ["input_validation", "implementation", "xss", "reflected", "escapexml", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-M3",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 XSS 진단 시 '안전/취약' 판정 사례들이다. 판정이 잘못된 것은?",
+      "choices": [
+        {"num": 1, "text": "외부 입력 param을 param.replaceAll(\"<script>\", \"\")로 치환하지만 <sc<script>ript> 처럼 중첩 입력으로 우회하면 스크립트가 실행됨 → 취약"},
+        {"num": 2, "text": "${fn:escapeXml(param.name)}으로 외부 값을 인코딩하여 출력 → 안전"},
+        {"num": 3, "text": "int pageNm = Integer.parseInt(request.getParameter(\"pageNm\")) 처럼 출력값이 문자형이 아닌 정수로 변환되어 출력 → 안전"},
+        {"num": 4, "text": "게시판 입력 폼으로 DB에 저장된 board_contents를 검증 없이 <%=board_contents%>로 출력 → 안전"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 판정(함정). true_positive 사례다. <script>만 단순 치환하면 <sc<script>ript> 우회로 치환 후 <script>가 복원되어 실행되므로 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 판정(함정). false_positive 사례다. JSTL fn:escapeXml로 외부 값을 인코딩하여 출력하므로 안전하다(오탐 주의)."},
+        {"num": 3, "correct": false, "why": "옳은 판정(함정). false_positive 사례다. Integer.parseInt로 출력값이 문자형이 아닌 정수가 되어 스크립트 문자열이 끼어들 수 없으므로 안전하다(오탐 주의)."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 판정). 게시판 입력 폼으로 DB에 저장된 board_contents는 사용자 입력으로 수정 가능한 값이며, 이를 검증 없이 출력하면 Stored XSS가 발생하여 '취약'하다(diagnosis.method: '입력 폼에 의해 DB에 저장된 데이터가 출력될 경우 취약'). 메뉴 이름처럼 사용자 입력으로 수정되지 않는 DB 값만 안전하다. 따라서 '안전' 판정은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-04 diagnosis의 true_positive/false_positive 및 method(Stored XSS 판정 기준)와 대조한다. 1번은 true_positive(<script> 단순 치환 우회 → 취약), 2·3번은 false_positive(fn:escapeXml 인코딩, 정수 변환 → 안전)로 판정이 옳다. 4번은 입력 폼으로 저장된 board_contents를 검증 없이 출력하는 Stored XSS로 '취약'한데 '안전'으로 판정했으므로 틀렸다(사용자 입력으로 수정되지 않는 DB 값만 안전).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — diagnosis.method/true_positive/false_positive",
+      "tags": ["input_validation", "implementation", "xss", "stored", "정탐오탐", "escapexml"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-D1",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 JSP(DOM 기반) 코드의 XSS 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```jsp\n<%\nString name = request.getParameter(\"name\");\n%>\n<SCRIPT language=\"javascript\">\ndocument.write(\"name:\" + <%=name%>);\n</SCRIPT>\n```",
+      "vulnerable_code": "1  <%\n2  String name = request.getParameter(\"name\");\n3  %>\n4  <SCRIPT language=\"javascript\">\n5  document.write(\"name:\" + <%=name%>);\n6  </SCRIPT>",
+      "code_language": "java",
+      "vulnerable_lines": [5],
+      "rationale_keywords": ["외부 입력값", "검증 없음", "document.write", "DOM 기반 XSS", "CWE-79"],
+      "fix_keywords": ["HTML 인코딩", "치환", "&lt; &gt;", "XSS 방지 라이브러리"],
+      "safe_code": "1  <%\n2  String name = request.getParameter(\"name\");\n3  name = name.replaceAll(\"&\", \"&amp;\").replaceAll(\"<\", \"&lt;\").replaceAll(\">\", \"&gt;\")\n4             .replaceAll(\"\\\"\", \"&quot;\").replaceAll(\"'\", \"&#x27;\");\n5  %>\n6  <SCRIPT language=\"javascript\">\n7  // 또는 외부 라이브러리: Encoder.encodeForJS(Encoder.encodeForHTML(name))\n8  document.write(\"name:\" + \"<%=name%>\");\n9  </SCRIPT>",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 request.getParameter()로 받은 외부 입력값 name을 아무 검증·치환 없이, 5번 라인에서 document.write()의 인자값 생성에 그대로 사용하고 있다. 이 입력값은 서버를 거쳐 브라우저의 DOM 생성 과정에서 실행되므로 DOM 기반 XSS(CWE-79)에 취약하다. 공격자가 name에 스크립트를 넣으면 접속자 브라우저에서 악성 스크립트가 실행될 수 있다.",
+        "fix_description": "출력 전에 외부 입력값 name의 < > & \" ' 등 위험 문자를 &lt; &gt; &amp; &quot; &#x27; 등으로 HTML 인코딩(치환)하거나, OWASP Java-Encoder·ESAPI 같은 XSS 방지 라이브러리(Encoder.encodeForJS·encodeForHTML)를 적용하여 스크립트로 해석되지 않도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-04 diagnosis.true_positive(DOM 기반, document.write에 외부 입력 사용) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력값'/'검증 없음': name이 request.getParameter로 들어오고 치환·검증이 전혀 없다.\n- 'document.write'/'DOM 기반 XSS': 외부 입력이 document.write 인자에 사용되어 DOM 생성 과정에서 실행된다.\n- 'CWE-79': XSS 분류.\n\n[수정 키워드 의미] HTML 인코딩(치환)으로 < > & \" 등을 엔티티로 변환하거나 XSS 방지 라이브러리 적용.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(5번 라인 document.write 출력 지목) 20점 / rationale(외부 입력·검증 부재·document.write·DOM XSS 등 키워드 포함) 30점 / fix(HTML 인코딩 치환 + XSS 방지 라이브러리) 30점.\n\n[자가확인 체크리스트] (1) 출력 변수가 외부 입력값(request.getParameter 등)인가? (2) 출력 전에 인코딩/필터가 없는가? (3) document.write 등 DOM/화면 출력에 쓰이는가? — 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — diagnosis.true_positive(DOM), CWE-79",
+      "tags": ["input_validation", "implementation", "xss", "dom-based", "정탐", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-D2",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 JSP 코드의 XSS 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```jsp\n<%@ taglib prefix=\"c\" uri=\"http://java.sun.com/jsp/jstl/core\" %>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\" %>\n${fn:escapeXml(param.name)}\n```",
+      "vulnerable_code": "1  <%@ taglib prefix=\"c\" uri=\"http://java.sun.com/jsp/jstl/core\" %>\n2  <%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\" %>\n3  ${fn:escapeXml(param.name)}",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["escapeXml 인코딩", "JSTL", "특수문자 치환", "출력값 인코딩", "프레임워크 검증"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — fn:escapeXml로 외부 값(param.name)의\n2  // < > & \" ' 등 특수문자를 HTML 엔티티로 인코딩하여 출력한다. 추가 조치 불필요.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 외부 입력값 param.name을 그대로 출력하지 않고 JSTL의 fn:escapeXml() 함수로 인코딩하여 출력한다. escapeXml은 < > & \" ' 등 위험 문자를 &lt; &gt; &amp; 등 HTML 엔티티로 치환하므로 스크립트가 실행되지 않는다. 가이드의 false_positive(오탐 주의) 사례와 동일한 안전한 출력 방식이다.",
+        "fix_description": "수정 불필요. 이미 fn:escapeXml로 출력값 HTML 인코딩을 적용하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-04 diagnosis.false_positive(fn:escapeXml로 외부 값 인코딩) 코드를 기반으로 한다. 핵심은 'param.name 같은 외부 입력이 보인다고 무조건 취약하다고 오판하지 않기'다.\n\n[오판 주의] 외부 입력값(param.name)을 출력한다는 사실만으로 취약하다고 단정해서는 안 된다. 출력 시 적절한 인코딩/필터(escapeXml, c:out 등)를 거치는지가 판정 기준이다.\n\n[안전 판정 근거 키워드 의미]\n- 'escapeXml 인코딩'/'JSTL': fn:escapeXml이 출력값을 HTML 인코딩함.\n- '특수문자 치환'/'출력값 인코딩': < > & \" '를 엔티티로 변환하여 스크립트 실행을 막음.\n- '프레임워크 검증': JSTL의 자체 인코딩 기능을 활용함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음. vulnerable_lines=[]은 '해당 라인 없음' 표식) 20점 / rationale(escapeXml 인코딩·특수문자 치환·출력값 인코딩 등 안전 근거 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 외부 입력값을 출력 전에 인코딩/필터하는가? → 그렇다(escapeXml). (2) escapeXml=false 같은 인코딩 비활성화가 있는가? → 아니다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — diagnosis.false_positive(fn:escapeXml)",
+      "tags": ["input_validation", "implementation", "xss", "오탐", "escapexml", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-B1",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 XSS의 보안대책이다. 빈칸에 들어갈 용어/엔티티를 채우시오.\n\n· 외부 입력값에 스크립트가 삽입되지 못하도록 문자변환 함수로 < 는 (가), > 는 &gt;, & 는 &amp;, \" 는 &quot; 로 치환하는 (나) 인코딩을 적용한다.\n· HTML 태그를 허용하는 게시판에서는 허용되는 태그만 통과시키는 화이트리스트 방식을 적용한다.",
+      "blank_template": "· 외부 입력값에 스크립트가 삽입되지 못하도록 문자변환 함수로 < 는 {{1}}, > 는 &gt;, & 는 &amp;, \" 는 &quot; 로 치환하는 {{2}} 인코딩을 적용한다.\n· HTML 태그를 허용하는 게시판에서는 허용되는 태그만 통과시키는 화이트리스트 방식을 적용한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["&lt;"], "synonyms": ["lt", "&lt", "엘티"]},
+        {"idx": 2, "answers": ["HTML"], "synonyms": ["html", "에이치티엠엘", "HTML 엔티티"]}
+      ],
+      "explanation": "정답: (가) &lt;, (나) HTML. countermeasure('< > & \" 등을 &lt; &gt; &amp; &quot;로 치환')와 course key_concepts('출력값 HTML 인코딩: < > ' \" & 등 특수문자를 &lt; &gt; 등으로 변환하여 스크립트가 실행되지 않게 하는 XSS 핵심 대책')를 근거로 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — countermeasure; COURSE-IMP-IV-04 보안대책·key_concepts",
+      "tags": ["input_validation", "implementation", "xss", "빈칸", "html-encoding", "치환"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-04-B2",
+      "weakness_name_ko": "크로스사이트 스크립트",
+      "chapter_code": "IMP-IV-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 XSS 안전 코드와 공격 영향에 대한 설명이다. 빈칸에 들어갈 용어를 채우시오.\n\n· JSP에서 출력값을 텍스트로 처리하여 XSS를 막는 안전한 방법으로, JSTL의 (가) 태그(기본 escapeXml=true)를 사용하거나 fn:escapeXml 함수를 사용한다.\n· XSS로 사용자의 쿠키 정보가 노출되면 그 쿠키로 사용자 세션을 가로채는 (나) 공격이 가능하다.",
+      "blank_template": "· JSP에서 출력값을 텍스트로 처리하여 XSS를 막는 안전한 방법으로, JSTL의 {{1}} 태그(기본 escapeXml=true)를 사용하거나 fn:escapeXml 함수를 사용한다.\n· XSS로 사용자의 쿠키 정보가 노출되면 그 쿠키로 사용자 세션을 가로채는 {{2}} 공격이 가능하다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["c:out"], "synonyms": ["<c:out>", "c out", "c:out 태그", "out"]},
+        {"idx": 2, "answers": ["세션 하이재킹"], "synonyms": ["세션하이재킹", "session hijacking", "세션 가로채기", "세션 탈취", "하이재킹"]}
+      ],
+      "explanation": "정답: (가) c:out, (나) 세션 하이재킹. code_examples safe 방법2(<c:out value=\"${m.content}\"/>)와 course('JSTL <c:out value=\"...\"/>로 텍스트로 처리(기본 escapeXml=true)'), key_concepts('세션 하이재킹: XSS로 탈취한 쿠키 정보를 이용해 사용자 세션을 가로채는 공격')를 근거로 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §4 크로스사이트 스크립트 — code_examples(safe); COURSE-IMP-IV-04 key_concepts",
+      "tags": ["input_validation", "implementation", "xss", "빈칸", "c:out", "세션하이재킹"]
+    }
+  ]
+}

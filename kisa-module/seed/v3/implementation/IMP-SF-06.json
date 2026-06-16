@@ -1,0 +1,192 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-06",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-M1",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안약점 '하드코드된 중요정보'에 대한 설명이다. 옳지 않은 것은?\n\n프로그램 코드 내부에 비밀번호 또는 암호화키를 하드코드하여 내부 인증이나 암호화에 사용하면 중요정보가 유출될 수 있는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "비밀번호는 암호화하여 별도의 파일이나 DB의 안전한 위치에 저장하여 사용한다."},
+        {"num": 2, "text": "중요정보를 암호화할 때는 상수가 아닌 암호화 키를 사용하며, 소스코드 내부에 상수 형태의 암호화 키를 저장해서 사용하지 않는다."},
+        {"num": 3, "text": "실행파일이 유출되면 역컴파일을 통해 하드코드된 암호화 키가 유출되어 암호화된 정보를 복호화하는 데 악용될 수 있다."},
+        {"num": 4, "text": "SW 설치 시 사용 편의를 위해 디폴트(기본) 패스워드를 소스코드에 상수로 하드코딩해 두는 것이 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). countermeasure가 '비밀번호는 암호화하여 별도의 파일에 저장하여 사용한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '상수가 아닌 암호화 키를 사용하도록 하며 소스코드 내부에 상수형태의 암호화 키를 저장해서 사용하지 않도록 한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 위협에 '실행파일이 유출되면 역컴파일을 통해 암호화 키가 유출될 수 있으며, 유출된 키는 암호화된 중요정보를 복호화하는 데 사용될 수 있다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. 디폴트 패스워드를 하드코딩하면 관리자 정보가 노출된다. course 대책은 디폴트 패스워드 대신 '최초 로그인' 모드를 두어 사용자가 패스워드를 직접 입력하도록 설계하라고 하므로, '하드코딩이 권장된다'는 진술은 명백히 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-06 overview·countermeasure와 course(위협·대책)에 따르면, 비밀번호·암호화 키는 하드코딩하지 않고 암호화하여 별도 파일/DB에 저장해야 하며, 디폴트 패스워드 대신 '최초 로그인' 모드로 사용자가 직접 입력하게 설계해야 한다. 4번은 이를 정반대로 진술하여 틀렸다. 1·2·3번은 각각 countermeasure와 역컴파일 위협에 대한 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보(pp.350-359), CWE-259/CWE-321 — overview·countermeasure; 2025 진단원 기본과정 위협·대책",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "디폴트 패스워드", "역컴파일", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-M2",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\npublic class MemberDAO {\n   private static final String DRIVER = \"oracle.jdbc.driver.OracleDriver\";\n   private static final String URL = \"jdbc:oracle:thin:@192.168.0.3:1521:ORCL\";\n   private static final String USER = \"SCOTT\";\n   private static final String PASS = \"SCOTT\";\n   public Connection getConn() {\n     Connection con = null;\n     Class.forName(DRIVER);\n     con = DriverManager.getConnection(URL, USER, PASS);\n   }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "DB 접속 비밀번호 PASS가 소스코드에 상수로 평문 하드코딩되어 접속정보가 노출된다(CWE-259)."},
+        {"num": 2, "text": "코드에 접근 권한이 있는 사용자는 하드코드된 비밀번호를 그대로 알 수 있다."},
+        {"num": 3, "text": "비밀번호를 암호화하여 별도 파일(프로퍼티)에 저장하고, 사용 시 읽어들여 복호화하는 방식이 안전하다."},
+        {"num": 4, "text": "private static final 상수로 선언되어 외부에서 직접 수정할 수 없으므로 비밀번호 하드코딩 약점이 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드의 PASS = \"SCOTT\"는 DB 접속 비밀번호를 소스코드에 평문 상수로 하드코딩한 것으로 CWE-259에 해당한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note·course 위협대로 코드 접근 권한자나 역컴파일을 통해 하드코드된 비밀번호가 노출된다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드는 props.getProperty(\"EncryptedPswd\")로 암호화된 비밀번호를 프로퍼티에서 읽어 cipher.doFinal로 복호화하여 사용하므로 정확한 설명이다."},
+        {"num": 4, "correct": true, "why": "정답. private static final로 선언했어도 비밀번호 문자열 자체가 소스코드에 평문으로 박혀 있어 하드코딩 약점이 그대로 존재한다. 접근 제어자나 상수 선언은 하드코딩 노출을 막지 못하므로 '약점이 없다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-06 code_examples(Java, 하드코드된 비밀번호)의 vulnerable 코드다. private static final 같은 접근 제어자/상수 선언은 값이 소스에 평문으로 존재한다는 사실을 바꾸지 못하며, 역컴파일·코드 열람으로 노출된다. safe 코드처럼 암호화하여 프로퍼티에 저장 후 복호화해야 안전하다. 1·2·3번은 하드코딩 취약점과 안전한 처리에 대한 옳은 설명이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — code_examples(Java) 하드코드된 비밀번호 vulnerable/safe, CWE-259",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "하드코드된 비밀번호", "복호화", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-M3",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'하드코드된 중요정보'의 진단방법과 정탐/오탐 판정에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "[하드코드된 비밀번호] 사용자·관리자 로그인페이지(식별·인증) 모듈과 내·외부 서버 접속 관리 모듈을 확인하여 비밀번호가 소스코드 안에 직접 코딩되어 있는지 점검한다."},
+        {"num": 2, "text": "암호화에 사용되는 private key를 상수로 정의하고 이를 사용해 보안키를 생성·복호화하면 암호화 키 하드코딩으로 취약하다고 판정한다."},
+        {"num": 3, "text": "암호화를 위한 암호화 키가 아니라 알고리즘명(예: \"DESede\")을 SecretKeySpec에 지정하는 경우는 취약하다고 판정한다."},
+        {"num": 4, "text": "비밀번호를 별도 파일에 저장하지 않고 소스코드 안에 하드코딩되어 있으면 취약하다고 판정한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '로그인페이지(식별·인증) 모듈과 내·외부 서버 접속 관리 모듈을 확인하여 비밀번호가 소스코드 안에 직접 코딩되어 있는지 확인한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.true_positive가 'private key를 상수로 정의하고 이를 사용해 보안키를 생성하여 복호화 → 암호화 키 하드코딩 → 취약 판정'을 명시한다."},
+        {"num": 3, "correct": true, "why": "정답. diagnosis.false_positive(오탐 주의)는 '암호화 키가 아닌 알고리즘명(\"DESede\")을 지정하는 경우 → 취약하지 않음'이라고 명시한다. 알고리즘명 지정은 하드코드된 키가 아니므로 안전하며, 이를 취약하다고 판정하면 오탐이다. 따라서 '취약하다고 판정한다'는 진술은 틀렸다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '비밀번호를 별도 파일에 저장하지 않고 소스코드 안에 하드코딩되어 있으면 취약하다고 판정한다'고 명시한다."}
+      ],
+      "explanation": "정답은 3번. IMP-SF-06 diagnosis(method·true_positive·false_positive)와 대조한다. SecretKeySpec에 \"DESede\"처럼 알고리즘명을 지정하는 것은 하드코드된 '키'가 아니라 알고리즘 식별자이므로 취약하지 않다(false_positive, 오탐 주의). 3번은 안전한 경우를 취약으로 뒤집은 진술이다. 1·2·4번은 각각 진단방법·정탐(private key 상수 하드코딩)·하드코딩 취약 판정 기준과 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — diagnosis.method/true_positive/false_positive",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "진단방법", "오탐", "알고리즘명", "SecretKeySpec"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-D1",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 중요정보 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void foo(String url, String usr) {\n  try {\n    String encryptedPwd = getpassword();\n    byte[] privateKey = { '6','8','a','f','4','0','4','b','5','1','3','0','7' };\n    Cipher cipher = Cipher.getInstance(\"RSA\");\n    SecretKey myDesKey = new SecretKeySpec(privateKey, \"DES\");\n    cipher.init(Cipher.DECRYPT_MODE, myDesKey);\n    byte[] plainTextPwdBytes = cipher.doFinal(encryptedPwd.getBytes());\n    DriverManager.getConnection(url, usr, new String(plainTextPwdBytes));\n  } catch (SQLException e) {\n  }\n}\n```",
+      "vulnerable_code": "1  public void foo(String url, String usr) {\n2    try {\n3      String encryptedPwd = getpassword();\n4      byte[] privateKey = { '6','8','a','f','4','0','4','b','5','1','3','0','7' };\n5      Cipher cipher = Cipher.getInstance(\"RSA\");\n6      SecretKey myDesKey = new SecretKeySpec(privateKey, \"DES\");\n7      cipher.init(Cipher.DECRYPT_MODE, myDesKey);\n8      byte[] plainTextPwdBytes = cipher.doFinal(encryptedPwd.getBytes());\n9      DriverManager.getConnection(url, usr, new String(plainTextPwdBytes));\n10   } catch (SQLException e) {\n11   }\n12 }",
+      "code_language": "java",
+      "vulnerable_lines": [4],
+      "rationale_keywords": ["하드코드된 암호화 키", "private key 상수", "소스코드 내 저장", "키 노출", "CWE-321"],
+      "fix_keywords": ["외부 파일 저장", "암호화하여 보관", "사용 시 복호화"],
+      "safe_code": "1  public void foo(String url, String usr) {\n2    try {\n3      String encryptedPwd = getpassword();\n4      // 암호화 키를 외부 파일에서 암호화된 형태로 읽어와 복호화하여 사용\n5      String keyStr = getPassword(\"./password.ini\");\n6      byte[] privateKey = decrypt(keyStr).getBytes();\n7      Cipher cipher = Cipher.getInstance(\"RSA\");\n8      SecretKey myDesKey = new SecretKeySpec(privateKey, \"DES\");\n9      cipher.init(Cipher.DECRYPT_MODE, myDesKey);\n10     byte[] plainTextPwdBytes = cipher.doFinal(encryptedPwd.getBytes());\n11     DriverManager.getConnection(url, usr, new String(plainTextPwdBytes));\n12   } catch (SQLException e) {\n13   }\n14 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 4번 라인에서 암호화(복호화)에 사용되는 private key를 소스코드 내부에 상수 배열로 직접 정의하여 하드코딩하고 있다. 이 상수 키로 보안키(SecretKeySpec)를 생성하여 암호화된 비밀번호를 복호화하므로, 소스코드 열람이나 실행파일 역컴파일로 키가 노출되면 암호화된 중요정보가 그대로 복호화될 수 있는 하드코드된 암호화 키(CWE-321) 약점이다.",
+        "fix_description": "암호화 키를 소스코드에 상수로 두지 말고, 외부 파일(예: ./password.ini)에 암호화된 형태로 저장한 뒤 사용 시점에 읽어들여 복호화하여 사용한다. 상수가 아닌 외부에서 안전하게 관리되는 키를 사용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-06 diagnosis.true_positive(private key 상수 하드코딩) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '하드코드된 암호화 키'/'private key 상수': 4번 라인이 키를 상수 배열로 소스에 박아둠.\n- '소스코드 내 저장'/'키 노출': 코드 열람·역컴파일로 키가 드러남.\n- 'CWE-321': Use of Hard-coded Cryptographic Key 분류.\n\n[수정 키워드 의미] 키를 외부 파일에 암호화하여 저장하고 사용 시 복호화하여 사용한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(4번 라인 지목) 20점 / rationale(하드코드된 암호화 키·상수 정의·키 노출 등 키워드 포함) 30점 / fix(외부 파일 암호화 저장 + 사용 시 복호화) 30점.\n\n[자가확인 체크리스트] (1) 비밀번호·암호화 키가 소스코드에 상수로 박혀 있는가? (2) 그 상수 키로 암호화/복호화를 수행하는가? (3) 키를 외부 안전한 위치에서 불러오지 않는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — diagnosis.true_positive(private key 상수), CWE-321",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "정탐", "하드코드된 암호화 키", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-D2",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 암호화 설정에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nbyte[] key = loadKeyFromExternalFile();\n// 키를 설정한다. 두 번째 인자는 암호화 키가 아니라 알고리즘명이다.\nSecretKeySpec sKey = new SecretKeySpec(key, \"DESede\");\nCipher cipher = Cipher.getInstance(\"DESede/CBC/PKCS5Padding\");\ncipher.init(Cipher.ENCRYPT_MODE, sKey);\n```",
+      "vulnerable_code": "1  byte[] key = loadKeyFromExternalFile();\n2  // 키를 설정한다. 두 번째 인자는 암호화 키가 아니라 알고리즘명이다.\n3  SecretKeySpec sKey = new SecretKeySpec(key, \"DESede\");\n4  Cipher cipher = Cipher.getInstance(\"DESede/CBC/PKCS5Padding\");\n5  cipher.init(Cipher.ENCRYPT_MODE, sKey);",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["알고리즘명", "DESede는 알고리즘명", "키 하드코딩 아님", "외부에서 키 로드", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — \"DESede\"는 SecretKeySpec에 지정한 알고리즘명일 뿐\n2  // 하드코드된 암호화 키가 아니며, 실제 키(key)는 외부 파일에서 로드한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인의 SecretKeySpec(key, \"DESede\")에서 두 번째 인자 \"DESede\"는 하드코드된 암호화 키가 아니라 사용할 암호 알고리즘명(키 알고리즘 식별자)일 뿐이다. 실제 암호화 키 key는 외부 파일에서 로드(1번 라인)하므로 소스코드에 키가 하드코딩되어 있지 않다. diagnosis.false_positive가 명시하듯 알고리즘명을 지정하는 경우는 취약하지 않다.",
+        "fix_description": "수정 불필요. \"DESede\"는 알고리즘명이고 실제 키는 외부에서 안전하게 로드하므로 하드코드된 중요정보 약점이 없다. (문자열이 키처럼 보인다는 이유로 취약 판정하면 오탐)"
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-06 diagnosis.false_positive(알고리즘명 \"DESede\" 지정) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] SecretKeySpec 두 번째 인자에 문자열이 있다고 무조건 하드코드된 키로 단정해서는 안 된다. 그 인자는 키가 아니라 알고리즘명(\"DESede\", \"AES\" 등)이며, 실제 키는 외부에서 로드된다.\n\n[안전 판정 근거 키워드 의미]\n- '알고리즘명'/'DESede는 알고리즘명': SecretKeySpec의 두 번째 인자는 암호화 키가 아니라 알고리즘 식별자.\n- '키 하드코딩 아님'/'외부에서 키 로드': 실제 key는 외부 파일에서 불러와 소스에 박혀 있지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(알고리즘명·키 하드코딩 아님·외부 로드 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 소스에 박힌 문자열이 실제 암호화 키인가, 아니면 알고리즘명인가? → 알고리즘명. (2) 실제 키가 소스코드에 상수로 하드코딩되어 있는가? → 아니다(외부 로드). — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — diagnosis.false_positive(알고리즘명 지정)",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "오탐", "알고리즘명", "SecretKeySpec", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-B1",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'하드코드된 중요정보' 보안약점의 안전한 코딩 대책에 대한 빈칸을 채우시오.",
+      "blank_template": "비밀번호와 암호화 키는 소스코드에 상수로 하드코딩하지 않고, 암호화하여 {{1}}(파일/DB의 안전한 위치)에 저장한 뒤 사용 시점에 {{2}}하여 사용한다. 또한 SW 설치 시 디폴트 패스워드 대신 '최초 로그인' 모드를 두어 사용자가 직접 입력하도록 설계한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["별도의 파일"],
+          "synonyms": ["별도 파일", "외부 파일", "별도의 파일이나 DB", "안전한 별도 위치"]
+        },
+        {
+          "idx": 2,
+          "answers": ["복호화"],
+          "synonyms": ["복호화(decrypt)", "decrypt", "복호화하여 사용"]
+        }
+      ],
+      "explanation": "정답: (1) 별도의 파일, (2) 복호화. countermeasure는 '비밀번호는 암호화하여 별도의 파일에 저장하여 사용'하고, '상수가 아닌 암호화 키를 사용하며 소스코드 내부에 상수 형태의 암호화 키를 저장해서 사용하지 않도록' 요구한다. safe 코드는 암호화된 비밀번호/키를 프로퍼티 파일(props.getProperty, getPassword(\"./password.ini\"))에서 읽어 cipher.doFinal/decrypt로 복호화하여 사용한다. course 대책은 디폴트 패스워드 대신 '최초 로그인' 모드로 사용자가 직접 입력하도록 설계할 것을 덧붙인다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — countermeasure·code_examples(Java) safe",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "빈칸", "별도 파일", "복호화"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-B2",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'하드코드된 중요정보'의 위협과 진단 관련 빈칸을 채우시오.",
+      "blank_template": "실행파일이 유출되면 {{1}}을(를) 통해 소스에 하드코딩된 암호화 키가 드러나, 암호화된 중요정보를 복호화하는 데 악용될 수 있다. 한편 C/C++에서 하드코딩된 비밀번호를 피하려면 비밀번호를 소스에 박지 않고 {{2}}() 함수처럼 환경 변수에서 외부 값을 불러와 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["역컴파일"],
+          "synonyms": ["역컴파일(디컴파일)", "디컴파일", "decompile"]
+        },
+        {
+          "idx": 2,
+          "answers": ["getenv"],
+          "synonyms": ["getenv()", "getenv 함수", "환경변수 getenv"]
+        }
+      ],
+      "explanation": "정답: (1) 역컴파일, (2) getenv. course 위협에 따르면 실행파일이 유출되면 역컴파일(디컴파일)을 통해 하드코딩된 암호화 키가 유출되어 암호화된 중요정보를 복호화하는 데 악용될 수 있다. code_examples(C, 하드코드된 비밀번호)의 safe 코드는 char *password = getenv(\"password\")처럼 비밀번호를 소스에 하드코딩하지 않고 환경 변수에서 외부 값을 불러와 코드 상에서 보이지 않게 사용한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — code_examples(C) safe; 2025 진단원 기본과정 위협(역컴파일)",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "빈칸", "역컴파일", "getenv", "환경변수"]
+    }
+  ]
+}

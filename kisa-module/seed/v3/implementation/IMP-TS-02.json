@@ -1,0 +1,384 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-TS-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-M1",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '종료되지 않는 반복문 또는 재귀 함수' 보안약점에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {
+          "num": 1,
+          "text": "재귀의 순환횟수를 제어하지 못하여 할당된 메모리나 프로그램 스택 등의 자원을 과다하게 사용하면 위험하다."
+        },
+        {
+          "num": 2,
+          "text": "귀납 조건(Base Case)이 없는 재귀함수는 무한 루프에 빠져 자원고갈을 유발할 수 있다."
+        },
+        {
+          "num": 3,
+          "text": "모든 재귀 호출 시, 재귀 호출 횟수를 제한하거나 초기값을 설정하여 재귀 호출을 제한해야 한다."
+        },
+        {
+          "num": 4,
+          "text": "귀납 조건(Base Case)이 없는 재귀함수는 자원을 더 적게 사용하므로 시스템 안정성에 유리하다."
+        }
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {
+          "num": 1,
+          "correct": false,
+          "why": "옳은 진술(함정). overview의 '재귀의 순환횟수를 제어하지 못하여 할당된 메모리나 프로그램 스택 등의 자원을 과다하게 사용하면 위험하다'와 그대로 일치한다."
+        },
+        {
+          "num": 2,
+          "correct": false,
+          "why": "옳은 진술(함정). overview의 '귀납 조건(Base Case)이 없는 재귀함수는 무한 루프에 빠져 자원고갈을 유발한다'와 일치한다."
+        },
+        {
+          "num": 3,
+          "correct": false,
+          "why": "옳은 진술(함정). countermeasure의 '모든 재귀 호출 시, 재귀 호출 횟수를 제한하거나 초기값을 설정(상수)하여 재귀 호출을 제한해야 한다'와 일치한다."
+        },
+        {
+          "num": 4,
+          "correct": true,
+          "why": "정답(틀린 진술). 귀납 조건이 없는 재귀함수는 무한 재귀에 빠져 스택 등 자원을 '과다하게' 사용하여 자원고갈·서비스 불능을 유발한다. '자원을 더 적게 사용하여 안정성에 유리'하다는 진술은 overview의 정의와 정반대로 틀렸다."
+        }
+      ],
+      "explanation": "정답은 4번. IMP-TS-02 라이브러리 overview·countermeasure를 기준으로 검증한다. 귀납 조건(Base Case)이 없는 재귀는 무한 루프로 자원을 과다 사용해 시스템 장애를 유발하므로, '자원을 더 적게 쓰고 안정성에 유리'하다는 4번은 정반대로 틀렸다. 1·2·3번은 overview·countermeasure와 일치하는 옳은 설명이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수(pp.415-418), CWE-835 — overview, countermeasure",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "재귀함수",
+        "귀납조건",
+        "자원고갈"
+      ]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-M2",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드에 대한 설명으로 옳지 않은 것은?\n\n```c\nint factorial(int i)\n{\n  // 재귀함수\n  return i * factorial(i - 1);\n}\n```",
+      "choices": [
+        {
+          "num": 1,
+          "text": "factorial 함수는 자기 자신을 호출하는 재귀함수이다."
+        },
+        {
+          "num": 2,
+          "text": "재귀문을 빠져나오는 귀납조건(Base Case)이 정의되어 있지 않아 무한 재귀에 빠진다."
+        },
+        {
+          "num": 3,
+          "text": "if (i <= 1) { return 1; }와 같은 탈출 조건을 추가하면 재귀 호출이 종료되도록 만들 수 있다."
+        },
+        {
+          "num": 4,
+          "text": "재귀함수는 본래 탈출 조건 없이도 자동으로 종료되므로 이 코드는 그대로 두어도 안전하다."
+        }
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {
+          "num": 1,
+          "correct": false,
+          "why": "옳은 진술(함정). note가 'factorial 함수는 자신을 호출하는 재귀함수'라고 명시한다."
+        },
+        {
+          "num": 2,
+          "correct": false,
+          "why": "옳은 진술(함정). vulnerable 코드는 탈출 조건이 없어 무한루프가 되며, note도 '귀납조건(Base Case)을 정의하지 않으면 무한 재귀에 빠져 시스템 장애를 유발한다'고 한다."
+        },
+        {
+          "num": 3,
+          "correct": false,
+          "why": "옳은 진술(함정). safe 코드가 factorial 진입부에 'if (i <= 1) { return 1; }' 탈출 조건을 추가하여 재귀 호출이 종료되도록 한다."
+        },
+        {
+          "num": 4,
+          "correct": true,
+          "why": "정답(틀린 진술). 재귀함수는 귀납조건(탈출 조건)을 명시적으로 정의해야만 종료된다. 탈출 조건 없이 '자동 종료되어 안전'하다는 진술은 무한 재귀로 자원고갈을 유발하는 실제 동작과 정반대로 틀렸다."
+        }
+      ],
+      "explanation": "정답은 4번. IMP-TS-02 code_examples(C) vulnerable/safe와 note를 기준으로 검증한다. vulnerable factorial은 탈출 조건이 없어 무한 재귀에 빠지며, safe 코드는 'if (i <= 1) return 1;'을 추가해 종료시킨다. '탈출 조건 없이 자동 종료되어 안전'하다는 4번은 정반대 진술로 틀렸다. 1·2·3번은 note·safe 코드와 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — code_examples(C) vulnerable/safe",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "factorial",
+        "base-case",
+        "c"
+      ]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-M3",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 무한 재귀 진단방법에 대한 설명과 두 Java 코드다. 설명으로 옳지 않은 것은?\n\n```java\n// (A)\npublic void func(int a) { this.a = a; }\npublic void func(String a) { func(a); }\n\n// (B)\npublic void func(int a) { this.a = a; }\npublic void func(String a) { func(Integer.parseInt(a)); }\n```",
+      "choices": [
+        {
+          "num": 1,
+          "text": "재귀함수는 함수내부에서 자신을 호출하는 경우이며, 함수명과 파라미터의 개수, 파라미터의 자료형이 일치하는 경우 취약하다고 판단한다."
+        },
+        {
+          "num": 2,
+          "text": "(A)는 func(String a)가 동일 시그니처의 func(String) 자신을 호출하고 탈출 조건이 없어 무한 재귀로 취약하다."
+        },
+        {
+          "num": 3,
+          "text": "(B)는 func(String a)에서 func(int a)를 호출하므로 같은 이름이지만 파라미터 자료형이 달라 recursive call이 아니어서 취약하지 않다."
+        },
+        {
+          "num": 4,
+          "text": "(B)는 함수명이 func로 같기만 하면 자료형과 무관하게 항상 재귀호출로 간주되어 취약하다고 판단한다."
+        }
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {
+          "num": 1,
+          "correct": false,
+          "why": "옳은 진술(함정). diagnosis.method가 '재귀함수는 함수내부에서 자신을 호출하는 경우이며, 함수명과 파라미터의 개수, 파라미터의 자료형이 일치하는 경우 취약하다'고 명시한다."
+        },
+        {
+          "num": 2,
+          "correct": false,
+          "why": "옳은 진술(함정). (A)는 true_positive의 'func(String a)가 동일 시그니처의 func(a)를 다시 호출하는 재귀로, 탈출 조건이 없어 무한 재귀 → 취약'과 일치한다."
+        },
+        {
+          "num": 3,
+          "correct": false,
+          "why": "옳은 진술(함정). (B)는 false_positive의 'func(String a)에서 func(int a)를 호출 — 같은 이름이나 파라미터 자료형이 달라 recursive call이 아닌 다른 함수 호출 → 취약하지 않음'과 일치한다."
+        },
+        {
+          "num": 4,
+          "correct": true,
+          "why": "정답(틀린 진술). 진단 기준은 함수명뿐 아니라 파라미터 개수·자료형까지 일치해야 재귀호출로 본다. (B)는 func(String)→func(int)로 자료형이 달라 재귀가 아니므로, '함수명만 같으면 자료형과 무관하게 항상 재귀'라는 진술은 false_positive 판정 기준에 정면으로 어긋나 틀렸다."
+        }
+      ],
+      "explanation": "정답은 4번. IMP-TS-02 diagnosis.method·true_positive·false_positive를 기준으로 검증한다. 재귀호출 판정은 함수명+파라미터 개수+자료형이 모두 일치해야 한다. (A)는 동일 시그니처 재귀(정탐), (B)는 자료형이 달라 다른 함수 호출(오탐)이다. 4번은 '함수명만 같으면 항상 재귀'라고 하여 자료형 일치 조건을 무시하므로 틀렸다. 1·2·3번은 진단 기준과 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — diagnosis.method, true_positive, false_positive",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "진단방법",
+        "함수-시그니처",
+        "java"
+      ]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-D1",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 재귀 함수 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class RecursiveCall {\n  private int a;\n  public void func(int a) {\n    this.a = a;\n  }\n  public void func(String a) {\n    func(a);\n  }\n}\n```",
+      "vulnerable_code": "1  public class RecursiveCall {\n2    private int a;\n3    public void func(int a) {\n4      this.a = a;\n5    }\n6    public void func(String a) {\n7      func(a);\n8    }\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [
+        7
+      ],
+      "rationale_keywords": [
+        "동일 시그니처 재귀",
+        "탈출 조건 없음",
+        "무한 재귀",
+        "자원고갈",
+        "스택"
+      ],
+      "fix_keywords": [
+        "귀납조건",
+        "탈출 조건",
+        "재귀 호출 횟수 제한"
+      ],
+      "safe_code": "1  public class RecursiveCall {\n2    private int a;\n3    public void func(int a) {\n4      this.a = a;\n5    }\n6    public void func(String a) {\n7      // 탈출 조건을 두어 무한 재귀를 방지한다.\n8      if (a == null || a.isEmpty()) { return; }\n9      func(a.substring(1)); // 또는 재귀 호출 횟수를 제한\n10   }\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 7번 라인의 func(a)는 func(String a) 자신을 다시 호출하는 동일 시그니처(함수명·파라미터 개수·자료형 일치) 재귀 호출인데, 재귀문을 빠져나오는 귀납조건(Base Case)이 없다. 따라서 무한 재귀에 빠져 프로그램 스택 등 자원을 과다하게 사용해 자원고갈·시스템 장애를 유발한다(CWE-835).",
+        "fix_description": "모든 재귀 호출에 탈출 조건(귀납조건)을 설정하거나 재귀 호출 횟수를 제한하여 재귀가 종료되도록 한다. 예: 진입부에 종료 조건을 두어 일정 조건이 되면 더 이상 자신을 호출하지 않고 return 하도록 작성한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-TS-02 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '동일 시그니처 재귀': func(String a)가 자신과 함수명·파라미터 개수·자료형이 일치하는 func(a)를 호출한다.\n- '탈출 조건 없음'/'무한 재귀': 귀납조건(Base Case)이 없어 재귀가 끝나지 않는다.\n- '자원고갈'/'스택': 무한 재귀가 프로그램 스택 등 자원을 과다 사용한다.\n\n[수정 키워드 의미] 귀납조건(탈출 조건)을 설정하거나 재귀 호출 횟수를 제한한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(7번 재귀 호출 라인 지목) 20점 / rationale(동일 시그니처 재귀·탈출 조건 부재·무한 재귀·자원고갈 키워드 포함) 30점 / fix(귀납조건/탈출 조건 추가 또는 재귀 횟수 제한) 30점.\n\n[자가확인 체크리스트] (1) 함수가 자신을(함수명·파라미터 개수·자료형 일치) 호출하는가? (2) 재귀를 빠져나오는 제어문(탈출 조건)이 없는가? (3) 호출 횟수가 제한되지 않는가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — diagnosis.true_positive, CWE-835",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "정탐",
+        "재귀함수",
+        "java"
+      ]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-D2",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 재귀 함수 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic MenuVO getFirstLeafChildMenu(int menuSeq) {\n  List<MenuVO> childMenuList = menuMap.get(menuSeq).getChildMenuList();\n  if (CollectionUtils.isEmpty(childMenuList)) {\n    return menuMap.get(menuSeq);\n  }\n  return getFirstLeafChildMenu(childMenuList.get(0).getMenuSeq());\n}\n```",
+      "vulnerable_code": "1  public MenuVO getFirstLeafChildMenu(int menuSeq) {\n2    List<MenuVO> childMenuList = menuMap.get(menuSeq).getChildMenuList();\n3    if (CollectionUtils.isEmpty(childMenuList)) {\n4      return menuMap.get(menuSeq);\n5    }\n6    return getFirstLeafChildMenu(childMenuList.get(0).getMenuSeq());\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": [
+        "탈출 조건 존재",
+        "제어되는 재귀",
+        "isEmpty 리턴",
+        "무한 재귀 아님"
+      ],
+      "fix_keywords": [
+        "수정 불필요",
+        "안전"
+      ],
+      "safe_code": "1  // 이미 안전한 코드 — 자식 메뉴가 없으면(CollectionUtils.isEmpty)\n2  // 현재 메뉴를 반환하고 종료하는 제어조건(탈출 조건)이 존재하여\n3  // 재귀가 제어되므로 무한 재귀에 빠지지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). getFirstLeafChildMenu는 자신을 호출하는 재귀함수이지만, 진입부에 CollectionUtils.isEmpty(childMenuList) 조건으로 자식 메뉴가 없으면 현재 메뉴를 반환하고 종료하는 제어문(탈출 조건)이 존재한다. 따라서 재귀가 제어되어 무한 재귀·자원고갈에 빠지지 않으므로 보안약점에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 귀납조건(탈출 조건)이 이미 존재하여 재귀가 정상적으로 종료되므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-TS-02 diagnosis.false_positive(자식 메뉴가 없으면 리턴하는 제어조건이 존재하는 재귀) 코드를 기반으로 한다. 핵심은 '재귀함수라는 이유만으로 취약하다고 오판하지 않기'다.\n\n[오판 주의] 자기 자신을 호출하는 재귀라고 해서 무조건 취약한 것이 아니다. 재귀를 빠져나오는 제어문(탈출 조건)이 있으면 안전하다. 이 코드는 isEmpty 조건으로 종료된다.\n\n[안전 판정 근거 키워드 의미]\n- '탈출 조건 존재'/'isEmpty 리턴': 자식 메뉴가 없으면 현재 메뉴를 반환하고 종료한다.\n- '제어되는 재귀'/'무한 재귀 아님': 종료 조건이 있어 자원고갈로 이어지지 않는다.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — vulnerable_lines=[]는 '해당 라인 없음') 20점 / rationale(탈출 조건 존재·제어되는 재귀·무한 재귀 아님 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 재귀를 빠져나오는 제어문(탈출 조건)이 있는가? → 그렇다. (2) 호출 횟수가 무제한으로 늘어나는가? → 아니다(트리 깊이만큼만). (3) 자원고갈 가능성이 있는가? → 아니다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — diagnosis.false_positive",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "오탐",
+        "제어되는-재귀",
+        "java"
+      ]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-B1",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "종료되지 않는 재귀 함수 보안약점의 개념과 대응 방안에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "재귀의 순환횟수를 제어하지 못하면 메모리나 프로그램 {{0}} 등의 자원을 과다하게 사용하여 위험하다. 재귀문을 빠져나오는 종료 조건인 {{1}}(Base Case)이 없는 재귀함수는 {{2}}에 빠져 자원고갈을 유발한다. 대응으로 모든 재귀 호출 시 재귀 호출 {{3}}를 제한하거나 초기값을 설정하여 재귀 호출을 제한한다.",
+      "blank_answers": [
+        {
+          "idx": 0,
+          "answers": [
+            "스택"
+          ],
+          "synonyms": [
+            "프로그램 스택",
+            "stack"
+          ]
+        },
+        {
+          "idx": 1,
+          "answers": [
+            "귀납 조건"
+          ],
+          "synonyms": [
+            "귀납조건",
+            "Base Case",
+            "base case",
+            "탈출 조건"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "무한 루프"
+          ],
+          "synonyms": [
+            "무한루프",
+            "무한 재귀",
+            "무한재귀"
+          ]
+        },
+        {
+          "idx": 3,
+          "answers": [
+            "횟수"
+          ],
+          "synonyms": [
+            "호출 횟수",
+            "순환 횟수"
+          ]
+        }
+      ],
+      "explanation": "정답: {{0}}=스택, {{1}}=귀납 조건(Base Case), {{2}}=무한 루프, {{3}}=횟수. IMP-TS-02 overview는 '재귀의 순환횟수를 제어하지 못하여 할당된 메모리나 프로그램 스택 등의 자원을 과다하게 사용하면 위험하다'와 '귀납 조건(Base Case)이 없는 재귀함수는 무한 루프에 빠져 자원고갈을 유발한다'고 명시한다. countermeasure는 '재귀 호출 횟수를 제한하거나 초기값을 설정하여 재귀 호출을 제한해야 한다'고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — overview, countermeasure",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "빈칸",
+        "귀납조건",
+        "자원고갈"
+      ]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "time_state",
+      "weakness_code": "IMP-TS-02-B2",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "chapter_code": "IMP-TS-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 무한 재귀를 방지하도록 수정한 안전한 C 코드다. 재귀가 종료되도록 탈출 조건을 완성하는 빈칸을 채우시오.",
+      "blank_template": "int factorial(int i)\n{\n  // 재귀함수 사용시에는 아래와 같이 탈출 조건을 사용해야 한다.\n  if (i {{0}} 1) {\n    return {{1}};\n  }\n  return i * factorial(i - 1);\n}",
+      "blank_answers": [
+        {
+          "idx": 0,
+          "answers": [
+            "<="
+          ],
+          "synonyms": [
+            "&lt;="
+          ]
+        },
+        {
+          "idx": 1,
+          "answers": [
+            "1"
+          ],
+          "synonyms": []
+        }
+      ],
+      "explanation": "정답: {{0}}=<=, {{1}}=1. IMP-TS-02 code_examples(C) safe 코드는 factorial 진입부에 'if (i <= 1) { return 1; }' 탈출 조건(귀납조건)을 추가하여 재귀 호출이 종료되도록 한다. 이 조건이 없으면(vulnerable 코드) return i * factorial(i - 1);만 존재하여 무한 재귀에 빠진다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제3절 §2 종료되지 않는 반복문 또는 재귀 함수 — code_examples(C) safe",
+      "tags": [
+        "time_state",
+        "implementation",
+        "infinite-loop",
+        "빈칸",
+        "factorial",
+        "c"
+      ]
+    }
+  ]
+}

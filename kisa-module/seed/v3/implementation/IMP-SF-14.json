@@ -1,0 +1,179 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-14",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-M1",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '솔트 없이 일방향 해쉬 함수 사용' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\n비밀번호를 저장할 때 일방향 해시함수의 성질을 이용하여 비밀번호의 해시값을 저장한다.",
+      "choices": [
+        {"num": 1, "text": "솔트 없이 비밀번호를 해시하여 저장하면 공격자가 레인보우 테이블로 해시값을 미리 계산하여 원문을 찾을 수 있다."},
+        {"num": 2, "text": "비밀번호를 저장할 때는 비밀번호와 솔트를 해시함수에 함께 입력하여 얻은 해시값을 저장한다."},
+        {"num": 3, "text": "솔트는 동일한 비밀번호라도 서로 다른 해시값이 되도록 만들어 사전 공격을 어렵게 한다."},
+        {"num": 4, "text": "일방향 해시함수는 솔트 없이 사용해도 역산이 불가능하므로 레인보우 테이블 공격으로부터 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '비밀번호를 솔트(Salt)없이 해시하여 저장한다면, 공격자는 레인보우 테이블과 같이 해시값을 미리 계산하여 비밀번호를 찾을 수 있게 된다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '비밀번호와 솔트를 해시함수에 함께 입력하여 얻은 해시값을 저장한다'이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course key_concepts가 솔트를 '동일 원문이라도 서로 다른 해쉬가 되도록 만들어 레인보우 테이블 공격을 무력화'하는 값으로 정의한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 일방향 해시는 역산이 어렵더라도, 솔트가 없으면 레인보우 테이블로 미리 계산된 해시값과 대조하여 원문을 추출할 수 있다(overview). '솔트 없이도 안전하다'는 진술은 약점의 핵심을 정반대로 뒤집은 것이라 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-14 overview·countermeasure로 검증한다. 솔트 없는 일방향 해시는 레인보우 테이블 사전 공격에 취약하다는 것이 약점의 핵심이다. 1·2·3번은 overview·countermeasure·course와 일치하는 옳은 진술이고, 4번은 '솔트 없이도 안전하다'며 약점 자체를 부정해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용(pp.390-393), CWE-759 — overview/countermeasure",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "레인보우 테이블", "CWE-759"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-M2",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 두 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\n// (가)\npublic String getPasswordHash(String password) throws Exception {\n  MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n  md.update(password.getBytes());\n  byte byteData[] = md.digest();\n  // ... 16진수 변환 후 반환\n}\n\n// (나)\npublic String getPasswordHash(String password, byte[] salt) throws Exception {\n  MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n  md.update(password.getBytes());\n  md.update(salt);\n  byte byteData[] = md.digest();\n  // ... 16진수 변환 후 반환\n}\n```",
+      "choices": [
+        {"num": 1, "text": "(가)는 password만 update에 입력하고 솔트를 적용하지 않아 레인보우 테이블 공격에 취약하다."},
+        {"num": 2, "text": "(나)는 md.update(password.getBytes()) 후 md.update(salt)로 솔트를 함께 적용하여 안전하다."},
+        {"num": 3, "text": "(가)는 동일한 비밀번호가 항상 동일한 해시값이 되어 사전 공격에 노출된다."},
+        {"num": 4, "text": "(나)는 SHA-256을 사용하므로 솔트 적용 여부와 무관하게 (가)와 동일한 안전성을 가진다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). (가)는 vulnerable 코드로, md.update(password.getBytes())만 수행하고 솔트를 적용하지 않아 레인보우 테이블 사전 공격에 취약하다(note)."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). (나)는 safe 코드로, password 입력 후 md.update(salt)로 솔트를 함께 적용한다. course가 '안전한 코드 핵심: md.update(password.getBytes()) 후 md.update(salt)'라고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 솔트가 없으면 동일 비밀번호가 동일 해시가 되어 미리 계산된 레인보우 테이블로 사전 공격이 가능하다(course)."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 안전성을 좌우하는 것은 해시 알고리즘(SHA-256)이 아니라 솔트 적용 여부다. 솔트를 적용한 (나)와 적용하지 않은 (가)의 안전성이 동일하다는 진술은 약점의 핵심(솔트 미적용 취약)을 부정해 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-14 code_examples(Java) vulnerable/safe와 note·course로 검증한다. (가)는 솔트 미적용으로 취약, (나)는 md.update(salt)로 솔트를 적용해 안전하다. 1·2·3번은 옳은 진술이고, 4번은 'SHA-256이면 솔트 여부와 무관하게 동일 안전성'이라며 약점을 부정해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — code_examples(Java) vulnerable/safe, CWE-759",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "MessageDigest", "java", "CWE-759"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-M3",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'솔트 없이 일방향 해쉬 함수 사용' 약점의 진단방법에 대한 설명으로 옳지 않은 것은?\n\n진단원은 비밀번호 해시 코드를 확인하여 솔트 적용 여부를 판정한다.",
+      "choices": [
+        {"num": 1, "text": "getInstance 함수로 안전한 해시 알고리즘을 인자로 하여 MessageDigest 객체를 생성하는지 확인한다."},
+        {"num": 2, "text": "해시 값을 반환하기 전에 update 함수에 솔트를 사용하여 데이터를 해시하는지 확인한다."},
+        {"num": 3, "text": "MessageDigest 객체를 생성하고 솔트 없이 해시 값을 반환하고 있으면 취약하다고 판정한다."},
+        {"num": 4, "text": "MessageDigest 객체를 생성하기만 하면 솔트 적용 여부와 무관하게 항상 안전하다고 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'getInstance 함수로 안전한 해시 알고리즘을 인자로 하여 MessageDigest 객체를 생성하는지 확인하고(①)'로 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '해시 값을 반환(②)하기 전에 update 함수에 솔트를 사용하여 데이터를 해시하는지 확인한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). true_positive가 'MessageDigest 객체를 생성하고 솔트 없이 해시 값을 반환하고 있으므로 취약하다고 판정한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 진단의 핵심은 update 함수에 솔트를 사용하는지(②)이다. 객체 생성만으로 안전하다고 판정하면 솔트 미적용 취약 코드를 놓치게 되므로, '객체 생성만 하면 항상 안전'은 진단방법을 정반대로 적용한 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-14 diagnosis.method/true_positive로 검증한다. method는 ① MessageDigest 객체 생성 확인과 ② update에 솔트 사용 확인의 두 단계이며, 솔트 없이 반환하면 취약이다. 1·2·3번은 method·true_positive와 일치하는 옳은 진술이고, 4번은 솔트 확인 단계를 무시해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — diagnosis.method/true_positive",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "진단방법", "MessageDigest", "CWE-759"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-D1",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 비밀번호 해시 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nMessageDigest digest = MessageDigest.getInstance(\"SHA-512\");\ndigest.reset();\nreturn digest.digest(password.getBytes(\"UTF-8\"));\n```",
+      "vulnerable_code": "1  MessageDigest digest = MessageDigest.getInstance(\"SHA-512\");\n2  digest.reset();\n3  return digest.digest(password.getBytes(\"UTF-8\"));",
+      "code_language": "java",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["솔트 미적용", "레인보우 테이블", "사전 공격", "비밀번호만 해시", "CWE-759"],
+      "fix_keywords": ["update에 솔트 적용", "비밀번호와 솔트 함께", "솔트 입력"],
+      "safe_code": "1  MessageDigest digest = MessageDigest.getInstance(\"SHA-512\");\n2  digest.reset();\n3  digest.update(password.getBytes(\"UTF-8\"));\n4  digest.update(salt); // 솔트를 함께 적용\n5  return digest.digest();",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인이 password만 입력하여 해시 값을 반환하고 있으며 솔트(salt)를 전혀 적용하지 않는다(①에서 MessageDigest 객체를 생성하고 ②에서 솔트 없이 해시 값 반환). 비밀번호만을 해시함수의 입력으로 사용하면 공격자가 레인보우 테이블로 해시값을 미리 계산해 사전 공격으로 원문을 추출할 수 있는 보안약점(CWE-759)이다.",
+        "fix_description": "비밀번호와 솔트를 해시함수에 함께 입력하도록 수정한다. 즉 digest.update(password.getBytes(\"UTF-8\")) 후 digest.update(salt)로 솔트를 추가 적용한 뒤 digest.digest()로 해시 값을 반환한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-14 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '솔트 미적용'/'비밀번호만 해시': 3번 라인이 password.getBytes()만 입력해 솔트 없이 해시.\n- '레인보우 테이블'/'사전 공격': 솔트가 없으면 미리 계산된 해시 표로 원문을 추출 가능.\n- 'CWE-759': 솔트 없는 일방향 해시 분류.\n\n[수정 키워드 의미] update에 솔트를 함께 적용하여 비밀번호와 솔트를 같이 해시한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(3번 라인 — 솔트 없이 digest 반환 지목) 20점 / rationale(솔트 미적용·레인보우 테이블 사전 공격·CWE-759 등 키워드 포함) 30점 / fix(update에 솔트 적용, 비밀번호와 솔트 함께 해시) 30점.\n\n[자가확인 체크리스트] (1) MessageDigest 등으로 해시 객체를 생성하는가? (2) 해시 값을 반환하기 전에 update에 솔트를 적용하는가? → 적용하지 않으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — diagnosis.true_positive, CWE-759",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "정탐", "java", "CWE-759"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-D2",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 비밀번호 해시 처리에 대해 취약 여부를 판정하고 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic String getPasswordHash(String password, byte[] salt) throws Exception {\n  MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n  md.update(password.getBytes());\n  md.update(salt);\n  byte byteData[] = md.digest();\n  // ... 16진수 변환 후 반환\n  return hexString.toString();\n}\n```",
+      "vulnerable_code": "1  public String getPasswordHash(String password, byte[] salt) throws Exception {\n2    MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n3    md.update(password.getBytes());\n4    md.update(salt);\n5    byte byteData[] = md.digest();\n6    // ... 16진수 변환 후 반환\n7    return hexString.toString();\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["솔트 적용함", "비밀번호와 솔트 함께", "레인보우 테이블 방어", "원문 복구 불가", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — md.update(password.getBytes()) 후 md.update(salt)로\n2  // 비밀번호와 솔트를 함께 해시하여 레인보우 테이블 사전 공격을 방어한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인에서 비밀번호를 입력한 뒤 4번 라인에서 md.update(salt)로 솔트를 함께 적용하고 있다. 이는 countermeasure가 요구하는 '비밀번호와 솔트를 해시함수에 함께 입력하여 얻은 해시값을 저장'하는 안전한 방식이다. 솔트를 적용했으므로 동일 비밀번호라도 서로 다른 해시값이 되어 레인보우 테이블을 이용한 사전 공격으로 원문을 복구할 수 없다.",
+        "fix_description": "수정 불필요. 이미 IMP-SF-14 safe 코드가 권장하는 솔트 적용 방식을 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-14 code_examples(Java) safe 코드를 기반으로 한다. 핵심은 '솔트를 이미 적용한 안전한 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] MessageDigest로 해시한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 md.update(salt)로 솔트를 적용한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '솔트 적용함'/'비밀번호와 솔트 함께': 4번 라인 md.update(salt)로 솔트를 함께 입력.\n- '레인보우 테이블 방어'/'원문 복구 불가': 솔트로 동일 비밀번호도 다른 해시가 되어 사전 공격 무력화.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(솔트 적용·비밀번호와 솔트 함께·레인보우 테이블 방어 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 해시 값을 반환하기 전에 update에 솔트를 적용하는가? → 그렇다(4번 라인). (2) 비밀번호만 입력하는가? → 아니다, 솔트도 함께 입력한다. — 안전.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — code_examples(Java) safe, CWE-759",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "오탐", "java", "CWE-759"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-B1",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'솔트 없이 일방향 해쉬 함수 사용' 약점의 개요와 대책에 대한 빈칸을 채우시오.",
+      "blank_template": "비밀번호를 ⓐ______(을)를 적용하지 않고 일방향 해시하여 저장하면, 공격자는 가능한 해시값을 미리 계산해 둔 ⓑ______ 테이블을 이용한 사전 공격으로 원문(비밀번호)을 추출할 수 있다. 따라서 비밀번호를 저장할 때는 비밀번호와 솔트를 해시함수에 ⓒ______ 입력하여 얻은 해시값을 저장한다. 이 약점은 CWE-ⓓ______에 해당한다.",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["솔트"], "synonyms": ["salt", "솔트(salt)", "소금값"]},
+        {"idx": "ⓑ", "answers": ["레인보우"], "synonyms": ["rainbow", "레인보우(rainbow)"]},
+        {"idx": "ⓒ", "answers": ["함께"], "synonyms": ["같이", "함께(동시에)"]},
+        {"idx": "ⓓ", "answers": ["759"], "synonyms": ["CWE-759"]}
+      ],
+      "explanation": "ⓐ 솔트 / ⓑ 레인보우: overview가 '솔트(Salt)없이 해시하여 저장한다면, 공격자는 레인보우 테이블과 같이 해시값을 미리 계산하여 비밀번호를 찾을 수 있게 된다'고 한다. ⓒ 함께: countermeasure가 '비밀번호와 솔트를 해시함수에 함께 입력'하라고 한다. ⓓ 759: 솔트 없는 일방향 해시는 CWE-759다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — overview/countermeasure, CWE-759",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "레인보우 테이블", "CWE-759", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-14-B2",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "chapter_code": "IMP-SF-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 솔트를 적용한 안전한 비밀번호 해시 코드의 일부다. 빈칸에 들어갈 코드와 진단 포인트를 채우시오.\n\n```java\nMessageDigest md = MessageDigest.getInstance(\"SHA-256\");\nmd.update(password.getBytes());\nmd.update( ⓐ );   // 솔트 추가 적용\nbyte byteData[] = md.digest();\n```",
+      "blank_template": "안전한 코드는 md.update(password.getBytes()) 후 md.update(ⓐ______)(으)로 솔트를 추가 적용한다. 진단 시에는 ⓑ______ 함수로 MessageDigest 객체를 생성하는지 확인하고, 해시 값을 반환하기 전에 ⓒ______ 함수에 솔트를 사용하여 데이터를 해시하는지 확인한다.",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["salt"], "synonyms": ["솔트", "salt 값"]},
+        {"idx": "ⓑ", "answers": ["getInstance"], "synonyms": ["getInstance()", "MessageDigest.getInstance"]},
+        {"idx": "ⓒ", "answers": ["update"], "synonyms": ["update()", "md.update"]}
+      ],
+      "explanation": "ⓐ salt: safe 코드가 md.update(password.getBytes()) 후 md.update(salt)로 솔트를 추가 적용한다. ⓑ getInstance / ⓒ update: diagnosis.method가 'getInstance 함수로 ... MessageDigest 객체를 생성하는지 확인하고(①), 해시 값을 반환(②)하기 전에 update 함수에 솔트를 사용하여 데이터를 해시하는지 확인한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 솔트 없이 일방향 해쉬 함수 사용 — code_examples(Java) safe, diagnosis.method",
+      "tags": ["security_feature", "implementation", "해시", "솔트", "진단방법", "java", "빈칸"]
+    }
+  ]
+}

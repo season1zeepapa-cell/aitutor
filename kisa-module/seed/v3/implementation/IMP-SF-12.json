@@ -1,0 +1,178 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-12",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-M1",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 '사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출'에 대한 설명이다. 옳지 않은 것은?\n\n프로그래머가 원하는 경우 쿠키를 디스크에 저장할 수 있으며, 이러한 영속적인 쿠키(Persistent Cookie)에 개인정보·인증정보가 저장되면 공격자가 쿠키에 접근할 기회가 많아져 시스템이 취약해진다.",
+      "choices": [
+        {"num": 1, "text": "쿠키의 만료시간은 세션이 지속되는 시간을 고려하여 최소한으로 설정한다."},
+        {"num": 2, "text": "영속적인 쿠키에는 사용자 권한 등급, 세션ID 등 중요정보가 포함되지 않도록 한다."},
+        {"num": 3, "text": "쿠키의 유효기간이 길면 사용자 하드디스크에 저장되어 쉽게 도용될 수 있으므로 취약하다."},
+        {"num": 4, "text": "사용자 편의를 위해 쿠키의 만료시간을 길게(예: 1년) 설정하고, 영속 쿠키에 세션ID·권한 등급을 담아두는 것이 안전한 처리 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). countermeasure가 '쿠키의 만료시간은 세션이 지속되는 시간을 고려하여 최소한으로 설정'하라고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '영속적인 쿠키에는 사용자 권한 등급, 세션ID 등 중요정보가 포함되지 않도록 한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). note가 '쿠키의 유효기간이 긴 경우 사용자 하드디스크에 쿠키가 저장되며 저장된 쿠키는 쉽게 도용될 수 있으므로 취약하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 만료시간을 1년으로 길게 설정하고 영속 쿠키에 세션ID·권한 등급을 담는 것은 바로 이 약점(CWE-539)의 원인이다. countermeasure는 만료시간 최소화와 중요정보 미포함을 요구하므로 정반대 진술이라 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-12 overview·countermeasure·note로 검증한다. 가이드는 ① 만료시간을 세션 지속 시간 고려 최소화, ② 영속 쿠키에 권한 등급·세션ID 등 중요정보 미포함, ③ 유효기간이 길면 디스크 저장·도용 위험으로 취약을 명시한다. 4번은 만료시간을 길게 설정하고 영속 쿠키에 중요정보를 담는 것을 안전하다고 하여 약점 원인을 정반대로 진술했으므로 틀렸다. 1·2·3번은 각각 countermeasure·note와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출(pp.382-385), CWE-539 — overview·countermeasure·note",
+      "tags": ["security_feature", "implementation", "쿠키", "영속쿠키", "정보노출", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-M2",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 쿠키 설정 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nCookie loginCookie = new Cookie(\"rememberme\", \"YES\");\nloginCookie.setMaxAge(60*60*24*365);\nresponse.addCookie(loginCookie);\n```",
+      "choices": [
+        {"num": 1, "text": "setMaxAge에 60*60*24*365(약 1년)를 지정하여 쿠키 만료시간을 과도하게 길게 설정하고 있어 안전하지 않다."},
+        {"num": 2, "text": "만료시간이 길면 쿠키가 사용자 하드디스크에 저장되어 쉽게 도용될 수 있다."},
+        {"num": 3, "text": "loginCookie.setMaxAge(60*60*24)처럼 해당 기능에 맞춰 만료시간을 최소로 설정하도록 개선해야 한다."},
+        {"num": 4, "text": "만료시간을 길게 설정할수록 쿠키가 메모리에만 상주하여 디스크에 남지 않으므로 더 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 'setMaxAge(60*60*24*365)로 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '유효기간이 긴 경우 사용자 하드디스크에 쿠키가 저장되며 쉽게 도용될 수 있다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 setMaxAge(60*60*24)로 '해당 기능에 맞춰 만료시간을 최소로 사용'하도록 개선한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). overview에 따르면 만료시간이 설정된 영속 쿠키는 디스크에 저장되며, 만료시간이 길수록 디스크에 더 오래 남아 위험하다. '길게 설정할수록 메모리에만 상주하여 안전하다'는 진술은 사실과 정반대라 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-12 code_examples(Java) vulnerable/safe와 note·overview를 기반으로 한다. vulnerable 코드는 setMaxAge 1년으로 과도하게 길어 취약하고(1번), 만료시간이 길면 디스크 저장·도용 위험이 있으며(2번), 개선은 setMaxAge(60*60*24)로 최소화다(3번). 4번은 만료시간이 길수록 메모리에만 상주해 안전하다고 하여 overview를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 — code_examples(Java) vulnerable/safe·note, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "setMaxAge", "영속쿠키", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-M3",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출'의 진단 흐름에 대한 설명으로 옳지 않은 것은?\n\n진단원은 쿠키 전송 기능과 유효기간, 쿠키 값에 포함된 정보를 점검한다.",
+      "choices": [
+        {"num": 1, "text": "사용자 브라우저로 쿠키를 전송하는지 확인하고, 쿠키의 유효기간(만료시간)을 확인한다."},
+        {"num": 2, "text": "쿠키가 비영속(non-persistent, 세션 쿠키)이면 디스크에 남지 않아 상대적으로 안전하다고 판정할 수 있다."},
+        {"num": 3, "text": "쿠키가 영속(persistent)이면 쿠키 설정 값에 id 정보·세션ID·권한 등급 등 중요정보가 포함되어 있는지 확인하여, 포함되어 있으면 취약하다고 판정한다."},
+        {"num": 4, "text": "쿠키에 Secure·HttpOnly 속성만 설정되어 있으면 만료시간이 1년이라도 영속 쿠키의 디스크 저장 위험이 모두 사라지므로 항상 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '사용자 브라우저로 쿠키를 전송하는지 확인(①)하고 쿠키 유효기간을 확인(②)한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course는 쿠키가 비영속(세션 쿠키)이면 메모리에만 존재하고 디스크에 남지 않아 상대적으로 안전하다고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method(③)와 course가 영속 쿠키에 id·세션ID·권한 등급 등 중요정보 포함 여부를 확인하여 포함 시 위험으로 판정한다고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). course는 Secure/HttpOnly를 설정해도 '만료 시간이 길면 디스크 저장 위험은 남는다'고 명시한다. 안전하지 않은 코드 예시도 setSecure(true)·setHttpOnly(true)를 설정했지만 만료시간 1년 때문에 취약하다. 따라서 Secure/HttpOnly만으로 항상 안전하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-12 diagnosis.method와 course 진단 흐름을 기반으로 한다. 진단은 ① 쿠키 전송·② 유효기간 확인, 비영속이면 안전(2번), 영속이면 중요정보 포함 여부 확인 후 포함 시 위험(3번)으로 진행한다(1번 포함 옳음). 4번은 Secure/HttpOnly만으로 만료시간 1년의 디스크 저장 위험이 사라진다고 하여 course를 정반대로 진술했으므로 틀렸다(course는 만료시간이 길면 디스크 저장 위험이 남는다고 명시).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12 — diagnosis.method; 2025년 SW보안약점 진단원 기본과정 Ⅴ.2-12 진단 흐름·Secure/HttpOnly, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "진단방법", "영속쿠키", "Secure/HttpOnly"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-D1",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 쿠키 설정에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nif (rememberMe) {\n  Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n  loginCookie.setMaxAge(60*60*24*30*12);\n  response.addCookie(loginCookie);\n}\n```",
+      "vulnerable_code": "1  if (rememberMe) {\n2    Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n3    loginCookie.setMaxAge(60*60*24*30*12);\n4    response.addCookie(loginCookie);\n5  }",
+      "code_language": "java",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["만료시간 과도(1년)", "영속 쿠키 디스크 저장", "쿠키 도용", "만료시간 최소화 위반", "CWE-539"],
+      "fix_keywords": ["setMaxAge 최소화", "세션 지속시간 고려", "중요정보 미포함"],
+      "safe_code": "1  if (rememberMe) {\n2    Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n3    // 만료시간은 해당 기능에 맞춰 최소로 설정한다.\n4    loginCookie.setMaxAge(60*60*24);\n5    response.addCookie(loginCookie);\n6  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 setMaxAge(60*60*24*30*12)로 쿠키 만료시간을 약 1년으로 과도하게 길게 설정하고 있다. 만료시간이 긴 영속적인 쿠키는 사용자 하드디스크에 장기간 저장되어 쉽게 도용될 수 있으므로, 만료시간을 세션 지속 시간 고려 최소한으로 설정하라는 대책(CWE-539)을 위반한 취약점이다.",
+        "fix_description": "setMaxAge를 해당 기능에 맞춰 최소(예: 60*60*24 = 1일)로 설정하여 영속 쿠키의 디스크 저장 기간을 줄인다. 아울러 영속 쿠키에는 사용자 권한 등급·세션ID 등 중요정보가 포함되지 않도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-12 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '만료시간 과도(1년)'/'영속 쿠키 디스크 저장': setMaxAge(60*60*24*30*12)로 만료시간이 1년이어서 디스크에 장기간 저장됨 — 취약 판정 핵심.\n- '쿠키 도용': 디스크에 저장된 쿠키는 쉽게 도용될 수 있음.\n- '만료시간 최소화 위반'/'CWE-539': 대책 위반과 CWE 분류.\n\n[수정 키워드 의미] setMaxAge를 세션 지속 시간 고려 최소로 설정하고 중요정보를 포함하지 않는다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(과도한 만료시간을 설정한 setMaxAge 3번 라인 지목) 20점 / rationale(만료시간 과도·영속 쿠키 디스크 저장·도용·CWE-539 포함) 30점 / fix(setMaxAge 최소화 + 세션 지속시간 고려 + 중요정보 미포함) 30점.\n\n[자가확인 체크리스트] (1) setMaxAge로 만료시간을 설정하여 영속 쿠키가 되는가? (2) 만료시간이 기능에 비해 과도하게 긴가? → 그렇다면 취약. (3) 영속 쿠키에 세션ID·권한 등급 등 중요정보가 담겨 있는가?",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 — diagnosis.true_positive, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "정탐", "setMaxAge", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-D2",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 쿠키 설정에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nif (rememberMe) {\n  Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n  loginCookie.setMaxAge(60*60*24);\n  response.addCookie(loginCookie);\n}\nArrays.fill(password, ' ');\n```",
+      "vulnerable_code": "1  if (rememberMe) {\n2    Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n3    loginCookie.setMaxAge(60*60*24);\n4    response.addCookie(loginCookie);\n5  }\n6  Arrays.fill(password, ' ');",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["만료시간 최소(1일)", "기능에 맞춘 최소 설정", "중요정보 미포함", "영속 쿠키 위험 낮음", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전 — setMaxAge(60*60*24)로 만료시간을 해당 기능에 맞춰 최소(1일)로 설정하고,\n2  // 쿠키 값에 세션ID·권한 등급 등 중요정보를 담지 않으며(\"rememberme\"=\"YES\"),\n3  // 사용 후 password 배열도 비워 추가 노출을 막으므로 추가 조치가 필요 없다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인에서 setMaxAge(60*60*24)로 쿠키 만료시간을 해당 기능에 맞춰 최소(1일)로 설정하고 있으며, 쿠키 값에 세션ID·사용자 권한 등급 등 중요정보를 담지 않고 단순 플래그(\"rememberme\"=\"YES\")만 저장한다. 이는 diagnosis.false_positive가 제시한 안전 사례와 일치하므로, 만료시간을 최소로 설정하고 중요정보를 포함하지 않은 코드를 취약하다고 판정하면 오탐이다.",
+        "fix_description": "수정 불필요. 만료시간을 기능에 맞춰 최소로 설정하고 영속 쿠키에 중요정보를 포함하지 않아 CWE-539(쿠키를 통한 정보 노출)에 해당하지 않는다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-12 diagnosis.false_positive 안전 코드를 기반으로 한다. 핵심은 '만료시간을 최소화한 안전 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] 쿠키를 디스크에 저장(영속화)한다는 사실만으로 무조건 취약한 것이 아니다. 만료시간이 기능에 맞춰 최소이고 중요정보를 담지 않으면 안전하다.\n\n[안전 판정 근거 키워드 의미]\n- '만료시간 최소(1일)'/'기능에 맞춘 최소 설정': setMaxAge(60*60*24)로 대책(최소화)을 충족함.\n- '중요정보 미포함': 쿠키 값이 세션ID·권한 등급이 아닌 단순 \"YES\" 플래그임.\n- '영속 쿠키 위험 낮음': 만료시간 최소 + 중요정보 미포함으로 도용 위험이 낮음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — 정확히 없다고 판단) 20점 / rationale(만료시간 최소·기능에 맞춘 설정·중요정보 미포함 등 안전 근거 포함) 30점 / fix(수정 불필요·만료시간 최소화 및 중요정보 미포함 명시) 30점.\n\n[자가확인 체크리스트] (1) 만료시간이 기능에 맞춰 최소로 설정되었는가? → 그렇다(1일). (2) 쿠키 값에 세션ID·권한 등급 등 중요정보가 포함되었는가? → 아니다(단순 플래그). — 둘 다 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 — diagnosis.false_positive, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "오탐", "setMaxAge", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-B1",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출'의 약점과 대책에 대한 설명이다. 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "blank_template": "개인정보·인증정보 등 중요정보가 만료시간이 설정되어 디스크에 저장되는 ____(1)____ 쿠키(Persistent Cookie)에 담기면 공격자가 쿠키에 접근할 기회가 많아진다. 따라서 쿠키의 ____(2)____은(는) 세션이 지속되는 시간을 고려하여 최소한으로 설정하고, 영속적인 쿠키에는 사용자 권한 등급, ____(3)____ 등 중요정보가 포함되지 않도록 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["영속적인", "영속"], "synonyms": ["영속적", "persistent", "지속적인"]},
+        {"idx": 2, "answers": ["만료시간", "만료 시간"], "synonyms": ["유효기간", "maxAge", "setMaxAge"]},
+        {"idx": 3, "answers": ["세션ID", "세션 ID"], "synonyms": ["세션 식별자", "session ID", "sessionID"]}
+      ],
+      "explanation": "IMP-SF-12 overview·countermeasure에 따르면 중요정보가 영속적인 쿠키(Persistent Cookie)에 저장되면 공격자의 접근 기회가 많아진다. 대책으로 쿠키의 만료시간을 세션 지속 시간 고려 최소한으로 설정하고, 영속 쿠키에 사용자 권한 등급·세션ID 등 중요정보를 포함하지 않아야 한다. 빈칸 (1)=영속적인, (2)=만료시간, (3)=세션ID.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 — overview·countermeasure, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "영속쿠키", "만료시간", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-12-B2",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "chapter_code": "IMP-SF-12",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 쿠키 만료시간을 안전하게 설정한 Java 코드이다. 빈칸에 들어갈 알맞은 표현을 쓰시오.\n\n```java\nCookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 만료시간은 해당 기능에 맞춰 최소로 사용한다.\nloginCookie.____(1)____(60*60*24);\nresponse.____(2)____(loginCookie);\n```",
+      "blank_template": "쿠키의 만료시간을 설정하는 메소드 loginCookie.____(1)____(60*60*24)로 1일(최소)로 지정하고, response.____(2)____(loginCookie)로 응답에 쿠키를 추가한다. 안전하지 않은 코드는 같은 메소드에 60*60*24*365를 넣어 만료시간을 약 ____(3)____(으)로 과도하게 길게 설정한 경우다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["setMaxAge"], "synonyms": ["setMaxAge()", ".setMaxAge"]},
+        {"idx": 2, "answers": ["addCookie"], "synonyms": ["addCookie()", ".addCookie"]},
+        {"idx": 3, "answers": ["1년", "일년"], "synonyms": ["1 년", "365일", "1년(365일)"]}
+      ],
+      "explanation": "IMP-SF-12 code_examples(Java) safe 코드는 loginCookie.setMaxAge(60*60*24)로 만료시간을 최소(1일)로 설정하고 response.addCookie(loginCookie)로 쿠키를 추가한다. vulnerable 코드는 setMaxAge(60*60*24*365)로 만료시간을 약 1년으로 과도하게 길게 설정해 취약하다. 빈칸 (1)=setMaxAge, (2)=addCookie, (3)=1년.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 — code_examples(Java) vulnerable/safe, CWE-539",
+      "tags": ["security_feature", "implementation", "쿠키", "setMaxAge", "addCookie", "빈칸"]
+    }
+  ]
+}

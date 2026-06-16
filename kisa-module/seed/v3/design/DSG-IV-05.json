@@ -1,0 +1,242 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-IV-05",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-M1",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계의 '웹 서비스 요청 및 결과 검증' 설계항목에 대한 보안대책이다. 옳지 않은 것은?\n\n웹 서비스 요청 및 결과 검증은 웹 서비스(게시판 등) 요청(스크립트 게시 등)과 응답결과(스크립트를 포함한 웹 페이지)에 대한 유효성 검증방법 및 유효하지 않은 값에 대한 처리방법을 설계하는 항목으로, 관련 보안약점은 크로스사이트 스크립트(XSS)이다.",
+      "choices": [
+        {"num": 1, "text": "사용자로부터 입력받은 값을 동적으로 생성되는 응답페이지에 사용하는 경우 크로스사이트 스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다."},
+        {"num": 2, "text": "DB조회결과를 동적으로 생성되는 응답페이지에 사용하는 경우 HTML인코딩 또는 크로스사이트 스크립트(XSS) 필터링을 수행한 뒤 사용해야 한다."},
+        {"num": 3, "text": "DB에서 읽어온 데이터는 내부에서 관리되는 신뢰된 값이므로 응답페이지에 사용할 때 별도의 검증 없이 그대로 출력해도 안전하다."},
+        {"num": 4, "text": "XSS 필터를 생성할 때 필터링 규칙은 안전한 화이트리스트 정책이 적용되도록 설계한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "보안대책 ①과 일치하는 옳은 진술이다. 사용자 입력값을 동적 응답페이지에 사용하는 경우 XSS 필터링을 수행한 뒤 사용해야 하므로 이 선지는 함정(옳은 진술)이다."},
+        {"num": 2, "correct": false, "why": "보안대책 ②와 일치하는 옳은 진술이다. DB조회결과를 동적 응답페이지에 사용하는 경우 HTML인코딩 또는 XSS 필터링을 수행한 뒤 사용해야 하므로 이 선지는 함정(옳은 진술)이다."},
+        {"num": 3, "correct": true, "why": "정답. 보안대책 ② 및 설계 시 고려사항 ②(ㄴ)은 'DB에서 읽어오는 데이터도 외부 입력값 범위에 포함시켜 출력 전 반드시 검증'할 것을 요구한다. 공격자가 미리 취약한 서버에 악의적 스크립트를 저장해 두면 일반 사용자가 조회할 때 그 권한으로 스크립트가 실행되는 Stored XSS(사례2)가 발생하므로, DB 값을 신뢰된 값으로 보고 검증 없이 출력하는 것은 명백히 잘못된 설계다."},
+        {"num": 4, "correct": false, "why": "진단방법(checklist 1-2)과 일치하는 옳은 진술이다. XSS 필터 생성 시 필터링 규칙이 안전한 화이트리스트 정책으로 설계되었는지 확인하므로 이 선지는 함정(옳은 진술)이다."}
+      ],
+      "explanation": "정답은 3번. DSG-IV-05 라이브러리의 security_measures ①②와 design_considerations ②(ㄴ)에 대조하여 확인한다. ②(ㄴ)은 'DB에서 읽어오는 데이터도 외부 입력값 범위에 포함시켜 출력 전 반드시 검증'하라고 명시한다. 3번은 이를 정반대로 뒤집어 DB 값을 신뢰된 값으로 보고 검증 없이 출력해도 안전하다고 했으므로 Stored XSS(사례2)에 그대로 노출되는 잘못된 설계다. 1·2번은 보안대책 ①②와, 4번은 화이트리스트 필터 규칙 진단방법과 일치하는 옳은 진술이어서 오답 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증(pp.64-70) — security_measures ①②, design_considerations ②(ㄴ)",
+      "tags": ["input_validation", "design", "xss", "html인코딩", "화이트리스트", "stored-xss", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-M2",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 사용자 입력값에 대한 XSS 필터링을 공통코드로 적용하기 위한 설계 시 고려사항이다. 입력값 검증 방식에 대한 설명으로 옳지 않은 것은?\n\n입력값에 대해 필터링 또는 인코딩 정책을 적용하는 공통코드를 작성하여 웹 컨테이너 또는 MVC 프레임워크에 적용한다.",
+      "choices": [
+        {"num": 1, "text": "필터를 이용한 입력값 검증: 웹 컴포넌트 Filter로 사용자 입력값에 XSS 필터나 HTML인코딩을 적용하여 안전한 값으로 치환한 뒤 사용하도록 모든 애플리케이션에 일괄 적용한다."},
+        {"num": 2, "text": "인터셉트를 이용한 입력값 검증: MVC 프레임워크의 Interceptor 컴포넌트로 입력값에 XSS 공격 패턴 문자열 포함 여부를 검사하여 요청을 차단·허용하는 정책을 일괄 적용한다."},
+        {"num": 3, "text": "라이브러리 또는 Validator 컴포넌트를 이용한 입력값 검증: 공통코드로 Validator 컴포넌트를 작성하여 XSS 공격패턴의 입력값을 필터링하도록 설계한다."},
+        {"num": 4, "text": "공통코드 작성 부담을 줄이기 위해, XSS 필터링은 공통코드 없이 각 화면 개발자가 필요하다고 판단할 때에만 개별적으로 적용하도록 설계하는 것을 원칙으로 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "design_considerations ①(ㄱ) '필터를 이용한 입력값 검증'과 일치하는 옳은 진술이다. 웹 컴포넌트 Filter로 안전한 값으로 치환해 모든 애플리케이션에 일괄 적용하므로 함정(옳은 진술)이다."},
+        {"num": 2, "correct": false, "why": "design_considerations ①(ㄴ) '인터셉트를 이용한 입력값 검증'과 일치하는 옳은 진술이다. MVC 프레임워크 Interceptor로 XSS 공격 패턴을 검사해 일괄 적용하므로 함정(옳은 진술)이다."},
+        {"num": 3, "correct": false, "why": "design_considerations ①(ㄷ) '라이브러리 또는 Validator 컴포넌트를 이용한 입력값 검증'과 일치하는 옳은 진술이다. 공통코드로 Validator 컴포넌트를 작성해 XSS 공격패턴을 필터링하므로 함정(옳은 진술)이다."},
+        {"num": 4, "correct": true, "why": "정답. 가이드는 '필터링 또는 인코딩 정책을 적용하는 공통코드를 작성하여 웹 컨테이너 또는 MVC 프레임워크에 적용'할 것을 핵심 원칙으로 제시한다. XSS 필터링을 공통코드 없이 개발자 재량으로 개별 적용하면 누락이 발생하여 일괄 적용 원칙에 어긋나므로 잘못된 설계다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-05 design_considerations ①의 3가지 입력값 검증 방식(ㄱ 필터 / ㄴ 인터셉터 / ㄷ Validator 컴포넌트)은 모두 '공통코드를 작성하여 웹 컨테이너 또는 MVC 프레임워크에 일괄 적용'하는 것을 전제로 한다. 1·2·3번은 각각 (ㄱ)(ㄴ)(ㄷ)와 일치하는 옳은 진술이다. 4번은 공통코드 일괄 적용 원칙을 부정하고 개발자 재량의 개별 적용을 원칙으로 삼아 누락 위험을 키우므로 잘못된 설계다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — design_considerations ①(ㄱ)(ㄴ)(ㄷ)",
+      "tags": ["input_validation", "design", "xss", "filter", "interceptor", "validator", "공통코드"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-M3",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "kotlin",
+      "difficulty": "상",
+      "body": "웹 서비스 요청 및 결과 검증 설계항목의 진단방법과 확인 대상 산출물(또는 설계 내용)의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·개발가이드·단위테스트케이스 등 산출물을 검토하여 XSS 필터링 설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "요구사항정의서에 설계항목에 대한 대책이 수립되어 있고 아키텍처설계서에 적용계획이 수립되어 있으며 요구사항추적표로 추적 가능한지 — 요구사항정의서·요구사항추적표·아키텍처설계서 검토"},
+        {"num": 2, "text": "외부입력값에 대한 XSS 필터링 방법(Filter 적용대상의 웹서버 설정파일 정의, 개별 프로그램 필터링 코딩규칙)이 정의되어 있는지 — 아키텍처설계서 및 개발가이드 검토"},
+        {"num": 3, "text": "XSS를 발생시킬 수 있는 필터 우회 입력값으로 안전한 값만 응답에 사용되는지 점검하는 테스트 계획이 수립되어 있는지 — 요구사항추적표 검토"},
+        {"num": 4, "text": "DB조회결과를 응답페이지 생성에 사용하는 경우 XSS필터 또는 HTML인코딩을 적용하도록 코딩규칙이 정의되어 있는지 — 개발가이드 검토"}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-1 method이며 artifacts가 '요구사항정의서, 요구사항추적표, 아키텍처설계서 검토'로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-3 method이며, Filter 적용대상의 웹서버 설정파일 정의는 아키텍처설계서, 개별 프로그램 필터링 코딩규칙은 개발가이드에서 확인하므로 ' 아키텍처설계서 및 개발가이드 검토'가 정확히 일치한다."},
+        {"num": 3, "correct": true, "why": "정답(잘못된 연결). 요구사항①의 checklist 2-1은 'XSS를 발생시킬 수 있는 필터 우회 입력값으로 안전한 값만 응답에 사용되는지 점검하는 테스트 계획'을 확인하는 진단방법이며, 그 관련산출물은 '단위테스트케이스 검토'이다. '요구사항추적표 검토'는 보안설계 추적 가능 여부(1-1)에 연결되는 산출물이므로 테스트 계획 진단방법과의 연결이 틀렸다."},
+        {"num": 4, "correct": false, "why": "옳은 연결(함정). 요구사항②의 checklist 1-3 method이며 artifacts가 '아키텍처설계서 검토, 코딩규칙은 개발가이드 검토'이므로 '개발가이드 검토'와 정확히 일치한다."}
+      ],
+      "explanation": "정답은 3번. DSG-IV-05 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·4번은 각각 요구사항①1-1, ①1-3, ②1-3의 method-artifacts 짝과 정확히 일치한다. 3번은 필터 우회 입력값을 이용한 XSS 테스트 계획(요구사항①2-1)의 올바른 산출물이 '단위테스트케이스'인데 '요구사항추적표'로 잘못 연결되어 있다. 요구사항추적표는 보안설계 추적 가능 여부(1-1)에 쓰이는 산출물이라는 점이 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["input_validation", "design", "xss", "진단방법", "산출물", "단위테스트케이스", "요구사항추적표"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-D1",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드(게시글 조회 결과를 응답페이지에 출력)의 XSS 대응에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString content = boardDao.findContent(boardId);  // DB조회 결과\nresponse.setContentType(\"text/html; charset=UTF-8\");\nPrintWriter out = response.getWriter();\nout.println(\"<div class='content'>\" + content + \"</div>\");\n```",
+      "vulnerable_code": "1  String content = boardDao.findContent(boardId);  // DB조회 결과\n2  response.setContentType(\"text/html; charset=UTF-8\");\n3  PrintWriter out = response.getWriter();\n4  out.println(\"<div class='content'>\" + content + \"</div>\");",
+      "code_language": "java",
+      "vulnerable_lines": [4],
+      "rationale_keywords": ["DB조회결과", "외부 입력값", "HTML인코딩", "XSS 필터링", "Stored XSS"],
+      "fix_keywords": ["HTML인코딩", "XSS필터", "출력 전 검증"],
+      "safe_code": "1  String content = boardDao.findContent(boardId);  // DB조회 결과\n2  response.setContentType(\"text/html; charset=UTF-8\");\n3  PrintWriter out = response.getWriter();\n4  // DB조회결과도 외부 입력값으로 보고 출력 전 HTML인코딩(또는 XSS 필터) 적용\n5  String safe = HtmlUtils.htmlEscape(content);\n6  out.println(\"<div class='content'>\" + safe + \"</div>\");",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 4번 라인이 DB에서 조회한 content 값을 아무런 검증 없이 동적 응답페이지(HTML)에 그대로 출력하고 있다. 가이드는 DB에서 읽어오는 데이터도 외부 입력값 범위에 포함시켜 출력 전 반드시 HTML인코딩 또는 XSS 필터링을 수행하라고 요구한다(보안대책 ②). 공격자가 미리 게시글에 악의적 스크립트를 저장해 두면 일반 사용자가 조회할 때 그 권한으로 스크립트가 실행되는 Stored XSS가 발생한다.",
+        "fix_description": "DB조회결과를 응답페이지에 사용하기 전에 View 컴포넌트에서 HTML인코딩을 적용하거나 XSS 필터(예: LUCY XSS Filter, OWASP ESAPI XSS Filter)를 적용하여 안전한 값만 출력하도록 한다. 가급적 공통코드/공통 필터로 일괄 적용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. DSG-IV-05 보안대책 ②와 design_considerations ②(ㄴ)(DB조회결과도 외부 입력값으로 보고 출력 전 검증)를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'DB조회결과'/'외부 입력값': DB에서 읽은 값도 외부 입력값 범위에 포함되어 검증 대상이다.\n- 'HTML인코딩'/'XSS 필터링': 출력 전 적용해야 하는 안전한 처리 방식.\n- 'Stored XSS': 저장된 악성 스크립트가 조회 시 실행되는 사례2의 공격 결과.\n\n[수정 키워드 의미] 출력 전 HTML인코딩 또는 XSS필터를 적용해 검증한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(4번 라인 지목) 20점 / rationale(DB조회결과도 외부 입력값·출력 전 미검증·Stored XSS 등 키워드 포함) 30점 / fix(HTML인코딩 또는 XSS필터 출력 전 적용, 공통코드 일괄 적용) 30점.\n\n[자가확인 체크리스트] (1) 응답페이지에 출력되는 값이 외부 입력값 또는 DB조회결과인가? (2) 출력 전 HTML인코딩/XSS 필터링이 적용되었는가? (3) 출력 함수가 사용자 권한으로 스크립트를 실행시킬 수 있는 HTML 컨텍스트인가? — 출력 전 검증이 없으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — security_measures ②, design_considerations ②(ㄴ)",
+      "tags": ["input_validation", "design", "xss", "정탐", "stored-xss", "html인코딩", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-D2",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드(검색어를 응답페이지에 표시)의 XSS 대응에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString keyword = request.getParameter(\"q\");        // 사용자 입력값\nString safe = ESAPI.encoder().encodeForHTML(keyword);  // XSS 필터/HTML인코딩 적용\nPrintWriter out = response.getWriter();\nout.println(\"<p>검색어: \" + safe + \"</p>\");\n```",
+      "vulnerable_code": "1  String keyword = request.getParameter(\"q\");        // 사용자 입력값\n2  String safe = ESAPI.encoder().encodeForHTML(keyword);  // XSS 필터/HTML인코딩 적용\n3  PrintWriter out = response.getWriter();\n4  out.println(\"<p>검색어: \" + safe + \"</p>\");",
+      "code_language": "java",
+      "vulnerable_lines": [0],
+      "rationale_keywords": ["HTML인코딩 적용", "XSS 필터링", "출력 전 검증", "안전한 값으로 치환", "정보노출 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 사용자 입력값(q)을 응답페이지에 사용하기 전\n2  // ESAPI XSS 필터/HTML인코딩(encodeForHTML)으로 안전한 값으로 치환한 뒤\n3  // 동적 응답페이지에 출력하므로 보안대책 ①을 충족한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 사용자 입력값 keyword를 동적 응답페이지에 사용하기 전 2번 라인에서 OWASP ESAPI의 encodeForHTML()로 HTML인코딩(XSS 필터링)을 적용하여 안전한 값(safe)으로 치환하고, 4번 라인에서 그 치환된 값만 출력한다. 이는 보안대책 ①(사용자 입력값을 동적 응답페이지에 사용하는 경우 XSS 필터링 후 사용)을 충족하며, 가이드가 라이브러리 사용 예로 든 OWASP ESAPI XSS Filter를 그대로 사용한 모범 사례다.",
+        "fix_description": "수정 불필요. 출력 전 입력값에 대해 HTML인코딩(XSS 필터)을 적용하고 인코딩된 값만 응답에 사용하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. DSG-IV-05 보안대책 ① 및 design_considerations ②(ㄴ)에서 권장하는 라이브러리(OWASP ESAPI XSS Filter) 사용 모범 사례를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 사용자 입력값(getParameter)이 응답페이지에 출력된다는 사실만으로 취약하다고 단정해서는 안 된다. 출력 전 인코딩/필터링이 적용되었는지를 반드시 확인해야 한다. 이 코드는 encodeForHTML로 치환한 값만 출력하므로 안전하다.\n\n[안전 판정 근거 키워드 의미]\n- 'HTML인코딩 적용'/'XSS 필터링': 출력 전 ESAPI encodeForHTML()로 안전한 값으로 치환함.\n- '출력 전 검증'/'안전한 값으로 치환': raw 입력값이 아니라 인코딩된 safe 값을 출력함.\n- '정보노출 없음': 스크립트 실행 컨텍스트로 들어갈 위험 문자가 인코딩되어 실행되지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — vulnerable_lines=[0]은 '해당 라인 없음' 판정용 표식) 20점 / rationale(출력 전 HTML인코딩/XSS 필터 적용·안전한 값 치환 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 응답에 출력되는 값이 raw 입력값인가, 인코딩/필터링된 값인가? → 인코딩된 safe 값이다. (2) 출력 전 검증 위치가 출력 직전 컨텍스트(HTML)에 맞는가? → encodeForHTML로 맞다. (3) 검증을 우회할 다른 경로가 보이는가? → 없다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — security_measures ①, design_considerations ②(ㄴ) 라이브러리(OWASP ESAPI XSS Filter)",
+      "tags": ["input_validation", "design", "xss", "오탐", "html인코딩", "esapi", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-C1",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 게시판 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 3종(요구사항정의서·아키텍처설계서·개발가이드)이다. '웹 서비스 요청 및 결과 검증' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 사용자 입력값에 대한 XSS 필터링, ② DB조회결과에 대한 HTML인코딩/XSS 필터링의 두 축과, 각 요구사항의 진단방법(요구사항정의서·아키텍처설계서·개발가이드·단위테스트케이스 반영 여부)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 웹 서비스 요청 및 결과 검증(SR-XSS)",
+          "content": "SR-XSS-01 사용자로부터 입력받은 값을 동적 응답페이지에 사용하는 경우 XSS 필터링을 수행한 뒤 사용한다.\nSR-XSS-02 DB조회결과를 동적 응답페이지에 사용하는 경우 HTML인코딩 또는 XSS 필터링을 수행한 뒤 사용한다.\n(주: 본 정의서의 두 항목은 아키텍처설계서·개발가이드로 추적 가능하도록 요구사항추적표에 매핑되어 있다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "XSS 방어 아키텍처 — 공통 Filter 적용",
+          "content": "[입력값 필터] 모든 요청의 사용자 입력값은 웹 컴포넌트 Filter(서블릿 Filter)에서 XSS 필터/HTML인코딩을 적용하여 안전한 값으로 치환한 뒤 사용하도록 web.xml에 필터 매핑(url-pattern=/*)을 정의한다. XSS 필터 규칙은 안전한 화이트리스트 정책으로 설계한다.\n[DB조회결과] DB에서 조회한 값을 응답페이지에 출력하는 처리에 대한 출력 시점 XSS 필터/HTML인코딩 적용 계획은 본 설계서에 기술되어 있지 않다.\n(결함 후보) DB조회결과 출력에 대한 XSS 대응 설계가 누락되어 있다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "XSS 시큐어코딩 가이드 + 예시 코드",
+          "content": "입력값에 대한 XSS 필터링은 공통 Filter에서 일괄 처리하므로 개별 화면에서 추가 처리하지 않아도 된다고 안내한다. 단, View 컴포넌트에서 DB조회결과를 출력할 때 HTML인코딩 또는 XSS 필터를 적용하라는 코딩규칙은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java) — 게시글 본문 출력\nString content = boardDao.findContent(boardId);\nPrintWriter out = response.getWriter();\nout.println(\"<div>\" + content + \"</div>\");  // DB조회결과를 그대로 출력"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "사용자 입력값 — 공통 Filter 기반 XSS 필터링 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["공통 Filter", "화이트리스트", "안전한 값으로 치환"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-3: 외부입력값에 대한 XSS 필터링 방법(Filter 적용대상이 웹서버 설정파일에 정의)이 아키텍처설계서에 정의되어 있는지 확인. web.xml에 url-pattern=/* 필터 매핑 + 화이트리스트 규칙이 설계되어 이 항목은 적합."
+        },
+        {
+          "item": "DB조회결과 — 출력 시점 XSS 필터/HTML인코딩 적용 설계 누락 진단",
+          "points": 2,
+          "required_keywords": ["DB조회결과", "HTML인코딩", "출력 시점 적용 누락"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항②1-1·1-3: DB조회결과를 응답페이지에 사용할 때 XSS필터/HTML인코딩을 적용하는 설계가 아키텍처설계서에 반영되었는지 확인. 입력 필터만 있고 출력(DB조회결과) XSS 대응 설계가 누락됨."
+        },
+        {
+          "item": "DB조회결과 — View 출력 코딩규칙 누락 진단(개발가이드)",
+          "points": 2,
+          "required_keywords": ["View 컴포넌트", "코딩규칙", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항②1-3: DB조회결과를 응답페이지 생성에 사용하는 경우 XSS필터 또는 HTML인코딩을 적용하도록 코딩규칙이 개발가이드에 정의되어 있는지 확인. 본 가이드에 View 출력 인코딩 코딩규칙이 누락됨."
+        },
+        {
+          "item": "예시 코드 — DB조회결과 미검증 출력 결함 진단(Stored XSS)",
+          "points": 2,
+          "required_keywords": ["검증 없이 출력", "Stored XSS", "HTML인코딩 적용"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항②1-3: 첨부 예시 코드가 DB조회결과(content)를 검증 없이 응답페이지에 출력하여 Stored XSS에 노출됨. 출력 전 HTML인코딩/XSS필터 적용으로 수정 필요."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-IV-05 diagnosis.requirements①② checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 입력값·DB조회결과 두 축(①②)이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 입력값 공통 Filter 적용계획과 DB조회결과(출력) XSS 대응계획 확인 → (3) 개발가이드에서 View 출력 인코딩 코딩규칙 확인 → (4) 첨부 예시 코드의 실제 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — 사용자 입력값 공통 Filter(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: web.xml url-pattern=/* 서블릿 Filter로 입력값을 화이트리스트 정책 XSS 필터/HTML인코딩으로 안전한 값으로 치환해 일괄 적용하여 요구사항①의 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 2 — DB조회결과 출력 XSS 대응(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 입력값 필터는 설계되어 있으나 DB조회결과를 응답페이지에 출력할 때의 XSS필터/HTML인코딩 적용 설계가 누락되어 있다. DB에서 읽어오는 데이터도 외부 입력값으로 보고 출력 전 검증해야 한다.\n  · 개선방안: View 컴포넌트 출력 시점에 HTML인코딩 또는 XSS 필터를 적용하는 설계를 아키텍처설계서에 보강한다.\n■ 진단항목 3 — DB조회결과 View 출력 코딩규칙(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: DB조회결과를 출력할 때 HTML인코딩 또는 XSS 필터를 적용하라는 코딩규칙이 개발가이드에 정의되어 있지 않다.\n  · 개선방안: View 출력 시 HTML인코딩/XSS필터 적용 코딩규칙을 개발가이드에 추가한다.\n■ 진단항목 4 — 예시 코드 결함(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 첨부 예시 코드가 DB조회결과(content)를 검증 없이 응답페이지에 출력하여 Stored XSS에 노출된다.\n  · 개선방안: 출력 전 HtmlUtils.htmlEscape 또는 ESAPI/LUCY XSS Filter를 적용하도록 예시 코드를 수정한다.\n\n[정탐/오탐 판정 근거] 진단항목 2·3·4는 산출물에 명시적으로 누락/결함이 존재하므로 정탐(결함)으로 지적한다. 진단항목 1은 입력값 공통 Filter가 화이트리스트 정책으로 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — diagnosis.requirements①② checklist methods",
+      "tags": ["input_validation", "design", "xss", "복합서술형", "진단보고서", "stored-xss", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-B1",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "웹 서비스 요청 및 결과 검증 설계항목의 두 가지 보안대책에서 빈칸에 들어갈 용어를 쓰시오.",
+      "blank_template": "사용자로부터 입력받은 값을 동적으로 생성되는 응답페이지에 사용하는 경우 {{1}} 필터링을 수행한 뒤 사용해야 하며, DB조회결과를 동적 응답페이지에 사용하는 경우 {{2}} 또는 {{1}} 필터링을 수행한 뒤 사용해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["크로스사이트 스크립트", "XSS", "크로스사이트스크립트"], "synonyms": ["크로스사이트 스크립트(XSS)", "XSS(크로스사이트 스크립트)", "Cross-Site Script"]},
+        {"idx": 2, "answers": ["HTML인코딩", "HTML 인코딩"], "synonyms": ["HTML encoding", "HTML 엔코딩"]}
+      ],
+      "explanation": "정답: {{1}} 크로스사이트 스크립트(XSS), {{2}} HTML인코딩. DSG-IV-05 security_measures ①②에 그대로 명시되어 있다. 사용자 입력값은 동적 응답페이지에 사용하기 전 XSS 필터링을, DB조회결과는 HTML인코딩 또는 XSS 필터링을 수행한 뒤 사용해야 한다. DB조회결과도 외부 입력값 범위에 포함시켜 검증해야 Stored XSS를 막을 수 있다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — security_measures ①②",
+      "tags": ["input_validation", "design", "xss", "html인코딩", "보안대책", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-05-B2",
+      "weakness_name_ko": "웹 서비스 요청 및 결과 검증",
+      "chapter_code": "DSG-IV-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "사용자 입력값에 대한 XSS 필터링을 공통코드로 적용하는 3가지 검증 방식과, XSS 필터 규칙의 설계 원칙에 대한 빈칸을 채우시오.",
+      "blank_template": "입력값에 대한 XSS 검증은 웹 컴포넌트 {{1}}(을)를 이용한 검증, MVC 프레임워크의 {{2}}(을)를 이용한 검증, 라이브러리 또는 Validator 컴포넌트를 이용한 검증의 3가지 방식으로 공통코드화하여 적용한다. 또한 XSS 필터를 생성할 때 필터링 규칙은 안전한 {{3}} 정책이 적용되도록 설계한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["Filter", "필터"], "synonyms": ["서블릿 Filter", "Servlet Filter", "웹 컴포넌트 Filter"]},
+        {"idx": 2, "answers": ["Interceptor", "인터셉터"], "synonyms": ["인터셉트", "Interceptor 컴포넌트"]},
+        {"idx": 3, "answers": ["화이트리스트", "화이트 리스트"], "synonyms": ["whitelist", "허용목록", "white list"]}
+      ],
+      "explanation": "정답: {{1}} Filter(필터), {{2}} Interceptor(인터셉터), {{3}} 화이트리스트. DSG-IV-05 design_considerations ①(ㄱ)(ㄴ)(ㄷ)에 입력값 검증 3방식(Filter / Interceptor / 라이브러리·Validator 컴포넌트)이 제시되어 있고, diagnosis checklist 1-2에 XSS 필터 규칙을 '안전한 화이트리스트 정책'으로 설계하도록 명시되어 있다. 블랙리스트는 우회 가능성이 크므로 화이트리스트가 안전하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.5 웹 서비스 요청 및 결과 검증 — design_considerations ①(ㄱ)(ㄴ)(ㄷ), diagnosis checklist 1-2",
+      "tags": ["input_validation", "design", "xss", "filter", "interceptor", "화이트리스트", "빈칸"]
+    }
+  ]
+}

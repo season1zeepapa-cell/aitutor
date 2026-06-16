@@ -310,6 +310,7 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
                   mcq: 'AI가 각 선택지별 상세 해설 · 실무 사례 · 관련 용어를 생성합니다',
                   blank: 'AI가 빈칸 정답 개념 · 관련 용어 · 실무 활용 예를 심화 설명합니다',
                   diagnosis4: 'AI가 취약 부분의 원리 · 공격 시나리오 · 수정 방안 심화를 설명합니다',
+                  composite: 'AI가 산출물별 분석 · 진단보고서 작성 포인트 · 정탐/오탐 판정 근거를 설명합니다',
                 }[question.question_type] || 'AI가 추가 해설을 생성합니다'}
               </p>
             )}

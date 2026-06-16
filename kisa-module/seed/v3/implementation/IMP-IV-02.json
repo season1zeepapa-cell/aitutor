@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-M1",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음 중 '코드 삽입(Code Injection)' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "공격자가 임의 코드를 삽입하여 소프트웨어의 의도된 동작을 변경하고 비정상적으로 동작하게 만드는 보안약점이다."},
+        {"num": 2, "text": "사용자 입력값에 코드가 포함되는 것을 허용하면 공격자가 권한을 탈취하거나 인증을 우회하고 시스템 명령어를 실행할 수 있다."},
+        {"num": 3, "text": "동적 코드를 실행하는 함수를 가급적 사용하지 않고, 필요 시 화이트리스트 방식으로 유효한 문자만 통과시키는 것이 보안대책이다."},
+        {"num": 4, "text": "코드 삽입은 사용된 프로그래밍 언어와 무관하게 운영체제 명령어 집합 전체를 항상 동일하게 실행할 수 있다는 점에서 운영체제 명령어 삽입과 같다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview·summary의 정의('공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입하여 비정상적으로 동작하도록 하는 보안약점')와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview·course 영향('의도하지 않은 코드를 실행하여 권한 탈취, 인증 우회, 시스템 명령어 실행')과 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure('동적코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시 화이트리스트 방식으로 구현하거나 유효한 문자만 포함하도록 필터링')와 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 설명). overview는 '코드 삽입은 프로그래밍 언어 자체의 기능에 의해서만 제한된다는 점에서 운영체제 명령어 삽입과 다르다'고 명시한다. 즉 실행 가능한 코드는 해당 언어가 제공하는 기능 범위로 제한되며, OS 명령어 집합 전체를 항상 동일하게 실행하는 것이 아니다. '언어와 무관하게 OS 명령어 전체를 실행' '명령어 삽입과 같다'는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-02 overview·countermeasure 및 course를 근거로 한다. 1·2·3번은 각각 정의, 영향, 보안대책과 일치하는 옳은 설명이다. 4번은 overview의 핵심 구분('프로그래밍 언어 자체의 기능에 의해서만 제한된다는 점에서 OS 명령어 삽입과 다르다')을 뒤집어 '언어 무관·OS 명령어 전체·명령어 삽입과 같다'고 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입(pp.194-200), CWE-94 — overview/countermeasure",
+      "tags": ["input_validation", "implementation", "code-injection", "eval", "화이트리스트"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-M2",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java(Spring) 코드의 코드 삽입 취약점에 대한 설명으로 옳지 않은 것은?\n\n```java\n@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\npublic String execute(@RequestParam(\"src\") String src) throws ScriptException {\n    ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n    ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(\"javascript\");\n    String retValue = (String) scriptEngine.eval(src);\n    return retValue;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "외부 입력값 src를 검증 없이 ScriptEngine.eval()로 실행하고 있어 코드 삽입에 취약하다."},
+        {"num": 2, "text": "공격자가 조작된 인수를 src로 전달하면 새 파일을 만들거나 덮어쓰는 등 의도하지 않은 동작을 유발할 수 있다."},
+        {"num": 3, "text": "eval() 호출 전에 src.matches(\"[\\\\w]*\")로 알파벳·숫자·밑줄만 허용하고 특수문자 입력 시 예외를 던지면 안전하게 보완할 수 있다."},
+        {"num": 4, "text": "ScriptEngine.eval()은 자바스크립트 엔진이 내부적으로 입력값을 자동 검증하므로 외부 입력값을 그대로 넘겨도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석 '외부 입력값인 src를 javascript eval 함수로 실행하고 있어 안전하지 않다'와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note('javax.script.ScriptEngineManager의 eval로 사용자 입력을 실행하면 공격자가 조작된 인수로 새 파일을 만들거나 덮어쓸 수 있다')와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 'if (src.matches(\"[\\\\w]*\") == false) throw new IllegalArgumentException();'로 특수문자 입력 시 예외를 발생시키는 정규식 필터를 적용하므로 옳은 보완책이다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 설명). ScriptEngine.eval()은 전달된 문자열을 자바스크립트 코드로 그대로 실행할 뿐 입력값을 자동 검증하지 않는다. 외부 입력값을 그대로 넘기면 임의 코드가 실행되어 취약하므로, 별도의 화이트리스트/정규식 검증이 반드시 필요하다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-02 code_examples(ScriptEngine eval)의 vulnerable/safe와 note를 근거로 한다. 1·2·3번은 각각 취약 원인, note의 공격 영향, safe 코드의 정규식 필터와 일치하는 옳은 설명이다. 4번은 'eval이 자동 검증하여 안전하다'고 하지만 eval은 자동 검증을 하지 않으며 외부 입력 실행 자체가 취약 원인이므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — code_examples(ScriptEngine eval) vulnerable/safe, note",
+      "tags": ["input_validation", "implementation", "code-injection", "eval", "scriptengine", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-M3",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 코드 삽입 진단 시 '안전/취약' 판정 사례들이다. 판정이 잘못된 것은?",
+      "choices": [
+        {"num": 1, "text": "PHP에서 $x=$_GET['arg']를 eval('$myvar = ' . $x . ';')로 사전 검증 없이 실행 → arg=1;phpinfo() 등 삽입 가능 → 취약"},
+        {"num": 2, "text": "eval() 호출 전에 $x=preg_replace(\"/[w\\\\^a-z0-9]/i\", \"\", $x)로 위험 문자를 제거한 뒤 사용 → 취약"},
+        {"num": 3, "text": "engine.eval(\"print('\"+name+\"')\") 호출 전 Filter.filterScript(name)으로 알파벳·숫자·'_'만 허용하는 검증을 통과시킴 → 안전"},
+        {"num": 4, "text": "eval(\"obj.test\"+i+\"=\"+i) 처럼 동적 실행 함수를 쓰지만 반복 인덱스 i만 사용하고 외부 입력값을 실행하지 않음 → 안전"}
+      ],
+      "answer_index": 1,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 판정(함정). true_positive 사례다. arg를 사전 검증 없이 eval에 결합하면 1;phpinfo(), 1;system(\"cat /etc/passwd\") 등 삽입 코드가 실행되어 취약하다."},
+        {"num": 2, "correct": true, "why": "정답(잘못된 판정). false_positive 사례다. eval() 사용 전 preg_replace로 잠재적 위험 기호를 제거하므로 취약하지 않다(오탐 주의). 따라서 '취약' 판정은 틀렸다."},
+        {"num": 3, "correct": false, "why": "옳은 판정(함정). false_positive 사례다. Filter.filterScript가 [\\w]* 패턴(알파벳·숫자·'_')만 허용하는 화이트리스트 검증을 수행하므로 안전하다(오탐 주의)."},
+        {"num": 4, "correct": false, "why": "옳은 판정(함정). false_positive 사례다. 동적 실행 함수 eval을 쓰지만 외부 입력값이 아니라 반복 인덱스 i만 사용하므로 취약하지 않다(오탐 주의)."}
+      ],
+      "explanation": "정답은 2번. IMP-IV-02 diagnosis의 true_positive/false_positive와 대조한다. 1번은 true_positive(PHP eval 사전검증 없음 → 취약), 3·4번은 false_positive(화이트리스트 필터 통과, 외부 입력 미실행 → 안전)로 판정이 옳다. 2번은 preg_replace로 위험 문자를 제거한 false_positive 사례인데 '취약'으로 판정했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — diagnosis.true_positive/false_positive",
+      "tags": ["input_validation", "implementation", "code-injection", "eval", "정탐오탐", "화이트리스트"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-D1",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 코드 삽입 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nclass ACC {\n  public static void executeScript(final String name) throws ScriptException {\n    ScriptEngineManager manager = new ScriptEngineManager();\n    ScriptEngine engine = manager.getEngineByName(\"javascript\");\n    engine.eval(\"print('\" + name + \"')\");\n  }\n}\n// ...\n@RequestMapping(value = \"/print\", method = RequestMethod.POST)\npublic void print(@RequestParam(\"name\") String name) throws ScriptException {\n  ACC.executeScript(name);\n}\n```",
+      "vulnerable_code": "1  class ACC {\n2    public static void executeScript(final String name) throws ScriptException {\n3      ScriptEngineManager manager = new ScriptEngineManager();\n4      ScriptEngine engine = manager.getEngineByName(\"javascript\");\n5      engine.eval(\"print('\" + name + \"')\");\n6    }\n7  }\n8  @RequestMapping(value = \"/print\", method = RequestMethod.POST)\n9  public void print(@RequestParam(\"name\") String name) throws ScriptException {\n10   ACC.executeScript(name);\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [5],
+      "rationale_keywords": ["동적 실행 함수", "eval", "외부 입력값", "검증 절차 없음", "CWE-94"],
+      "fix_keywords": ["화이트리스트", "정규식 검증", "[\\\\w]*", "특수문자 예외"],
+      "safe_code": "1  class ACC {\n2    public static void executeScript(final String name) throws ScriptException {\n3      // 화이트리스트: 알파벳·숫자·'_'만 허용, 그 외 특수문자는 예외 처리\n4      if (!name.matches(\"[\\\\w]*\")) {\n5        throw new IllegalArgumentException();\n6      }\n7      ScriptEngineManager manager = new ScriptEngineManager();\n8      ScriptEngine engine = manager.getEngineByName(\"javascript\");\n9      engine.eval(\"print('\" + name + \"')\");\n10   }\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인에서 동적 코드 실행 함수인 ScriptEngine.eval을 사용하며, 실행 코드에 사용되는 데이터 name이 10번 라인 print() 핸들러의 @RequestParam으로 들어온 사용자 입력값이다. 이 입력값에 대한 별도의 검증 절차가 없어 신뢰할 수 없는 값이 그대로 eval로 실행되므로 코드 삽입(CWE-94)에 취약하다.",
+        "fix_description": "동적 실행 함수 사용을 지양하되 불가피하면 eval 호출 전에 화이트리스트 방식으로 입력값을 검증한다. 예를 들어 name.matches(\"[\\\\w]*\")로 알파벳·숫자·'_'만 허용하고 특수문자가 포함되면 IllegalArgumentException을 던져 예외 처리한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-02 diagnosis.true_positive 첫 번째 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '동적 실행 함수'/'eval': 5번 라인 engine.eval이 문자열을 코드로 실행한다.\n- '외부 입력값': name이 @RequestParam으로 들어온 사용자 입력이다.\n- '검증 절차 없음'/'CWE-94': 신뢰할 수 없는 입력을 검증 없이 실행하여 코드 삽입에 해당.\n\n[수정 키워드 의미] 화이트리스트 정규식 [\\w]*로 검증하고 특수문자 시 예외.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(5번 라인 eval 지목) 20점 / rationale(동적 실행 함수·외부 입력·검증 부재 등 키워드 포함) 30점 / fix(화이트리스트 정규식 검증 + 특수문자 예외) 30점.\n\n[자가확인 체크리스트] (1) eval 등 동적 코드 실행 함수를 사용하는가? (2) 실행에 쓰이는 데이터가 외부 입력값인가? (3) 그 입력값에 대한 검증 절차가 없는가? — 셋 다 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — diagnosis.true_positive, CWE-94",
+      "tags": ["input_validation", "implementation", "code-injection", "eval", "정탐", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-D2",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 코드 삽입 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nclass ACC {\n  public static void executeScript(final String name) throws ScriptException {\n    if (!Filter.filterScript(name)) {   // name.matches(\"[\\\\w]*\") 로 알파벳·숫자·'_'만 허용\n      throw new IllegalArgumentException();\n    }\n    ScriptEngineManager manager = new ScriptEngineManager();\n    ScriptEngine engine = manager.getEngineByName(\"javascript\");\n    engine.eval(\"print('\" + name + \"')\");\n  }\n}\n```",
+      "vulnerable_code": "1  class ACC {\n2    public static void executeScript(final String name) throws ScriptException {\n3      if (!Filter.filterScript(name)) {   // name.matches(\"[\\\\w]*\") 로 알파벳·숫자·'_'만 허용\n4        throw new IllegalArgumentException();\n5      }\n6      ScriptEngineManager manager = new ScriptEngineManager();\n7      ScriptEngine engine = manager.getEngineByName(\"javascript\");\n8      engine.eval(\"print('\" + name + \"')\");\n9    }\n10 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["화이트리스트 검증", "[\\\\w]*", "특수문자 차단", "검증 후 실행", "예외 처리"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — eval 실행 전에 Filter.filterScript(name)로\n2  // [\\\\w]*(알파벳·숫자·'_') 화이트리스트 검증을 통과한 값만 실행한다. 추가 조치 불필요.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 동적 실행 함수 eval(8번 라인)을 사용하지만, 그 전에 Filter.filterScript(name)으로 name이 [\\\\w]* 패턴(알파벳·숫자·'_')만 포함하는지 화이트리스트 검증을 수행하고, 통과하지 못하면 IllegalArgumentException을 던져 차단한다. 신뢰할 수 없는 특수문자가 eval로 전달되지 않으므로 코드 삽입이 발생하지 않는다. 이는 가이드의 false_positive(오탐 주의) 사례와 동일하다.",
+        "fix_description": "수정 불필요. 이미 eval 실행 전 화이트리스트 검증으로 유효 문자만 통과시키고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-02 diagnosis.false_positive(Filter.filterScript 화이트리스트 검증) 코드를 기반으로 한다. 핵심은 'eval을 쓴다는 사실만으로 취약하다고 오판하지 않기'다.\n\n[오판 주의] 동적 실행 함수(eval)가 보인다고 무조건 취약한 것이 아니다. 실행 전에 외부 입력값에 대한 화이트리스트 검증이 있는지가 판정 기준이다.\n\n[안전 판정 근거 키워드 의미]\n- '화이트리스트 검증'/'[\\\\w]*': Filter.filterScript가 알파벳·숫자·'_'만 허용함.\n- '특수문자 차단'/'예외 처리': 검증 실패 시 IllegalArgumentException으로 차단.\n- '검증 후 실행': eval은 검증을 통과한 값만 실행함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음. vulnerable_lines=[]은 '해당 라인 없음' 표식) 20점 / rationale(화이트리스트 검증·특수문자 차단·검증 후 실행 등 안전 근거 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) eval 실행 전에 외부 입력값을 화이트리스트로 검증하는가? → 그렇다. (2) 검증 실패 시 차단(예외)하는가? → 그렇다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — diagnosis.false_positive",
+      "tags": ["input_validation", "implementation", "code-injection", "eval", "오탐", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-B1",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 코드 삽입의 보안대책이다. 빈칸에 들어갈 용어를 채우시오.\n\n· 가장 기본적인 대책은 동적 코드를 실행할 수 있는 함수, 즉 문자열을 코드로 실행하는 (가) 계열 함수를 사용하지 않는 것이다.\n· 동적 코드 실행이 불가피한 경우, 허용된 유효 문자만 통과시키는 (나) 방식으로 외부 입력값을 검증한다.",
+      "blank_template": "· 가장 기본적인 대책은 동적 코드를 실행할 수 있는 함수, 즉 문자열을 코드로 실행하는 {{1}} 계열 함수를 사용하지 않는 것이다.\n· 동적 코드 실행이 불가피한 경우, 허용된 유효 문자만 통과시키는 {{2}} 방식으로 외부 입력값을 검증한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["eval"], "synonyms": ["이밸", "이발", "eval()"]},
+        {"idx": 2, "answers": ["화이트리스트"], "synonyms": ["whitelist", "화이트 리스트", "허용목록", "허용 목록"]}
+      ],
+      "explanation": "정답: (가) eval, (나) 화이트리스트. countermeasure('동적코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시 화이트리스트 방식으로 구현')와 course key_concepts('동적 코드 실행 함수: eval 등 문자열을 코드로 실행하는 함수', '화이트리스트 필터링: 허용된 유효 문자만 통과시키는 입력값 검증 방식')를 근거로 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — countermeasure; COURSE-IMP-IV-02 보안대책·key_concepts",
+      "tags": ["input_validation", "implementation", "code-injection", "빈칸", "eval", "화이트리스트"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-02-B2",
+      "weakness_name_ko": "코드 삽입",
+      "chapter_code": "IMP-IV-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 코드 삽입 진단 흐름과 안전한 코드 작성 방법이다. 빈칸에 들어갈 용어를 채우시오.\n\n· 진단 흐름: 각 언어가 제공하는 (가) 함수를 확인하고, 그 함수에 사용되는 데이터가 신뢰할 수 있는 값인지 확인한다. 신뢰할 수 없는 값에 검증 절차가 없으면 위험으로 판정한다.\n· 안전한 코드 예: Java에서는 정규식 (나) (알파벳·숫자·밑줄)로 검사하여 특수문자 입력 시 예외를 발생시키고, PHP에서는 preg_replace로 허용 문자 외를 제거한다.",
+      "blank_template": "· 진단 흐름: 각 언어가 제공하는 {{1}} 함수를 확인하고, 그 함수에 사용되는 데이터가 신뢰할 수 있는 값인지 확인한다. 신뢰할 수 없는 값에 검증 절차가 없으면 위험으로 판정한다.\n· 안전한 코드 예: Java에서는 정규식 {{2}} (알파벳·숫자·밑줄)로 검사하여 특수문자 입력 시 예외를 발생시키고, PHP에서는 preg_replace로 허용 문자 외를 제거한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["동적 실행"], "synonyms": ["동적실행", "동적 코드 실행", "동적코드 실행", "dynamic execution", "동적 코드 실행 함수"]},
+        {"idx": 2, "answers": ["[\\w]*"], "synonyms": ["[\\\\w]*", "\\w", "\\\\w", "[\\w]", "[\\\\w]"]}
+      ],
+      "explanation": "정답: (가) 동적 실행, (나) [\\w]*. diagnosis.method('각 언어에서 제공하고 있는 동적실행 함수를 확인하고, 동적코드 실행에 사용되는 데이터가 신뢰할 수 있는 값인지 확인')와 code_examples safe 코드('src.matches(\"[\\\\w]*\") == false 이면 예외 발생'), course('정규식 [\\w]*(알파벳·숫자·밑줄)이나 preg_replace로 허용 문자만 남기는 화이트리스트 필터')를 근거로 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 코드삽입 — diagnosis.method, code_examples(safe); COURSE-IMP-IV-02 exam_points",
+      "tags": ["input_validation", "implementation", "code-injection", "빈칸", "정규식", "동적실행"]
+    }
+  ]
+}

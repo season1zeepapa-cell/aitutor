@@ -1,0 +1,241 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-IV-03",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-M1",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계 '디렉토리 서비스 조회 및 결과 검증' 설계항목의 보안대책에 대한 설명이다. 옳지 않은 것은?\n\n디렉토리 서비스(LDAP 등)를 조회할 때 입력값과 그 조회결과에 대한 유효성 검증방법을 설계하고 유효하지 않은 값에 대한 처리방법을 설계해야 한다.",
+      "choices": [
+        {"num": 1, "text": "LDAP 인증서버로 인증을 구현하는 경우, 인증요청에 사용되는 외부입력값은 LDAP 삽입 취약점을 가지지 않도록 필터링해서 사용해야 한다."},
+        {"num": 2, "text": "외부입력값이 LDAP 조회를 위한 검색 필터 생성에 삽입되는 경우, 필터 규칙으로 인식 가능한 특수문자(=, +, <, >, #, ;, \\ 등)를 제거하고 사용하도록 시큐어코딩 규칙을 정의해야 한다."},
+        {"num": 3, "text": "LDAP 삽입 취약점을 점검할 수 있도록, 필터 구문을 변경할 수 있는 입력값으로 필터 규칙 변경 여부를 점검하는 테스트 계획을 수립해야 한다."},
+        {"num": 4, "text": "외부입력값을 LDAP 검색 필터에 그대로 삽입하면 인증·조회 로직이 자동으로 안전하게 처리되므로 별도의 특수문자 필터링은 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "보안대책 ①과 일치하는 옳은 진술이다. LDAP 인증 구현 시 외부입력값은 LDAP 삽입 취약점을 가지지 않도록 필터링해서 사용해야 하므로 함정(옳은 진술)이다."},
+        {"num": 2, "correct": false, "why": "설계 고려사항 ①과 일치하는 옳은 진술이다. 검색 필터 생성에 삽입되는 입력값에서 필터 규칙 인식 특수문자(=, +, <, >, #, ;, \\)를 제거하는 시큐어코딩 규칙을 정의해야 하므로 함정(옳은 진술)이다."},
+        {"num": 3, "correct": false, "why": "진단기준 checklist 2의 테스트 계획과 일치하는 옳은 진술이다. 필터 구문을 변경할 수 있는 입력값으로 필터 규칙 변경 여부를 점검하는 테스트 계획을 수립해야 하므로 함정(옳은 진술)이다."},
+        {"num": 4, "correct": true, "why": "정답. 외부입력값을 LDAP 검색 필터에 검증 없이 그대로 삽입하면 공격자가 필터 규칙을 변경하여 인증 우회·정보 노출이 가능한 LDAP 삽입(CWE-90)이 발생한다. '자동으로 안전하게 처리되어 필터링이 불필요하다'는 진술은 보안대책을 정면으로 위배하므로 명백히 잘못된 설계다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-03 라이브러리 security_measures ①(외부입력값 필터링)과 design_considerations ①(특수문자 제거 시큐어코딩)과 대조하여 확인한다. 1·2·3번은 각각 보안대책·설계 고려사항·진단 테스트 계획에 그대로 일치하는 옳은 진술이라 함정으로 배치되었다. 4번은 '외부입력값을 필터 없이 삽입해도 자동 안전'을 주장하는데, 이는 overview의 'LDAP 조회 필터 생성에 사용되는 입력값에 대한 검증을 수행하지 않으면 공격자가 의도하는 조회가 수행되는' LDAP 삽입 취약점 그 자체이므로 잘못된 것이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증(pp.54-57) — security_measures ①, design_considerations ①",
+      "tags": ["input_validation", "design", "ldap", "디렉토리서비스", "특수문자필터링", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-M2",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 두 Java 코드는 동일한 LDAP 검색 기능의 (가) 취약 코드와 (나) 안전 코드이다. 설명으로 옳지 않은 것은?\n\n```java\n// (가)\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\nNamingEnumeration<?> results = dctx.search(base, filter, sc);\n\n// (나)\nif (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n    throw new IllegalArgumentException(\"Invalid input\");\n}\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\nNamingEnumeration<?> results = dctx.search(base, filter, sc);\n```",
+      "choices": [
+        {"num": 1, "text": "(가)는 외부입력값 userSN·userPassword를 검증 없이 LDAP 검색 필터 문자열 생성에 사용하므로 LDAP 삽입에 취약하다."},
+        {"num": 2, "text": "(가)에서 userPassword에 * 를 전달하면 필터가 (&(sn=S*)(userPassword=*)) 가 되어 항상 참이 되며 의도하지 않은 동작을 유발한다."},
+        {"num": 3, "text": "(나)는 입력값이 화이트리스트 정규식(\\w \\s 등)에 맞는지 검증하여 LDAP 필터를 조작할 수 있는 특수문자를 차단한다."},
+        {"num": 4, "text": "(가)와 같이 외부입력값을 그대로 필터에 결합해도 LDAP는 와일드카드(*)를 항상 안전하게 처리하므로 검증이 필요 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). (가)는 외부입력값 userSN·userPassword를 검증 없이 + 연산으로 LDAP 검색 필터 문자열에 직접 결합하므로 LDAP 삽입 취약 코드다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). IMP-IV-10 note의 공격 예시 그대로다. *를 전달하면 필터가 (&(sn=S*)(userPassword=*)) 가 되어 항상 참이 되며 인증 우회·의도하지 않은 동작이 발생한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). (나)는 userSN·userPassword가 화이트리스트 정규식([\\w\\s]*, [\\w]*)에 맞는지 검증하여 LDAP 필터 조작 특수문자(=, +, <, >, #, ;, \\, * 등)를 차단한 안전 코드다."},
+        {"num": 4, "correct": true, "why": "정답. LDAP는 와일드카드(*)를 항상 안전하게 처리하지 않는다. 오히려 *가 필터에 그대로 삽입되면 (userPassword=*) 처럼 항상 참이 되는 조건을 만들어 인증 우회가 가능하다. 따라서 외부입력값을 그대로 결합하면 취약하며, '검증이 필요 없다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-03 보안대책(특수문자 필터링)과 관련약점 IMP-IV-10(LDAP 삽입)의 code_examples(Java) vulnerable/safe로 검증한다. 1·2·3번은 (가)의 취약성과 (나)의 안전성을 정확히 설명한 옳은 진술이다. 4번은 와일드카드(*)가 LDAP 필터에서 '항상 참' 조건을 만들어 인증 우회를 일으킨다는 note의 사실을 정반대로 진술하여 틀렸다. 외부입력값은 반드시 필터링·검증 후 사용해야 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증; 제4장 §10 LDAP 삽입(pp.264-271), CWE-90 — code_examples(Java) vulnerable/safe",
+      "tags": ["input_validation", "design", "ldap", "검색필터", "와일드카드", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-M3",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "디렉토리 서비스(LDAP) 조회 및 결과 검증 설계항목의 진단방법과 확인 대상 산출물의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·요구사항추적표·아키텍처설계서·프로그램명세서·클래스설계서·개발가이드·단위테스트케이스 등 산출물을 검토하여 LDAP 조회 보안설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "외부입력값이 LDAP 필터 생성에 안전하게 사용되도록 대책이 수립되고 아키텍처설계서에 적용계획이 있으며 요구사항추적표로 추적 가능한지 확인 — 요구사항정의서·요구사항추적표·아키텍처설계서 검토"},
+        {"num": 2, "text": "LDAP 조회필터 생성에 사용되는 입력값을 필터링하는 기능이 설계되어 있거나 안전한 외부라이브러리를 사용하도록 설계되어 있는지 확인 — 프로그램명세서·컴포넌트설계서·유즈케이스설계서·클래스설계서 검토"},
+        {"num": 3, "text": "LDAP 필터링을 적용하기 위한 코딩규칙이 정의되어 있는지 확인 — 개발가이드 검토"},
+        {"num": 4, "text": "LDAP 필터 구문을 변경할 수 있는 입력값(=, +, <, >, #, ;, \\ 등)으로 필터 규칙 변경 여부를 점검하는 테스트 계획이 수립되어 있는지 확인 — 아키텍처설계서 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-1 method가 '대책 수립 + 아키텍처설계서 적용계획 + 요구사항추적표 추적 여부 확인'이며 artifacts가 '요구사항정의서, 요구사항추적표, 아키텍처설계서 검토'로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-2 method가 'LDAP 조회필터 입력값 필터링 기능 설계 또는 안전한 외부라이브러리 사용 설계 확인'이며 artifacts가 '프로그램명세서, 컴포넌트설계서, 유즈케이스설계서, 클래스설계서'로 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-3 method가 'LDAP 필터링 적용 코딩규칙이 개발가이드에 정의되어 있는지 확인'이며 artifacts가 '개발가이드 검토'로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항①의 checklist 2-1 method 'LDAP 필터 구문을 변경할 수 있는 입력값(=, +, <, >, #, ;, \\)으로 필터 규칙 변경 여부 점검 테스트 계획 수립 여부 확인'의 관련산출물은 '단위테스트케이스 검토'이다. 테스트 계획 수립 여부 확인은 '단위테스트케이스'와 연결되어야 하며 '아키텍처설계서'로 연결한 것은 틀렸다. 아키텍처설계서는 대책 적용계획 확인(1-1)에 쓰이는 산출물이라는 점이 함정이다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-03 라이브러리 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 요구사항①1-1, ①1-2, ①1-3의 짝과 정확히 일치한다. 4번은 'LDAP 삽입 점검 테스트 계획'(2-1)의 올바른 산출물이 '단위테스트케이스'인데 '아키텍처설계서'로 잘못 연결되었다. 테스트 계획 수립 여부는 항상 단위테스트케이스로 확인하고, 아키텍처설계서는 보안설계 적용계획(1-1)을 확인하는 산출물이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증 — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["input_validation", "design", "ldap", "진단방법", "산출물", "단위테스트케이스", "아키텍처설계서"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-D1",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 LDAP 조회 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString name = props.getProperty(\"name\");\nString filter = \"(name=\" + name + \")\";\nNamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\nprintSearchEnumeration(answer);\n```",
+      "vulnerable_code": "1  String name = props.getProperty(\"name\");\n2  String filter = \"(name=\" + name + \")\";\n3  NamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\n4  printSearchEnumeration(answer);",
+      "code_language": "java",
+      "vulnerable_lines": [2, 3],
+      "rationale_keywords": ["외부입력값", "검색 필터 문자열 결합", "LDAP 삽입", "와일드카드(*) 항상 참", "필터링 없음"],
+      "fix_keywords": ["특수문자 제거", "화이트리스트 검증", "정규식 matches", "인증 후 바인딩"],
+      "safe_code": "1  String name = props.getProperty(\"name\");\n2  // LDAP 필터를 조작할 수 있는 특수문자(=, +, <, >, #, ;, \\, * 등)를 제거/검증한다.\n3  if (!name.matches(\"[\\\\w\\\\s]*\")) {\n4    throw new IllegalArgumentException(\"Invalid input\");\n5  }\n6  String filter = \"(name=\" + name + \")\";\n7  NamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\n8  printSearchEnumeration(answer);",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 외부입력값 name(props.getProperty)을 검증·필터링 없이 문자열 결합으로 LDAP 검색 필터 생성에 사용하고, 3번 라인에서 ctx.search로 그대로 조회한다. name 값으로 *를 전달하면 필터가 (name=*) 가 되어 항상 참이 되므로 인증 우회·의도하지 않은 정보 노출이 가능한 LDAP 삽입(CWE-90)이 발생한다. 이는 보안대책(외부입력값 필터링)을 위반한다.",
+        "fix_description": "LDAP 필터를 조작할 수 있는 특수문자(=, +, <, >, #, ;, \\, * 등)를 입력값에서 제거하거나, 화이트리스트 정규식(예: name.matches(\"[\\\\w\\\\s]*\"))으로 허용 문자만 통과시킨 뒤 필터를 생성한다. 가능하면 익명 바인딩 대신 인증 후 조회하도록 설계한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-10 diagnosis.true_positive(외부 입력 name이 검색 필터 문자열 생성에 사용) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부입력값'/'검색 필터 문자열 결합': 2번 라인이 props로 받은 name을 + 연산으로 LDAP 필터에 직접 결합함.\n- 'LDAP 삽입': 입력값에 따라 필터 규칙이 바뀌는 CWE-90 약점.\n- '와일드카드(*) 항상 참': name에 *를 주입하면 (name=*) 가 되어 항상 참이 됨.\n\n[수정 키워드 의미] 특수문자 제거 또는 화이트리스트 정규식 검증(matches) 후 필터 생성.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2번·3번 라인 지목) 20점 / rationale(외부입력값 필터 문자열 결합·LDAP 삽입·와일드카드 항상 참 키워드 포함) 30점 / fix(특수문자 제거·화이트리스트 검증) 30점.\n\n[자가확인 체크리스트] (1) LDAP 검색 필터가 외부입력값과 문자열 결합(+)으로 만들어지는가? (2) =, +, <, >, #, ;, \\, * 등 필터 조작 특수문자에 대한 제거·검증이 없는가? (3) 입력값으로 필터 규칙을 바꿀 수 있는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — diagnosis.true_positive, CWE-90",
+      "tags": ["input_validation", "design", "ldap", "정탐", "검색필터", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-D2",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 LDAP 조회 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString[] attributeFilter = { \"cn\", \"mail\" };\nsc.setReturningAttributes(attributeFilter);\nsc.setSearchScope(SearchControls.SUBTREE_SCOPE);\nString base = \"dc=example,dc=com\";\nif (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n    throw new IllegalArgumentException(\"Invalid input\");\n}\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\nNamingEnumeration<?> results = dctx.search(base, filter, sc);\n```",
+      "vulnerable_code": "1  String[] attributeFilter = { \"cn\", \"mail\" };\n2  sc.setReturningAttributes(attributeFilter);\n3  sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n4  String base = \"dc=example,dc=com\";\n5  if (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n6    throw new IllegalArgumentException(\"Invalid input\");\n7  }\n8  String filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n9  NamingEnumeration<?> results = dctx.search(base, filter, sc);",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["화이트리스트 정규식 검증", "matches", "특수문자 차단", "필터 조작 불가", "검증 후 사용"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — userSN·userPassword가 화이트리스트 정규식([\\w\\s]*, [\\w]*)에\n2  // 부합하는지 검증하여 LDAP 필터 조작 특수문자를 차단한 뒤 필터를 생성한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 5~7번 라인에서 외부입력값 userSN·userPassword가 화이트리스트 정규식([\\w\\s]*, [\\w]*)에 부합하는지 검증하고, 부합하지 않으면 예외를 던져 처리를 중단한다. 이로써 =, +, <, >, #, ;, \\, * 등 LDAP 필터를 조작할 수 있는 특수문자가 8번 라인의 필터 생성에 도달할 수 없으므로 입력값이 필터 규칙을 변경할 수 없다. 이는 IMP-IV-10 safe 코드(화이트리스트 검증) 사례로, 보안대책(외부입력값 필터링)을 충족하는 안전한 코드다.",
+        "fix_description": "수정 불필요. 이미 화이트리스트 정규식 검증으로 LDAP 필터 조작 특수문자를 차단한 뒤 필터를 생성하므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-10 code_examples(Java)의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] filter 문자열이 문자열 결합(+)으로 만들어진다는 것만 보고 무조건 취약하다고 단정해서는 안 된다. 8번 라인 직전 5~7번 라인에서 화이트리스트 정규식으로 입력값을 검증하므로, 필터에 도달하는 값에는 조작 특수문자가 존재할 수 없다.\n\n[안전 판정 근거 키워드 의미]\n- '화이트리스트 정규식 검증'/'matches': [\\w\\s]*, [\\w]*에 부합하는 값만 통과.\n- '특수문자 차단': =, +, <, >, #, ;, \\, * 등 필터 조작 문자가 차단됨.\n- '필터 조작 불가': 검증을 통과한 값은 필터 규칙을 바꿀 수 없음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(화이트리스트 정규식 검증·특수문자 차단·필터 조작 불가 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 필터 생성 전에 입력값에 대한 검증(필터링/정규식)이 있는가? → 그렇다. (2) LDAP 필터 조작 특수문자가 차단되는가? → 그렇다(화이트리스트). (3) 검증을 통과한 입력값이 필터 규칙을 바꿀 수 있는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — code_examples(Java) safe(화이트리스트 검증)",
+      "tags": ["input_validation", "design", "ldap", "오탐", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-C1",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 3종(요구사항정의서·아키텍처설계서·개발가이드)이다. '디렉토리 서비스(LDAP) 조회 및 결과 검증' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 LDAP 인증요청 외부입력값의 필터링(특수문자 제거) 보안대책과, 진단방법(요구사항정의서·아키텍처설계서·필터링 기능 설계·개발가이드 반영 여부)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — LDAP 조회(SR-LDAP)",
+          "content": "SR-LDAP-01 LDAP 인증서버 인증 구현 시 인증요청에 사용되는 외부입력값은 LDAP 삽입 취약점을 가지지 않도록 필터링해서 사용한다.\n(주: 본 항목은 아키텍처설계서에 적용계획이 수립되고 요구사항추적표에 매핑되어 추적 가능하다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "LDAP 인증 아키텍처 — 검색필터 처리",
+          "content": "[인증흐름] 로그인 요청 시 사용자 ID/비밀번호로 LDAP 검색 필터를 생성하여 디렉토리 서버에 조회한다. 외부입력값이 검색 필터 생성에 삽입되어 사용되도록 설계되어 있다. (결함 후보) 그러나 검색 필터 생성에 삽입되는 외부입력값에서 LDAP 필터 조작 특수문자(=, +, <, >, #, ;, \\)를 제거·검증하는 필터링 기능 설계가 본 설계서에 누락되어 있다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "LDAP 조회 시큐어코딩 가이드 + 예시 코드",
+          "content": "LDAP 조회 기능 구현 시 외부입력값은 검증 후 사용한다. 단, LDAP 필터 조작 특수문자 제거를 위한 구체적 코딩 규칙(제거 대상 문자 목록·치환 방법)은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java)\nString name = props.getProperty(\"name\");\nString filter = \"(name=\" + name + \")\";\nNamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "보안설계 추적성 — 요구사항정의서·아키텍처설계서·요구사항추적표 추적성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["요구사항정의서", "요구사항추적표", "아키텍처설계서"],
+          "artifact_ref": "요구사항정의서",
+          "method": "요구사항①1-1: 대책 수립 + 아키텍처설계서 적용계획 + 요구사항추적표 추적 여부 확인. 요구사항정의서에 대책이 수립되고 추적표에 매핑되어 이 항목은 적합."
+        },
+        {
+          "item": "필터링 기능 설계 누락 진단 — 검색필터 입력값 특수문자 제거 설계 미반영",
+          "points": 2,
+          "required_keywords": ["검색 필터", "특수문자 제거", "필터링 기능"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-2: LDAP 조회필터 입력값을 필터링하는 기능이 설계되어 있는지 확인. 검색 필터 생성에 외부입력값을 삽입하나 LDAP 필터 조작 특수문자(=, +, <, >, #, ;, \\) 제거·검증 기능 설계가 누락됨."
+        },
+        {
+          "item": "코딩 규칙 누락 진단 — LDAP 필터링 코딩 규칙(제거 대상 특수문자) 미정의",
+          "points": 2,
+          "required_keywords": ["LDAP 필터링 코딩규칙", "특수문자 목록", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항①1-3: LDAP 필터링 적용 코딩규칙이 개발가이드에 정의되어 있는지 확인. 제거 대상 특수문자 목록·치환 방법 등 구체적 코딩 규칙이 누락됨."
+        },
+        {
+          "item": "예시 코드 결함 진단 — 첨부 예시의 LDAP 삽입(필터 문자열 결합)",
+          "points": 2,
+          "required_keywords": ["문자열 결합", "LDAP 삽입", "화이트리스트 검증"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항①1-3: 개발가이드 예시 코드가 안전한지 확인. 첨부 예시가 외부입력값 name을 문자열 결합으로 (name=name) 필터에 삽입하여 LDAP 삽입에 취약(필터링·검증 미적용)."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-IV-03 diagnosis.requirements checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 LDAP 입력값 필터링 대책이 수립되고 아키텍처설계서 적용계획·요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 검색필터 입력값 필터링 기능 설계 확인 → (3) 개발가이드에서 LDAP 필터링 코딩규칙 확인 → (4) 첨부 예시 코드의 실제 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — 보안설계 추적성(요구사항정의서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: LDAP 입력값 필터링 대책이 요구사항정의서에 수립되고 아키텍처설계서 적용계획·요구사항추적표로 추적 가능하여 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 2 — 필터링 기능 설계(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 외부입력값이 LDAP 검색 필터 생성에 삽입되도록 설계되었으나, LDAP 필터 조작 특수문자(=, +, <, >, #, ;, \\)를 제거·검증하는 필터링 기능 설계가 누락되었다.\n  · 개선방안: 검색 필터 생성 전에 외부입력값에서 LDAP 필터 조작 특수문자를 제거하거나 화이트리스트로 검증하는 필터링 컴포넌트를 아키텍처설계서에 추가한다.\n■ 진단항목 3 — LDAP 필터링 코딩 규칙(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: LDAP 필터링 적용을 위한 구체적 코딩 규칙(제거 대상 특수문자 목록·치환 방법)이 개발가이드에 정의되어 있지 않다.\n  · 개선방안: LDAP 검색 필터에 삽입되는 입력값에서 =, +, <, >, #, ;, \\ 등을 제거하는 코딩 규칙을 개발가이드에 명시한다.\n■ 진단항목 4 — 예시 코드 결함(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 개발가이드 첨부 예시 코드가 외부입력값 name을 문자열 결합으로 (name=name) 필터에 삽입하여 LDAP 삽입에 취약하다(필터링·검증 미적용).\n  · 개선방안: 예시 코드를 화이트리스트 정규식 검증(matches) 또는 특수문자 제거 후 필터 생성으로 수정하여 안전한 모범 사례로 제시한다.\n\n[정탐/오탐 판정 근거] 진단항목 2·3·4는 산출물에 명시적 누락/결함이 존재하므로 정탐(결함)으로 지적한다. 진단항목 1은 추적성이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증 — diagnosis.requirements① checklist methods; 제4장 §10 LDAP 삽입 code_examples",
+      "tags": ["input_validation", "design", "ldap", "복합서술형", "진단보고서", "산출물", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-B1",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "디렉토리 서비스(LDAP) 조회 보안설계의 검색 필터 특수문자 처리에 대한 빈칸을 채우시오.",
+      "blank_template": "LDAP 인증이 포함되는 기능 설계 시, 외부입력값이 LDAP 조회를 위한 {{1}} 생성에 삽입되어 사용되는 경우, 필터 규칙으로 인식 가능한 특수문자({{2}} 등)들을 제거하고 사용할 수 있도록 시큐어코딩 규칙을 정의해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["검색 필터"], "synonyms": ["검색필터", "LDAP 검색 필터", "필터", "조회 필터"]},
+        {"idx": 2, "answers": ["= + < > # ; \\"], "synonyms": ["=, +, <, >, #, ;, \\", "= , + , < , > , # , ; , \\", "=", "+", "<", ">", "#", ";", "\\"]}
+      ],
+      "explanation": "정답: (1) 검색 필터, (2) = + < > # ; \\. 설계 고려사항 ①은 외부입력값이 LDAP 조회를 위한 '검색 필터' 생성에 삽입될 때, 필터 규칙으로 인식 가능한 특수문자(=, +, <, >, #, ;, \\ 등)를 제거하도록 시큐어코딩 규칙을 정의할 것을 요구한다. 이들 특수문자는 LDAP 삽입(CWE-90)을 유발하며 진단 시 테스트 입력값으로도 사용된다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증 — design_considerations ①",
+      "tags": ["input_validation", "design", "ldap", "빈칸", "검색필터", "특수문자"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-03-B2",
+      "weakness_name_ko": "디렉토리 서비스 조회 및 결과 검증",
+      "chapter_code": "DSG-IV-03",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "디렉토리 서비스 조회 보안설계의 관련 약점과 프로토콜에 대한 빈칸을 채우시오.",
+      "blank_template": "디렉토리 서비스 조회 및 결과 검증 설계항목과 관련된 구현단계 보안약점은 입력 데이터 검증 및 표현 카테고리의 {{1}}이다. 여기서 디렉토리 서비스를 조회·수정하기 위해 TCP/IP 위에서 동작하는 응용 프로토콜을 {{2}}라고 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["LDAP 삽입"], "synonyms": ["LDAP Injection", "LDAP인젝션", "LDAP 인젝션"]},
+        {"idx": 2, "answers": ["LDAP"], "synonyms": ["Lightweight Directory Access Protocol", "엘답"]}
+      ],
+      "explanation": "정답: (1) LDAP 삽입, (2) LDAP. 디렉토리 서비스 조회 및 결과 검증 설계항목과 연관된 구현단계 보안약점은 '입력 데이터 검증 및 표현 > LDAP 삽입'(IMP-IV-10, CWE-90)이다. LDAP(Lightweight Directory Access Protocol)는 TCP/IP 위에서 디렉토리 서비스를 조회·수정하는 응용 프로토콜로, 외부입력값이 검색 필터 생성에 검증 없이 삽입되면 인증 우회·정보 노출이 발생한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.3 디렉토리 서비스 조회 및 결과 검증 — overview, related_weaknesses",
+      "tags": ["input_validation", "design", "ldap", "빈칸", "LDAP삽입", "프로토콜"]
+    }
+  ]
+}

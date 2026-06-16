@@ -1,0 +1,192 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-CE-05",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-M1",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현 단계 코드오류 항목인 '신뢰할 수 없는 데이터의 역직렬화'에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "직렬화(Serialization)는 클래스의 인스턴스 정보를 바이트 스트림으로 복사하여 파일로 저장하거나 수신측에 전달하는 작업이고, 역직렬화는 그 반대 연산이다."},
+        {"num": 2, "text": "공격자가 전송 또는 저장된 스트림을 조작할 수 있는 경우, 신뢰할 수 없는 역직렬화로 무결성 침해·원격 코드 실행·서비스 거부 공격이 발생할 수 있다."},
+        {"num": 3, "text": "역직렬화는 신뢰 여부와 무관하게 항상 안전한 연산이므로 입력 데이터에 대한 별도의 검증 없이 수행해도 된다."},
+        {"num": 4, "text": "신뢰할 수 없는 데이터를 역직렬화하지 않도록 응용프로그램을 구성하거나, 서명을 추가·검증하여 데이터의 무결성을 확인한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 직렬화는 인스턴스 정보를 바이트 스트림으로 복사해 저장·전달하는 작업이고 역직렬화는 그 반대 연산(바이트 스트림에서 객체 구조로 복원)이라고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview·course exam_points가 '공격자가 전송·저장 스트림을 조작할 수 있는 경우 무결성 침해, 원격 코드 실행, 서비스 거부 공격이 발생할 수 있다'고 그대로 기술한다."},
+        {"num": 3, "correct": true, "why": "정답(틀린 진술). 역직렬화는 신뢰할 수 없는 데이터에 대해 검증 없이 수행하면 위험하다. diagnosis.method는 출처를 신뢰할 수 없는 데이터를 검증하는 절차가 없으면 취약하다고 판정하며, countermeasure는 신뢰할 수 없는 데이터를 역직렬화하지 않도록 구성하라고 한다. '항상 안전, 검증 불필요'는 약점의 본질을 정반대로 뒤집은 진술이다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). countermeasure의 대책 ①(신뢰할 수 없는 데이터 역직렬화 금지)·②(서명 추가·검증으로 무결성 확인)와 일치한다."}
+      ],
+      "explanation": "정답은 3번. IMP-CE-05 overview·countermeasure·diagnosis로 검증한다. 역직렬화는 공격자가 스트림을 조작할 수 있는 환경에서 검증 없이 수행하면 무결성 침해·원격 코드 실행·서비스 거부를 유발하는 위험한 연산이다. 따라서 '항상 안전하므로 검증 없이 수행해도 된다'는 3번은 명백히 틀렸다. 1·2·4번은 각각 overview·countermeasure와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화(pp.462-468), CWE-502 — overview·countermeasure·diagnosis",
+      "tags": ["code_error", "implementation", "역직렬화", "직렬화", "무결성", "원격코드실행", "CWE-502"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-M2",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드는 바이트 배열을 역직렬화한다. 이 코드의 보안약점과 안전한 대책에 대한 설명으로 옳지 않은 것은?\n\n```java\nclass DeserializeExample {\n    public static Object deserialize(byte[] buffer)\n    throws IOException, ClassNotFoundException {\n        Object ret = null;\n        try (ByteArrayInputStream bais = new ByteArrayInputStream(buffer)) {\n            try (ObjectInputStream ois = new ObjectInputStream(bais)) {\n                ret = ois.readObject();\n            }\n        }\n        return ret;\n    }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "바이트 배열의 입력 값을 검증 없이 readObject()로 역직렬화하면 악의적인 코드가 실행될 수 있다."},
+        {"num": 2, "text": "ObjectInputStream을 상속받아 WhitelistedObjectInputStream을 구현하고 resolveClass()를 오버라이드하여 화이트리스트와 비교하는 방식으로 안전하게 만들 수 있다."},
+        {"num": 3, "text": "resolveClass()에서 클래스명이 화이트리스트에 없으면 InvalidClassException을 발생시켜 허용되지 않은 클래스의 역직렬화를 차단한다."},
+        {"num": 4, "text": "readObject()는 입력 바이트 배열을 자동으로 화이트리스트 검증하므로, 별도의 상속·오버라이드 없이 그대로 사용해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 '바이트 배열의 입력 값을 검증 없이 readObject()로 역직렬화하면 악의적인 코드가 실행될 수 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드가 ObjectInputStream을 상속한 WhitelistedObjectInputStream을 만들고 resolveClass()를 오버라이드하여 화이트리스트와 비교한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드의 resolveClass()는 'whitelist.contains(cls.getName())'이 아닐 때 InvalidClassException(\"Unexpected serialized class\")을 던져 허용되지 않은 클래스를 차단한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 기본 readObject()는 입력을 자동으로 화이트리스트 검증하지 않는다. 그래서 resolveClass()를 오버라이드한 WhitelistedObjectInputStream을 별도로 구현해야 안전하다. '자동 검증되어 그대로 안전하다'는 진술은 약점의 핵심(검증 부재)을 정반대로 뒤집은 것이다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-05 code_examples ②(화이트리스트 클래스 검증)의 vulnerable/safe/note로 검증한다. 기본 readObject()는 입력 클래스를 자동 검증하지 않으므로, ObjectInputStream을 상속해 resolveClass()를 오버라이드하고 화이트리스트(예: \"Student\")에 없으면 InvalidClassException으로 차단해야 안전하다. 4번은 'readObject가 자동 화이트리스트 검증한다'는 잘못된 전제로 안전하다고 주장하므로 틀렸다. 1·2·3번은 note·safe 코드와 일치하는 옳은 설명으로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — code_examples(Java) 화이트리스트 vulnerable/safe/note, CWE-502",
+      "tags": ["code_error", "implementation", "역직렬화", "readObject", "화이트리스트", "resolveClass", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-M3",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 '신뢰할 수 없는 데이터의 역직렬화' 진단방법과 보안대책에 대한 설명이다. 옳지 않은 것은?\n\n진단원은 각 언어가 제공하는 역직렬화 함수를 확인하고, 그 함수가 사용하는 데이터가 신뢰할 수 있는 값인지 점검한다.",
+      "choices": [
+        {"num": 1, "text": "java.io.ObjectInputStream.readObject()와 같이 각 언어에서 제공하는 역직렬화 함수를 확인하고, 해당 함수가 사용하는 데이터가 신뢰할 수 있는 값인지 확인한다."},
+        {"num": 2, "text": "사용자 입력 값, 소켓으로 입력받은 값 등 출처를 신뢰할 수 없는 데이터를 검증하는 절차가 없으면 취약하다고 판정한다."},
+        {"num": 3, "text": "암호화 통신을 적용하지 못하는 경우, 송신 측에서 서명을 추가하고 수신 측에서 서명을 확인하여 데이터의 무결성을 검증한다."},
+        {"num": 4, "text": "출처를 신뢰할 수 없는 데이터라도 역직렬화 함수만 호출하면 런타임이 자동으로 무결성을 보장하므로, 서명 검증이나 화이트리스트 검증은 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'java.io.ObjectInputStream.readObject()와 같이 각 언어에서 제공하는 역직렬화 함수를 확인하고(①), 해당 역직렬화 함수에서 사용하는 데이터가 신뢰할 수 있는 값인지 확인한다(②)'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '사용자 입력 값, 소켓으로 입력받은 값 등 출처를 신뢰할 수 없는 데이터를 검증하는 절차가 없으면 취약하다고 판정한다'고 그대로 기술한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure 대책 ②가 '암호화 통신을 적용하지 못하는 경우, 송신 측에서 서명을 추가하고 수신 측에서 서명을 확인하여 데이터의 무결성을 검증한다'와 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 역직렬화 함수 호출만으로 무결성이 자동 보장되지 않으며, 그것이 바로 이 약점의 원인이다. countermeasure는 서명 검증 또는 사전 검증된 클래스(화이트리스트)만 역직렬화하거나 제한된 실행 권한 구성을 요구한다. '자동 보장되어 검증 불필요'는 대책을 정반대로 뒤집은 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-05 diagnosis.method와 countermeasure로 검증한다. 역직렬화 함수 호출만으로 무결성이 자동 보장되는 것이 아니며, 출처를 신뢰할 수 없는 데이터에 검증 절차가 없으면 취약 판정한다. 대책은 신뢰할 수 없는 데이터 역직렬화 금지·서명 검증·화이트리스트 클래스 검증·제한된 실행 권한이다. 4번은 '자동 무결성 보장, 검증 불필요'라며 대책을 부정하므로 틀렸다. 1·2·3번은 diagnosis.method·countermeasure와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — diagnosis.method, countermeasure, CWE-502",
+      "tags": ["code_error", "implementation", "역직렬화", "진단방법", "서명검증", "화이트리스트", "무결성"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-D1",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 서블릿 코드의 역직렬화에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class G02 extends HttpServlet {\n    protected void doPost(HttpServletRequest req, HttpServletResponse res)\n            throws ServletException, IOException {\n        ObjectInputStream ois = null;\n        ImageInformation retImgInfo = null;\n        try {\n            ois = new ObjectInputStream(req.getInputStream());\n            retImgInfo = (ImageInformation) ois.readObject();\n            retImgInfo.setImgUrl(\"SERVERIMGURL\");\n        } catch (Exception e) {\n        } finally {\n        }\n    }\n}\n```",
+      "vulnerable_code": "1  public class G02 extends HttpServlet {\n2      protected void doPost(HttpServletRequest req, HttpServletResponse res)\n3              throws ServletException, IOException {\n4          ObjectInputStream ois = null;\n5          ImageInformation retImgInfo = null;\n6          try {\n7              ois = new ObjectInputStream(req.getInputStream());\n8              retImgInfo = (ImageInformation) ois.readObject();\n9              retImgInfo.setImgUrl(\"SERVERIMGURL\");\n10         } catch (Exception e) {\n11         } finally {\n12         }\n13     }\n14 }",
+      "code_language": "java",
+      "vulnerable_lines": [7, 8],
+      "rationale_keywords": ["사용자 입력값", "검증 절차 없음", "readObject", "신뢰할 수 없는 역직렬화", "CWE-502"],
+      "fix_keywords": ["화이트리스트", "resolveClass", "서명 검증", "신뢰 데이터만 역직렬화"],
+      "safe_code": "1  // ObjectInputStream을 상속한 WhitelistedObjectInputStream을 사용하여\n2  // resolveClass()에서 허용 클래스(예: ImageInformation)만 역직렬화하도록 한다.\n3  Set<String> whitelist = new HashSet<>(Arrays.asList(\"ImageInformation\"));\n4  try (WhitelistedObjectInputStream ois =\n5          new WhitelistedObjectInputStream(req.getInputStream(), whitelist)) {\n6      // 화이트리스트에 없는 클래스면 InvalidClassException 발생\n7      retImgInfo = (ImageInformation) ois.readObject();\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 7번 라인에서 HttpServletRequest의 InputStream(req.getInputStream())은 사용자 입력값(출처를 신뢰할 수 없는 데이터)인데, 이를 ObjectInputStream으로 감싸 8번 라인에서 readObject()로 검증 절차 없이 역직렬화하고 있다. 신뢰할 수 없는 데이터를 검증 없이 역직렬화하면 무결성 침해·원격 코드 실행 등이 발생할 수 있는 신뢰할 수 없는 데이터의 역직렬화(CWE-502)에 해당한다.",
+        "fix_description": "ObjectInputStream을 상속한 WhitelistedObjectInputStream을 구현하여 resolveClass()에서 허용된 클래스(화이트리스트, 예: ImageInformation)만 역직렬화하도록 하거나, 송신 측 서명을 검증하는 등 신뢰할 수 있는 데이터만 역직렬화하도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-CE-05 diagnosis.true_positive(G02 서블릿) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '사용자 입력값': 7번 라인 req.getInputStream()은 HttpServletRequest의 입력 스트림으로 신뢰할 수 없는 출처다.\n- '검증 절차 없음'/'readObject': 8번 라인에서 검증 없이 readObject()로 역직렬화함.\n- 'CWE-502': 신뢰할 수 없는 데이터의 역직렬화 약점 분류.\n\n[수정 키워드 의미] resolveClass 오버라이드 화이트리스트, 또는 서명 검증으로 신뢰 데이터만 역직렬화한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(7·8번 — 사용자 입력 스트림 래핑·검증 없는 readObject 라인 지목) 20점 / rationale(사용자 입력값·검증 절차 부재·readObject 키워드 포함) 30점 / fix(화이트리스트 resolveClass·서명 검증) 30점.\n\n[자가확인 체크리스트] (1) readObject()/Pickle.loads 등 역직렬화 함수가 사용되는가? (2) 그 입력이 사용자 입력·소켓 등 신뢰할 수 없는 출처인가? (3) 화이트리스트·서명 등 검증 절차가 있는가? → (1)(2) 예 + (3) 없음이면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — diagnosis.true_positive(G02 서블릿), CWE-502",
+      "tags": ["code_error", "implementation", "역직렬화", "정탐", "readObject", "사용자입력값", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-D2",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "python",
+      "difficulty": "상",
+      "body": "다음 Python 서버 코드의 역직렬화에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```python\nconn, addr = self.receiver_socket.accept()\ndata = conn.recv(1024)\nrecvd_digest, pickled_data = data.split(' ')\nnew_digest = hmac.new('shared-key', pickled_data, hashlib.sha1).hexdigest()\nif recvd_digest != new_digest:\n    print 'Integrity check failed'\nelse:\n    unpickled_data = pickle.loads(pickled_data)\n```",
+      "vulnerable_code": "1  conn, addr = self.receiver_socket.accept()\n2  data = conn.recv(1024)\n3  recvd_digest, pickled_data = data.split(' ')\n4  new_digest = hmac.new('shared-key', pickled_data, hashlib.sha1).hexdigest()\n5  if recvd_digest != new_digest:\n6      print 'Integrity check failed'\n7  else:\n8      unpickled_data = pickle.loads(pickled_data)",
+      "code_language": "python",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["HMAC 무결성 검증", "digest 비교", "검증 후 역직렬화", "위변조 방지", "신뢰 데이터만 loads"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 송신 측이 HMAC digest를 헤더로 함께 전송하고,\n2  // 수신 측이 동일 shared-key로 digest를 재계산하여 일치할 때만(else 분기)\n3  // pickle.loads를 수행하므로 무결성이 검증된 신뢰 데이터만 역직렬화한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 수신한 데이터를 digest와 pickled_data로 분리한 뒤(3번), 동일한 shared-key로 HMAC digest를 재계산하여(4번) recvd_digest와 비교한다(5번). 일치하지 않으면 무결성 검증 실패로 처리하고, 일치할 때만(else 분기, 8번) pickle.loads로 역직렬화한다. 이는 countermeasure 대책 ②(송신 측 서명 추가, 수신 측 서명 검증으로 무결성 확인)에 해당하므로, 공격자가 스트림을 위변조하면 digest 불일치로 차단되어 신뢰할 수 있는 데이터만 역직렬화된다.",
+        "fix_description": "수정 불필요. 이미 HMAC digest 검증을 통과한 데이터만 pickle.loads로 역직렬화하므로 신뢰할 수 없는 데이터의 역직렬화가 발생하지 않는다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-CE-05 diagnosis.false_positive(HMAC pickle) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] pickle.loads가 등장한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 loads 직전에 HMAC digest 비교로 무결성을 검증하므로 가이드가 제시하는 안전한 처리(대책 ②)의 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'HMAC 무결성 검증'/'digest 비교': 동일 shared-key로 재계산한 digest와 수신 digest를 비교함.\n- '검증 후 역직렬화'/'신뢰 데이터만 loads': 일치(else)할 때만 pickle.loads 수행함.\n- '위변조 방지': 공격자가 스트림을 조작하면 digest가 달라져 차단됨.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(HMAC digest 검증·일치 시에만 loads 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 역직렬화 전에 서명·HMAC 등 무결성 검증이 있는가? → 그렇다. (2) 검증을 통과한 데이터에 대해서만 역직렬화하는가? → 그렇다(else 분기). (3) 출처를 신뢰할 수 없는 데이터를 무검증 역직렬화하는가? → 아니다. — 모든 항목이 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — diagnosis.false_positive(HMAC pickle), countermeasure 대책 ②, CWE-502",
+      "tags": ["code_error", "implementation", "역직렬화", "오탐", "HMAC", "pickle", "python"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-B1",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '신뢰할 수 없는 데이터의 역직렬화' 약점의 영향과 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 공격자가 전송 또는 저장된 스트림을 조작할 수 있는 경우, 무결성 침해, (가) , 서비스 거부 공격 등이 발생할 수 있다.\n· 신뢰할 수 있는 데이터의 식별을 위해 역직렬화 대상의 데이터가 사전에 검증된 클래스만을 포함하는지 검증하는 (나) 방식을 사용할 수 있다.",
+      "blank_template": "· 공격자가 전송 또는 저장된 스트림을 조작할 수 있는 경우, 무결성 침해, {{1}} , 서비스 거부 공격 등이 발생할 수 있다.\n· 신뢰할 수 있는 데이터의 식별을 위해 역직렬화 대상의 데이터가 사전에 검증된 클래스만을 포함하는지 검증하는 {{2}} 방식을 사용할 수 있다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["원격 코드 실행"],
+          "synonyms": ["원격코드실행", "RCE", "원격 코드 실행(RCE)", "Remote Code Execution"]
+        },
+        {
+          "idx": 2,
+          "answers": ["화이트리스트"],
+          "synonyms": ["화이트리스트(whitelist)", "whitelist", "허용목록", "사전 검증된 클래스 검증"]
+        }
+      ],
+      "explanation": "정답: (가) 원격 코드 실행, (나) 화이트리스트. IMP-CE-05 overview는 신뢰할 수 없는 역직렬화로 '무결성 침해, 원격 코드 실행, 서비스 거부 공격 등이 발생할 수 있다'고 명시한다. countermeasure·code_examples ②는 역직렬화 대상이 사전에 검증된 클래스만 포함하는지 확인하는 화이트리스트(resolveClass 오버라이드) 방식을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — overview, countermeasure, code_examples ②",
+      "tags": ["code_error", "implementation", "역직렬화", "빈칸", "원격코드실행", "화이트리스트"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-05-B2",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "chapter_code": "IMP-CE-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '신뢰할 수 없는 데이터의 역직렬화' 대책 코드에 대한 설명이다. 빈칸에 들어갈 용어를 채우시오.\n\n· Java에서는 ObjectInputStream을 상속받아 (가) () 메소드를 오버라이드하고, 클래스명이 화이트리스트에 없으면 InvalidClassException을 발생시킨다.\n· 암호화 통신을 적용하지 못하는 경우, 송신 측에서 (나) 을(를) 추가하고 수신 측에서 이를 확인하여 데이터의 무결성을 검증한다.",
+      "blank_template": "· Java에서는 ObjectInputStream을 상속받아 {{1}} () 메소드를 오버라이드하고, 클래스명이 화이트리스트에 없으면 InvalidClassException을 발생시킨다.\n· 암호화 통신을 적용하지 못하는 경우, 송신 측에서 {{2}} 을(를) 추가하고 수신 측에서 이를 확인하여 데이터의 무결성을 검증한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["resolveClass"],
+          "synonyms": ["resolveClass()", "resolveclass"]
+        },
+        {
+          "idx": 2,
+          "answers": ["서명"],
+          "synonyms": ["서명(signature)", "signature", "디지털 서명", "전자서명"]
+        }
+      ],
+      "explanation": "정답: (가) resolveClass, (나) 서명. IMP-CE-05 code_examples ②의 safe 코드는 ObjectInputStream을 상속한 WhitelistedObjectInputStream에서 resolveClass()를 오버라이드하여 화이트리스트에 없는 클래스에 InvalidClassException을 발생시킨다. countermeasure 대책 ②는 '암호화 통신을 적용하지 못하는 경우, 송신 측에서 서명을 추가하고 수신 측에서 서명을 확인하여 데이터의 무결성을 검증한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제5절 코드오류 §5 신뢰할 수 없는 데이터의 역직렬화 — code_examples ②(safe), countermeasure 대책 ②",
+      "tags": ["code_error", "implementation", "역직렬화", "빈칸", "resolveClass", "서명검증"]
+    }
+  ]
+}

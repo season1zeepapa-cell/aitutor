@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-10",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-M1",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 'LDAP 삽입(LDAP Injection)' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\nLDAP 삽입은 공격자가 외부 입력으로 의도하지 않은 LDAP 명령어를 수행할 수 있는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "응용프로그램이 사용자 입력을 올바르게 처리하지 못하면 공격자가 LDAP 명령문(필터문)의 구성을 바꿀 수 있다."},
+        {"num": 2, "text": "DN(Distinguished Name)과 필터에 사용되는 입력값에 특수문자가 포함되지 않도록 특수문자를 제거하는 것이 대책이다."},
+        {"num": 3, "text": "특수문자를 반드시 사용해야 하는 경우에는 특수문자가 실행명령이 아닌 일반문자로 인식되도록 처리한다."},
+        {"num": 4, "text": "입력값을 검증 없이 필터 문자열에 연결해도 LDAP은 항상 특수문자를 일반문자로 처리하므로 필터 조작이 불가능하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '웹 응용프로그램이 사용자가 제공한 입력을 올바르게 처리하지 못하면 공격자가 LDAP 명령문의 구성을 바꿀 수 있고'라고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 'DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 특수문자가 포함되지 않도록 특수문자를 제거한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '특수문자를 사용해야 하는 경우에는 특수문자( = + < > # ; \\ 등)가 실행명령이 아닌 일반문자로 인식되도록 처리한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. 입력값을 검증 없이 필터 문자열에 연결하면 *, (, ) 등 특수문자가 LDAP 필터 메타문자로 해석되어 필터문을 조작당한다(예: * 전달 시 항상 참). '항상 일반문자로 처리되어 조작 불가'는 정반대의 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-10 overview·countermeasure와 대조한다. 1번은 overview, 2·3번은 countermeasure와 일치하는 옳은 진술이다. 4번은 LDAP이 특수문자를 자동으로 일반문자 처리한다고 오인하게 만드는 함정이며, 실제로는 검증·이스케이프가 없으면 특수문자가 필터 메타문자로 작동하여 필터 조작이 가능하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입(pp.264-271), CWE-90 — overview, countermeasure",
+      "tags": ["input_validation", "implementation", "ldap삽입", "필터문", "특수문자", "보안약점설명"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-M2",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nString base = \"dc=example,dc=com\";\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\nNamingEnumeration<?> results = dctx.search(base, filter, sc);\n```",
+      "choices": [
+        {"num": 1, "text": "userSN·userPassword 값을 검증 없이 필터 문자열에 연결하고 있어 LDAP 필터 조작 공격에 안전하지 않다."},
+        {"num": 2, "text": "userSN·userPassword 값으로 * 을 전달하면 필터가 \"(&(sn=*)(userPassword=*))\" 가 되어 항상 참이 되는 의도하지 않은 동작이 발생할 수 있다."},
+        {"num": 3, "text": "정규식 화이트리스트(userSN은 [\\w\\s]*, userPassword는 [\\w]*)로 검증하여 불일치 시 예외를 던지면 위험성을 줄일 수 있다."},
+        {"num": 4, "text": "search() 메소드를 사용하면 LDAP 라이브러리가 필터의 특수문자를 자동으로 이스케이프하므로 입력값 검증은 불필요하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 'userSN과 userPassword 값에 LDAP필터를 조작할 수 있는 공격 문자열에 대한 검증이 없어 안전하지 않다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '*을 전달할 경우 필터 문자열은 \"(&(sn=S*)(userPassword=*))\"가 되어 항상 참이 되며 의도하지 않은 동작을 유발한다'고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 userSN.matches(\"[\\\\w\\\\s]*\")·userPassword.matches(\"[\\\\w]*\") 화이트리스트로 검증하고 불일치 시 IllegalArgumentException을 던진다."},
+        {"num": 4, "correct": true, "why": "정답. dctx.search()는 입력값의 특수문자를 자동으로 이스케이프하지 않으므로 검증 없이 필터에 연결한 vulnerable 코드는 그대로 취약하다. '자동 이스케이프되어 검증 불필요'는 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-10 code_examples Java의 vulnerable/safe 쌍과 note로 검증한다. 1·2번은 vulnerable 코드와 note, 3번은 safe 코드와 일치하는 옳은 진술이다. 4번은 search() 호출만으로 자동 이스케이프된다고 오인하게 만드는 함정이며, 실제로는 입력값 검증·특수문자 제거가 필요하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — code_examples Java vulnerable/safe·note",
+      "tags": ["input_validation", "implementation", "ldap삽입", "필터문", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-M3",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "LDAP 삽입 진단방법과 대책에 대한 설명으로 옳지 않은 것은?\n\n진단원은 LDAP 조회 쿼리 실행 부분과 필터에 사용되는 변수의 외부 입력 여부, 필터링 모듈 존재를 점검한다.",
+      "choices": [
+        {"num": 1, "text": "LDAP 조회 쿼리가 실행됨을 확인하고, 필터에 사용되는 변수가 외부 입력값인지 확인한 후 해당 변수에 대한 필터링 모듈 존재 여부를 확인한다."},
+        {"num": 2, "text": "필터링 모듈이 존재하거나 관련 프레임워크에서 적절히 조치하는 경우에는 안전한 것으로 판정한다."},
+        {"num": 3, "text": "익명 바인딩 대신 사용자 자격증명으로 인증 후 LDAP 쿼리를 실행하는 것도 대책에 해당한다."},
+        {"num": 4, "text": "외부 입력값이 필터에 사용되더라도 LDAP 조회 쿼리가 존재하기만 하면 항상 안전한 것으로 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'LDAP 조회 쿼리가 실행됨을 확인하고(①), LDAP 조회문의 필터에 사용되는 변수가 외부 입력값인지 확인한 후(②), 해당 변수에 대한 필터링 모듈이 존재하는지 확인'한다고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '필터링 모듈이 존재하거나 관련 프레임워크에서 적절히 조치할 경우엔 안전한 것으로 판정한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). C# code_examples의 safe 코드·note가 '익명 바인딩을 사용하지 않고 인증을 진행해야 한다'고 하며 userSN·userPW로 인증 후 쿼리를 실행한다."},
+        {"num": 4, "correct": true, "why": "정답. 진단방법은 외부 입력값이 필터에 사용될 때 필터링 모듈·프레임워크 조치 여부를 점검하여 안전/위험을 판정한다. '조회 쿼리가 존재하기만 하면 항상 안전'은 안전 판정 조건을 무시한 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-10 diagnosis.method와 code_examples(C#) note를 근거로 한다. 진단 흐름은 ① 쿼리 실행 확인 → ② 변수의 외부 입력 여부 확인 → ③ 필터링 모듈/프레임워크 조치 여부 확인이다. 1·2번은 method, 3번은 C# safe 코드와 일치한다. 4번은 안전 판정 조건을 부정하므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — diagnosis.method, code_examples(C#)",
+      "tags": ["input_validation", "implementation", "ldap삽입", "진단방법", "익명바인딩", "안전판정"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-D1",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 LDAP 삽입 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString name = props.getProperty(\"name\");\nString filter = \"(name =\" + name + \")\";\nNamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\nprintSearchEnumeration(answer);\n```",
+      "vulnerable_code": "1  String name = props.getProperty(\"name\");\n2  String filter = \"(name =\" + name + \")\";\n3  NamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\n4  printSearchEnumeration(answer);",
+      "code_language": "java",
+      "vulnerable_lines": [2],
+      "rationale_keywords": ["외부 입력값", "필터 문자열 연결", "와일드카드(*) 항상 참", "필터 조작", "CWE-90"],
+      "fix_keywords": ["특수문자 제거", "화이트리스트 검증", "이스케이프"],
+      "safe_code": "1  String name = props.getProperty(\"name\");\n2  // 화이트리스트 검증: 허용 문자만 통과시키고 LDAP 특수문자를 차단한다.\n3  if (!name.matches(\"[\\\\w\\\\s]*\")) {\n4    throw new IllegalArgumentException(\"Invalid input\");\n5  }\n6  String filter = \"(name =\" + name + \")\";\n7  NamingEnumeration answer = ctx.search(\"ou=NewHires\", filter, new SearchControls());\n8  printSearchEnumeration(answer);",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인이 외부 입력값 name을 검증 없이 LDAP 검색 필터 문자열에 연결하고 있다(CWE-90). name 값으로 * 을 전달하면 필터가 \"(name=*)\"가 되어 항상 참이 되므로 인증 우회·의도하지 않은 동작이 가능하다. 입력값에 대한 여과 없이 그대로 통과되어 검색이 수행되어 안전하지 않다.",
+        "fix_description": "필터에 사용되는 입력값 name에서 LDAP 특수문자( ( ) ; , * ! & | = )를 제거하거나, 정규식 화이트리스트([\\w\\s]* 등)로 허용 문자만 검증하여 불일치 시 예외 처리한다. 특수문자를 반드시 사용해야 하면 실행명령이 아닌 일반문자로 인식되도록 이스케이프한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-10 diagnosis.true_positive 첫 번째 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력값'/'필터 문자열 연결': name을 검증 없이 filter에 + 연산으로 연결함.\n- '와일드카드(*) 항상 참'/'필터 조작': * 입력 시 \"(name=*)\"가 되어 항상 참이 됨.\n- 'CWE-90': LDAP 삽입의 CWE 분류.\n\n[수정 키워드 의미] 특수문자 제거·화이트리스트 검증·이스케이프로 필터 조작을 차단한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(2번 라인 지목) 20점 / rationale(외부 입력값 필터 연결·와일드카드 항상 참·필터 조작 키워드 포함) 30점 / fix(특수문자 제거 또는 화이트리스트 검증) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — diagnosis.true_positive, CWE-90",
+      "tags": ["input_validation", "implementation", "ldap삽입", "정탐", "와일드카드", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-D2",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 LDAP 삽입 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString base = \"dc=example,dc=com\";\nif (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n  throw new IllegalArgumentException(\"Invalid input\");\n}\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\nNamingEnumeration<?> results = dctx.search(base, filter, sc);\n```",
+      "vulnerable_code": "1  String base = \"dc=example,dc=com\";\n2  if (!userSN.matches(\"[\\\\w\\\\s]*\") || !userPassword.matches(\"[\\\\w]*\")) {\n3    throw new IllegalArgumentException(\"Invalid input\");\n4  }\n5  String filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n6  NamingEnumeration<?> results = dctx.search(base, filter, sc);",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["화이트리스트 검증", "정규식 matches", "특수문자 차단", "필터 조작 불가", "예외 처리"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 필터 생성 전에 정규식 화이트리스트로\n2  // userSN([\\w\\s]*)·userPassword([\\w]*)를 검증하여\n3  // LDAP 특수문자가 포함되면 IllegalArgumentException으로 차단하므로\n4  // 필터 문자열을 조작당하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 필터 문자열을 생성하기 전에 userSN·userPassword를 정규식 화이트리스트(userSN=[\\w\\s]*, userPassword=[\\w]*)로 검증하고, LDAP 필터를 조작할 수 있는 특수문자(*, (, ), &, | 등)가 포함되면 IllegalArgumentException을 던져 차단한다. 따라서 필터 조작 입력이 search()에 도달할 수 없어 LDAP 삽입에 안전하다.",
+        "fix_description": "수정 불필요. 이미 IMP-IV-10 safe 코드가 권장하는 정규식 화이트리스트 검증을 필터 생성 전에 수행하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-10 code_examples Java의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 필터 문자열이 + 연산으로 연결된다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 연결 전에 화이트리스트 검증으로 특수문자를 차단하는 안전한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '화이트리스트 검증'/'정규식 matches': [\\w\\s]*·[\\w]* 패턴으로 허용 문자만 통과시킴.\n- '특수문자 차단'/'필터 조작 불가': *, (, ) 등 LDAP 메타문자가 포함되면 예외로 차단되어 필터 조작이 불가능함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음) 20점 / rationale(화이트리스트·특수문자 차단·필터 조작 불가 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — code_examples Java safe",
+      "tags": ["input_validation", "implementation", "ldap삽입", "오탐", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-B1",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 'LDAP 삽입(LDAP Injection)' 보안약점의 개요와 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· LDAP 삽입은 공격자가 외부 입력으로 의도하지 않은 (가) 명령어(필터문)를 수행할 수 있는 보안약점이다.\n· 대책으로 DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 (나) 가 포함되지 않도록 제거한다.",
+      "blank_template": "· LDAP 삽입은 공격자가 외부 입력으로 의도하지 않은 {{1}} 명령어(필터문)를 수행할 수 있는 보안약점이다.\n· 대책으로 DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 {{2}} 가 포함되지 않도록 제거한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["LDAP"], "synonyms": ["ldap"]},
+        {"idx": 2, "answers": ["특수문자"], "synonyms": ["특수 문자", "special character", "메타문자"]}
+      ],
+      "explanation": "정답: (가) LDAP, (나) 특수문자. IMP-IV-10 overview는 '공격자가 외부 입력으로 의도하지 않은 LDAP 명령어를 수행할 수 있는 보안약점'이라 하고, countermeasure는 'DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 특수문자가 포함되지 않도록 특수문자를 제거한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — overview, countermeasure",
+      "tags": ["input_validation", "implementation", "ldap삽입", "빈칸", "특수문자"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-10-B2",
+      "weakness_name_ko": "LDAP 삽입",
+      "chapter_code": "IMP-IV-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 LDAP 삽입을 방지하는 안전한 Java 코드다. 빈칸에 들어갈 내용을 채우시오. (가)는 정규식 검증 메소드명, (나)는 검증 실패 시 던지는 예외 동작이다.\n\n```java\nif (!userSN.(가)(\"[\\\\w\\\\s]*\") || !userPassword.(가)(\"[\\\\w]*\")) {\n  (나) new IllegalArgumentException(\"Invalid input\");\n}\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n```",
+      "blank_template": "if (!userSN.{{1}}(\"[\\\\w\\\\s]*\") || !userPassword.{{1}}(\"[\\\\w]*\")) {\n  {{2}} new IllegalArgumentException(\"Invalid input\");\n}\nString filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";",
+      "blank_answers": [
+        {"idx": 1, "answers": ["matches"], "synonyms": ["matches()"]},
+        {"idx": 2, "answers": ["throw"], "synonyms": ["던진다", "예외 던지기"]}
+      ],
+      "explanation": "정답: (가) matches, (나) throw. IMP-IV-10 code_examples Java safe 코드는 필터 생성 전에 userSN.matches(\"[\\\\w\\\\s]*\")·userPassword.matches(\"[\\\\w]*\") 정규식 화이트리스트로 검증하고, 불일치 시 throw new IllegalArgumentException(\"Invalid input\")으로 차단한다. 검증 통과 후에만 필터를 생성하므로 LDAP 필터 조작을 막는다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10 LDAP 삽입 — code_examples Java safe",
+      "tags": ["input_validation", "implementation", "ldap삽입", "빈칸", "matches", "화이트리스트", "java"]
+    }
+  ]
+}

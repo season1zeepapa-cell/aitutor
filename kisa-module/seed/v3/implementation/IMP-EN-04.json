@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EN-04",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-M1",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "구현 단계 캡슐화 항목 중 'Private 배열에 Public 데이터 할당' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "public으로 선언된 메소드의 인자가 private 배열에 그대로 저장되면, 외부에서 private 배열에 접근하여 배열 수정과 객체 속성 변경이 가능해진다."},
+        {"num": 2, "text": "필드가 private이라도 public setter로 외부 배열의 reference를 그대로 할당하면 사실상 public 필드처럼 외부에서 수정할 수 있게 된다."},
+        {"num": 3, "text": "방어 방법은 입력된 public 배열의 reference가 아니라 배열의 '값'을 복사하여 private 배열에 할당함으로써 private 멤버의 접근권한을 유지하는 것이다."},
+        {"num": 4, "text": "이 약점은 EN-03(Public 메소드로부터 반환된 Private 배열)과 무관하며, 배열을 외부로 반환하는 경우에만 발생한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 'public으로 선언된 메소드의 인자가 private로 선언된 배열에 저장되면, private 배열을 외부에서 접근하여 배열수정과 객체 속성변경이 가능해진다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 'private이지만 public setUserRoles()로 외부의 배열이 할당되면 사실상 public 필드가 된다'고 설명한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 보안대책이 reference가 아닌 배열의 '값'을 복사 할당하여 private 멤버 접근권한을 유지하라고 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). course는 EN-04가 EN-03과 대칭되는 약점으로, EN-03은 private 배열을 외부로 '반환'하는 출력 측, EN-04는 외부 배열을 private에 '할당'하는 입력 측 약점이라고 명시한다. '반환하는 경우에만 발생'은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-04 overview·vulnerable 주석 및 course의 'EN-03과 대칭(입력 측 할당 약점)' 설명과 대조한다. EN-04는 외부에서 받은 배열을 private 멤버에 그대로 할당(input)할 때 발생하며 반환(output) 약점인 EN-03과 짝을 이룬다. 따라서 '반환하는 경우에만 발생'은 잘못된 설명이다. 1·2·3번은 overview·vulnerable 주석·course 보안대책과 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 Private 배열에 Public 데이터 할당(pp.487-490), CWE-496 — overview/countermeasure",
+      "tags": ["encapsulation", "implementation", "private-array", "assignment", "사실상-public", "cwe-496"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-M2",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nprivate String[] userRoles;\npublic void setUserRoles(String[] userRoles) {\n  this.userRoles = userRoles;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "public setUserRoles()의 인자 배열을 private 필드 userRoles에 직접 할당하므로 외부 배열의 reference가 그대로 공유된다."},
+        {"num": 2, "text": "userRoles 필드는 private이지만 외부 배열이 할당되어 사실상 public 필드처럼 외부에서 수정될 수 있다."},
+        {"num": 3, "text": "원소가 String(불변 타입)이므로 새 배열을 만들어 원소 값을 복사 할당하면 안전하게 만들 수 있다."},
+        {"num": 4, "text": "this.userRoles = userRoles처럼 reference를 그대로 대입해도 private 선언만으로 외부 수정이 차단되어 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 그대로이며 this.userRoles = userRoles로 외부 인자 배열의 reference를 직접 할당한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). vulnerable 주석이 'private이지만 public setUserRoles()로 외부의 배열이 할당되면 사실상 public 필드가 된다'고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드(불변타입)는 new String[]로 새 배열을 만들어 원소를 복사 할당하며, note가 불변 타입이면 복사본 생성만으로 안전하다고 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). this.userRoles = userRoles는 외부 배열의 reference를 그대로 공유하므로, 호출자가 인자 배열을 수정하면 private 필드도 함께 바뀐다. private 선언만으로 외부 수정이 차단된다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-04 code_examples(Java 불변타입)의 vulnerable 코드를 제시했다. 외부 인자 배열의 reference를 private 필드에 그대로 대입하면 외부와 내부가 같은 배열 객체를 공유해 외부 수정이 내부에 반영된다(CWE-496). safe 코드처럼 새 배열을 만들어 값을 복사 할당해야 안전하다. 따라서 4번이 잘못된 설명이다. 1·2·3번은 vulnerable 주석·safe 코드·note와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 — code_examples(Java 불변타입) vulnerable/safe, CWE-496",
+      "tags": ["encapsulation", "implementation", "private-array", "reference-할당", "값복사", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-M3",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드(setter)에 대한 진단으로 옳지 않은 것은?\n\n```java\nprivate UserRole[] userRoles;\npublic void setUserRoles(UserRole[] userRoles) {\n  this.userRoles = new UserRole[userRoles.length];\n  for (int i = 0; i < userRoles.length; i++) {\n    this.userRoles[i] = userRoles[i];\n  }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "새 배열을 만들고 for문으로 원소를 복사했지만 원소가 일반 객체(UserRole)라 주소값만 복사되어 여전히 취약하다."},
+        {"num": 2, "text": "원소가 일반 객체이므로 this.userRoles[i] = userRoles[i].clone()처럼 원소까지 clone()으로 복사해야 안전하다."},
+        {"num": 3, "text": "이 코드는 Private 배열에 Public 데이터 할당(CWE-496)의 정탐 사례에 해당한다."},
+        {"num": 4, "text": "원소가 일반 객체일 때 배열 인스턴스만 새로 만들면 원소 복사 방식과 무관하게 항상 외부와 완전히 분리되어 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.true_positive 두 번째 사례 그대로이며, 일반 객체는 단순 대입 시 주소값만 복사되어 외부 원소 객체와 공유된 채 남아 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드(일반객체)와 note가 원소가 일반 객체이면 clone()으로 원소까지 복사하도록 요구한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 이 코드는 새 배열을 만들었어도 원소 주소값만 복사한 정탐(취약) 사례로 CWE-496에 해당한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 배열 인스턴스만 새로 만들어도 원소가 일반 객체이면 단순 대입은 원소의 주소값만 복사되어 외부 원소 객체와 여전히 연결된다. '원소 복사 방식과 무관하게 항상 안전'은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-04 diagnosis.true_positive 두 번째 사례(새 배열 + 단순 대입)와 safe 코드(원소 clone) note로 검증한다. 원소가 일반 객체일 때 this.userRoles[i] = userRoles[i]는 원소의 주소값만 복사되어 외부 원소 객체와 공유되므로 취약하다. 배열 인스턴스 신규 생성만으로는 부족하고 원소까지 clone()해야 한다. 따라서 4번이 잘못된 진단이다. 1·2·3번은 정탐 사례·safe note·CWE 분류와 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 — diagnosis.true_positive, code_examples(Java 일반객체) safe, CWE-496",
+      "tags": ["encapsulation", "implementation", "private-array", "주소값-복사", "clone", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-D1",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 캡슐화에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class U496 {\n  private String[] userRoles;\n  public void setUserRoles(String[] userRoles) {\n    this.userRoles = userRoles;\n  }\n}\n```",
+      "vulnerable_code": "1  public class U496 {\n2    private String[] userRoles;\n3    public void setUserRoles(String[] userRoles) {\n4      this.userRoles = userRoles;\n5    }\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [4],
+      "rationale_keywords": ["private 배열", "public 인자 할당", "reference 공유", "사실상 public 필드", "CWE-496"],
+      "fix_keywords": ["값 복사", "새 배열 생성", "원소 복사"],
+      "safe_code": "1  public class U496 {\n2    private String[] userRoles;\n3    public void setUserRoles(String[] userRoles) {\n4      this.userRoles = new String[userRoles.length];\n5      for (int i = 0; i < userRoles.length; ++i)\n6        this.userRoles[i] = userRoles[i];\n7    }\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 4번 라인에서 public 메소드 setUserRoles()의 인자 배열을 private 필드 userRoles에 this.userRoles = userRoles로 그대로 할당하고 있어, 외부 배열의 reference가 그대로 공유된다. userRoles 필드는 private이지만 외부 배열이 직접 할당되어 사실상 public 필드가 되며, 호출자가 인자 배열을 수정하면 내부 배열도 함께 변경되는 보안약점(CWE-496)이다.",
+        "fix_description": "인자 배열의 reference를 그대로 할당하지 말고, 새 배열을 생성하여 원소의 '값'을 하나씩 복사 할당한다. 원소가 String 등 불변 타입이면 배열 복사본 생성으로 충분하고, 원소가 일반 객체이면 clone()으로 원소까지 복사한다. 이를 통해 private 멤버의 접근권한을 유지한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EN-04 diagnosis.true_positive 첫 사례(U496)를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'private 배열'/'public 인자 할당': private userRoles에 public setter 인자를 직접 할당함.\n- 'reference 공유'/'사실상 public 필드': 외부 배열 주소를 그대로 공유해 private이 사실상 public이 됨.\n- 'CWE-496': Public Data Assigned to Private Array-Typed Field.\n\n[수정 키워드 의미] reference가 아닌 값을 복사(새 배열 생성 + 원소 복사, 일반 객체는 clone)하여 할당한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(4번 라인) 20점 / rationale(private에 public 인자 직접 할당·reference 공유·사실상 public 필드 키워드) 30점 / fix(값 복사·새 배열 생성·원소 복사) 30점.\n\n[자가확인 체크리스트] (1) private 배열 필드가 있는가? (2) public 메소드 인자(외부 배열)를 그 필드에 this.field = arg로 직접 할당하는가? (3) 값 복사가 아니라 reference를 공유하는가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 — diagnosis.true_positive, CWE-496",
+      "tags": ["encapsulation", "implementation", "private-array", "정탐", "reference-할당", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-D2",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 캡슐화에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nprivate String[] userRoles;\npublic void setUserRoles(String[] userRoles) {\n  this.userRoles = new String[userRoles.length];\n  for (int i = 0; i < userRoles.length; ++i)\n    this.userRoles[i] = userRoles[i];\n}\n```",
+      "vulnerable_code": "1  private String[] userRoles;\n2  public void setUserRoles(String[] userRoles) {\n3    this.userRoles = new String[userRoles.length];\n4    for (int i = 0; i < userRoles.length; ++i)\n5      this.userRoles[i] = userRoles[i];\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["값 복사", "새 배열 생성", "불변 타입", "reference 미공유", "원본 분리"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 외부 인자 배열의 reference를 직접 할당하지 않고\n2  // 새 배열을 만들어 원소 값을 복사 할당한다. 원소가 불변 타입(String)이라\n3  // 배열 복사본 생성만으로 외부 배열과 분리되어 private 접근권한이 유지된다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 외부 인자 배열을 this.userRoles = userRoles로 직접 할당하지 않고, new String[]로 새 배열을 만든 뒤 원소의 값을 하나씩 복사 할당한다. 원소가 불변 타입(String)이므로 배열의 복사본을 생성하는 것만으로 외부 배열과 reference를 공유하지 않게 되어, 외부에서 인자 배열을 수정해도 내부 userRoles에는 영향을 주지 않는다. private 멤버의 접근권한이 유지되므로 안전하다.",
+        "fix_description": "수정 불필요. IMP-EN-04 code_examples의 safe 코드(불변 타입 배열 값 복사 할당)를 그대로 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EN-04 code_examples(Java 불변타입)의 safe 코드를 기반으로 한다. 핵심은 '안전한 값 복사 할당 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] public setter가 private 배열에 할당한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 reference를 공유하지 않고 새 배열에 원소 값을 복사하므로 가이드의 안전 코드 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '값 복사'/'새 배열 생성': new String[]로 만든 배열에 원소 값을 복사 할당하여 외부 reference를 공유하지 않음.\n- '불변 타입': 원소가 String(불변)이라 배열 복사본만으로 안전(note 근거).\n- 'reference 미공유'/'원본 분리': this.userRoles = userRoles 형태의 직접 할당이 없어 외부 배열과 분리됨.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음으로 정확히 판단) 20점 / rationale(값 복사·새 배열 생성·불변 타입·reference 미공유 등 안전 근거 키워드) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) this.userRoles = userRoles로 외부 배열을 직접 할당하는가? → 아니다(새 배열에 복사). (2) 원소가 불변 타입인가? → 그렇다(String). (3) 외부 배열과 분리되는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 — code_examples(Java 불변타입) safe",
+      "tags": ["encapsulation", "implementation", "private-array", "오탐", "값복사", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-B1",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 'Private 배열에 Public 데이터 할당' 보안약점의 원인과 대책에 대한 설명이다. 빈칸을 채우시오.",
+      "blank_template": "public으로 선언된 메소드의 인자가 private 배열에 그대로 저장되면, 외부 배열의 ①______가 공유되어 private 배열을 외부에서 접근·수정할 수 있게 된다(사실상 public 필드). 이를 방지하려면 인자 배열의 reference가 아니라 배열의 ②______을 복사하여 할당해야 한다. 이 보안약점의 CWE 분류는 CWE-③______이다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["reference"], "synonyms": ["레퍼런스", "참조", "주소", "주소값"]},
+        {"idx": 2, "answers": ["값"], "synonyms": ["value", "원소 값", "원소값"]},
+        {"idx": 3, "answers": ["496"], "synonyms": ["CWE-496"]}
+      ],
+      "explanation": "①은 'reference'(참조/주소값). overview·vulnerable 주석에서 외부 배열을 private에 그대로 할당하면 사실상 public 필드가 되어 외부에서 수정할 수 있다고 한다. ②는 '값'. course 보안대책이 reference가 아닌 배열의 '값'을 복사 할당하라고 명시한다. ③은 '496'. 이 약점은 CWE-496(Public Data Assigned to Private Array-Typed Field)이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4(pp.487-490); 2025 진단원 기본과정 캡슐화 6-4 보안대책 — CWE-496",
+      "tags": ["encapsulation", "implementation", "private-array", "reference", "값복사", "cwe-496"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-04-B2",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "chapter_code": "IMP-EN-04",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 안전 코드는 외부 배열을 private 배열에 안전하게 할당하기 위한 것이다. 빈칸을 채워 코드를 완성하시오. (원소가 일반 객체인 경우)",
+      "blank_template": "private UserRole[] userRoles;\npublic void setUserRoles(UserRole[] userRoles) {\n  this.userRoles = ①______ UserRole[userRoles.length];\n  for (int i = 0; i < userRoles.length; ++i)\n    // 원소가 일반 객체이므로 원소도 복사한다.\n    this.userRoles[i] = userRoles[i].②______();\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["new"], "synonyms": []},
+        {"idx": 2, "answers": ["clone"], "synonyms": ["clone()"]}
+      ],
+      "explanation": "①은 'new'. safe 코드는 new UserRole[]로 새 배열 인스턴스를 만들어 외부 배열과 reference를 분리한다. ②는 'clone'. note가 원소가 일반 객체이면 clone() 메소드로 원소까지 복사하도록 요구한다. 새 배열 생성만으로는 원소 주소값만 복사되어 취약하므로 원소 clone()이 필요하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §4 — code_examples(Java 일반객체) safe/note",
+      "tags": ["encapsulation", "implementation", "private-array", "new", "clone", "java"]
+    }
+  ]
+}

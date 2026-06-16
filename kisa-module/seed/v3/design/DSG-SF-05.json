@@ -1,0 +1,245 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-SF-05",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-M1",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계의 '암호키 관리' 설계항목에 대한 보안대책 및 설계 시 고려사항이다. 옳지 않은 것은?\n\n암호키 관리는 암호키의 생성·분배·접근·파기 등 암호키 생명주기별 관리방법을 안전하게 설계하는 항목이다.",
+      "choices": [
+        {"num": 1, "text": "DB데이터 암호화에 사용되는 암호키는 데이터가 저장된 DB와 물리적으로 분리된 별도의 장소에 보관하도록 설계한다."},
+        {"num": 2, "text": "비밀번호 및 암호화키는 메모리에 저장하지 않으며, 부득이 메모리에 저장한 경우 사용 종료 후 메모리를 0으로 초기화하도록 설계한다."},
+        {"num": 3, "text": "설정파일(xml, Properties) 내 중요정보 암호화에 사용된 암호키는 마스터키로 암호화하여 별도 디렉터리에 보관하도록 설계한다."},
+        {"num": 4, "text": "관리 편의를 위해 암호화 키는 소스코드 내부에 하드코딩하고, 키 설명은 주석문에 함께 기록하도록 설계한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). design_considerations ①(ㄱ)1)에 따라 DB데이터 암호화 암호키는 데이터가 저장된 DB와 물리적으로 분리된 별도의 장소에 보관해야 하므로 정확한 설계다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). design_considerations ①(ㄱ)3)4)에 따라 비밀번호·암호화키는 메모리에 저장하지 않고, 부득이 저장한 경우 사용 종료 후 메모리를 0으로 초기화해야 하므로 정확한 설계다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). security_measures ②와 design_considerations ②에 따라 설정파일 내 중요정보 암호화에 사용된 암호키는 마스터키로 암호화하여 별도 디렉터리에 보관해야 하므로 정확한 설계다."},
+        {"num": 4, "correct": true, "why": "정답. 암호키를 소스코드 내부에 하드코딩하면 소스 접근자에게 키가 그대로 유출되며(overview 사례1 하드코드된 암호키, IMP-SF-06·CWE-321 Use of Hard-coded Cryptographic Key), 주석문에 키 설명을 함께 기록하면 소스 접근자가 쉽게 노출 정보를 파악할 수 있다(overview 사례2 주석문 안에 포함된 암호키, CWE-615). 따라서 명백히 잘못된 설계다."}
+      ],
+      "explanation": "정답은 4번. DSG-SF-05 라이브러리의 security_measures(①②)와 design_considerations(①(ㄱ)·②)를 기준으로 대조한다. 1·2·3번은 각각 물리적 분리 보관, 메모리 비저장·사용 종료 후 0 초기화, 마스터키 암호화 후 별도 디렉터리 보관이라는 가이드의 핵심 대책과 그대로 일치하는 옳은 진술이라 함정으로 배치되었다. 4번은 overview의 두 가지 잘못된 사례(하드코드된 암호키, 주석문 안에 포함된 암호키)를 정상 설계인 것처럼 진술한 것으로, 키 유출 위험이 높아 명백히 잘못된 설계다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — security_measures ①②, design_considerations ①②, overview 사례1·2",
+      "tags": ["security_feature", "design", "암호키관리", "하드코드된암호키", "물리적분리", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-M2",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 암호키 관리 수준(FIPS 140-2)의 레벨별 설명 및 NIST 권고 암호키 사용 유효기간에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "FIPS 140-2 Level 1은 기본 보안요구사항만 충족하는 최소 수준의 보안이다."},
+        {"num": 2, "text": "FIPS 140-2 Level 3은 강력한 변조 탐지·대응 기능을 제공하며, 침입이 감지되면 저장된 키를 삭제한다."},
+        {"num": 3, "text": "FIPS 140-2 Level 4는 외부 전압·온도 등 환경의 이상 변화를 감지하면 저장된 암호키를 삭제한다."},
+        {"num": 4, "text": "NIST 권고에 따르면 대칭키(비밀키)의 송신자 사용기간은 최대 10년이며, 수신자 사용기간은 송신자 사용기간보다 항상 짧아야 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). design_considerations ①(ㄴ) FIPS 140-2 Level 1은 기본 보안요구사항만 충족하는 최소 수준의 보안으로 정의되므로 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). FIPS 140-2 Level 3은 강력한 변조 탐지·대응 기능을 제공하고 침입 감지 시 저장된 키를 삭제하므로 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). FIPS 140-2 Level 4는 외부 전압·온도 등 환경의 이상 변화를 감지하여 변화 발생 시 암호키를 삭제하므로 정확하다."},
+        {"num": 4, "correct": true, "why": "정답. NIST 권고에 따르면 대칭키(비밀키)의 송신자 사용기간은 최대 2년이며(최대 10년이 아님), 수신자 사용기간은 (송신자 사용기간+3년) 이하이다. 즉 수신자 기간이 송신자 기간보다 항상 짧은 것이 아니라 송신자 기간에 최대 3년을 더한 범위 이하로 설정되므로, 수치(최대 10년)와 대소 관계 모두 틀렸다."}
+      ],
+      "explanation": "정답은 4번. design_considerations ①(ㄴ) FIPS 140-2 레벨 정의와 ①(ㅁ) NIST 암호키 사용 유효기간을 기준으로 검증한다. 1·2·3번은 각각 Level 1(기본 요구사항 최소 보안), Level 3(강력한 변조 탐지·침입 시 키 삭제), Level 4(환경 이상 변화 감지 시 키 삭제)의 정의와 일치하는 옳은 진술이다. 4번은 대칭키 송신자 최대 사용기간이 '최대 2년'인데 '최대 10년'으로 틀렸고, 수신자 사용기간은 '(송신자 사용기간+3년) 이하'로서 송신자보다 짧다고 단정할 수 없어 두 부분 모두 잘못되었다. (course에서는 FIPS 140-2가 2022.4.1부터 신규 제출에 FIPS 140-3으로 대체됨)",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — design_considerations ①(ㄴ) FIPS 140-2, ①(ㅁ) NIST 유효기간; 2025년 SW보안약점 진단원 기본(양성)과정 Ⅳ. 암호키 관리(pp.209-218)",
+      "tags": ["security_feature", "design", "암호키관리", "FIPS140-2", "NIST", "유효기간"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-M3",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "암호키 관리 설계항목의 진단방법(점검 내용)과 확인 대상 산출물의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·개발가이드·유즈케이스설계서·단위테스트케이스 등 산출물을 검토하여 암호키 관리 설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "암호키 관리 규칙(생성·변경 방법 수립 + 백업정책 정의)이 설계에 반영되었는지 — 요구사항정의서·아키텍처설계서·유즈케이스설계서 검토"},
+        {"num": 2, "text": "암호키 사용 종료 후 메모리를 0으로 초기화하는 코딩 규칙이 정의되어 있는지 — 개발가이드 검토"},
+        {"num": 3, "text": "설정파일의 중요정보 암호화에 사용된 암·복호화 키를 설정파일과 별도의 위치에 저장하도록 설계되어 있는지 — 요구사항정의서·아키텍처설계서 검토"},
+        {"num": 4, "text": "암호키가 외부로 유출되지 않는지 점검하는 테스트 계획이 수립되어 있는지 — 개발가이드 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). diagnosis 요구사항① 1-5 '암호키 생성·변경방법 수립 + 백업정책 정의'의 관련산출물은 요구사항정의서·아키텍처설계서·유즈케이스설계서 검토로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). diagnosis 요구사항① 1-7 '암호키 사용 종료 후 메모리 0 초기화 코딩 규칙 정의'의 관련산출물은 개발가이드 검토로 정확히 일치한다(암호키 관리에서 개발가이드가 산출물인 유일한 항목)."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). diagnosis 요구사항① 1-3 '설정파일 암·복호화 키를 설정파일과 별도 위치 저장 설계'의 관련산출물은 요구사항정의서·아키텍처설계서 검토로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). diagnosis 요구사항① 2-1 '암호키 외부 유출 점검 테스트 계획'의 올바른 관련산출물은 '단위테스트케이스 검토'이다. 테스트 계획 수립 여부는 단위테스트케이스로 확인하므로 '개발가이드 검토'와 연결한 것은 진단방법과 산출물의 연결이 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-SF-05 diagnosis.requirements checklist의 method↔artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 ①1-5(요구사항정의서·아키텍처설계서·유즈케이스설계서), ①1-7(개발가이드), ①1-3(요구사항정의서·아키텍처설계서)의 method-artifacts 짝과 정확히 일치한다. 4번은 '암호키 외부 유출 점검 테스트 계획'(①2-1)의 올바른 산출물이 '단위테스트케이스'인데 '개발가이드'로 잘못 연결되었다. 메모리 0 초기화 코딩 규칙(①1-7)만이 개발가이드가 산출물이라는 점이 함정의 핵심이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["security_feature", "design", "암호키관리", "진단방법", "산출물", "단위테스트케이스", "개발가이드"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-D1",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 암호키 관리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class CryptoUtil {\n  // AES 암호화 키\n  private static final String SECRET_KEY = \"a1b2c3d4e5f6g7h8\";\n\n  public byte[] encrypt(byte[] data) throws Exception {\n    SecretKeySpec keySpec = new SecretKeySpec(SECRET_KEY.getBytes(), \"AES\");\n    Cipher cipher = Cipher.getInstance(\"AES/ECB/PKCS5Padding\");\n    cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n    return cipher.doFinal(data);\n  }\n}\n```",
+      "vulnerable_code": "1  public class CryptoUtil {\n2    // AES 암호화 키\n3    private static final String SECRET_KEY = \"a1b2c3d4e5f6g7h8\";\n4  \n5    public byte[] encrypt(byte[] data) throws Exception {\n6      SecretKeySpec keySpec = new SecretKeySpec(SECRET_KEY.getBytes(), \"AES\");\n7      Cipher cipher = Cipher.getInstance(\"AES/ECB/PKCS5Padding\");\n8      cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n9      return cipher.doFinal(data);\n10   }\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 3],
+      "rationale_keywords": ["하드코드된 암호키", "CWE-321", "소스 접근자 유출", "주석문 내 암호키", "외부 안전 저장 미흡"],
+      "fix_keywords": ["키 외부화", "별도 디렉터리 보관", "마스터키 암호화"],
+      "safe_code": "1  public class CryptoUtil {\n2    // 암호키는 코드에 두지 않고 별도 보관소(설정 외부 디렉터리)에서 로드한다\n3    public byte[] encrypt(byte[] data) throws Exception {\n4      byte[] keyBytes = KeyStoreLoader.loadKey(\"aes.db.key\"); // 외부 안전 저장소에서 로드\n5      SecretKeySpec keySpec = new SecretKeySpec(keyBytes, \"AES\");\n6      Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\n7      cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n8      byte[] result = cipher.doFinal(data);\n9      java.util.Arrays.fill(keyBytes, (byte) 0); // 사용 종료 후 메모리 0 초기화\n10     return result;\n11   }\n12 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 AES 암호화 키 \"a1b2c3d4e5f6g7h8\"가 소스코드 내부에 하드코딩되어 있고, 2번 라인 주석문에 'AES 암호화 키'라는 설명까지 함께 기록되어 있다. 하드코드된 암호키는 소스코드에 접근 가능한 사람에게 키가 그대로 유출되어(overview 사례1·2), 암호화의 의미를 무력화한다. 이는 하드코드된 중요정보(IMP-SF-06, CWE-321 Use of Hard-coded Cryptographic Key) 및 주석문 안에 포함된 시스템 주요 정보(CWE-615)에 해당한다.",
+        "fix_description": "암호키를 소스코드에서 분리(외부화)하여 데이터가 저장된 DB와 물리적으로 분리된 별도 디렉터리·안전한 저장소에 보관하고, 필요 시 마스터키로 암호화하여 보관한다. 실행 시점에 안전한 저장소에서 키를 로드하고, 사용 종료 후에는 메모리를 0으로 초기화한다. 키 설명 주석도 소스에서 제거한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. DSG-SF-05 overview의 두 사례(하드코드된 암호키, 주석문 안에 포함된 암호키)와 related_weaknesses(IMP-SF-06 CWE-321, CWE-615)를 기반으로 한다.\n\n[근거 키워드 의미]\n- '하드코드된 암호키'/'CWE-321': 3번 라인이 AES 키를 소스에 박아둠(Use of Hard-coded Cryptographic Key).\n- '소스 접근자 유출': 소스코드 접근자가 키를 그대로 획득 → 암호화 무력화.\n- '주석문 내 암호키': 2번 라인 주석이 키 용도를 노출(CWE-615).\n- '외부 안전 저장 미흡': design_considerations ①(ㄱ)1)·② 위반(물리 분리·마스터키 별도 디렉터리 미적용).\n\n[수정 키워드 의미] 키를 외부화하고 별도 디렉터리에 보관, 마스터키로 암호화하여 보관한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2·3번 라인 지목) 20점 / rationale(하드코드된 암호키·CWE-321·소스 접근자 유출·주석 노출 등 키워드 포함) 30점 / fix(키 외부화 + 별도 디렉터리/마스터키 보관 + 메모리 0 초기화) 30점.\n\n[자가확인 체크리스트] (1) 암호키 리터럴이 소스에 직접 박혀 있는가? (2) 주석문에 키/중요정보 설명이 포함되어 있는가? (3) 키가 DB·소스와 물리적으로 분리된 안전한 위치에 보관되는가? — (1)(2)가 'Y'이거나 (3)이 'N'이면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — overview 사례1·2, related_weaknesses(IMP-SF-06 CWE-321, CWE-615)",
+      "tags": ["security_feature", "design", "암호키관리", "정탐", "하드코드된암호키", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-D2",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 암호키 관리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic byte[] encrypt(byte[] data) throws Exception {\n    // 암호키는 코드에 없고 별도 디렉터리의 보호된 저장소에서 로드한다\n    byte[] keyBytes = KeyStoreLoader.loadKey(\"aes.db.key\");\n    SecretKeySpec keySpec = new SecretKeySpec(keyBytes, \"AES\");\n    Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\n    cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n    byte[] result = cipher.doFinal(data);\n    java.util.Arrays.fill(keyBytes, (byte) 0); // 사용 종료 후 메모리 0 초기화\n    return result;\n}\n```",
+      "vulnerable_code": "1  public byte[] encrypt(byte[] data) throws Exception {\n2    // 암호키는 코드에 없고 별도 디렉터리의 보호된 저장소에서 로드한다\n3    byte[] keyBytes = KeyStoreLoader.loadKey(\"aes.db.key\");\n4    SecretKeySpec keySpec = new SecretKeySpec(keyBytes, \"AES\");\n5    Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\n6    cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n7    byte[] result = cipher.doFinal(data);\n8    java.util.Arrays.fill(keyBytes, (byte) 0); // 사용 종료 후 메모리 0 초기화\n9    return result;\n10 }",
+      "code_language": "java",
+      "vulnerable_lines": [0],
+      "rationale_keywords": ["하드코드 없음", "외부 저장소 로드", "별도 디렉터리 보관", "메모리 0 초기화", "주석 내 키 미노출"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 암호키를 소스에 하드코딩하지 않고\n2  // 별도 디렉터리의 보호된 저장소(KeyStoreLoader)에서 실행 시점에 로드하며,\n3  // 사용 종료 후 keyBytes를 0으로 초기화하여 메모리에 잔존하지 않게 한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인처럼 암호키를 소스코드에 하드코딩하지 않고 별도 디렉터리의 보호된 저장소(KeyStoreLoader)에서 실행 시점에 로드하므로 소스 접근자에게 키가 노출되지 않는다(하드코드된 암호키 약점 없음). 2번 라인 주석에도 키 값이나 중요정보가 포함되어 있지 않다. 또한 8번 라인에서 사용 종료 후 keyBytes를 0으로 초기화하여 비밀키가 메모리에 잔존하지 않도록 처리한다. 이는 design_considerations ①(ㄱ)1)3)4)·② 및 security_measures가 요구하는 안전한 암호키 관리 설계와 일치한다.",
+        "fix_description": "수정 불필요. 이미 키 외부화·별도 보관, 주석 내 키 미노출, 사용 종료 후 메모리 0 초기화를 모두 적용하고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. DSG-SF-05 design_considerations ①(ㄱ)의 안전한 키 관리 원칙(외부 보관·메모리 0 초기화)을 따르는 모범 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 코드에 SecretKeySpec·Cipher 등 암호 API가 등장하고 문자열 \"aes.db.key\"가 보인다고 하드코딩으로 단정하면 안 된다. \"aes.db.key\"는 키 값이 아니라 저장소에서 키를 조회하기 위한 식별자(별칭)일 뿐이며, 실제 키 바이트는 외부 저장소에서 로드된다.\n\n[안전 판정 근거 키워드 의미]\n- '하드코드 없음'/'외부 저장소 로드': 키를 소스에 박지 않고 KeyStoreLoader에서 로드(overview 사례1 미해당).\n- '별도 디렉터리 보관': design_considerations ①(ㄱ)1)·② 충족.\n- '메모리 0 초기화': 8번 라인이 사용 종료 후 keyBytes를 0으로 초기화(①(ㄱ)4) 충족).\n- '주석 내 키 미노출': 2번 라인 주석에 키 값 없음(CWE-615 미해당).\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — vulnerable_lines=[0]은 '해당 라인 없음' 판정용 표식) 20점 / rationale(하드코드 없음·외부 저장소 로드·별도 디렉터리·메모리 0 초기화 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 암호키 리터럴이 소스에 직접 박혀 있는가? → 아니다(식별자만 존재). (2) 주석에 키/중요정보가 포함되어 있는가? → 아니다. (3) 사용 종료 후 메모리 0 초기화 등 키 보호가 적용되는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — design_considerations ①(ㄱ)1)3)4)·②, overview 사례1·2",
+      "tags": ["security_feature", "design", "암호키관리", "오탐", "외부저장소", "메모리0초기화", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-C1",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 정보시스템 프로젝트의 분석·설계 단계 산출물 3종(요구사항정의서·아키텍처설계서·개발가이드)이다. '암호키 관리' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① DB데이터 암호화 키의 물리적 분리 보관, ② 설정파일 암호키의 마스터키 암호화·별도 디렉터리 보관, ③ 암호키 생성·변경 방법 및 백업정책, ④ 암호키 사용 종료 후 메모리 0 초기화 코딩 규칙의 네 축과, 각 요구사항의 진단방법(요구사항정의서·아키텍처설계서·개발가이드 반영 여부)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 암호키 관리(SR-KEY)",
+          "content": "SR-KEY-01 DB데이터 암호화에 사용되는 암호키는 데이터가 저장된 DB와 물리적으로 분리된 별도의 장소에 보관한다.\nSR-KEY-02 설정파일(xml, Properties) 내 중요정보 암호화에 사용된 암·복호화 키는 설정파일과 별도의 위치에 저장한다.\nSR-KEY-03 암호키의 생성·변경 방법을 수립하고 백업정책을 정의한다.\n(주: 본 정의서의 항목은 아키텍처설계서·개발가이드로 추적 가능하도록 요구사항추적표에 매핑되어 있다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "암호키 관리 아키텍처 — 키 저장소·생명주기",
+          "content": "[키 저장소] DB데이터 암호화 키는 DB 서버와 물리적으로 분리된 별도 키 관리 서버에 보관한다. 설정파일 중요정보 암호화 키는 마스터키로 암호화하여 별도 디렉터리에 보관하도록 설계한다.\n[생명주기] 키 생성·변경 시 백업기능을 구현하고, 키 종류에 따라 사용 유효기한을 설정한다.\n(결함 후보) 암호키 관리 수준(FIPS 140-2 레벨) 정의가 본 설계서에 누락되어 있다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "암호키 관리 시큐어코딩 가이드 + 예시 코드",
+          "content": "암호키 관리 코딩 규칙을 정의한다: (1) 암호키는 소스코드에 하드코딩하지 않는다, (2) 주석문에 키 설명을 포함하지 않는다. 단, '비밀번호·암호화키를 메모리에 저장하지 않으며 부득이 저장한 경우 사용 종료 후 메모리를 0으로 초기화'하는 코딩 규칙은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java)\npublic byte[] encrypt(byte[] data) throws Exception {\n    byte[] keyBytes = KeyStoreLoader.loadKey(\"aes.db.key\"); // 외부 저장소 로드\n    SecretKeySpec keySpec = new SecretKeySpec(keyBytes, \"AES\");\n    Cipher cipher = Cipher.getInstance(\"AES/GCM/NoPadding\");\n    cipher.init(Cipher.ENCRYPT_MODE, keySpec);\n    return cipher.doFinal(data);\n    // 주의: keyBytes를 0으로 초기화하는 처리가 빠져 있음\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "DB데이터 암호화 키 물리적 분리 보관 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["물리적 분리", "별도 키 관리 서버", "적합"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-1·아키텍처설계서: DB데이터 암호화 키가 DB와 물리적으로 분리된 장소에 보관되도록 설계되었는지 확인. 요구사항정의서(SR-KEY-01)와 아키텍처설계서가 별도 키 관리 서버 보관을 명시하여 이 항목은 적합."
+        },
+        {
+          "item": "설정파일 암호키 마스터키 암호화·별도 디렉터리 보관 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["마스터키 암호화", "별도 디렉터리", "적합"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-3·아키텍처설계서: 설정파일 중요정보 암호화 키를 설정파일과 별도 위치(마스터키 암호화 후 별도 디렉터리)에 저장하도록 설계되었는지 확인. 아키텍처설계서가 이를 명시하여 적합."
+        },
+        {
+          "item": "암호키 관리 수준(FIPS 140-2 레벨) 정의 누락 진단",
+          "points": 2,
+          "required_keywords": ["암호키 관리 수준", "FIPS 140-2", "아키텍처설계서"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항①1-4·아키텍처설계서: 암호키 관리 수준(FIPS 140-2 레벨)이 정의되어 있는지 확인. 아키텍처설계서에 관리 수준 정의가 누락되어 결함."
+        },
+        {
+          "item": "암호키 사용 종료 후 메모리 0 초기화 코딩 규칙 누락 진단",
+          "points": 2,
+          "required_keywords": ["메모리 0 초기화", "코딩 규칙", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항①1-7·개발가이드: 암호키 사용 종료 후 메모리를 0으로 초기화하는 코딩 규칙이 정의되어 있는지 확인. 개발가이드에 해당 규칙이 누락되고 첨부 예시 코드에서도 keyBytes 0 초기화가 빠져 결함."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-SF-05 diagnosis.requirements checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 암호키 관리 네 축이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 키 저장소(물리적 분리·마스터키 별도 디렉터리)·생명주기(생성·변경·백업·유효기한)·관리 수준(FIPS) 적용 계획 확인 → (3) 개발가이드에서 하드코딩 금지·주석 내 키 금지·메모리 0 초기화 코딩 규칙 확인 → (4) 첨부 예시 코드의 실제 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — DB데이터 암호화 키 물리적 분리(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 요구사항정의서(SR-KEY-01)와 아키텍처설계서가 DB데이터 암호화 키를 DB 서버와 물리적으로 분리된 별도 키 관리 서버에 보관하도록 설계하여 design_considerations ①(ㄱ)1)을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 2 — 설정파일 암호키 마스터키 암호화·별도 디렉터리(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 설정파일 중요정보 암호화 키를 마스터키로 암호화하여 별도 디렉터리에 보관하도록 설계하여 security_measures ②·design_considerations ②를 충족한다.\n  · 개선방안: 현 설계 유지.\n■ 진단항목 3 — 암호키 관리 수준(FIPS 140-2) 정의(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 키 저장소·생명주기는 설계되었으나 암호키 관리 수준(FIPS 140-2 레벨) 정의가 누락되어 요구사항①1-4의 진단방법을 충족하지 못한다.\n  · 개선방안: 시스템 중요도에 맞춰 FIPS 140-2(또는 140-3) 관리 수준을 정의하고 아키텍처설계서에 명시한다.\n■ 진단항목 4 — 메모리 0 초기화 코딩 규칙(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 하드코딩 금지·주석 내 키 금지 규칙은 정의되었으나, 암호키 사용 종료 후 메모리를 0으로 초기화하는 코딩 규칙이 개발가이드에 누락되었고 첨부 예시 코드에서도 keyBytes 0 초기화 처리가 빠져 있다.\n  · 개선방안: 비밀번호·암호화키를 메모리에 저장하지 않고, 부득이 저장한 경우 사용 종료 후 메모리를 0으로 초기화하는 코딩 규칙을 개발가이드에 추가하고 예시 코드를 보강한다(예: Arrays.fill(keyBytes, (byte)0)).\n\n[정탐/오탐 판정 근거] 진단항목 3·4는 산출물에 명시적으로 누락/결함이 존재하므로 정탐(결함)으로 지적한다. 진단항목 1·2는 물리적 분리 보관과 마스터키 별도 디렉터리 보관이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — diagnosis.requirements① checklist methods; security_measures①②, design_considerations①②; 2025년 SW보안약점 진단원 기본(양성)과정 Ⅳ. 암호키 관리(pp.209-218)",
+      "tags": ["security_feature", "design", "암호키관리", "복합서술형", "진단보고서", "산출물", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-B1",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 암호키 관리 설계 시 고려사항에 대한 설명이다. 빈칸에 들어갈 내용을 채우시오.",
+      "blank_template": "DB데이터 암호화에 사용되는 암호키는 데이터가 저장된 DB와 ___①___으로 분리된 별도의 장소에 보관해야 한다. 또한 설정파일(xml, Properties) 내 중요정보 암호화에 사용된 암호키는 ___②___를 이용해 암호화하여 ___③___ 디렉터리에 보관한다. NIST 권고에 따르면 대칭키(비밀키)의 송신자 사용기간은 최대 ___④___년이다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["물리적"], "synonyms": ["물리적으로", "물리"]},
+        {"idx": 2, "answers": ["마스터키"], "synonyms": ["마스터 키", "master key", "마스터키(master key)"]},
+        {"idx": 3, "answers": ["별도"], "synonyms": ["별도의", "분리된", "별도 보관"]},
+        {"idx": 4, "answers": ["2"], "synonyms": ["2년", "두", "최대 2"]}
+      ],
+      "explanation": "정답: ① 물리적 ② 마스터키 ③ 별도 ④ 2.\n- ①: design_considerations ①(ㄱ)1) — DB데이터 암호화 암호키는 데이터가 저장된 DB와 물리적으로 분리된 별도의 장소에 보관한다.\n- ②③: security_measures ②·design_considerations ② — 설정파일 내 중요정보 암호화에 사용된 암호키는 마스터키를 이용해 암호화하여 별도 디렉터리에 보관한다.\n- ④: design_considerations ①(ㅁ) NIST — 대칭키(비밀키)의 송신자 사용기간은 최대 2년이다(수신자는 송신자 사용기간+3년 이하).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — design_considerations ①(ㄱ)·②·(ㅁ), security_measures ②",
+      "tags": ["security_feature", "design", "암호키관리", "빈칸", "물리적분리", "마스터키", "NIST"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "DSG-SF-05-B2",
+      "weakness_name_ko": "암호키 관리",
+      "chapter_code": "DSG-SF-05",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 암호키 생명주기 관리 및 키 복구 방안에 대한 설명이다. 빈칸에 들어갈 내용을 채우시오.",
+      "blank_template": "암호키 생명주기 관리 프로세스는 키 ___①___, 키 사용, 키 ___②___의 단계로 명시한다. 비밀번호·암호화키는 메모리에 저장하지 않으며, 부득이 메모리에 저장한 경우 사용 종료 후 메모리를 ___③___(으)로 초기화한다. 한편 사용자 퇴사 등으로 키 복구가 필요한 경우, 암호키는 정보보호 담당자 관리 하 암호키 관리대장 등에서 복구하고, 비밀번호는 정보보호 담당자가 ___④___을(를) 발급한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["생성"], "synonyms": ["키 생성", "생성단계"]},
+        {"idx": 2, "answers": ["폐기"], "synonyms": ["파기", "키 폐기", "폐기단계", "파기단계"]},
+        {"idx": 3, "answers": ["0"], "synonyms": ["영", "0으로", "제로", "zero"]},
+        {"idx": 4, "answers": ["임시 비밀번호"], "synonyms": ["임시비밀번호", "임시 패스워드", "임시 암호"]}
+      ],
+      "explanation": "정답: ① 생성 ② 폐기 ③ 0 ④ 임시 비밀번호.\n- ①②: design_considerations ①(ㄷ) 키 생명주기 관리 프로세스 — 키 생성(주체·프로그램·방법·절차 명시), 키 사용(방법·절차·변경 주기·접근통제 명시), 키 폐기(폐기 조건·안전한 폐기 절차 명시).\n- ③: design_considerations ①(ㄱ)3)4) — 비밀번호·암호화키는 메모리에 저장하지 않으며 부득이 저장한 경우 사용 종료 후 메모리를 0으로 초기화한다.\n- ④: design_considerations ①(ㄹ) 키 복구 방안 — 암호키는 정보보호 담당자 관리 하 암호키 관리대장 등에서 복구하고, 비밀번호는 정보보호 담당자가 임시 비밀번호를 발급한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §2.5 암호키 관리(pp.137-144) — design_considerations ①(ㄱ)·(ㄷ)·(ㄹ)",
+      "tags": ["security_feature", "design", "암호키관리", "빈칸", "생명주기", "키복구", "메모리0초기화"]
+    }
+  ]
+}

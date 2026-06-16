@@ -1,0 +1,192 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EN-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-M1",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현 단계 캡슐화 항목인 '제거되지 않고 남은 디버그 코드'에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다."},
+        {"num": 2, "text": "디버그 코드는 설정 등의 민감한 정보를 담거나 시스템을 제어하게 허용하는 부분을 담고 있을 수 있다."},
+        {"num": 3, "text": "디버그 코드가 남겨진 채로 배포될 경우, 공격자가 식별 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다."},
+        {"num": 4, "text": "디버그 코드는 장애 분석에 유용하므로 운영 환경 배포 시에도 반드시 그대로 유지하는 것이 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 '디버그 코드는 설정 등의 민감한 정보를 담거나 시스템을 제어하게 허용하는 부분을 담고 있을 수 있다'고 그대로 기술한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). overview가 '남겨진 채로 배포될 경우, 공격자가 식별 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). countermeasure는 '소프트웨어 배포 전, 반드시 디버그 코드를 확인 및 삭제한다'고 한다. 디버그 코드를 운영 환경에 그대로 유지하면 민감정보 노출·식별 우회 등이 발생하므로 '그대로 유지하는 것이 안전하다'는 진술은 대책을 정반대로 뒤집은 것이다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-02 overview·countermeasure로 검증한다. 디버그 코드는 민감정보·시스템 제어 부분을 담을 수 있어 남겨진 채 배포되면 식별 우회·정보 노출을 유발하므로 배포 전 반드시 확인·삭제해야 한다. 4번은 '운영 배포 시에도 그대로 유지하는 것이 안전하다'며 대책을 부정하므로 틀렸다. 1·2·3번은 overview와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드(pp.476-480), CWE-489 — overview·countermeasure",
+      "tags": ["encapsulation", "implementation", "디버그코드", "정보노출", "식별우회", "배포전삭제", "CWE-489"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-M2",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 보안약점과 대책에 대한 설명으로 옳지 않은 것은?\n\n```java\nclass Base64 {\n    public static void main(String[] args) {\n        if (debug) {\n            byte[] a = { (byte) 0xfc, (byte) 0x0f, (byte) 0xc0 };\n            byte[] b = { (byte) 0x03, (byte) 0xf0, (byte) 0x3f };\n            ...\n        }\n    }\n    public void otherMethod() { ... }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "main() 메서드 내에 화면에 출력하는 디버깅 코드를 포함하고 있다."},
+        {"num": 2, "text": "J2EE의 경우 main() 메서드 사용이 필요 없으며, 콘솔 응용프로그램으로 화면에 디버깅 코드를 사용하는 경우가 일반적이다."},
+        {"num": 3, "text": "J2EE와 같은 응용프로그램에서는 디버깅이 끝나면 main() 메소드를 삭제해야 한다."},
+        {"num": 4, "text": "main() 안의 디버그 코드는 실제 서비스 흐름과 무관하므로 배포 시 삭제하지 않고 그대로 두어도 보안상 문제가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 'main() 메서드 내에 화면에 출력하는 디버깅 코드를 포함하고 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 'J2EE의 경우 main() 메서드 사용이 필요 없으며, 개발자들이 콘솔 응용프로그램으로 화면에 디버깅코드를 사용하는 경우가 일반적이다'와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). note·countermeasure가 'J2EE와 같은 응용프로그램에서 main() 메소드는 삭제한다', '디버깅이 끝나면 main() 메서드를 삭제해야 한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 디버그 코드는 민감정보를 담거나 식별 과정을 우회시킬 수 있어, 서비스 흐름과 무관해 보여도 배포 전 반드시 삭제해야 한다. '삭제하지 않고 그대로 두어도 문제없다'는 진술은 약점·대책을 정반대로 뒤집은 것이다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-02 code_examples(Java)의 note와 countermeasure로 검증한다. J2EE에서 main() 메서드는 불필요하며 디버깅용으로 남은 main()은 배포 전 삭제해야 한다. 디버그 코드는 민감정보 노출·식별 우회를 유발할 수 있어 '서비스 흐름과 무관하니 그대로 둬도 된다'는 4번은 틀렸다. 1·2·3번은 note·countermeasure와 일치하는 옳은 설명으로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — code_examples(Java) vulnerable/safe/note, countermeasure, CWE-489",
+      "tags": ["encapsulation", "implementation", "디버그코드", "main메소드", "J2EE", "배포전삭제", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-M3",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 '제거되지 않고 남은 디버그 코드'의 진단방법에 대한 설명이다. 진단원의 판단으로 옳지 않은 것은?\n\n진단원은 개발 중 테스트 목적으로 남아 있는 디버그 코드의 존재 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "J2EE를 제외하고 디버그 코드를 정적도구만으로 판단하기는 쉽지 않으므로, 개발 중 테스트 목적으로 남아 있는 디버그 코드가 존재하는지 확인한다."},
+        {"num": 2, "text": "J2EE 환경(J2EE Standard)에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들이 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인한다."},
+        {"num": 3, "text": "C 코드의 경우 디버그 모드에서 콜 스택을 출력하면 공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있으므로, 릴리즈 시에는 디버그용 코드를 삭제한다."},
+        {"num": 4, "text": "J2EE 환경에서 디버깅용으로 작성된 main 메소드는 표준이 권장하는 진입점이므로 배포 시 반드시 유지해야 한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'J2EE를 제외하고 디버그 코드를 정적도구만으로 판단하기는 쉽지 않다. 개발 중 테스트 목적으로 남아 있는 디버그 코드가 존재하는지 확인한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'J2EE 환경에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들은 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인하여야 한다'와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). code_examples(C)의 note가 '공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있다. 릴리즈 시에는 디버그용 코드를 삭제하여야 한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). J2EE 환경에서는 main 메소드 작성을 금하고 있고 디버깅용 main()은 삭제 대상이다. '표준이 권장하는 진입점이므로 유지해야 한다'는 진술은 J2EE 표준·진단 기준을 정반대로 뒤집은 것이다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-02 diagnosis.method와 code_examples로 검증한다. J2EE Standard는 main 메소드 작성을 금하며 디버깅용 main()은 배포 전 삭제 대상이다. 4번은 'J2EE 표준이 권장하는 진입점이라 유지해야 한다'며 기준을 정반대로 진술하므로 틀렸다. 1·2번은 diagnosis.method, 3번은 C note와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — diagnosis.method, code_examples(C) note, CWE-489",
+      "tags": ["encapsulation", "implementation", "디버그코드", "진단방법", "J2EE", "main메소드", "콜스택"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-D1",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 서블릿 코드에 대해 제거되지 않고 남은 디버그 코드 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class U489 extends HttpServlet {\n    protected void doGet(HttpServletRequest request, ...) throws ... { ... }\n    protected void doPost(HttpServletRequest request, ...) throws ... { ... }\n    public static void main(String args[]) {\n        System.err.printf(\"Print debug code\");\n    }\n}\n```",
+      "vulnerable_code": "1  public class U489 extends HttpServlet {\n2      protected void doGet(HttpServletRequest request, ...) throws ... { ... }\n3      protected void doPost(HttpServletRequest request, ...) throws ... { ... }\n4      // 테스트를 위한 main() 함수나 디버깅용 로그 출력문 등이 남아 있다.\n5      public static void main(String args[]) {\n6          System.err.printf(\"Print debug code\");\n7      }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [5, 6],
+      "rationale_keywords": ["디버그용 main()", "J2EE main 금지", "System.err.printf", "테스트용 코드 잔존", "정보 노출"],
+      "fix_keywords": ["main() 삭제", "디버그 출력문 제거", "배포 전 확인"],
+      "safe_code": "1  public class U489 extends HttpServlet {\n2      protected void doGet(HttpServletRequest request, ...) throws ... { ... }\n3      protected void doPost(HttpServletRequest request, ...) throws ... { ... }\n4      // 디버깅용 main()과 로그 출력문을 삭제하고 동작 코드만 남긴다.\n5  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인의 public static void main()은 테스트·디버깅 용도로 작성된 메소드이고, 6번 라인의 System.err.printf(\"Print debug code\")는 디버깅용 로그 출력문이다. J2EE 환경에서는 main 메소드 사용이 필요 없으며 디버깅용 main()과 출력문이 제거되지 않고 남아 있으면, 배포 시 의도하지 않은 정보가 노출되거나 식별 과정이 우회될 수 있는 제거되지 않고 남은 디버그 코드(CWE-489)에 해당한다.",
+        "fix_description": "소프트웨어 배포 전 디버깅용 main() 메소드와 System.err.printf 출력문 등 테스트 목적의 디버그 코드를 확인하여 삭제하고, 실제 동작에 필요한 doGet·doPost 등 메소드만 남긴다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EN-02 diagnosis.true_positive(U489 서블릿) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '디버그용 main()'/'J2EE main 금지': 5번 라인 main()은 J2EE에서 불필요한 디버깅용 메소드.\n- 'System.err.printf'/'테스트용 코드 잔존': 6번 라인이 제거되지 않고 남은 디버그 출력문.\n- '정보 노출': 남은 디버그 코드로 의도하지 않은 정보·제어 정보가 노출될 수 있음.\n\n[수정 키워드 의미] 배포 전 main()과 디버그 출력문을 삭제한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(5·6번 — 디버깅용 main()·출력문 라인 지목) 20점 / rationale(디버그용 main()·J2EE main 금지·테스트용 코드 잔존 키워드 포함) 30점 / fix(main() 삭제·디버그 출력문 제거·배포 전 확인) 30점.\n\n[자가확인 체크리스트] (1) J2EE 환경에서 main() 등 불필요한 디버깅용 진입점이 있는가? (2) 테스트·콘솔 출력 등 디버깅 목적 코드가 제거되지 않고 남아 있는가? (3) 배포 전 디버그 코드 확인·삭제가 누락되었는가? — 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — diagnosis.true_positive(U489), CWE-489",
+      "tags": ["encapsulation", "implementation", "디버그코드", "정탐", "main메소드", "서블릿", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-D2",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드에 대해 제거되지 않고 남은 디버그 코드 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nclass Base64 {\n    public void otherMethod() { ... }\n}\n```",
+      "vulnerable_code": "1  class Base64 {\n2      public void otherMethod() { ... }\n3  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["디버그 코드 없음", "디버깅용 main() 삭제됨", "동작 코드만 남음", "배포 전 제거 완료", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 디버깅용 main() 메소드와 디버그 출력문이 제거되어 있고,\n2  // 실제 동작에 필요한 otherMethod() 등 기능 메소드만 남아 있다.\n3  // 제거되지 않고 남은 디버그 코드가 존재하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 클래스 Base64에는 디버깅용 main() 메소드나 콘솔 출력 등 디버그 코드가 존재하지 않고, 실제 동작에 필요한 otherMethod() 등 기능 메소드만 남아 있다. countermeasure가 요구하는 '소프트웨어 배포 전 디버그 코드를 확인 및 삭제'한 상태(safe 코드)와 일치하므로, 제거되지 않고 남은 디버그 코드가 발생하지 않는다.",
+        "fix_description": "수정 불필요. 디버깅용 main()과 출력문이 이미 제거되어 동작 코드만 남아 있으므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EN-02 code_examples(Java)의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 클래스에 메소드가 있다는 사실만으로 디버그 코드 잔존을 단정해서는 안 된다. 이 코드는 디버깅용 main()이 삭제되고 실제 기능 메소드만 남은, 가이드가 제시하는 안전한 형태(safe 코드)다.\n\n[안전 판정 근거 키워드 의미]\n- '디버그 코드 없음'/'디버깅용 main() 삭제됨': 테스트·콘솔 출력용 main()이 존재하지 않음.\n- '동작 코드만 남음': otherMethod() 등 실제 기능 메소드만 남음.\n- '배포 전 제거 완료': countermeasure가 요구하는 디버그 코드 삭제가 이미 적용됨.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(디버그 코드 부재·디버깅용 main() 삭제·동작 코드만 잔존 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 디버깅용 main()이나 콘솔 출력 등 디버그 코드가 남아 있는가? → 아니다. (2) 실제 동작에 필요한 코드만 남아 있는가? → 그렇다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — code_examples(Java) safe, CWE-489",
+      "tags": ["encapsulation", "implementation", "디버그코드", "오탐", "main삭제", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-B1",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '제거되지 않고 남은 디버그 코드' 약점의 위험과 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 디버그 코드가 남겨진 채로 배포될 경우, 공격자가 (가) 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다.\n· 소프트웨어 (나) 전, 반드시 디버그 코드를 확인 및 삭제한다.",
+      "blank_template": "· 디버그 코드가 남겨진 채로 배포될 경우, 공격자가 {{1}} 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다.\n· 소프트웨어 {{2}} 전, 반드시 디버그 코드를 확인 및 삭제한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["식별"],
+          "synonyms": ["식별(identification)", "인증·식별", "identification", "식별 과정"]
+        },
+        {
+          "idx": 2,
+          "answers": ["배포"],
+          "synonyms": ["배포(release)", "릴리즈", "release", "deploy", "배포 직"]
+        }
+      ],
+      "explanation": "정답: (가) 식별, (나) 배포. IMP-EN-02 overview는 '디버그 코드가 남겨진 채로 배포될 경우, 공격자가 식별 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다'고 명시한다. countermeasure는 '소프트웨어 배포 전, 반드시 디버그 코드를 확인 및 삭제한다'고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — overview, countermeasure",
+      "tags": ["encapsulation", "implementation", "디버그코드", "빈칸", "식별우회", "배포전삭제"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-02-B2",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "chapter_code": "IMP-EN-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '제거되지 않고 남은 디버그 코드'의 진단방법과 코드 예시에 대한 설명이다. 빈칸에 들어갈 용어를 채우시오.\n\n· (가) 환경(Standard)에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들은 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인하여야 한다.\n· C 코드에서 디버그 모드 시 (나) 을(를) 출력하면 공격자가 이를 통해 프로그램 구조를 유추할 수 있으므로, 릴리즈 시 디버그용 코드를 삭제한다.",
+      "blank_template": "· {{1}} 환경(Standard)에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들은 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인하여야 한다.\n· C 코드에서 디버그 모드 시 {{2}} 을(를) 출력하면 공격자가 이를 통해 프로그램 구조를 유추할 수 있으므로, 릴리즈 시 디버그용 코드를 삭제한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["J2EE"],
+          "synonyms": ["J2EE(Java EE)", "Java EE", "자바 EE", "JavaEE"]
+        },
+        {
+          "idx": 2,
+          "answers": ["콜 스택"],
+          "synonyms": ["콜스택", "call stack", "콜 스택(call stack)", "콜스택(스택 트레이스)", "스택 트레이스"]
+        }
+      ],
+      "explanation": "정답: (가) J2EE, (나) 콜 스택. IMP-EN-02 diagnosis.method는 'J2EE 환경(J2EE Standard)에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들은 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인하여야 한다'고 명시한다. code_examples(C) note는 '공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있다'고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §2 제거되지 않고 남은 디버그 코드 — diagnosis.method, code_examples(C) note",
+      "tags": ["encapsulation", "implementation", "디버그코드", "빈칸", "J2EE", "콜스택"]
+    }
+  ]
+}

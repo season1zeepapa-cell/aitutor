@@ -1,0 +1,178 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-10",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-M1",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 '부적절한 전자서명 확인'에 대한 설명이다. 옳지 않은 것은?\n\n전자서명은 서명자의 신원을 확인하고 서명된 파일의 무결성을 보장할 수 있는 디지털 정보이다.",
+      "choices": [
+        {"num": 1, "text": "전자서명을 검증하지 않거나 검증절차가 부적절하면 위변조된 파일을 통해 악성코드에 감염될 수 있다."},
+        {"num": 2, "text": "전자서명을 포함하는 파일을 사용할 때는 항상 전자서명을 확인하여야 한다."},
+        {"num": 3, "text": "전자서명 파일의 출처 등을 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않도록 한다."},
+        {"num": 4, "text": "전자서명이 포함된 파일은 서명 자체가 무결성을 보장하므로, 출처가 불분명해도 검증 절차 없이 그대로 사용해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '전자서명을 검증하지 않거나 검증절차가 부적절하면 위변조된 파일로 악성코드에 감염될 수 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '전자서명을 포함하는 파일을 사용할 때는 항상 전자서명을 확인하여야 한다'고 그대로 요구한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '전자서명 파일의 출처 등을 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않도록 한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 가이드는 전자서명 포함 파일도 항상 서명을 확인하고 출처를 확인하여 신뢰할 수 없는 파일은 사용하지 말 것을 요구한다. '검증 절차 없이 그대로 사용해도 안전하다'는 진술은 바로 이 약점(부적절한 전자서명 확인, CWE-347)의 원인이므로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-10 라이브러리 overview·countermeasure로 검증한다. 가이드는 ① 전자서명을 검증하지 않으면 위변조 파일로 악성코드 감염, ② 사용 시 항상 서명 확인, ③ 출처 확인 후 신뢰할 수 없는 파일 미사용을 명시한다. 4번은 검증·출처 확인을 생략해도 안전하다고 하여 약점의 원인을 정반대로 진술했으므로 틀렸다. 1·2·3번은 각각 overview·countermeasure와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인(pp.375-378), CWE-347 — overview·countermeasure",
+      "tags": ["security_feature", "implementation", "전자서명", "위변조", "악성코드", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-M2",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 전자서명 확인 방식에 대한 설명으로 옳지 않은 것은?\n\n```java\nFile f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f);\n```",
+      "choices": [
+        {"num": 1, "text": "JarFile 생성자에 전자서명 검증 여부를 지정하는 Boolean형 파라미터를 사용하지 않아 서명 검증이 활성화되지 않는다."},
+        {"num": 2, "text": "신뢰할 수 없는 곳에서 다운로드한 JAR 파일의 서명을 확인하지 않으면 악성코드가 삽입되어 실행될 수 있다."},
+        {"num": 3, "text": "new JarFile(f, true)로 전자서명 검증을 활성화하고, JarEntry.getCodeSigners()로 전자서명 주체를 확인하도록 개선해야 한다."},
+        {"num": 4, "text": "JarFile은 객체를 생성하는 것만으로 자동으로 서명 주체까지 검증하므로, 이 코드는 별도 조치 없이 안전한 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 new JarFile(f)는 두 번째 Boolean 파라미터(true)를 쓰지 않아 서명 검증이 활성화되지 않는다. note가 이를 지적한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '신뢰할 수 없는 곳에서 다운로드한 JAR 파일의 서명을 확인하지 않으면 악성코드가 삽입되어 실행될 수 있다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드와 note가 new JarFile(f, true)로 서명 여부를 확인하고 JarEntry.getCodeSigners()로 서명 주체를 검증하도록 요구한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). JarFile 객체 생성만으로 서명 주체가 자동 검증되지 않는다. Boolean 파라미터(true)로 서명 검증을 켜고 getCodeSigners()로 주체를 별도 확인해야 하므로, '생성만으로 안전하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-10 code_examples(Java) vulnerable/safe와 note를 기반으로 한다. vulnerable 코드 new JarFile(f)는 Boolean 파라미터를 생략해 서명 검증이 비활성화되며(1번), 서명 미확인 시 악성코드 실행 위험이 있고(2번), 개선은 new JarFile(f, true) + getCodeSigners()다(3번). 4번은 객체 생성만으로 서명 주체까지 자동 검증된다고 하여 note를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — code_examples(Java) vulnerable/safe·note, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "JarFile", "getCodeSigners", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-M3",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 업로드된 파일을 JarFile로 처리하는 코드와 그 진단에 대한 설명이다. 옳지 않은 것은?\n\n```java\nFile f = new File(multipartFile.getOriginalFilename());\nmultipartFile.transferTo(f);\nJarFile jf = new JarFile(f, true);\n// 이후 전자서명 주체를 검증하는 코드가 없음\n```",
+      "choices": [
+        {"num": 1, "text": "new JarFile(f, true)로 전자서명 여부를 확인하는 생성자는 사용했으나, 전자서명 주체를 검증하는 코드가 없어 취약하다."},
+        {"num": 2, "text": "JarEntry.getCodeSigners()로 서명자 배열을 얻은 뒤 signers != null && signers.length != 0 조건으로 전자서명 주체를 검증해야 한다."},
+        {"num": 3, "text": "진단 시 JarFile 생성 시 Boolean형 파라미터로 서명 여부를 검증하는지, 그리고 getCodeSigners()로 서명 주체를 검증하는지 함께 확인한다."},
+        {"num": 4, "text": "JarFile(f, true) 생성자만 사용하면 서명 여부와 서명 주체가 모두 검증되므로, getCodeSigners() 호출은 불필요한 중복 검증이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.true_positive가 '전자서명 여부를 확인하는 생성자는 사용했으나 전자서명 주체를 검증하는 코드를 사용하지 않음 → 취약 판정'이라고 명시한 사례 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). false_positive 안전 코드가 getCodeSigners()로 서명자를 얻어 signers != null && signers.length != 0으로 주체를 검증한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'Boolean형 파라미터 생성자로 전자서명 여부 검증 + getCodeSigners()로 전자서명 주체 검증 여부'를 함께 확인하라고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). JarFile(f, true)는 서명 '여부' 검증을 활성화할 뿐 서명 '주체'까지 자동 검증하지 않는다. getCodeSigners()로 주체를 확인하지 않으면 취약하므로, 이를 '불필요한 중복'이라 한 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-10 diagnosis.method/true_positive/false_positive를 기반으로 한다. true_positive는 'JarFile(f, true)는 썼지만 getCodeSigners() 주체 검증이 없으면 취약', method는 '생성자 Boolean 검증 + getCodeSigners() 주체 검증을 함께 확인', false_positive 안전코드는 signers != null && signers.length != 0 검증을 포함한다(1·2·3번 옳음). 4번은 JarFile(f, true)만으로 서명 주체까지 검증된다고 하여 method/true_positive를 정반대로 진술했으므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — diagnosis.method/true_positive/false_positive, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "진단방법", "getCodeSigners", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-D1",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 전자서명 확인에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\n@RequestMapping(value = \"/upload\", method = RequestMethod.POST)\npublic Student upload(@RequestParam(\"file\") MultipartFile multipartFile)\nthrows IllegalStateException, IOException {\n  File f = new File(multipartFile.getOriginalFilename());\n  multipartFile.transferTo(f);\n  JarFile jf = new JarFile(f, true);\n}\n```",
+      "vulnerable_code": "1  @RequestMapping(value = \"/upload\", method = RequestMethod.POST)\n2  public Student upload(@RequestParam(\"file\") MultipartFile multipartFile)\n3  throws IllegalStateException, IOException {\n4    File f = new File(multipartFile.getOriginalFilename());\n5    multipartFile.transferTo(f);\n6    JarFile jf = new JarFile(f, true);\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [6],
+      "rationale_keywords": ["전자서명 주체 미검증", "getCodeSigners 없음", "JarFile(f, true)만 사용", "위변조/악성코드", "CWE-347"],
+      "fix_keywords": ["getCodeSigners()", "서명자 null/length 확인", "신뢰 출처 확인"],
+      "safe_code": "1  File f = new File(multipartFile.getOriginalFilename());\n2  multipartFile.transferTo(f);\n3  JarFile jf = new JarFile(f, true);\n4  Enumeration<JarEntry> ens = jf.entries();\n5  while (ens.hasMoreElements()) {\n6    JarEntry en = ens.nextElement();\n7    if (!en.isDirectory() && en.toString().equals(path)) {\n8      byte[] data = readAll(jf.getInputStream(en), en.getSize());\n9      CodeSigner[] signers = en.getCodeSigners();\n10     if (signers != null && signers.length != 0) {\n11       // 신뢰할 수 있는 서명 주체인지 확인 후 사용\n12     }\n13   }\n14 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 6번 라인에서 new JarFile(f, true)로 전자서명 여부를 확인하는 생성자는 사용했으나, 이후 JarEntry.getCodeSigners()로 전자서명 주체를 검증하는 코드가 없다. 사용자가 업로드한(신뢰할 수 없는) 파일의 서명 주체를 확인하지 않으면 위변조된 파일·악성코드가 삽입되어 실행될 수 있는 부적절한 전자서명 확인(CWE-347)이다.",
+        "fix_description": "JarFile 엔트리를 순회하며 JarEntry.getCodeSigners()로 서명자 배열을 얻고, signers != null && signers.length != 0 조건으로 전자서명 주체를 검증한다. 아울러 전자서명 파일의 출처를 확인하여 신뢰할 수 없는 곳에서 생성된 파일은 사용하지 않도록 한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-10 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '전자서명 주체 미검증'/'getCodeSigners 없음': JarFile(f, true)로 서명 여부 검증은 켰지만 서명 주체(getCodeSigners)를 확인하지 않음 — 취약 판정 핵심.\n- 'JarFile(f, true)만 사용': 생성자 Boolean 파라미터만으로는 주체 검증이 되지 않음.\n- '위변조/악성코드'/'CWE-347': 서명 주체 미검증 시 발생 가능한 위협과 CWE 분류.\n\n[수정 키워드 의미] getCodeSigners()로 서명자를 얻어 null/length를 확인하고 신뢰 출처를 확인한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(JarFile(f, true) 후 주체 검증이 빠진 6번 라인 지목) 20점 / rationale(전자서명 주체 미검증·getCodeSigners 부재·위변조/악성코드·CWE-347 포함) 30점 / fix(getCodeSigners() + signers null/length 검증 + 신뢰 출처 확인) 30점.\n\n[자가확인 체크리스트] (1) JarFile 생성 시 Boolean(true)로 서명 여부를 검증하는가? (2) getCodeSigners()로 서명 '주체'까지 검증하는가? → 빠졌으면 취약. (3) 파일 출처가 신뢰할 수 있는가?",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — diagnosis.true_positive, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "정탐", "getCodeSigners", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-D2",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 전자서명 확인에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nFile f = new File(multipartFile.getOriginalFilename());\nmultipartFile.transferTo(f);\nJarFile jf = new JarFile(f, true);\nEnumeration<JarEntry> ens = jf.entries();\nwhile (ens.hasMoreElements()) {\n  JarEntry en = ens.nextElement();\n  if (!en.isDirectory() && en.toString().equals(path)) {\n    byte[] data = readAll(jf.getInputStream(en), en.getSize());\n    CodeSigner[] signers = en.getCodeSigners();\n    if (signers != null && signers.length != 0) {\n      // 신뢰 가능한 서명 주체 확인 후 처리\n    }\n  }\n}\n```",
+      "vulnerable_code": "1  File f = new File(multipartFile.getOriginalFilename());\n2  multipartFile.transferTo(f);\n3  JarFile jf = new JarFile(f, true);\n4  Enumeration<JarEntry> ens = jf.entries();\n5  while (ens.hasMoreElements()) {\n6    JarEntry en = ens.nextElement();\n7    if (!en.isDirectory() && en.toString().equals(path)) {\n8      byte[] data = readAll(jf.getInputStream(en), en.getSize());\n9      CodeSigner[] signers = en.getCodeSigners();\n10     if (signers != null && signers.length != 0) {\n11       // 신뢰 가능한 서명 주체 확인 후 처리\n12     }\n13   }\n14 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["JarFile(f, true) 사용", "getCodeSigners 검증", "서명자 null/length 확인", "서명 주체 검증 완료", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전 — JarFile(f, true)로 전자서명 여부를 검증하고,\n2  // getCodeSigners()로 서명자 배열을 얻어 signers != null && signers.length != 0 조건으로\n3  // 전자서명 주체까지 검증하므로 추가 조치가 필요 없다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인에서 new JarFile(f, true)로 전자서명 여부를 확인하는 생성자를 사용하고, 9~10번 라인에서 JarEntry.getCodeSigners()로 서명자 배열을 얻어 signers != null && signers.length != 0 조건으로 전자서명 주체까지 검증한다. 이는 diagnosis.false_positive가 제시한 안전 사례와 일치하므로, 서명 검증이 적절히 수행된 코드를 취약하다고 판정하면 오탐이다.",
+        "fix_description": "수정 불필요. 전자서명 여부(JarFile(f, true))와 전자서명 주체(getCodeSigners() + null/length 검증)를 모두 확인하고 있어 부적절한 전자서명 확인(CWE-347)에 해당하지 않는다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-10 diagnosis.false_positive 안전 코드를 기반으로 한다. 핵심은 '서명 검증이 제대로 된 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] JarFile이 사용자 업로드 파일을 다룬다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 서명 여부와 서명 주체를 모두 검증하는 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'JarFile(f, true) 사용': 전자서명 여부 검증을 활성화함.\n- 'getCodeSigners 검증'/'서명자 null/length 확인': 전자서명 주체를 signers != null && signers.length != 0으로 확인함.\n- '서명 주체 검증 완료': true_positive(주체 검증 누락)와 달리 주체 검증이 존재함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — 정확히 없다고 판단) 20점 / rationale(JarFile(f, true)·getCodeSigners·null/length 검증·주체 검증 완료 등 안전 근거 포함) 30점 / fix(수정 불필요·서명 여부와 주체 모두 검증 명시) 30점.\n\n[자가확인 체크리스트] (1) JarFile 생성 시 Boolean(true)로 서명 여부를 검증하는가? → 그렇다. (2) getCodeSigners()로 서명 주체까지 검증하는가? → 그렇다(null/length 확인). — 둘 다 충족이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — diagnosis.false_positive, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "오탐", "getCodeSigners", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-B1",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '부적절한 전자서명 확인'의 약점·위협·대책에 대한 설명이다. 빈칸에 들어갈 알맞은 말을 쓰시오.",
+      "blank_template": "전자서명을 검증하지 않거나 검증절차가 부적절하면 ____(1)____된 파일을 통해 ____(2)____에 감염될 수 있다. 따라서 전자서명을 포함하는 파일을 사용할 때는 항상 전자서명을 확인해야 하며, 전자서명 파일의 ____(3)____을(를) 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않도록 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["위변조"], "synonyms": ["위·변조", "위조/변조", "변조"]},
+        {"idx": 2, "answers": ["악성코드"], "synonyms": ["악성 코드", "멀웨어", "malware"]},
+        {"idx": 3, "answers": ["출처"], "synonyms": ["출처(소스)", "발생지", "source"]}
+      ],
+      "explanation": "IMP-SF-10 overview·countermeasure에 따르면 전자서명 검증을 하지 않으면 위변조된 파일을 통해 악성코드에 감염될 수 있고, 사용 시 항상 전자서명을 확인하며 전자서명 파일의 출처를 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않아야 한다. 빈칸 (1)=위변조, (2)=악성코드, (3)=출처.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — overview·countermeasure, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "위변조", "악성코드", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-10-B2",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "chapter_code": "IMP-SF-10",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 JAR 파일의 전자서명을 안전하게 검증하는 Java 코드이다. 빈칸에 들어갈 알맞은 표현을 쓰시오.\n\n```java\nJarFile jf = new JarFile(f, ____(1)____);\nJarEntry en = ens.nextElement();\nCodeSigner[] signers = en.____(2)____();\nif (signers != null && signers.____(3)____ != 0) {\n    // 신뢰 가능한 서명 주체 확인 후 처리\n}\n```",
+      "blank_template": "전자서명 여부를 검증하려면 JarFile 생성자의 두 번째 Boolean 파라미터를 ____(1)____로 지정하고, 엔트리의 ____(2)____() 메소드로 서명자 배열을 얻은 뒤 signers != null && signers.____(3)____ != 0 조건으로 전자서명 주체를 검증한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["true"], "synonyms": ["참", "True"]},
+        {"idx": 2, "answers": ["getCodeSigners"], "synonyms": ["getCodeSigners()", ".getCodeSigners"]},
+        {"idx": 3, "answers": ["length"], "synonyms": ["length()", "길이", "size"]}
+      ],
+      "explanation": "IMP-SF-10 code_examples(Java) safe 코드와 false_positive 안전 사례에 따르면 new JarFile(f, true)로 전자서명 여부를 확인하고, JarEntry.getCodeSigners()로 서명자 배열을 얻은 뒤 signers != null && signers.length != 0 조건으로 전자서명 주체를 검증한다. 빈칸 (1)=true, (2)=getCodeSigners, (3)=length.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — code_examples(Java) safe·diagnosis.false_positive, CWE-347",
+      "tags": ["security_feature", "implementation", "전자서명", "JarFile", "getCodeSigners", "빈칸"]
+    }
+  ]
+}

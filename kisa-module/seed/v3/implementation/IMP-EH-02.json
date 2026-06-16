@@ -1,0 +1,178 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EH-02",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-M1",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '오류상황 대응 부재' 보안약점에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "오류가 발생할 수 있는 부분을 확인하였으나 예외 처리를 하지 않으면, 공격자가 오류 상황을 악용해 의도하지 않은 동작을 유발할 수 있다."},
+        {"num": 2, "text": "오류가 발생할 수 있는 부분에 대하여 제어문을 사용하여 적절하게 예외 처리(C/C++의 if·switch, Java의 try-catch 등)를 한다."},
+        {"num": 3, "text": "catch 블록이 비어 있으면 오류 발생 시에도 프로그램이 계속 실행되어 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생할 수 있다."},
+        {"num": 4, "text": "오류를 catch만 하고 아무 조치를 하지 않더라도 프로그램이 계속 실행되므로 보안상 안전한 처리 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview의 '오류에 대하여 예외 처리를 하지 않을 경우, 공격자는 오류 상황을 악용하여 … 의도하지 않은 방향으로 프로그램이 동작하도록 할 수 있다'와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure의 '오류가 발생할 수 있는 부분에 대하여 제어문을 사용하여 적절하게 예외 처리(C/C++에서 if와 switch, Java에서 try-catch 등)를 한다'와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). note의 'catch 블록이 비어 있으면 오류 발생 시에도 프로그램이 계속 실행되어 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생한다'와 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 오류를 catch만 하고 아무 조치를 하지 않으면(빈 catch) 프로그램이 비정상적으로 계속 실행되어 의도하지 않은 동작이 발생하므로 오히려 취약하다. '안전한 처리 방식'이라는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EH-02 라이브러리 overview·countermeasure·note를 기준으로 검증한다. 오류를 포착(catch)하고도 아무 조치가 없으면 프로그램이 비정상 상태로 계속 실행되어 취약하다. 4번은 빈 catch를 '안전'하다고 진술해 틀렸다. 1·2·3번은 overview·countermeasure·note와 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재(pp.425-428), CWE-390 — overview, countermeasure",
+      "tags": ["error_handling", "implementation", "no-error-handling", "빈catch", "예외처리부재", "try-catch"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-M2",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 로그인 처리 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\ntry {\n  username = s.getParser().getRawParameter(USERNAME);\n  password = s.getParser().getRawParameter(PASSWORD);\n  if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n    s.setMessage(\"Invalid username and password entered.\");\n    return (makeLogin(s));\n  }\n} catch (NullPointerException e) {\n  // 비어 있음\n}\n```",
+      "choices": [
+        {"num": 1, "text": "요청 파라미터에 PASSWORD가 없으면 NullPointerException이 발생할 수 있다."},
+        {"num": 2, "text": "catch 블록이 비어 있어 예외 발생 시 적절한 대응 없이 프로그램이 계속 실행되어 인증이 된 것처럼 처리될 수 있다."},
+        {"num": 3, "text": "예외 포착 후 s.setMessage(...); return (makeLogin(s)); 처럼 각 예외 상황에 적절한 조치를 수행하도록 수정하는 것이 안전하다."},
+        {"num": 4, "text": "catch 블록을 비워두면 예외가 자동으로 안전하게 처리되므로 별도의 조치를 추가할 필요가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 '요청 파라미터에 PASSWORD가 존재하지 않을 경우 Null Pointer Exception이 발생'한다고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note의 'catch 블록이 비어 있으면 … 프로그램이 계속 실행되어 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생한다'와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 catch에서 's.setMessage(e.getMessage()); return (makeLogin(s));'로 예외 상황에 적절한 조치를 수행하도록 개선한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 빈 catch 블록은 예외를 무시하여 프로그램이 비정상 상태로 계속 실행되게 하는 오류상황 대응 부재(CWE-390)다. '자동으로 안전하게 처리'된다는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EH-02 code_examples(Java) vulnerable/safe와 note를 기준으로 검증한다. 빈 catch는 예외 시 적절한 조치가 없어 인증 우회 등 의도치 않은 동작을 유발하며, safe 코드는 catch에서 적절한 조치를 수행한다. 4번은 빈 catch를 '안전'하다고 진술해 틀렸다. 1·2·3번은 vulnerable/safe·note와 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — code_examples(Java) vulnerable/safe",
+      "tags": ["error_handling", "implementation", "no-error-handling", "빈catch", "NullPointerException", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-M3",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "오류상황 대응 부재의 진단방법과 안전/취약 판정에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "오류가 발생할 수 있는 부분에 대하여 예외처리를 수행했는지 확인하고, 제어문으로 예외 처리하는 루틴이 비어있는지 확인한다."},
+        {"num": 2, "text": "try 블록에서 발생하는 오류를 catch하고 있지만 그 오류에 대해 아무 조치를 하지 않으면 취약하다고 판단한다."},
+        {"num": 3, "text": "예외 발생 시 특별히 수행할 작업이 없더라도 logger.error로 간단한 메시지나 에러코드를 남겨 사후 처리가 가능하도록 하는 것이 안전하다."},
+        {"num": 4, "text": "SQLException·NamingException을 catch하되 catch 블록이 비어 있어도, 예외를 포착하기만 하면 안전하다고 판단한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method의 '오류가 발생할 수 있는 부분에 대하여 예외처리를 수행했는지 확인하고, 제어문으로 예외 처리하는 루틴이 비어있는지 확인한다'와 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method의 'try 블록에서 발생하는 오류를 포착(catch)하고 있지만 그 오류에 대해 아무 조치를 하고 있지 않으면 … 취약하다'와 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 코스 대응 방안의 '예외 발생 시 특별히 수행해야 하는 작업이 없는 경우에도 logger.error가 수행될 수 있어야 한다'와 일치하는 안전한 처리다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). true_positive는 'SQLException, NamingException을 catch하지만 catch 블록이 비어 있어 오류 발생 시 대응이 없음 → 취약 판정'으로 분류한다. 예외를 포착만 하고 비워두면 대응 부재로 취약하므로 '안전'하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EH-02 diagnosis.method·true_positive와 코스(COURSE-IMP-EH-02) 대응 방안을 기준으로 검증한다. 1·2번은 진단방법, 3번은 '특별 작업이 없어도 최소 로깅'이라는 대응 방안과 일치한다. 4번의 빈 catch(SQLException/NamingException)는 true_positive(대응 부재 → 취약)에 해당하므로 '안전'은 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — diagnosis.method, true_positive; 2025년 SW보안약점 진단원 기본과정 4-2 대응 방안",
+      "tags": ["error_handling", "implementation", "no-error-handling", "진단방법", "정탐", "최소로깅"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-D1",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 오류상황 대응 부재 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic Connection DBConnect(String url, String id, String password) {\n  try {\n    String CONNECT_STRING = url + \":\" + id + \":\" + password;\n    InitialContext ctx = new InitialContext();\n    DataSource datasource = (DataSource) ctx.lookup(CONNECT_STRING);\n    conn = datasource.getConnection();\n  } catch (SQLException e) {\n  } catch (NamingException e) {\n  }\n  return conn;\n}\n```",
+      "vulnerable_code": "1  public Connection DBConnect(String url, String id, String password) {\n2    try {\n3      String CONNECT_STRING = url + \":\" + id + \":\" + password;\n4      InitialContext ctx = new InitialContext();\n5      DataSource datasource = (DataSource) ctx.lookup(CONNECT_STRING);\n6      conn = datasource.getConnection();\n7    } catch (SQLException e) {\n8    } catch (NamingException e) {\n9    }\n10   return conn;\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [7, 8],
+      "rationale_keywords": ["빈 catch 블록", "예외 대응 부재", "아무 조치 없음", "비정상 실행", "CWE-390"],
+      "fix_keywords": ["적절한 예외 처리", "logger.error", "최소 로깅"],
+      "safe_code": "1  public Connection DBConnect(String url, String id, String password) {\n2    try {\n3      String CONNECT_STRING = url + \":\" + id + \":\" + password;\n4      InitialContext ctx = new InitialContext();\n5      DataSource datasource = (DataSource) ctx.lookup(CONNECT_STRING);\n6      conn = datasource.getConnection();\n7    } catch (SQLException e) {\n8      // 예외 상황에 대해 적절한 조치를 수행한다.\n9      logger.error(\"ERROR-01: DB 연결 실패\");\n10   } catch (NamingException e) {\n11     logger.error(\"ERROR-02: 네이밍 조회 실패\");\n12   }\n13   return conn;\n14 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 7번·8번 라인에서 SQLException과 NamingException을 catch하고 있으나 catch 블록이 비어 있어 오류 발생 시 아무런 조치를 하지 않는다. 그 결과 프로그램이 계속 실행되어 어떤 일이 일어났는지 알 수 없게 되고, DB 연결 실패 등 오류 상황에 대응하지 못해 의도하지 않은 비정상 동작이 발생한다(오류상황 대응 부재, CWE-390).",
+        "fix_description": "오류가 발생할 수 있는 부분에 대하여 제어문을 사용해 적절하게 예외 처리를 한다. 각 catch 블록에서 logger.error로 간단한 에러 메시지나 에러코드를 남겨 사후 처리가 가능하도록 하고, 필요한 경우 자원 해제·재시도 등 정확한 처리 절차를 수행한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EH-02 diagnosis.true_positive(SQLException·NamingException을 catch하지만 catch 블록이 비어 있음) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '빈 catch 블록'/'아무 조치 없음': 7·8번 catch가 비어 있어 예외에 대응하지 않는다.\n- '예외 대응 부재'/'비정상 실행': 오류 발생 시 프로그램이 비정상 상태로 계속 실행된다.\n- 'CWE-390': 오류상황 대응 부재 분류.\n\n[수정 키워드 의미] 적절한 예외 처리를 수행하고 logger.error로 최소 로깅을 남긴다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(7·8번 빈 catch 라인 지목) 20점 / rationale(빈 catch·대응 부재·비정상 실행 키워드 포함) 30점 / fix(적절한 예외 처리·logger.error 최소 로깅) 30점.\n\n[자가확인 체크리스트] (1) 예외를 catch하고 있는가? (2) catch 블록이 비어 있거나 do nothing만 있는가? (3) 예외 발생 시 수행해야 하는 조치(로깅·자원 해제 등)가 누락되었는가? — 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — diagnosis.true_positive, CWE-390",
+      "tags": ["error_handling", "implementation", "no-error-handling", "정탐", "빈catch", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-D2",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 로그인 처리 코드의 오류상황 대응 부재 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\ntry {\n  username = s.getParser().getRawParameter(USERNAME);\n  password = s.getParser().getRawParameter(PASSWORD);\n  if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n    s.setMessage(\"Invalid username and password entered.\");\n    return (makeLogin(s));\n  }\n} catch (NullPointerException e) {\n  s.setMessage(e.getMessage());\n  return (makeLogin(s));\n}\n```",
+      "vulnerable_code": "1  try {\n2    username = s.getParser().getRawParameter(USERNAME);\n3    password = s.getParser().getRawParameter(PASSWORD);\n4    if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n5      s.setMessage(\"Invalid username and password entered.\");\n6      return (makeLogin(s));\n7    }\n8  } catch (NullPointerException e) {\n9    s.setMessage(e.getMessage());\n10   return (makeLogin(s));\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["빈 catch 아님", "적절한 예외 조치 수행", "로그인 화면 복귀", "대응 부재 아님"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — catch(NullPointerException e) 블록이 비어 있지 않고\n2  // s.setMessage(...); return (makeLogin(s)); 로 예외 상황에 대해\n3  // 적절한 조치(로그인 화면 복귀)를 수행하므로 오류상황 대응 부재가 아니다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(오류상황 대응 부재가 아님). catch(NullPointerException e) 블록이 비어 있지 않고, s.setMessage(...); return (makeLogin(s));로 예외 발생 시 적절한 조치(로그인 화면 복귀)를 수행한다. 즉 PASSWORD 파라미터 누락 등으로 예외가 발생해도 인증이 된 것으로 처리되지 않고 정확한 처리 절차로 운영되므로, 빈 catch로 인한 오류상황 대응 부재(CWE-390)에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 예외 상황에 대해 적절한 조치를 수행하고 있어 오류상황 대응 부재 관점에서 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EH-02 code_examples(Java) safe 코드를 기반으로 한다. 핵심은 'try-catch가 있다는 이유만으로, 혹은 직전에 본 취약 코드와 비슷하다는 이유만으로 대응 부재라 오판하지 않기'다.\n\n[오판 주의] 같은 로그인 코드라도 catch 블록이 비어 있으면 취약(D1·M2 vulnerable)이지만, 이 코드는 catch에서 setMessage·makeLogin으로 적절히 대응하므로 안전하다. 빈 catch 여부가 핵심 구분점이다.\n\n[안전 판정 근거 키워드 의미]\n- '빈 catch 아님'/'적절한 예외 조치 수행': catch가 비어 있지 않고 예외에 대응한다.\n- '로그인 화면 복귀': s.setMessage 후 makeLogin(s)로 정확한 처리 절차를 따른다.\n- '대응 부재 아님': 예외를 무시하지 않으므로 CWE-390에 해당하지 않는다.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — vulnerable_lines=[]는 '해당 라인 없음') 20점 / rationale(빈 catch 아님·적절한 조치 수행·대응 부재 아님 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) catch 블록이 비어 있는가? → 아니다. (2) 예외 발생 시 적절한 조치(메시지·복귀·로깅 등)를 하는가? → 그렇다. (3) 예외를 무시해 비정상 실행되는가? → 아니다. — 모두 안전 쪽이므로 오류상황 대응 부재가 아니다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — code_examples(Java) safe, CWE-390",
+      "tags": ["error_handling", "implementation", "no-error-handling", "오탐", "적절한-예외처리", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-B1",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "오류상황 대응 부재 보안약점의 개념과 대응 방안에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "오류가 발생할 수 있는 부분을 확인하였으나 예외 처리를 하지 않으면, 공격자는 오류 상황을 {{0}}하여 개발자가 의도하지 않은 방향으로 프로그램이 동작하도록 할 수 있다. 특히 {{1}} 블록이 비어 있으면 오류 발생 시에도 프로그램이 계속 실행되어 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생한다. 대응으로 오류가 발생할 수 있는 부분에 {{2}}(C/C++의 if·switch, Java의 try-catch 등)을 사용하여 적절하게 예외 처리를 하고, 특별히 수행할 작업이 없어도 {{3}}로 최소한의 로깅을 수행한다.",
+      "blank_answers": [
+        {"idx": 0, "answers": ["악용"], "synonyms": ["악용함"]},
+        {"idx": 1, "answers": ["catch"], "synonyms": ["catch 블록", "예외처리"]},
+        {"idx": 2, "answers": ["제어문"], "synonyms": ["제어 구문"]},
+        {"idx": 3, "answers": ["logger.error"], "synonyms": ["logger.error()", "logger"]}
+      ],
+      "explanation": "정답: {{0}}=악용, {{1}}=catch, {{2}}=제어문, {{3}}=logger.error. IMP-EH-02 overview는 '공격자는 오류 상황을 악용하여 … 의도하지 않은 방향으로 프로그램이 동작하도록 할 수 있다'고 하며, note는 'catch 블록이 비어 있으면 … 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생한다'고 한다. countermeasure는 '제어문을 사용하여 적절하게 예외 처리(C/C++에서 if와 switch, Java에서 try-catch 등)를 한다'고 명시하며, 코스 대응 방안은 특별 작업이 없어도 logger.error로 최소 로깅을 수행하라고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — overview, countermeasure; 2025년 SW보안약점 진단원 기본과정 4-2 대응 방안",
+      "tags": ["error_handling", "implementation", "no-error-handling", "빈칸", "제어문", "logger"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "error_handling",
+      "weakness_code": "IMP-EH-02-B2",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "chapter_code": "IMP-EH-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 오류상황 대응 부재를 개선한 안전한 Java 로그인 처리 코드다. catch 블록에서 예외 상황에 적절히 대응하도록 빈칸을 채우시오.",
+      "blank_template": "try {\n  username = s.getParser().getRawParameter(USERNAME);\n  password = s.getParser().getRawParameter(PASSWORD);\n  // … 인증 검증 …\n} catch (NullPointerException e) {\n  // 예외 사항에 대해 적절한 조치를 수행한다.\n  s.setMessage(e.{{0}}());\n  return ({{1}}(s));\n}",
+      "blank_answers": [
+        {"idx": 0, "answers": ["getMessage"], "synonyms": []},
+        {"idx": 1, "answers": ["makeLogin"], "synonyms": []}
+      ],
+      "explanation": "정답: {{0}}=getMessage, {{1}}=makeLogin. IMP-EH-02 code_examples(Java) safe 코드는 catch(NullPointerException e) 블록에서 's.setMessage(e.getMessage()); return (makeLogin(s));'로 예외 상황에 적절한 조치(로그인 화면 복귀)를 수행하여, 빈 catch로 인한 오류상황 대응 부재를 해소한다. note는 '예외 포착 후 각 예외 사항에 대해 적절히 처리해야 한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제4절 §2 오류상황 대응 부재 — code_examples(Java) safe",
+      "tags": ["error_handling", "implementation", "no-error-handling", "빈칸", "makeLogin", "java"]
+    }
+  ]
+}

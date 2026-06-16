@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-16",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-M1",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "메모리 버퍼 오버플로우(Memory Buffer Overflow) 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "연속된 메모리 공간을 사용하는 프로그램에서 할당된 메모리 범위를 넘어선 위치에 자료를 읽거나 쓰려고 할 때 발생한다."},
+        {"num": 2, "text": "버퍼 오버플로우는 프로그램 오동작을 유발하거나, 리턴 주소 조작으로 악의적인 코드를 실행시켜 공격자가 프로그램 통제 권한을 획득하게 할 수 있다."},
+        {"num": 3, "text": "문자열 저장 시 버퍼를 널(Null) 문자로 종료하지 않으면 의도하지 않은 결과가 발생하므로, 버퍼 범위 내에 널 문자를 삽입해 종료시켜야 한다."},
+        {"num": 4, "text": "gets()처럼 크기와 상관없이 입력을 저장하는 함수는 버퍼 크기를 자동으로 검사하므로, 입력 크기 검증 없이 사용해도 오버플로우로부터 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview와 일치한다. 할당된 메모리 범위를 넘어선 위치에 읽기·쓰기를 시도할 때 발생한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview·course 공격영향과 일치한다. 오동작 유발·리턴 주소 조작으로 임의 코드 실행·통제 권한 획득이 가능하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure와 일치한다. 문자열 저장 시 널 문자로 종료하지 않으면 의도치 않은 결과가 생기므로 버퍼 범위 내 널 문자를 삽입한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). gets()는 문자열을 크기와 상관없이 연속된 기억공간에 저장하므로 버퍼 크기를 검사하지 않아 오버플로우의 대표적 원인이다. '자동으로 크기를 검사해 안전하다'는 진술은 overview와 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-16 라이브러리 overview·countermeasure와 대조한다. overview는 gets()가 '문자열을 크기와 상관없이 연속된 기억공간에 저장시키므로' 공격코드 주입에 악용된다고 명시한다. 4번은 gets()가 자동으로 크기를 검사해 안전하다고 진술하므로 정반대로 틀렸다. 1·2·3번은 각각 overview·공격영향·countermeasure와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우(pp.303-308), CWE-120 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "널문자", "gets", "버퍼크기"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-M2",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드에 대한 설명으로 옳지 않은 것은?\n\n```c\ntypedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid;\nvoid badCode() {\n    charvoid cv_struct;\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct));\n}\n```",
+      "choices": [
+        {"num": 1, "text": "memcpy에 sizeof(cv_struct)(구조체 전체 크기)를 복사 크기로 사용해, char x[16] 경계를 넘어 인접한 포인터 y에 덮어쓰기가 발생한다."},
+        {"num": 2, "text": "안전하게 하려면 복사 크기를 대상 멤버 크기인 sizeof(cv_struct.x)로 한정해야 한다."},
+        {"num": 3, "text": "문자열 저장 시 cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\\0'; 와 같이 마지막 인덱스에 널 문자를 패딩해 문자열을 종료시켜야 한다."},
+        {"num": 4, "text": "sizeof(cv_struct)는 대상 버퍼 x의 크기와 항상 동일하므로 memcpy 복사 크기로 사용해도 경계를 벗어나지 않아 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note와 일치한다. sizeof(cv_struct)는 구조체 전체 크기라 char x[16] 경계를 넘어 포인터 y를 덮어쓴다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드의 대책이다. 복사 크기를 sizeof(cv_struct.x)로 한정해 덮어쓰기를 방지한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드와 일치한다. 마지막 인덱스에 '\\0'을 삽입해 문자열을 종료시킨다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). sizeof(cv_struct)는 멤버 x(16바이트) + 포인터 y·z를 포함한 구조체 전체 크기이므로 x의 크기보다 크다. 이를 복사 크기로 쓰면 x 경계를 넘어 y를 덮어써 오버플로우가 발생하므로 안전하지 않다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-16 code_examples(C) vulnerable(badCode) 코드다. sizeof(cv_struct)는 char x[16]뿐 아니라 포인터 y·z까지 포함한 구조체 전체 크기라 x 크기보다 크고, 이를 memcpy 복사 크기로 쓰면 x 경계를 넘어 y를 덮어쓴다. 4번은 sizeof(cv_struct)가 x 크기와 동일하다고 잘못 진술하므로 틀렸다. 1·2·3번은 각각 note·safe 코드와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — code_examples(C) vulnerable/safe, note",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "memcpy", "sizeof", "c"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-M3",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "메모리 버퍼 오버플로우 진단 시, 다음 코드 중 취약하다고 판정해야 하는데도 '안전하다'고 판정하면 잘못된 것은? (진단방법: 버퍼에 기록하는 값의 크기가 대상 버퍼보다 작은지, 인덱스가 음수가 아닌지, 문자열은 널 문자로 종료하는지 확인)",
+      "choices": [
+        {"num": 1, "text": "char buf[16]; strcpy(buf, string); — 매개변수 string의 크기 검사 없이 16바이트 버퍼에 복사하므로 더 큰 입력 시 버퍼를 벗어남"},
+        {"num": 2, "text": "char hostname[64]; strcpy(hostname, hp->h_name); — 외부 입력 기반 이름값이 64바이트보다 작음을 보장할 수 없어 긴 호스트 이름 입력 시 오버플로우"},
+        {"num": 3, "text": "int len = index-1; while (isspace(message[len])) { message[len]='\\0'; len--; } — len이 0보다 작아지는지 검사하지 않아 음수 인덱스로 버퍼 범위를 벗어남"},
+        {"num": 4, "text": "memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct.x)); cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1]='\\0'; — 대상 멤버 크기만큼만 복사하고 널 문자로 종료"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "취약함(함정). true_positive 사례다. strcpy가 string 크기 검사 없이 16바이트 buf에 복사하므로 더 큰 입력 시 오버플로우가 발생해 취약하다."},
+        {"num": 2, "correct": false, "why": "취약함(함정). true_positive 사례다. 외부 입력 기반 h_name이 64바이트보다 작음을 보장할 수 없어 긴 호스트 이름 입력 시 hostname 버퍼를 넘어 취약하다."},
+        {"num": 3, "correct": false, "why": "취약함(함정). true_positive 사례다. 공백 제거 루프에서 len이 음수가 되는지 검사하지 않아 음수 인덱스로 버퍼 범위를 벗어나 취약하다."},
+        {"num": 4, "correct": true, "why": "정답(안전한 코드). safe(goodCode) 코드다. 복사 크기를 대상 멤버 sizeof(cv_struct.x)로 한정해 포인터 y 덮어쓰기를 방지하고, 마지막 인덱스에 널 문자를 삽입해 문자열을 종료하므로 안전하다. 이를 취약하다고 보지 않는 것이 옳다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-16 diagnosis.true_positive 세 사례(1·2·3)와 code_examples safe(goodCode) 코드(4)를 섞었다. 1·2·3번은 각각 strcpy 크기 미검사, 외부 입력 호스트 이름, 음수 인덱스 미검사로 취약한 정탐 사례이므로 취약 판정이 옳다. 4번은 복사 크기를 sizeof(cv_struct.x)로 한정하고 널 문자로 종료한 안전한 코드라 안전 판정이 옳다. '취약한데 안전하다고 판정하면 잘못된 것'을 고르는 질문이므로, 실제로 안전한 4번이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — diagnosis.true_positive, code_examples(C) safe",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "진단", "strcpy", "널문자", "c"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-D1",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 메모리 버퍼 오버플로우 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\nvoid host_lookup(char *user_supplied_addr)\n{\n    struct hostent *hp;\n    in_addr_t *addr;\n    char hostname[64];\n    in_addr_t inet_addr(const char *cp);\n    validate_addr_form(user_supplied_addr);\n    addr = inet_addr(user_supplied_addr);\n    hp = gethostbyaddr(addr, sizeof(struct in_addr), AF_INET);\n    strcpy(hostname, hp->h_name);\n}\n```",
+      "vulnerable_code": "1  void host_lookup(char *user_supplied_addr)\n2  {\n3    struct hostent *hp;\n4    in_addr_t *addr;\n5    char hostname[64];\n6    in_addr_t inet_addr(const char *cp);\n7    validate_addr_form(user_supplied_addr);\n8    addr = inet_addr(user_supplied_addr);\n9    hp = gethostbyaddr(addr, sizeof(struct in_addr), AF_INET);\n10   strcpy(hostname, hp->h_name);\n11 }",
+      "code_language": "c",
+      "vulnerable_lines": [10],
+      "rationale_keywords": ["strcpy 크기 미검사", "외부 입력 기반 h_name", "64바이트 버퍼 초과", "버퍼 경계 벗어남", "버퍼 오버플로우"],
+      "fix_keywords": ["strncpy", "버퍼 크기 한정", "널 문자 종료"],
+      "safe_code": "1  void host_lookup(char *user_supplied_addr)\n2  {\n3    struct hostent *hp;\n4    in_addr_t *addr;\n5    char hostname[64];\n6    validate_addr_form(user_supplied_addr);\n7    addr = inet_addr(user_supplied_addr);\n8    hp = gethostbyaddr(addr, sizeof(struct in_addr), AF_INET);\n9    // 대상 버퍼 크기를 한정하여 복사하고 널 문자로 종료\n10   strncpy(hostname, hp->h_name, sizeof(hostname) - 1);\n11   hostname[sizeof(hostname) - 1] = '\\0';\n12 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 10번 라인에서 strcpy로 hp->h_name 값을 64바이트 hostname 버퍼에 복사하는데, h_name은 외부 입력값(user_supplied_addr)을 기반으로 한 값이라 그 길이가 64바이트보다 작음을 보장할 수 없다. 긴 호스트 이름이 입력되면 hostname 버퍼 경계를 넘어 인접 메모리를 침범하는 메모리 버퍼 오버플로우(CWE-120)에 취약하다.",
+        "fix_description": "strcpy 대신 strncpy(hostname, hp->h_name, sizeof(hostname)-1)처럼 대상 버퍼 크기로 복사 범위를 한정하고, hostname[sizeof(hostname)-1] = '\\0'으로 널 문자 종료를 보장한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-16 diagnosis.true_positive 두 번째 사례를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'strcpy 크기 미검사': 10번 라인 strcpy가 복사 길이를 제한하지 않음.\n- '외부 입력 기반 h_name': user_supplied_addr에서 비롯된 호스트 이름.\n- '64바이트 버퍼 초과'/'버퍼 경계 벗어남': hostname[64]보다 긴 이름이 들어오면 경계를 넘음.\n- '버퍼 오버플로우': 결과적으로 발생하는 약점.\n\n[수정 키워드 의미] strncpy로 버퍼 크기를 한정해 복사하고 널 문자로 종료한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(10번 라인 지목) 20점 / rationale(strcpy 크기 미검사·외부 입력·버퍼 초과·오버플로우 키워드 포함) 30점 / fix(strncpy 크기 한정 + 널 문자 종료) 30점.\n\n[자가확인 체크리스트] (1) 버퍼에 기록하는 값의 크기가 대상 버퍼보다 작음을 보장하는가? (2) 데이터 크기가 외부 입력에 의해 결정되는가? (3) 문자열 종료(널 문자)·크기 검사가 있는가? — 크기 검사 없이 외부 입력을 복사하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — diagnosis.true_positive, CWE-120",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "정탐", "strcpy", "c"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-D2",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 C 코드의 메모리 버퍼 오버플로우 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```c\nstatic void goodCode() {\n    charvoid cv_struct;\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct.x));\n    cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\\0';\n    printLine((char *) cv_struct.x);\n}\n```",
+      "vulnerable_code": "1  static void goodCode() {\n2    charvoid cv_struct;\n3    cv_struct.y = (void *) SRC_STR;\n4    printLine((char *) cv_struct.y);\n5    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct.x));\n6    cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\\0';\n7    printLine((char *) cv_struct.x);\n8  }",
+      "code_language": "c",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["sizeof(cv_struct.x) 복사", "대상 멤버 크기 한정", "포인터 y 덮어쓰기 없음", "널 문자 종료", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 5번 라인에서 복사 크기를 구조체 전체(sizeof(cv_struct))가 아니라\n2  // 대상 멤버 크기 sizeof(cv_struct.x)로 한정하여 char x[16] 경계를 넘지 않고,\n3  // 6번 라인에서 마지막 인덱스에 '\\0'을 삽입해 문자열을 종료하므로 오버플로우가 발생하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 5번 라인 memcpy의 복사 크기가 구조체 전체 크기 sizeof(cv_struct)가 아니라 대상 멤버 크기 sizeof(cv_struct.x)로 한정되어 char x[16] 경계를 넘지 않으므로 인접한 포인터 y를 덮어쓰지 않는다. 또한 6번 라인에서 마지막 인덱스에 널('\\0') 문자를 삽입해 문자열을 종료하므로 버퍼 오버플로우가 발생하지 않는다.",
+        "fix_description": "수정 불필요. 복사 크기를 대상 버퍼 멤버 크기로 한정하고 널 문자로 종료하는, 가이드가 권장하는 안전한 처리를 이미 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-16 code_examples(C) safe(goodCode) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] memcpy를 사용한다는 사실만으로 버퍼 오버플로우라고 단정해서는 안 된다. 이 코드는 vulnerable(badCode)의 sizeof(cv_struct)를 sizeof(cv_struct.x)로 바로잡고 널 문자 종료까지 추가한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'sizeof(cv_struct.x) 복사'/'대상 멤버 크기 한정': 5번 라인에서 복사 크기를 멤버 x 크기로 제한함.\n- '포인터 y 덮어쓰기 없음': 경계를 넘지 않아 인접 메모리를 침범하지 않음.\n- '널 문자 종료': 6번 라인에서 '\\0' 삽입.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(대상 멤버 크기 한정·y 덮어쓰기 없음·널 문자 종료 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 기록하는 값의 크기가 대상 버퍼보다 작게 한정되었는가? → 그렇다(sizeof(cv_struct.x)). (2) 문자열을 널 문자로 종료하는가? → 그렇다(6번 라인). — 두 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — code_examples(C) safe(goodCode)",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "오탐", "memcpy", "널문자", "c"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-B1",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "메모리 버퍼 오버플로우의 원리와 보안대책에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "메모리 버퍼 오버플로우는 연속된 메모리 공간을 사용하는 프로그램에서 할당된 메모리의 ___(1)___를 넘어선 위치에 자료를 읽거나 쓰려고 할 때 발생한다. 공격자는 ___(2)___ 주소를 조작하여 임의의 코드를 실행할 수 있다. 보안대책으로는 적절한 버퍼 크기를 설정하고, 문자열 저장 시 버퍼 범위 내에 ___(3)___ 문자를 삽입하여 종료되도록 해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["범위"], "synonyms": ["경계", "범위(경계)", "boundary", "range"]},
+        {"idx": 2, "answers": ["리턴"], "synonyms": ["복귀", "리턴(복귀)", "return", "반환"]},
+        {"idx": 3, "answers": ["널"], "synonyms": ["NULL", "널(Null)", "null", "널(NULL)"]}
+      ],
+      "explanation": "정답: (1) 범위(경계) / (2) 리턴(복귀) / (3) 널(NULL). IMP-IV-16 overview·countermeasure·course 공격영향 기반이다. 버퍼 오버플로우는 할당된 메모리 범위(경계)를 넘어선 위치에 읽기·쓰기를 시도할 때 발생하며, 리턴(복귀) 주소를 조작해 임의 코드를 실행할 수 있다. 대책은 적절한 버퍼 크기 설정과 문자열 저장 시 버퍼 범위 내 널(NULL) 문자 종료다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "빈칸", "리턴주소", "널문자"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-16-B2",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "chapter_code": "IMP-IV-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 메모리 버퍼 오버플로우를 방지하기 위한 안전한 C 코드의 일부다. 빈칸을 채우시오.",
+      "blank_template": "static void goodCode() {\n    charvoid cv_struct;\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n    /* 복사 크기를 대상 멤버 x의 크기로 한정하여 포인터 y 덮어쓰기 방지 */\n    memcpy(cv_struct.x, SRC_STR, ___(1)___);\n    /* 문자열 종료를 위해 마지막 인덱스에 널 문자 삽입 */\n    cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = ___(2)___;\n    printLine((char *) cv_struct.x);\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["sizeof(cv_struct.x)"], "synonyms": ["sizeof(cv_struct.x) ", "sizeof( cv_struct.x )"]},
+        {"idx": 2, "answers": ["'\\0'"], "synonyms": ["'\\\\0'", "\\0", "NULL 문자", "널 문자"]}
+      ],
+      "explanation": "정답: (1) sizeof(cv_struct.x) / (2) '\\0'. IMP-IV-16 code_examples(C) safe(goodCode) 코드 기반이다. (1) memcpy 복사 크기를 구조체 전체 sizeof(cv_struct)가 아니라 대상 멤버 sizeof(cv_struct.x)로 한정해야 char x[16] 경계를 넘지 않고 포인터 y 덮어쓰기를 막을 수 있다. (2) 마지막 인덱스에 '\\0'(널 문자)을 삽입해 문자열을 종료시킨다. 이 두 가지가 안전한 코드의 핵심 대책이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — code_examples(C) safe(goodCode)",
+      "tags": ["input_validation", "implementation", "buffer-overflow", "빈칸", "memcpy", "널문자", "c"]
+    }
+  ]
+}

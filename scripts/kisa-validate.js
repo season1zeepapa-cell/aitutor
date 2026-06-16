@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 const STAGES = ['design', 'implementation'];
-const TYPES = ['mcq', 'diagnosis4'];
+const TYPES = ['mcq', 'diagnosis4', 'blank', 'composite'];
 const LANGUAGES = ['java', 'python', 'javascript', 'kotlin', 'swift', 'etc'];
 const DIFFICULTIES = ['하', '중', '상'];
 const CATEGORIES = [
@@ -92,11 +92,47 @@ function validateQuestion(file, idx, q) {
       err(file, idx, `MCQ answer_index 범위 오류`);
     if (q.choices?.length > 5)
       warn(file, idx, `MCQ 선택지 5개 초과 (권장 4~5개)`);
+    // 선지별 해설 (신규): correct=true 가 정확히 1개 + answer_index 일치
+    if (Array.isArray(q.choice_explanations)) {
+      const correctNums = q.choice_explanations.filter((c) => c.correct).map((c) => c.num);
+      if (correctNums.length !== 1)
+        err(file, idx, `choice_explanations correct=true 가 정확히 1개여야 함 (현재 ${correctNums.length})`);
+      else if (correctNums[0] !== q.answer_index + 1)
+        err(file, idx, `choice_explanations correct num(${correctNums[0]}) != answer_index+1(${q.answer_index + 1})`);
+      if (q.choice_explanations.length !== (q.choices?.length || 0))
+        warn(file, idx, `choice_explanations 개수(${q.choice_explanations.length}) != choices(${q.choices?.length})`);
+      if (q.choice_explanations.some((c) => !c.why))
+        warn(file, idx, `choice_explanations 에 why(선지별 근거) 누락 선지 있음`);
+    } else {
+      warn(file, idx, `mcq choice_explanations 누락 — 선지별 해설 권장`);
+    }
+  }
+  if (q.question_type === 'blank') {
+    if (!q.blank_template) err(file, idx, `blank blank_template 필수`);
+    if (!Array.isArray(q.blank_answers) || q.blank_answers.length === 0)
+      err(file, idx, `blank blank_answers 배열 필수`);
+  }
+  if (q.question_type === 'composite') {
+    if (!Array.isArray(q.artifacts) || q.artifacts.length === 0)
+      err(file, idx, `composite artifacts 배열 필수 (산출물 1개 이상)`);
+    if (!Array.isArray(q.rubric) || q.rubric.length === 0) {
+      err(file, idx, `composite rubric 배열 필수`);
+    } else {
+      const total = q.rubric.reduce((s, r) => s + (Number(r.points) || 0), 0);
+      if (total !== 8) warn(file, idx, `composite rubric 배점 합 ${total} (가이드 8점 권장)`);
+      q.rubric.forEach((r, ri) => {
+        if (!Array.isArray(r.required_keywords) || !r.required_keywords.length)
+          warn(file, idx, `rubric[${ri}] required_keywords 없음 (채점 키워드 권장)`);
+      });
+    }
+    if (!q.report_template) warn(file, idx, `composite report_template 누락 (진단보고서 양식 권장)`);
   }
   if (q.question_type === 'diagnosis4') {
+    const isOtam = q.model_answer && q.model_answer.verdict === false; // 오탐(안전한 코드)
     if (!q.vulnerable_code) err(file, idx, `diagnosis4 vulnerable_code 필수`);
-    if (!Array.isArray(q.vulnerable_lines) || q.vulnerable_lines.length === 0)
-      err(file, idx, `diagnosis4 vulnerable_lines 배열 필수 (비어있지 않음)`);
+    // 정탐은 취약 라인 필수, 오탐(안전)은 빈 배열 허용
+    if (!Array.isArray(q.vulnerable_lines) || (q.vulnerable_lines.length === 0 && !isOtam))
+      err(file, idx, `diagnosis4 vulnerable_lines: 정탐은 비어있지 않은 배열 필수 (오탐은 [] 허용)`);
     if (!Array.isArray(q.rationale_keywords) || q.rationale_keywords.length === 0)
       err(file, idx, `diagnosis4 rationale_keywords 필수`);
     if (!Array.isArray(q.fix_keywords) || q.fix_keywords.length === 0)

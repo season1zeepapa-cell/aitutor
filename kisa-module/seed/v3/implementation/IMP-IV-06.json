@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-06",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-M1",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 '위험한 형식 파일 업로드(Dangerous File Upload)' 보안약점과 그 대책에 대한 설명이다. 옳지 않은 것은?\n\n위험한 형식 파일 업로드는 서버 측에서 실행될 수 있는 스크립트 파일(asp, jsp, php 등)이 업로드되고 공격자가 이를 웹으로 직접 실행시킬 수 있을 때 발생하는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "공격자가 웹쉘(webshell)을 업로드·실행하여 해당 웹 애플리케이션 서버를 장악할 수 있다."},
+        {"num": 2, "text": "화이트 리스트 방식으로 허용된 확장자만 업로드를 허용해야 한다."},
+        {"num": 3, "text": "업로드 파일은 저장 시 파일명·확장자를 추측할 수 없는 문자열로 변경하고, 저장 경로를 'web document root' 밖에 위치시킨다."},
+        {"num": 4, "text": "업로드 파일에 실행 속성을 부여하여 서버에서 즉시 실행 가능하도록 설정하는 것이 안전한 대책이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 과정 교재의 위협 ①과 일치한다. 웹쉘을 업로드·실행하여 웹 애플리케이션 서버를 장악하는 것이 대표적 위협이다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '화이트 리스트 방식으로 허용된 확장자만 업로드를 허용한다'고 그대로 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '파일명과 확장자를 외부사용자가 추측할 수 없는 문자열로 변경하여 저장하며, 저장 경로는 web document root 밖에 위치시킨다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. countermeasure는 '파일 실행여부를 설정할 수 있는 경우 실행 속성을 제거한다'고 명시한다. 업로드 파일에 실행 속성을 부여하면 웹쉘 등이 곧바로 실행되어 오히려 위험하므로 명백히 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-06 countermeasure와 대조하여 확인한다. 안전한 대책은 실행 속성을 '제거'하는 것이지 부여하는 것이 아니다. 1·2·3번은 각각 위협(웹쉘)·화이트리스트 확장자 제한·파일명 난수화 및 web document root 밖 저장과 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 이를 정반대로 뒤집어 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드(pp.232-238), CWE-434 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "웹쉘", "화이트리스트", "보안약점"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-M2",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nMultipartRequest multi = new MultipartRequest(request, savePath, sizeLimit, \"euc-kr\", new DefaultFileRenamePolicy());\nString fileName = multi.getFilesystemName(\"filename\");\n...\npstmt.setString(6, fileName);\npstmt.executeUpdate();\nThumbnail.create(savePath + \"/\" + fileName, savePath + \"/\" + \"s_\" + fileName, 150);\n```",
+      "choices": [
+        {"num": 1, "text": "getFilesystemName()으로 얻은 업로드 파일명을 확장자 검증 없이 그대로 사용하고 있어 안전하지 않다."},
+        {"num": 2, "text": "fileName의 마지막 '.' 이후 확장자를 추출(toLowerCase)하여 gif·jpg·png 만 허용하면 안전하게 개선할 수 있다."},
+        {"num": 3, "text": "확장자를 검증할 때는 대소문자를 구별하여(toLowerCase) JSP, Jsp, PHP 등 변형 확장자 우회를 막아야 한다."},
+        {"num": 4, "text": "확장자 검증을 별도로 하지 않아도 DefaultFileRenamePolicy가 적용되어 있으므로 위험한 형식 파일 업로드는 원천 차단된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 '업로드 되는 파일명을 검증 없이 사용하고 있어 안전하지 않다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드가 마지막 '.' 이후 확장자를 추출하고 toLowerCase한 뒤 gif·jpg·png 만 허용(화이트리스트)하므로 정확한 개선책이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드 주석이 '실제 확장자 여부를 확인하고 대소문자 구별을 해야 한다'고 명시한다. 대소문자 구분(toLowerCase)으로 변형 확장자 우회를 막는다."},
+        {"num": 4, "correct": true, "why": "정답. DefaultFileRenamePolicy는 동일 파일명 충돌 시 이름을 변경하는 정책일 뿐 확장자·파일 종류를 검증하지 않는다. 별도 화이트리스트 확장자 검증이 없으면 위험한 형식 파일(웹쉘 등)이 업로드되므로 명백히 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-06 code_examples(Java) vulnerable/safe 쌍으로 검증한다. DefaultFileRenamePolicy는 파일명 중복 회피 정책일 뿐 확장자 검증 기능이 아니므로, safe 코드처럼 확장자를 추출하여 화이트리스트(gif·jpg·png)로 제한해야 안전하다. 1·2·3번은 vulnerable 결함·safe 개선책과 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드(pp.232-238) — code_examples(Java) vulnerable/safe",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "확장자검증", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-M3",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "위험한 형식 파일 업로드의 진단방법과 취약/안전 판정에 대한 설명으로 옳지 않은 것은?\n\n진단원은 외부 입력값에서 파일명을 얻어오는 부분과 허용된 확장자만 업로드를 허용하는지를 확인하여 판정한다.",
+      "choices": [
+        {"num": 1, "text": "외부 입력값에서 파일명을 얻어오는 부분이 존재하는지 확인하고, 허용된 확장자에 대해서만 업로드를 허용하는지 확인한다."},
+        {"num": 2, "text": "getOriginalFilename() 함수를 사용해 업로드하면서 해당 파일의 확장자를 체크하지 않는 경우는 취약하다고 판정한다."},
+        {"num": 3, "text": "확장자를 필터링하더라도 대소문자 구분을 하지 않아 JSP, Jsp, ASP, PHP, Php 등이 업로드 가능하면 취약하다."},
+        {"num": 4, "text": "getOriginalFilename()의 리턴 값을 저장하여 사용하지 않더라도 해당 함수 호출 자체만으로 무조건 취약하다고 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis method가 '외부 입력값에서 파일명을 얻어오는 부분이 존재하는지 확인하고(①), 허용된 확장자에 대해서만 파일 업로드를 허용하는지 확인한다(②)'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis method가 'getOriginalFilename() 함수를 사용하여 파일을 업로드하면서 해당 파일의 확장자를 체크하지 않는 경우엔 취약하다고 판정한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). true_positive 사례2가 '확장자를 필터링하고 있으나 대소문자 구분을 하지 않아 JSP, Jsp, ASP, PHP, Php 등의 확장자가 업로드 가능하므로 취약하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. false_positive 사례2는 'getOriginalFilename()의 리턴 값을 저장하여 사용하지 않으면, 파일명을 사용하기 위해 다른 곳에서 해당 함수를 호출할 것이므로 취약하지 않다고 판정한다'고 명시한다. 함수 호출 자체만으로 무조건 취약으로 보는 것은 오탐이므로 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-06 diagnosis.method 및 false_positive 사례2와 대조한다. getOriginalFilename()의 리턴 값을 저장하지 않고 흘려보내는 경우는 취약하지 않다고 판정해야 하며, 함수 호출 존재만으로 취약 단정하면 오탐이다. 1·2·3번은 진단방법·정탐 판정 기준과 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드(pp.232-238) — diagnosis.method·false_positive 사례2",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "진단방법", "getOriginalFilename", "대소문자"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-D1",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 위험한 형식 파일 업로드 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString fileName = file.getOriginalFilename();\nif (fileName != null) {\n  if (!fileName.endsWith(\".jsp\")) {\n    /* file 업로드 루틴 */\n  }\n}\n```",
+      "vulnerable_code": "1  String fileName = file.getOriginalFilename();\n2  if (fileName != null) {\n3    if (!fileName.endsWith(\".jsp\")) {\n4      /* file 업로드 루틴 */\n5    }\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [3],
+      "rationale_keywords": ["블랙리스트", "대소문자 구분 안 함", "JSP·Jsp·PHP 우회", "확장자 필터링 미흡", "화이트리스트 미적용", "CWE-434"],
+      "fix_keywords": ["화이트리스트", "toLowerCase", "허용 확장자만"],
+      "safe_code": "1  String fileName = file.getOriginalFilename();\n2  if (fileName != null) {\n3    String fileExt = fileName.substring(fileName.lastIndexOf(\".\") + 1).toLowerCase();\n4    if (!\"gif\".equals(fileExt) && !\"jpg\".equals(fileExt) && !\"png\".equals(fileExt)) {\n5      throw new Exception(\"업로드 불가능한 파일입니다.\");\n6    }\n7    /* file 업로드 루틴 */\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 3번 라인에서 endsWith(\".jsp\") 한 가지 소문자 확장자만 차단하는 블랙리스트 방식이며 대소문자 구분도 하지 않는다. 따라서 JSP, Jsp, ASP, PHP, Php 등 변형·기타 위험 확장자가 그대로 업로드되어 웹쉘 등 위험한 형식 파일이 올라갈 수 있는 위험한 형식 파일 업로드(CWE-434) 취약점이다.",
+        "fix_description": "블랙리스트 대신 화이트 리스트 방식으로 허용 확장자(gif·jpg·png 등)만 허용한다. 마지막 '.' 이후 확장자를 추출한 뒤 toLowerCase()로 대소문자를 정규화하여 비교하고, 허용 목록에 없으면 업로드를 차단한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-06 diagnosis.true_positive 사례2를 기반으로 한다.\n\n[근거 키워드 의미]\n- '블랙리스트'/'대소문자 구분 안 함': endsWith(\".jsp\") 단일 소문자 차단이라 변형 확장자를 못 막음.\n- 'JSP·Jsp·PHP 우회': 대소문자·기타 위험 확장자가 우회되어 업로드 가능.\n- '화이트리스트 미적용'/'CWE-434': countermeasure가 요구하는 허용 확장자 제한이 없어 위험한 형식 파일 업로드에 노출.\n\n[수정 키워드 의미] 화이트리스트로 허용 확장자만 통과시키고 toLowerCase로 대소문자를 정규화한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(3번 라인 지목) 20점 / rationale(블랙리스트·대소문자 미구분·화이트리스트 미적용 등 키워드 포함) 30점 / fix(화이트리스트 + toLowerCase 적용) 30점.\n\n[자가확인 체크리스트] (1) 외부 입력 파일명을 사용하는가? (2) 확장자 검증이 화이트리스트가 아닌 블랙리스트이거나 없는가? (3) 대소문자 구분(toLowerCase)을 하지 않는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드 — diagnosis.true_positive 사례2, CWE-434",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "정탐", "확장자검증", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-D2",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 위험한 형식 파일 업로드 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString orginFileName = file.getOriginalFilename();\nif (\"\".equals(orginFileName)) { continue; }\nint index = orginFileName.lastIndexOf(\".\");\nString fileExt = orginFileName.substring(index + 1);\nfor (Object fileExclusionExt : this.fileExclusionExtension) {\n  if (((String) fileExclusionExt).equals(fileExt.toLowerCase())) {\n    throw new Exception(\"egume.message.error.file.exclusion.extension\");\n  }\n}\n```",
+      "vulnerable_code": "1  String orginFileName = file.getOriginalFilename();\n2  if (\"\".equals(orginFileName)) { continue; }\n3  int index = orginFileName.lastIndexOf(\".\");\n4  String fileExt = orginFileName.substring(index + 1);\n5  for (Object fileExclusionExt : this.fileExclusionExtension) {\n6    if (((String) fileExclusionExt).equals(fileExt.toLowerCase())) {\n7      throw new Exception(\"egume.message.error.file.exclusion.extension\");\n8    }\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["확장자 추출", "대소문자 정규화", "toLowerCase", "확장자 필터링 존재", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 마지막 '.' 이후 확장자를 추출하고 toLowerCase로 정규화한 뒤\n2  // 제한 확장자 목록(fileExclusionExtension)과 비교하여 필터링하므로\n3  // 대소문자 우회 없이 위험한 확장자 업로드를 차단한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3~4번 라인에서 마지막 '.' 이후 확장자(fileExt)를 추출하고, 6번 라인에서 fileExt.toLowerCase()로 대소문자를 정규화하여 제한 확장자 목록(fileExclusionExtension)과 비교한 뒤 일치하면 예외를 던져 업로드를 차단한다. 확장자를 체크하여 필터링하고 있고 대소문자 우회도 막고 있으므로 위험한 형식 파일 업로드에 노출되지 않는다.",
+        "fix_description": "수정 불필요. 확장자 추출 + toLowerCase 정규화 + 제한 목록 비교 필터링이 이미 적용되어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-06 diagnosis.false_positive 사례1을 기반으로 한다. 핵심은 '확장자 필터링이 적용된 안전한 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] getOriginalFilename()을 사용한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 확장자를 추출하여 대소문자 정규화 후 필터링하므로 안전하다.\n\n[안전 판정 근거 키워드 의미]\n- '확장자 추출'/'toLowerCase'/'대소문자 정규화': fileExt를 추출하고 소문자로 변환하여 비교하므로 대소문자 우회 불가.\n- '확장자 필터링 존재': 제한 확장자 목록과 비교하여 위험 확장자를 차단함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음을 정확히 판단. vulnerable_lines=[]) 20점 / rationale(확장자 추출·toLowerCase·필터링 존재 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 확장자 검증이 존재하는가? → 그렇다. (2) 대소문자 정규화(toLowerCase)를 하는가? → 그렇다. — 둘 다 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드 — diagnosis.false_positive 사례1",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "오탐", "확장자필터링", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-B1",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "위험한 형식 파일 업로드의 보안대책에 대한 빈칸을 채우시오.",
+      "blank_template": "{{1}} 방식으로 허용된 확장자만 업로드를 허용한다. 업로드 되는 파일을 저장할 때에는 파일명과 확장자를 외부사용자가 추측할 수 없는 문자열로 변경하여 저장하며, 저장 경로는 {{2}} 밖에 위치시켜서 공격자의 웹으로 직접 접근을 차단한다. 또한 파일 실행여부를 설정할 수 있는 경우 {{3}}을 제거한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["화이트 리스트", "White List"], "synonyms": ["화이트리스트", "허용 목록", "whitelist"]},
+        {"idx": 2, "answers": ["web document root", "웹 문서 루트"], "synonyms": ["WebRoot", "웹루트", "웹 document root", "문서 루트"]},
+        {"idx": 3, "answers": ["실행 속성", "실행 권한"], "synonyms": ["실행속성", "실행권한", "실행 가능 속성"]}
+      ],
+      "explanation": "정답: {{1}} 화이트 리스트(White List), {{2}} web document root, {{3}} 실행 속성(실행 권한). IMP-IV-06 countermeasure에 '화이트 리스트 방식으로 허용된 확장자만 업로드를 허용한다 / 저장 경로는 web document root 밖에 위치시킨다 / 파일 실행여부를 설정할 수 있는 경우 실행 속성을 제거한다'고 명시되어 있다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드 — countermeasure",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "화이트리스트", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-06-B2",
+      "weakness_name_ko": "위험한 형식 파일 업로드",
+      "chapter_code": "IMP-IV-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "업로드 파일의 확장자를 화이트리스트로 검증하는 안전한 Java 코드의 빈칸을 채우시오.",
+      "blank_template": "업로드 파일의 마지막 '.' 문자열을 기준으로 실제 확장자 여부를 확인하고 {{1}}() 메소드로 대소문자를 구별하여 비교한다. 되도록 {{2}} 방식으로 허용되는 확장자(예: gif·jpg·png)로 업로드를 제한해야 안전하다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["toLowerCase"], "synonyms": ["toLowerCase()", "소문자 변환", "tolowercase"]},
+        {"idx": 2, "answers": ["화이트 리스트", "White List"], "synonyms": ["화이트리스트", "허용 목록", "whitelist"]}
+      ],
+      "explanation": "정답: {{1}} toLowerCase, {{2}} 화이트 리스트(White List). IMP-IV-06 code_examples(Java) safe 코드 주석에 '업로드 파일의 마지막 \".\" 문자열의 기준으로 실제 확장자 여부를 확인하고 대소문자 구별을 해야한다 / 되도록 화이트 리스트 방식으로 허용되는 확장자로 업로드를 제한해야 안전하다'고 명시되어 있으며, fileName.substring(...).toLowerCase()로 확장자를 정규화한 뒤 gif·jpg·png 만 허용한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 위험한 형식 파일 업로드 — code_examples(Java) safe",
+      "tags": ["input_validation", "implementation", "위험한형식파일업로드", "toLowerCase", "화이트리스트", "java", "빈칸"]
+    }
+  ]
+}

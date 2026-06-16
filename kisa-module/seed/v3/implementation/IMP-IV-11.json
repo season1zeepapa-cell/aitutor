@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-11",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-M1",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 '크로스사이트 요청 위조(CSRF)' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\nCSRF는 사용자가 인지하지 못한 상황에서 사용자의 의도와 무관하게 공격자가 의도한 행위를 요청하게 하는 공격이다.",
+      "choices": [
+        {"num": 1, "text": "웹 응용프로그램이 사용자로부터 받은 요청이 사용자가 의도한 대로 작성·전송된 것인지 확인하지 않는 경우 발생한다."},
+        {"num": 2, "text": "입력화면 폼 작성 시 GET 방식보다 POST 방식을 사용하고, 폼과 처리 프로그램 사이에 토큰을 사용한다."},
+        {"num": 3, "text": "특히 중요한 기능에 대해서는 사용자 세션검증과 더불어 재인증을 유도하는 것이 바람직하다."},
+        {"num": 4, "text": "요청의 적법성을 입증하는 값이 고정되어 있고 GET 방식으로 전달되면 공격자가 알아내기 어려워 더 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '웹 응용프로그램이 사용자로부터 받은 요청에 대해 사용자가 의도한 대로 작성·전송된 것인지 확인하지 않는 경우 발생'한다고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 'GET 방식보다는 POST 방식을 사용하고, 입력화면 폼과 해당 입력을 처리하는 프로그램 사이에 토큰을 사용'한다고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '중요한 기능에 대해서는 사용자 세션검증과 더불어 재인증을 유도한다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. overview는 '요청의 적법성을 입증하는 값이 고정되어 있고 GET 방식으로 전달되면 공격자가 이를 쉽게 알아내어 위험한 작업을 요청할 수 있다'고 한다. 따라서 '알아내기 어려워 더 안전하다'는 정반대의 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-11 overview·countermeasure와 대조한다. 1번은 overview, 2·3번은 countermeasure와 일치하는 옳은 진술이다. 4번은 고정값·GET 전달이 안전하다고 오인하게 만드는 함정이며, 실제로는 고정값이 GET으로 전달되면 공격자가 쉽게 알아내 악용할 수 있어 위험하다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조(pp.272-275), CWE-352 — overview, countermeasure",
+      "tags": ["input_validation", "implementation", "csrf", "토큰", "post방식", "보안약점설명"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-M2",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 CSRF 방지 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nsession.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\n<input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String)session.getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.equals(sToken)) { /* 정상 처리 */ }\nelse { /* 오류 메시지 출력 */ }\n```",
+      "choices": [
+        {"num": 1, "text": "입력화면 요청 시 임의의 토큰을 생성하여 세션에 저장한다."},
+        {"num": 2, "text": "생성한 토큰을 HIDDEN 필드 값으로 설정하여 서버로 전달되도록 한다."},
+        {"num": 3, "text": "요청 파라미터의 토큰과 세션에 저장된 토큰을 비교하여 일치하는 경우에만 정상 처리한다."},
+        {"num": 4, "text": "토큰을 세션에 저장하지 않고 HIDDEN 필드 값만으로 비교해도 위조 요청을 동일하게 차단할 수 있다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). safe 코드가 입력화면 요청 시 session.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString())으로 임의 토큰을 생성·저장한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드가 <input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />로 토큰을 HIDDEN 필드 값으로 설정한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 pToken.equals(sToken) 비교로 요청 파라미터 토큰과 세션 토큰이 일치하는 경우에만 정상 처리한다."},
+        {"num": 4, "correct": true, "why": "정답. CSRF 토큰은 세션에 저장한 값과 요청 파라미터 값을 비교해야 위조 요청을 구분할 수 있다. 세션 저장 없이 HIDDEN 필드 값만으로 비교하면 공격자가 임의 값을 그대로 보내도 통과될 수 있어 차단 효과가 없다. 따라서 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-11 code_examples Java safe 코드와 note로 검증한다. 1·2·3번은 safe 코드의 토큰 생성·HIDDEN 필드 설정·세션-파라미터 비교 흐름과 일치한다. 4번은 세션 저장을 생략해도 된다고 오인하게 만드는 함정이며, 세션에 저장된 토큰과 비교하지 않으면 정상/위조 요청을 구분할 수 없다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — code_examples Java safe·note",
+      "tags": ["input_validation", "implementation", "csrf", "토큰", "세션", "hidden필드", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-M3",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "CSRF 진단방법에 대한 설명으로 옳지 않은 것은?\n\n진단원은 주요 기능과 그 기능 수행 시 권한확인 절차의 존재·방식을 점검한다.",
+      "choices": [
+        {"num": 1, "text": "사용자 권한변경·신규정보 등록 등 주요 기능을 확인하고, 해당 기능 수행 시 권한확인 절차 존재 여부를 확인한다."},
+        {"num": 2, "text": "권한확인 절차가 없는 경우 취약하다고 판정한다."},
+        {"num": 3, "text": "권한 확인 방법이 세션쿠키·사용자 IP·SSL 인증과 같이 자동 제출되는 자격증명에만 의존하는 경우 취약하다고 판정한다."},
+        {"num": 4, "text": "권한 확인을 세션쿠키·사용자 IP·SSL 인증과 같이 자동 제출되는 자격증명에 의존하면 CSRF에 더 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '사용자 권한변경·신규정보 등록 등 주요 기능을 확인하고(①), 해당 기능 수행 시 권한확인 절차 존재 여부를 확인한다(②)'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '권한확인 절차가 없거나 ... 경우 취약하다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '권한 확인 방법이 세션쿠키·사용자 IP·SSL 인증과 같이 자동 제출되는 자격증명에 의존하는 경우 취약하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. 세션쿠키·IP·SSL 인증은 브라우저가 자동 제출하는 자격증명이라 CSRF 공격 시에도 함께 전송되어 정상/위조 요청을 구분하지 못한다. 진단방법은 이를 '취약'으로 보므로 '더 안전하다'는 정반대의 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-11 diagnosis.method와 대조한다. 1·2·3번은 진단방법(주요 기능 확인 → 권한확인 절차 존재·방식 점검 → 자동 제출 자격증명 의존 시 취약)과 일치한다. 4번은 자동 제출 자격증명 의존을 안전하다고 뒤집은 진술이라 틀렸다. 자동 제출 자격증명은 위조 요청에도 함께 전송되어 CSRF를 막지 못한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — diagnosis.method",
+      "tags": ["input_validation", "implementation", "csrf", "진단방법", "자동제출자격증명", "세션쿠키"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-D1",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 회원정보 수정 요청을 처리하는 Java 코드다. CSRF 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nprotected void doPost(HttpServletRequest request, HttpServletResponse response) {\n  HttpSession session = request.getSession();\n  String userId = (String) session.getAttribute(\"loginUser\");\n  String newEmail = request.getParameter(\"email\");\n  userService.updateEmail(userId, newEmail);\n}\n```",
+      "vulnerable_code": "1  protected void doPost(HttpServletRequest request, HttpServletResponse response) {\n2    HttpSession session = request.getSession();\n3    String userId = (String) session.getAttribute(\"loginUser\");\n4    String newEmail = request.getParameter(\"email\");\n5    userService.updateEmail(userId, newEmail);\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [5],
+      "rationale_keywords": ["정상 요청 검증 없음", "세션쿠키 자동 제출", "CSRF 토큰 없음", "권한확인 절차 부재", "CWE-352"],
+      "fix_keywords": ["CSRF 토큰", "세션 토큰 비교", "POST 방식", "재인증"],
+      "safe_code": "1  protected void doPost(HttpServletRequest request, HttpServletResponse response) {\n2    HttpSession session = request.getSession();\n3    // 요청 파라미터 토큰과 세션에 저장된 토큰을 비교하여 일치할 때만 처리한다.\n4    String pToken = request.getParameter(\"param_csrf_token\");\n5    String sToken = (String) session.getAttribute(\"SESSION_CSRF_TOKEN\");\n6    if (pToken == null || !pToken.equals(sToken)) {\n7      response.sendError(403); return;\n8    }\n9    String userId = (String) session.getAttribute(\"loginUser\");\n10   String newEmail = request.getParameter(\"email\");\n11   userService.updateEmail(userId, newEmail);\n12 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인이 회원정보(이메일) 수정이라는 주요 기능을 수행하면서도, 요청이 사용자가 의도한 정상 요청인지 검증하는 절차(CSRF 토큰 등)가 전혀 없다(CWE-352). 권한 확인이 session.getAttribute(loginUser) 즉 브라우저가 자동 제출하는 세션쿠키에만 의존하므로, 공격자가 위조한 요청도 사용자의 세션과 함께 전송되어 그대로 처리된다.",
+        "fix_description": "입력화면 요청 시 임의의 CSRF 토큰을 생성해 세션에 저장하고 HIDDEN 필드로 전달한 뒤, 처리 시 요청 파라미터 토큰과 세션 토큰을 비교하여 일치하는 경우에만 처리한다. 입력 폼은 GET 대신 POST 방식을 사용하고, 중요한 기능은 재인증을 유도한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-11 overview·countermeasure·diagnosis.method를 근거로, 정상 요청 검증이 없는 주요 기능 처리 코드를 구성했다.\n\n[근거 키워드 의미]\n- '정상 요청 검증 없음'/'CSRF 토큰 없음': 요청이 사용자가 의도한 것인지 확인하는 토큰 검증이 없음.\n- '세션쿠키 자동 제출'/'권한확인 절차 부재': 권한 확인이 자동 제출되는 세션쿠키에만 의존함(진단방법상 취약).\n- 'CWE-352': CSRF의 CWE 분류.\n\n[수정 키워드 의미] CSRF 토큰 생성·세션 토큰 비교, POST 방식, 중요 기능 재인증으로 위조 요청을 차단한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(5번 라인 지목) 20점 / rationale(정상 요청 검증·토큰 부재·세션쿠키 의존 키워드 포함) 30점 / fix(CSRF 토큰·세션 비교·POST·재인증) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — overview·countermeasure·diagnosis.method, CWE-352",
+      "tags": ["input_validation", "implementation", "csrf", "정탐", "토큰부재", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-D2",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 CSRF 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nsession.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\n<input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String)session.getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.equals(sToken)) { /* 정상 처리 */ }\nelse { /* 오류 메시지 출력 */ }\n```",
+      "vulnerable_code": "1  session.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\n2  <input type=\"hidden\" name=\"param_csrf_token\" value=\"${SESSION_CSRF_TOKEN}\" />\n3  String pToken = request.getParameter(\"param_csrf_token\");\n4  String sToken = (String)session.getAttribute(\"SESSION_CSRF_TOKEN\");\n5  if (pToken != null && pToken.equals(sToken)) { /* 정상 처리 */ }\n6  else { /* 오류 메시지 출력 */ }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["임의 토큰 생성", "세션 저장", "HIDDEN 필드", "세션 토큰 비교", "일치 시에만 처리"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 입력화면 요청 시 임의 토큰을 생성해 세션에 저장하고(1라인),\n2  // HIDDEN 필드 값으로 전달한 뒤(2라인), 요청 파라미터 토큰과 세션 토큰을\n3  // 비교하여 일치하는 경우에만 정상 처리하므로(5라인) CSRF에 안전하다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 입력화면 요청 시 임의의 토큰을 생성해 세션에 저장하고(1라인), 그 토큰을 HIDDEN 필드 값으로 설정해 전달한 뒤(2라인), 처리 시 요청 파라미터의 토큰(pToken)과 세션에 저장된 토큰(sToken)을 비교하여 일치하는 경우에만 정상 처리한다(5라인). 공격자는 사용자 세션에 저장된 임의 토큰값을 알 수 없으므로 위조 요청이 차단되어 CSRF에 안전하다.",
+        "fix_description": "수정 불필요. 이미 IMP-IV-11 safe 코드가 권장하는 CSRF 토큰(세션 저장 + HIDDEN 필드 + 세션-파라미터 비교) 방식을 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-11 diagnosis.false_positive 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] HIDDEN 필드·토큰이 노출된다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 세션에 저장된 토큰과 비교하는 CSRF 방어의 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '임의 토큰 생성'/'세션 저장': UUID.randomUUID()로 토큰을 만들어 세션에 저장함.\n- 'HIDDEN 필드': 토큰을 HIDDEN 필드 값으로 전달함.\n- '세션 토큰 비교'/'일치 시에만 처리': pToken.equals(sToken)으로 일치할 때만 처리함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음) 20점 / rationale(임의 토큰·세션 저장·세션 비교 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — diagnosis.false_positive",
+      "tags": ["input_validation", "implementation", "csrf", "오탐", "토큰", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-B1",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 'CSRF(크로스사이트 요청 위조)' 보안약점의 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 입력화면 폼 작성 시 GET 방식보다는 (가) 방식을 사용한다.\n· 입력화면 폼과 해당 입력을 처리하는 프로그램 사이에 (나) 을 사용하여 공격자의 직접적인 URL 사용이 동작하지 않도록 처리한다.",
+      "blank_template": "· 입력화면 폼 작성 시 GET 방식보다는 {{1}} 방식을 사용한다.\n· 입력화면 폼과 해당 입력을 처리하는 프로그램 사이에 {{2}} 을 사용하여 공격자의 직접적인 URL 사용이 동작하지 않도록 처리한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["POST"], "synonyms": ["post"]},
+        {"idx": 2, "answers": ["토큰"], "synonyms": ["CSRF 토큰", "csrf token", "token"]}
+      ],
+      "explanation": "정답: (가) POST, (나) 토큰. IMP-IV-11 countermeasure는 '입력화면 폼 작성 시 GET 방식보다는 POST 방식을 사용하고, 입력화면 폼과 해당 입력을 처리하는 프로그램 사이에 토큰을 사용하여 공격자의 직접적인 URL 사용이 동작하지 않도록 처리한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — countermeasure",
+      "tags": ["input_validation", "implementation", "csrf", "빈칸", "post", "토큰"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-11-B2",
+      "weakness_name_ko": "크로스사이트 요청 위조(CSRF)",
+      "chapter_code": "IMP-IV-11",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 CSRF를 방지하는 안전한 Java 코드다. 빈칸에 들어갈 내용을 채우시오. (가)는 토큰을 저장하는 객체, (나)는 요청 파라미터 토큰과 세션 토큰을 비교하는 메소드다.\n\n```java\n(가).setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String)(가).getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.(나)(sToken)) { /* 정상 처리 */ }\n```",
+      "blank_template": "{{1}}.setAttribute(\"SESSION_CSRF_TOKEN\", UUID.randomUUID().toString());\nString pToken = request.getParameter(\"param_csrf_token\");\nString sToken = (String){{1}}.getAttribute(\"SESSION_CSRF_TOKEN\");\nif (pToken != null && pToken.{{2}}(sToken)) { /* 정상 처리 */ }",
+      "blank_answers": [
+        {"idx": 1, "answers": ["session"], "synonyms": ["세션", "HttpSession", "httpsession"]},
+        {"idx": 2, "answers": ["equals"], "synonyms": ["equals()"]}
+      ],
+      "explanation": "정답: (가) session, (나) equals. IMP-IV-11 code_examples Java safe 코드는 session 객체에 임의 토큰을 저장하고(session.setAttribute), 요청 파라미터 토큰(pToken)과 세션 토큰(sToken)을 pToken.equals(sToken)으로 비교하여 일치하는 경우에만 정상 처리한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §11 크로스사이트 요청 위조 — code_examples Java safe",
+      "tags": ["input_validation", "implementation", "csrf", "빈칸", "session", "equals", "java"]
+    }
+  ]
+}

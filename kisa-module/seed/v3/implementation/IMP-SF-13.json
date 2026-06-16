@@ -1,0 +1,179 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-13",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-M1",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '주석문 안에 포함된 시스템 주요정보' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\n이 약점은 개발자가 편의를 위해 주석문에 비밀번호 등 보안과 관련된 정보를 남겨둘 때 발생한다.",
+      "choices": [
+        {"num": 1, "text": "주석문에 비밀번호를 넣어두면 소프트웨어가 완성된 후에는 이를 제거하기 어렵게 된다."},
+        {"num": 2, "text": "공격자가 소스코드에 접근할 수 있다면 주석에 남겨진 계정 정보로 아주 쉽게 시스템에 침입할 수 있다."},
+        {"num": 3, "text": "주석에는 ID, 비밀번호 등 보안과 관련된 내용을 기입하지 않아야 한다."},
+        {"num": 4, "text": "주석은 컴파일 시 모두 제거되므로 비밀번호를 적어두어도 외부로 유출될 위험이 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '소프트웨어 개발자가 편의를 위해서 주석문에 비밀번호를 적어둔 경우, 소프트웨어가 완성된 후에는 제거하는 것이 어렵게 된다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 '공격자가 소스코드에 접근할 수 있다면, 아주 쉽게 시스템에 침입할 수 있다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '주석에는 ID, 비밀번호 등 보안과 관련된 내용을 기입하지 않는다'이므로 정확한 대책이다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 주석에 남긴 ID·비밀번호 등 중요정보는 역컴파일(decompile)을 통해 쉽게 유출될 수 있다(course exam_points). 또한 가이드는 개발 완료 시 주석을 확실히 삭제하라고 요구하므로, '컴파일 시 제거되어 유출 위험이 없다'는 진술은 명백히 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-13 라이브러리 overview·countermeasure와 course exam_points('역컴파일을 통해 주석 속 중요정보가 쉽게 유출')로 검증한다. 1·2번은 overview, 3번은 countermeasure와 그대로 일치하는 옳은 진술이라 함정으로 배치되었다. 4번은 주석이 역컴파일로 노출될 수 있다는 핵심 사실을 정반대로 뒤집은 진술이라 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보(pp.386-389), CWE-615 — overview/countermeasure",
+      "tags": ["security_feature", "implementation", "주석", "비밀번호", "정보노출", "역컴파일", "CWE-615"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-M2",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\npublic void daoTest() throws Exception {\n  // db sample : 84d5d0a08a3ec5e2d91a\n  // 암호화 전, 후 : 1365ADMIN_01, aa84c40031d808196537ad3dcf81f9af\n  String pwd = \"46c165a343fd6841273ae04655af24dd\";\n  String pwd1 = ARIAEngine.decARIA(pwd);\n  System.out.println(pwd1);\n}\n```",
+      "choices": [
+        {"num": 1, "text": "주석에 DB 샘플 값과 계정 ID(1365ADMIN_01), 암호화 전후 비밀번호 값이 그대로 노출되어 있다."},
+        {"num": 2, "text": "주석에 남긴 계정·비밀번호 정보는 역컴파일을 통해 유출될 수 있어 보안약점에 해당한다."},
+        {"num": 3, "text": "동작에 필요한 코드는 그대로 두되, 민감정보를 담은 주석만 삭제하면 안전한 코드가 된다."},
+        {"num": 4, "text": "주석은 실행에 영향을 주지 않으므로 보안 관점에서는 결함이 아니며 그대로 두어도 무방하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). course의 안전하지 않은 코드 예시 설명과 동일하게, 주석에 DB 샘플·계정 ID·암호화 전후 비밀번호가 노출되어 있다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course exam_points가 '역컴파일(decompile)을 통해 주석 속 중요정보가 쉽게 유출되어 공격에 악용'된다고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드는 '동작 코드(pwd 변수, ARIAEngine.decARIA 호출 등)는 그대로 두되 민감 정보 주석만 삭제'하는 방식이다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 주석이 실행에 영향을 주지 않더라도, 소스코드 접근·역컴파일로 노출되면 시스템 침입에 악용되므로 명백한 보안약점(CWE-615)이다. '결함이 아니다'는 진술은 overview·countermeasure에 정면으로 배치된다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-13 diagnosis.true_positive 코드가 그대로 제시되었다. 주석에 비밀번호 등 중요정보가 있으면 취약하다고 판정하는 것이 가이드의 진단방법이다. 1·2·3번은 true_positive 설명·course·safe 코드 방향과 일치하는 옳은 진술이고, 4번은 '주석은 결함이 아니다'라며 약점 자체를 부정해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — diagnosis.true_positive, CWE-615",
+      "tags": ["security_feature", "implementation", "주석", "비밀번호", "정보노출", "java", "CWE-615"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-M3",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'주석문 안에 포함된 시스템 주요정보' 약점의 진단방법과 정탐/오탐 판정에 대한 설명으로 옳지 않은 것은?\n\n진단원은 DB접속·관리자 로그인 등이 구현된 코드를 확인하고 주석을 검토하여 비밀번호 포함 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "DB접속·관리자 로그인 등이 구현된 코드를 먼저 확인하고, 그 주석에 암호 포함 여부를 확인하는 순서로 진단한다."},
+        {"num": 2, "text": "주석에 개발자 이해를 돕기 위한 목적으로 실제 비밀번호를 적어둔 경우 취약하다고 판정한다(정탐)."},
+        {"num": 3, "text": "주석에 'password', 'passwd', '비밀번호' 텍스트가 보이면 실제 값과 무관하게 항상 취약으로 판정해야 한다."},
+        {"num": 4, "text": "'password' 등의 텍스트가 있어도 그 내용이 실제 비밀번호가 아니면 취약하지 않다고 판정한다(오탐 주의)."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'DB접속, 관리자 로그인 등이 구현된 코드를 확인하고(①), 주석을 확인하여 암호 포함여부 확인한다(②)'로 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). true_positive가 '주석문 안에 개발자의 이해를 돕기 위한 목적 등으로 비밀번호를 적어 놓고 있으므로 취약하다고 판정한다'고 명시한다."},
+        {"num": 3, "correct": true, "why": "정답(틀린 진술). false_positive는 '주석문안에 password/passwd/비밀번호 등의 텍스트가 존재하지만 실제로 그 내용이 비밀번호가 아닌 경우에는 취약하지 않다고 판정한다'고 한다. 텍스트만 보고 무조건 취약으로 단정하면 오탐이므로 '항상 취약 판정'은 틀렸다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). false_positive의 핵심으로, 텍스트가 있어도 실제 비밀번호가 아니면 취약하지 않다(오탐 주의)고 판정한다."}
+      ],
+      "explanation": "정답은 3번. IMP-SF-13 diagnosis.method/true_positive/false_positive로 검증한다. false_positive는 password 등 텍스트가 있어도 실제 비밀번호가 아니면 안전(오탐)이라고 명시하므로, '텍스트만 보고 항상 취약 판정'은 가이드를 정반대로 적용한 틀린 진술이다. 1·2·4번은 method·true_positive·false_positive와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — diagnosis.method/true_positive/false_positive",
+      "tags": ["security_feature", "implementation", "주석", "진단방법", "정탐", "오탐", "CWE-615"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-D1",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 주석문에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void daoTest() throws Exception {\n  // db sample : 84d5d0a08a3ec5e2d91a\n  // 암호화 전, 후 : 1365ADMIN_01, aa84c40031d808196537ad3dcf81f9af\n  String pwd = \"46c165a343fd6841273ae04655af24dd\";\n  String pwd1 = ARIAEngine.decARIA(pwd);\n  System.out.println(pwd1);\n}\n```",
+      "vulnerable_code": "1  public void daoTest() throws Exception {\n2    // db sample : 84d5d0a08a3ec5e2d91a\n3    // 암호화 전, 후 : 1365ADMIN_01, aa84c40031d808196537ad3dcf81f9af\n4    String pwd = \"46c165a343fd6841273ae04655af24dd\";\n5    String pwd1 = ARIAEngine.decARIA(pwd);\n6    System.out.println(pwd1);\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 3],
+      "rationale_keywords": ["주석에 비밀번호 노출", "계정 ID 노출", "역컴파일 유출", "소스코드 접근", "CWE-615"],
+      "fix_keywords": ["민감정보 주석 삭제", "ID·비밀번호 미기입", "개발 완료 시 삭제"],
+      "safe_code": "1  public void daoTest() throws Exception {\n2    String pwd = \"46c165a343fd6841273ae04655af24dd\";\n3    String pwd1 = ARIAEngine.decARIA(pwd);\n4    System.out.println(pwd1);\n5  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인은 DB 샘플 값을, 3번 라인은 계정 ID(1365ADMIN_01)와 암호화 전후 비밀번호 값을 주석으로 그대로 노출하고 있다. 이러한 주석 속 중요정보(ID·비밀번호·시스템 정보)는 소스코드에 접근하거나 역컴파일(decompile)을 통해 쉽게 유출되어 공격자가 시스템에 침입하는 데 악용될 수 있는 보안약점(CWE-615)이다.",
+        "fix_description": "주석에는 ID·비밀번호 등 보안과 관련된 내용을 기입하지 않는다. 동작에 필요한 코드(pwd 변수, ARIAEngine.decARIA 호출 등)는 그대로 두되, 민감정보를 담은 2·3번 주석을 삭제한다. 개발 편의로 남긴 계정·비밀번호 주석은 개발 완료 시 확실하게 삭제한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-13 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '주석에 비밀번호 노출'/'계정 ID 노출': 2·3번 주석이 DB 샘플·계정 ID·암호화 전후 비밀번호를 직접 담고 있음.\n- '역컴파일 유출'/'소스코드 접근': overview·course가 지적하는 노출 경로.\n- 'CWE-615': 주석을 통한 정보노출 분류.\n\n[수정 키워드 의미] 민감정보 주석을 삭제하고, ID·비밀번호를 주석에 기입하지 않으며, 개발 완료 시 확실히 삭제한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2·3번 주석 라인 지목) 20점 / rationale(주석 속 비밀번호·계정 노출, 역컴파일/소스접근 유출, CWE-615 등 키워드 포함) 30점 / fix(민감정보 주석 삭제 + ID·비밀번호 미기입 + 개발 완료 시 삭제) 30점.\n\n[자가확인 체크리스트] (1) DB접속·관리자 로그인 등 구현 코드인가? (2) 주석에 실제 비밀번호/계정 등 중요정보가 들어 있는가? — 둘 다 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — diagnosis.true_positive, CWE-615",
+      "tags": ["security_feature", "implementation", "주석", "정탐", "비밀번호", "java", "CWE-615"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-D2",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드에 대해 취약 여부를 판정하고 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\n// 암호화\nString Sid = getSessionValue(session, \"ihidnum\");\nSid = AEScryptWithSaltKey.encode(StrTool.sNN(Sid));\nString sIhidnum = Sid;\n```",
+      "vulnerable_code": "1  // 암호화\n2  String Sid = getSessionValue(session, \"ihidnum\");\n3  Sid = AEScryptWithSaltKey.encode(StrTool.sNN(Sid));\n4  String sIhidnum = Sid;",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["실제 비밀번호 아님", "기능 설명 주석", "중요정보 미포함", "정보노출 없음", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — '// 암호화'는 동작을 설명하는 일반 주석일 뿐\n2  // ID·비밀번호 등 시스템 주요정보를 담고 있지 않으므로 정보노출이 없다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 1번 라인의 '// 암호화' 주석은 아래 코드가 세션값을 암호화한다는 동작을 설명하는 일반 주석일 뿐, ID·비밀번호 등 시스템 주요정보를 담고 있지 않다. 주석에 password/passwd/비밀번호 같은 텍스트가 등장하더라도 실제 그 내용이 비밀번호가 아니면 취약하지 않다고 판정해야 한다(false_positive). 따라서 주석을 통한 중요정보 노출(CWE-615)이 없다.",
+        "fix_description": "수정 불필요. 주석에 민감정보가 포함되어 있지 않아 IMP-SF-13 관점에서 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-13 diagnosis.false_positive 코드를 기반으로 한다. 핵심은 '주석이 있다고, 혹은 보안 관련 단어가 보인다고 무조건 취약으로 단정하지 않기'다.\n\n[오판 주의] '암호화' 같은 단어나 주석이 존재한다는 사실만으로 취약하다고 판정하면 오탐이다. 이 주석은 동작을 설명할 뿐 실제 ID·비밀번호를 노출하지 않는다.\n\n[안전 판정 근거 키워드 의미]\n- '실제 비밀번호 아님'/'중요정보 미포함': 주석 내용이 ID·비밀번호 등 시스템 주요정보가 아님.\n- '기능 설명 주석': '// 암호화'는 코드 동작을 설명하는 일반 주석.\n- '정보노출 없음'/'오탐 주의': false_positive 판정 기준.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(실제 비밀번호 아님·기능 설명 주석·중요정보 미포함 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 주석에 password/passwd/비밀번호 등 텍스트가 있는가? → 없다(있어도 실제 값이 아니면 안전). (2) 주석이 실제 ID·비밀번호 등 중요정보를 노출하는가? → 아니다. — 안전.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — diagnosis.false_positive, CWE-615",
+      "tags": ["security_feature", "implementation", "주석", "오탐", "정보노출", "java", "CWE-615"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-B1",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'주석문 안에 포함된 시스템 주요정보' 약점의 개요와 대책에 대한 빈칸을 채우시오.",
+      "blank_template": "주석에 남긴 ID·비밀번호 등 중요정보는 소스코드에 접근하거나 ⓐ______(을)를 통해 쉽게 유출될 수 있다. 따라서 주석에는 ID, 비밀번호 등 보안과 관련된 내용을 ⓑ______, 개발 편의로 남긴 계정·비밀번호 주석은 개발 ⓒ______ 시 확실하게 삭제해야 한다. 이 약점은 CWE-ⓓ______에 해당한다.",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["역컴파일"], "synonyms": ["decompile", "디컴파일", "역컴파일(decompile)"]},
+        {"idx": "ⓑ", "answers": ["기입하지 않으며"], "synonyms": ["기입하지 않고", "기입하지 않는다", "적지 않으며", "남기지 않으며"]},
+        {"idx": "ⓒ", "answers": ["완료"], "synonyms": ["개발 완료", "완료 시"]},
+        {"idx": "ⓓ", "answers": ["615"], "synonyms": ["CWE-615"]}
+      ],
+      "explanation": "ⓐ 역컴파일(decompile): course exam_points가 '역컴파일을 통해 주석 속 중요정보가 쉽게 유출'된다고 명시한다. ⓑ 기입하지 않으며: countermeasure는 '주석에는 ID, 비밀번호 등 보안과 관련된 내용을 기입하지 않는다'이다. ⓒ 완료: '개발 완료 시에 확실하게 삭제'(code_examples note). ⓓ 615: 주석을 통한 정보노출은 CWE-615다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — overview/countermeasure/note, CWE-615",
+      "tags": ["security_feature", "implementation", "주석", "역컴파일", "CWE-615", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-13-B2",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "chapter_code": "IMP-SF-13",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "주석문 안에 포함된 시스템 주요정보의 진단 흐름과 정탐/오탐 판정에 대한 빈칸을 채우시오.",
+      "blank_template": "진단 시 먼저 ⓐ______ 접속, 관리자 로그인 등이 구현된 코드를 확인하고, 그 ⓑ______(을)를 검토하여 비밀번호 포함 여부를 확인한다. 주석에 실제 비밀번호를 적어둔 경우 취약하다고 판정한다(정탐). 반대로 주석에 'password', 'passwd' 등의 텍스트가 존재하더라도 실제 그 내용이 비밀번호가 아닌 경우에는 ⓒ______(이)라고 판정한다(오탐 주의).",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["DB"], "synonyms": ["디비", "데이터베이스", "데이타베이스"]},
+        {"idx": "ⓑ", "answers": ["주석"], "synonyms": ["주석문"]},
+        {"idx": "ⓒ", "answers": ["취약하지 않다"], "synonyms": ["안전하다", "취약하지 않음", "안전"]}
+      ],
+      "explanation": "ⓐ DB / ⓑ 주석: diagnosis.method가 'DB접속, 관리자 로그인 등이 구현된 코드를 확인하고(①), 주석을 확인하여 암호 포함여부 확인한다(②)'로 명시한다. ⓒ 취약하지 않다: false_positive가 'password/passwd/비밀번호 텍스트가 존재하지만 실제로 그 내용이 비밀번호가 아닌 경우에는 취약하지 않다고 판정한다'고 한다(오탐 주의).",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §13 주석문 안에 포함된 시스템 주요정보 — diagnosis.method/false_positive",
+      "tags": ["security_feature", "implementation", "주석", "진단방법", "오탐", "빈칸"]
+    }
+  ]
+}

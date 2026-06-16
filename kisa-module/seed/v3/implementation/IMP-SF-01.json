@@ -1,0 +1,175 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-01",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-M1",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 중 '적절한 인증 없는 중요기능 허용'(CWE-306)에 대한 설명이다. 옳지 않은 것은?\n\n이 보안약점은 적절한 인증과정 없이 중요정보(계좌이체 정보, 개인정보 등)를 열람 또는 변경할 때 발생한다.",
+      "choices": [
+        {"num": 1, "text": "패스워드·개인정보·금융정보와 같은 중요정보를 열람 또는 변경하는 경우 적절한 인증과정을 거쳐야 한다."},
+        {"num": 2, "text": "은행 계좌이체 등 중요한 정보가 있는 페이지에 접근하는 경우 재인증을 적용한다."},
+        {"num": 3, "text": "클라이언트의 보안검사를 우회하여 서버에 접근하지 못하도록 설계한다."},
+        {"num": 4, "text": "인증 로직은 서버보다 클라이언트(JavaScript) 측에서 수행하는 것이 우회 위험이 적어 더 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). IMP-SF-01 overview·countermeasure가 패스워드·개인정보·금융정보 등 중요정보를 열람·변경할 때 적절한 인증과정을 거칠 것을 요구하므로 정확한 설명이다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '중요한 정보가 있는 페이지는 재인증을 적용(은행 계좌이체 등)한다'고 명시하므로 정확한 설명이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure 첫 항목이 '클라이언트의 보안검사를 우회하여 서버에 접근하지 못하도록 설계'하는 것이므로 정확한 설명이다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). 인증을 클라이언트 측에서 수행하면 diagnosis 정탐 사례처럼 우회가 가능하여 오히려 취약하다. 보안검사·인증은 반드시 서버 측에서 수행해야 하므로 '클라이언트 측이 더 안전하다'는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-01 라이브러리의 overview·countermeasure(클라이언트 보안검사 우회 차단 / 중요 페이지 재인증 / 검증된 라이브러리 사용)와 대조한다. 1·2·3번은 각각 보안대책과 일치하는 옳은 진술이다. 4번은 클라이언트 측 인증이 더 안전하다고 했으나, 클라이언트 인증은 우회가 가능(diagnosis true_positive의 JavaScript allowedIp 검사 사례)하므로 잘못된 설명이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용(pp.314-318), CWE-306 — overview·countermeasure",
+      "tags": ["security_feature", "implementation", "인증", "재인증", "클라이언트우회", "CWE-306"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-M2",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java(Spring MVC) 회원정보 수정 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\n@RequestMapping(value = \"/modify.do\", method = RequestMethod.POST)\npublic ModelAndView memberModifyProcess(@ModelAttribute(\"MemberModel\")\n    MemberModel memberModel, BindingResult result, HttpServletRequest request,\n    HttpSession session) {\n  ModelAndView mav = new ModelAndView();\n  //1. 로그인한 사용자를 불러온다.\n  String userId = (String) session.getAttribute(\"userId\");\n  String passwd = request.getParameter(\"oldUserPw\");\n  ...\n  //2. 실제 수정하는 사용자와 일치 여부를 확인하지 않고, 회원정보를 수정한다.\n  if (service.modifyMember(memberModel)) {\n    mav.setViewName(\"redirect:/board/list.do\");\n    return mav;\n  }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "로그인 사용자(session의 userId)와 실제 수정 대상 사용자의 일치 여부를 확인하지 않고 수정을 수행하여 취약하다."},
+        {"num": 2, "text": "memberModel.getUserId()로 요청 사용자를 얻어 세션 userId와 동일한지 검증한 뒤 수정해야 안전하다."},
+        {"num": 3, "text": "이 코드는 적절한 인증 없는 중요기능 허용(CWE-306) 보안약점에 해당한다."},
+        {"num": 4, "text": "세션에 userId가 존재해 로그인 상태이기만 하면 타인의 회원정보를 수정해도 보안상 문제가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 라이브러리 note가 '회원정보 수정 시 수정을 요청한 사용자와 로그인한 사용자의 일치 여부를 확인한 후 처리해야 한다'고 하므로, 일치 여부 미확인이 곧 취약점이라는 설명은 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드가 requestUser = memberModel.getUserId()를 얻어 !userId.equals(requestUser)이면 차단하는 방식이므로 정확한 설명이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 본 vulnerable 코드는 IMP-SF-01(CWE-306) 적절한 인증 없는 중요기능 허용의 대표 사례이므로 정확한 분류다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). 로그인 상태(인증)만으로는 충분하지 않으며, '실제 수정 대상 사용자 == 로그인 사용자' 일치 검증이 없으면 타인의 정보를 변조할 수 있어 명백히 보안 문제가 된다. 따라서 '문제가 없다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-01 code_examples(Java)의 vulnerable 코드와 note('수정 요청 사용자와 로그인 사용자의 일치 여부 확인 후 처리')로 검증한다. 1·2·3번은 vulnerable/safe 코드와 일치하는 옳은 설명이다. 4번은 로그인(인증)만으로 충분하다고 했으나, 사용자 일치 검증이 없으면 타인 정보 변조가 가능하므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — code_examples(Java) vulnerable/safe·note, CWE-306",
+      "tags": ["security_feature", "implementation", "인증", "사용자일치검증", "modifyMember", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-M3",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "진단원이 '적절한 인증 없는 중요기능 허용'을 진단할 때의 절차와 판정에 대한 설명으로 옳지 않은 것은?\n\n해당 취약점은 개인정보와 관련된 보안특성으로 정적도구로 판단하기 쉽지 않아 진단원이 직접 코드를 보며 중요정보 여부를 파악해야 한다.",
+      "choices": [
+        {"num": 1, "text": "비밀번호·개인정보(주민등록번호 등)·금융정보(카드번호·계좌정보 등)·게시글 수정·삭제 등 접근이 제한되어야 하는 중요정보 및 기능을 정의하고 사용 여부를 확인한다."},
+        {"num": 2, "text": "중요정보를 사용하는 경우, 접근·변경 시 적절한 인증 여부를 확인하여 허용하는 기능이 구현되었는지 확인한다."},
+        {"num": 3, "text": "재인증을 거치지 않고 계좌이체를 수행하는 코드는 취약하다고 판정한다."},
+        {"num": 4, "text": "클라이언트(JavaScript) 측에서 allowedIp 등을 검사하여 접근을 막고 있다면, 서버측 검증이 없어도 안전하다고 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis method ①이 비밀번호·개인정보·금융정보·게시글 수정·삭제 등 중요정보 및 기능을 정의하고 사용 여부를 확인하라고 명시하므로 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis method ②가 중요정보 접근·변경 시 적절한 인증 여부 확인 기능이 구현되었는지 확인하라고 하므로 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). true_positive 첫 사례가 '재인증을 거치지 않고 계좌이체를 하고 있으므로 취약'이라고 판정하므로 정확하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). true_positive 둘째 사례는 '클라이언트 측에서 인증을 수행하고 있어 우회가 가능하므로 취약'이라고 판정한다. 클라이언트 측 검사는 우회 가능하므로 서버측 검증 없이 안전하다고 보는 것은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-01 diagnosis.method ①②와 true_positive 두 사례(재인증 없는 계좌이체 / 클라이언트 측 인증 우회)와 대조한다. 1·2·3번은 진단 절차·판정과 일치한다. 4번은 클라이언트 측 검사를 안전 근거로 삼았으나, 가이드는 클라이언트 인증이 우회 가능하여 취약하다고 판정하므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — diagnosis.method·true_positive, CWE-306",
+      "tags": ["security_feature", "implementation", "진단방법", "재인증", "클라이언트우회", "정탐"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-D1",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 인증 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void sendBankAccount(String accountNumber, double balance) {\n  BankAccount account = new BankAccount();\n  account.setAccountNumber(accountNumber);\n  account.setToPerson(toPerson);\n  account.setBalance(balance);\n  AccountManager.send(account);\n}\n```",
+      "vulnerable_code": "1  public void sendBankAccount(String accountNumber, double balance) {\n2    BankAccount account = new BankAccount();\n3    account.setAccountNumber(accountNumber);\n4    account.setToPerson(toPerson);\n5    account.setBalance(balance);\n6    AccountManager.send(account);\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [6],
+      "rationale_keywords": ["재인증 없음", "계좌이체", "중요기능", "적절한 인증 없음", "CWE-306"],
+      "fix_keywords": ["재인증 적용", "서버측 인증", "ValidateUser"],
+      "safe_code": "1  public void sendBankAccount(String accountNumber, double balance) {\n2    // 계좌이체 전 재인증(비밀번호 재확인 등)을 수행한다.\n3    if (!reauthenticate(getLoginUser())) {\n4      throw new SecurityException(\"재인증 실패\");\n5    }\n6    BankAccount account = new BankAccount();\n7    account.setAccountNumber(accountNumber);\n8    account.setToPerson(toPerson);\n9    account.setBalance(balance);\n10   AccountManager.send(account);\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 6번 라인에서 계좌이체(AccountManager.send)라는 중요기능을 수행하면서도 그 직전에 재인증 등 적절한 인증과정이 전혀 없다. 계좌이체는 금융정보를 다루는 중요기능이므로 재인증을 적용해야 하는데, 인증 없이 바로 송금이 이루어지므로 적절한 인증 없는 중요기능 허용(CWE-306)에 해당한다.",
+        "fix_description": "계좌이체 수행 전에 재인증(비밀번호 재확인 등)을 서버측에서 적용하고, 인증에 성공한 경우에만 AccountManager.send를 호출하도록 수정한다. 검증된 인증 라이브러리/프레임워크(ESAPI 등)를 활용할 수 있다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-01 diagnosis.true_positive 첫 사례(재인증 없는 계좌이체)를 기반으로 한다.\n\n[근거 키워드 의미]\n- '재인증 없음'/'적절한 인증 없음': 계좌이체 직전 인증 절차가 전혀 없음.\n- '계좌이체'/'중요기능': 금융정보를 다루는 중요기능이므로 재인증 대상.\n- 'CWE-306': 적절한 인증 없는 중요기능 허용 분류.\n\n[수정 키워드 의미] 송금 전 서버측 재인증을 적용하고 성공 시에만 처리한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(6번 라인 송금 호출 지목) 20점 / rationale(재인증 부재·중요기능·CWE-306 키워드 포함) 30점 / fix(재인증 적용·서버측 인증 후 처리) 30점.\n\n[자가확인 체크리스트] (1) 중요정보/중요기능(계좌이체·개인정보 변경 등)을 다루는가? (2) 해당 기능 직전에 인증(재인증) 절차가 있는가? (3) 인증이 클라이언트가 아닌 서버측에서 이루어지는가? — 중요기능인데 인증이 없으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — diagnosis.true_positive, CWE-306",
+      "tags": ["security_feature", "implementation", "정탐", "재인증", "계좌이체", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-D2",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java(Spring MVC) 회원정보 수정 코드에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString userId = (String) session.getAttribute(\"userId\");\nString requestUser = memberModel.getUserId();\nif (userId != null && requestUser != null && !userId.equals(requestUser)) {\n  mav.addObject(\"errCode\", 1);\n  mav.setViewName(\"/board/member_modify\");\n  return mav;\n}\nif (service.modifyMember(memberModel)) {\n  mav.setViewName(\"redirect:/board/list.do\");\n}\n```",
+      "vulnerable_code": "1  String userId = (String) session.getAttribute(\"userId\");\n2  String requestUser = memberModel.getUserId();\n3  if (userId != null && requestUser != null && !userId.equals(requestUser)) {\n4    mav.addObject(\"errCode\", 1);\n5    mav.setViewName(\"/board/member_modify\");\n6    return mav;\n7  }\n8  if (service.modifyMember(memberModel)) {\n9    mav.setViewName(\"redirect:/board/list.do\");\n10 }",
+      "code_language": "java",
+      "vulnerable_lines": [0],
+      "rationale_keywords": ["사용자 일치 검증", "로그인 사용자 == 요청 사용자", "서버측 검증", "적절한 인증", "정보변조 차단"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 세션의 로그인 사용자(userId)와 실제 수정 대상 사용자(requestUser)의\n2  // 일치 여부를 서버측에서 검증하고, 일치하는 경우에만 modifyMember로 수정을 수행한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인에서 세션에 저장된 로그인 사용자(userId)와 요청에 담긴 실제 수정 대상 사용자(requestUser)의 일치 여부를 서버측에서 검증하고, 일치하지 않으면 차단(errCode 1)한 뒤 일치하는 경우에만 service.modifyMember로 수정을 수행한다. 이는 라이브러리 note가 요구하는 '수정 요청 사용자와 로그인 사용자의 일치 여부 확인 후 처리'를 충족하므로 적절한 인증 없는 중요기능 허용에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 이미 로그인 사용자와 요청 사용자의 일치 검증을 서버측에서 수행하고 일치 시에만 수정하므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-01 code_examples(Java)의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 회원정보 수정이라는 중요기능이 등장한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 사용자 일치 검증을 거치는 안전한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '사용자 일치 검증'/'로그인 사용자 == 요청 사용자': session userId와 requestUser를 비교해 불일치 시 차단함.\n- '서버측 검증': 검증이 서버 컨트롤러에서 수행됨.\n- '적절한 인증': 일치하는 경우에만 수정을 허용하여 인증 요건 충족.\n- '정보변조 차단': 타인 정보 변조를 막음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — vulnerable_lines=[0]은 '해당 라인 없음' 판정용 표식) 20점 / rationale(사용자 일치 검증·서버측 검증 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 중요기능 수행 전 인증/검증이 있는가? → 있다(사용자 일치 검증). (2) 검증이 서버측에서 이루어지는가? → 그렇다. (3) 검증 실패 시 작업을 차단하는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — code_examples(Java) safe·note, CWE-306",
+      "tags": ["security_feature", "implementation", "오탐", "사용자일치검증", "modifyMember", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-B1",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '적절한 인증 없는 중요기능 허용'의 보안대책에 대한 설명이다. 빈칸에 들어갈 알맞은 용어를 쓰시오.",
+      "blank_template": "클라이언트의 보안검사를 우회하여 서버에 접근하지 못하도록 설계하고, 은행 계좌이체와 같이 중요한 정보가 있는 페이지에 접근하는 경우 (①)을(를) 적용한다. 또한 OpenSSL이나 (②)의 보안기능과 같이 안전하다고 검증된 라이브러리나 프레임워크를 사용한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["재인증"], "synonyms": ["재인증(Re-authentication)", "Re-authentication", "재인증 적용"]},
+        {"idx": 2, "answers": ["ESAPI"], "synonyms": ["ESAPI(OWASP)", "OWASP ESAPI"]}
+      ],
+      "explanation": "정답: ① 재인증, ② ESAPI. IMP-SF-01 countermeasure는 '중요한 정보가 있는 페이지는 재인증을 적용(은행 계좌이체 등)'하고 '안전하다고 검증된 라이브러리나 프레임워크(OpenSSL이나 ESAPI의 보안기능 등)를 사용'할 것을 요구한다. 재인증은 중요 페이지 접근 시 다시 한 번 인증을 요구하여 권한 없는 접근을 차단하는 방식이고, ESAPI는 OWASP가 제공하는 검증된 보안기능 라이브러리다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — countermeasure, CWE-306",
+      "tags": ["security_feature", "implementation", "재인증", "ESAPI", "보안대책", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-01-B2",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "chapter_code": "IMP-SF-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 C#(ASP.NET)에서 로그인 기능을 안전하게 구현하는 코드다. 빈칸에 들어갈 알맞은 메서드명을 쓰시오. (사용자의 자격인증 과정을 수행한 뒤에만 로그인을 완료해야 한다.)",
+      "blank_template": "protected void LoginButton_Click(object sender, EventArgs e) {\n  // 사용자의 자격인증 과정을 수행합니다.\n  if (Membership.(①)(UserName.Text, Password.Text)) {\n    FormsAuthentication.RedirectFromLoginPage(UserName.Text, RememberMe.Checked);\n  }\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["ValidateUser"], "synonyms": ["Membership.ValidateUser", "ValidateUser()"]}
+      ],
+      "explanation": "정답: ① ValidateUser. IMP-SF-01 code_examples(C#)의 safe 코드는 Membership.ValidateUser(UserName.Text, Password.Text)로 사용자의 자격인증을 먼저 수행하고, 인증에 성공한 경우에만 FormsAuthentication.RedirectFromLoginPage로 로그인을 완료한다. vulnerable 코드는 이 자격인증 과정 없이 바로 RedirectFromLoginPage를 호출하여 적절한 인증 없는 중요기능 허용 보안약점에 해당한다. note는 '사용자의 자격인증 후 로그인 기능을 수행해야 한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §1 적절한 인증 없는 중요기능 허용 — code_examples(C#) safe·note, CWE-306",
+      "tags": ["security_feature", "implementation", "자격인증", "ValidateUser", "로그인", "빈칸"]
+    }
+  ]
+}

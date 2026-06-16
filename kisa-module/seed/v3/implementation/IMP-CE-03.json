@@ -1,0 +1,174 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-CE-03",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-M1",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "해제된 자원 사용(Use-After-Free, CWE-416) 보안약점과 그 대응방안에 대한 설명으로 옳은 것은?",
+      "choices": [
+        {"num": 1, "text": "해제한 메모리를 참조하면 예상치 못한 값 또는 코드를 실행하게 되어 의도하지 않은 결과가 발생할 수 있다."},
+        {"num": 2, "text": "메모리를 해제한 후 그 포인터를 참조 추적이나 수식의 피연산자로 사용해도 안전하므로 문제가 없다."},
+        {"num": 3, "text": "메모리 해제 후 포인터에 임의의 큰 정수를 저장하면 이중 해제가 방지된다."},
+        {"num": 4, "text": "동적 메모리 관리는 보안 취약점과 무관하므로 해제 시점을 자유롭게 정해도 된다."}
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        {"num": 1, "correct": true, "why": "정답. overview와 정확히 일치한다. '해제한 메모리를 참조하게 되면 예상치 못한 값 또는 코드를 실행하게 되어 의도하지 않은 결과가 발생하게 된다'는 정의 그대로다."},
+        {"num": 2, "correct": false, "why": "틀림. countermeasure는 '해제한 후 그 메모리를 참조하던 포인터를 참조 추적이나 형 변환, 수식에서의 피연산자 등으로 사용하여 해제된 메모리에 접근하도록 해서는 안 된다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "틀림. countermeasure는 '메모리 해제 후 포인터에 널(Null)값을 저장하거나 다른 적절한 값을 저장'하라고 한다. 임의의 큰 정수가 아니라 NULL을 할당해야 이중 해제가 무시되어 방지된다."},
+        {"num": 4, "correct": false, "why": "틀림. overview는 'C언어에서 동적 메모리 관리는 보안 취약점을 유발하는 대표적인 프로그램 결함의 원인'이라고 명시한다. 동적 메모리 관리는 보안 취약점과 밀접하다."}
+      ],
+      "explanation": "정답은 1번. IMP-CE-03 라이브러리 overview('해제한 메모리를 참조하면 예상치 못한 값/코드 실행으로 의도하지 않은 결과 발생')와 countermeasure('해제된 메모리 접근 금지 + 해제 후 포인터에 NULL 등 적절한 값 저장')로 검증한다. 1번은 overview와 정확히 일치한다. 2번은 해제된 메모리 접근 금지 원칙에 어긋나고, 3번은 NULL이 아닌 임의 정수를 든 함정이며, 4번은 '동적 메모리 관리가 취약점의 대표 원인'이라는 overview에 반한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용(pp.453-458), CWE-416 — overview/countermeasure",
+      "tags": ["code_error", "implementation", "use-after-free", "해제후사용", "NULL-할당", "CWE-416"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-M2",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 메모리 처리에 대한 설명으로 옳지 않은 것은?\n\n```c\nint main(int argc, const char *argv[]) {\n  char *temp;\n  temp = (char *)malloc(BUFFER_SIZE);\n  ……\n  free(temp);\n  strncpy(temp, argv[1], BUFFER_SIZE-1);\n}\n```",
+      "choices": [
+        {"num": 1, "text": "free(temp)로 해제한 메모리를 strncpy(temp, ...)에서 다시 사용하여 해제 후 사용(Use-After-Free)이 발생한다."},
+        {"num": 2, "text": "해제된 자원을 사용하면 예상치 못한 임의의 프로그램이 수행되는 취약점을 유발할 수 있다."},
+        {"num": 3, "text": "메모리를 해제하기 전에 사용 작업(strncpy)을 먼저 수행하고 최종적으로 free(temp)하도록 순서를 바꾸면 안전하다."},
+        {"num": 4, "text": "free(temp) 이후에 strncpy로 temp를 사용하는 것이 메모리 효율을 높이는 권장 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 'free() 후 다시 사용(strncpy)하면 예상치 못한 임의의 프로그램이 수행되는 취약점을 유발할 수 있다'고 명시한 해제 후 사용(Use-After-Free) 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '예상치 못한 임의의 프로그램이 수행되는 취약점을 유발할 수 있다'고 명시한 영향 그대로다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 strncpy로 최종 사용을 먼저 한 뒤 마지막에 free(temp)하도록 순서를 바꾼다. note도 '메모리를 해제하기 전에 사용 작업을 수행하고 최종적으로 해제해야 한다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답. free 이후 해제된 temp를 strncpy로 사용하는 것은 메모리 효율을 높이는 권장 방식이 아니라 해제 후 사용 취약점이다. 사용을 끝낸 후에 해제하는 것이 안전한 방식이므로 진술이 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-03 code_examples(C) 첫 예제의 vulnerable 코드다. note('free() 후 다시 사용하면 예상치 못한 임의의 프로그램 수행 취약점, 해제 전에 사용을 수행하고 최종적으로 해제')로 검증한다. 4번은 해제 후 사용을 '메모리 효율 권장 방식'이라고 진술하여 틀렸다. 1·2·3번은 vulnerable/safe 코드 및 note와 일치하는 옳은 설명이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — code_examples(C) 예제① vulnerable/safe/note",
+      "tags": ["code_error", "implementation", "use-after-free", "해제후사용", "free", "c"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-M3",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 C 코드의 이중 해제(Double Free) 방지와 진단에 대한 설명으로 옳지 않은 것은?\n\n```c\nchar *data;\nint data_type;\nif (data_type == val_1) { free(data); }\n……\nif (data_type == val_2) { free(data); }\n```",
+      "choices": [
+        {"num": 1, "text": "data_type 값이 val_1, val_2와 모두 같으면 두 번째 조건문에서 이미 해제된 자원을 다시 해제하여 이중 해제 문제가 발생한다."},
+        {"num": 2, "text": "각 free(data) 직후에 data = NULL을 할당하면 동일 메모리에 대해 한 번만 해제되고 이후 free는 무시된다."},
+        {"num": 3, "text": "진단 시 자원을 참조하는 포인터 변수의 초기화(사용 완료 후 NULL 배정) 여부를 확인한다."},
+        {"num": 4, "text": "이중 해제를 막으려면 free(data) 직후 data에 임의의 유효 주소를 강제로 대입하여 재사용하는 것이 표준 방식이다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 'data_type 값이 val_1, val_2와 모두 같으면 두 번째 조건문에서 이중 해제(double free) 문제가 발생한다'고 명시한 그대로다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드·note가 '해제 후 포인터에 NULL을 할당하면 동일 메모리에 대해 한 번만 해제되어 이중 해제를 방지한다(이중 해제하더라도 무시된다)'고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '사용이 완료된 포인터 변수의 초기화가 이루어지는지 확인한다'고 명시한 진단 방법 그대로다."},
+        {"num": 4, "correct": true, "why": "정답. countermeasure는 해제 후 포인터에 'NULL값을 저장하거나 다른 적절한 값을 저장'하라고 한다. 임의의 유효 주소를 강제 대입해 재사용하는 것은 표준 방식이 아니며, 오히려 잘못된 메모리 접근을 유발할 수 있다."}
+      ],
+      "explanation": "정답은 4번. IMP-CE-03 code_examples(C) 둘째 예제(이중 해제), note, countermeasure, diagnosis.method로 검증한다. 1번은 이중 해제 발생, 2번은 해제 후 NULL 할당으로 방지, 3번은 진단 시 포인터 초기화 확인으로 옳은 진술이다. 4번은 해제 후 'NULL 등 적절한 값 저장'이라는 대책을 '임의 유효 주소 강제 대입 후 재사용'으로 왜곡하여 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — code_examples(C) 예제②, countermeasure, diagnosis.method",
+      "tags": ["code_error", "implementation", "double-free", "이중해제", "NULL-할당", "c"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-D1",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음 C 코드의 메모리 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\nchar *data;\nint data_type;\nif (data_type == val_1) {\n  free(data);\n}\n……\nif (data_type == val_2) {\n  free(data);\n}\n```",
+      "vulnerable_code": "1  char *data;\n2  int data_type;\n3  if (data_type == val_1) {\n4    free(data);\n5  }\n6  ……\n7  if (data_type == val_2) {\n8    free(data);\n9  }",
+      "code_language": "c",
+      "vulnerable_lines": [8],
+      "rationale_keywords": ["이중 해제", "double free", "이미 해제된 자원", "해제 후 NULL 미할당", "CWE-416"],
+      "fix_keywords": ["free 후 data = NULL", "NULL 할당", "이중 해제 무시"],
+      "safe_code": "1  char *data;\n2  int data_type;\n3  if (data_type == val_1) {\n4    free(data);\n5    data = NULL;\n6  }\n7  ……\n8  if (data_type == val_2) {\n9    free(data);\n10   data = NULL;\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. data_type 값이 val_1, val_2와 모두 같은 경우, 4번 라인에서 free(data)로 해제한 메모리를 8번 라인에서 다시 free(data)하여 이미 해제된 동일 자원을 이중 해제(double free)하는 문제가 발생한다(CWE-416). 해제 직후 포인터에 NULL을 할당하지 않아 이중 해제가 그대로 수행된다.",
+        "fix_description": "각 free(data) 직후에 data = NULL을 할당한다. 해제 후 NULL을 할당하면 동일 메모리에 대해 한 번만 해제되고, 이후 free(NULL)는 무시되어 이중 해제가 방지된다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-CE-03 code_examples(C) 둘째 예제(이중 해제)의 vulnerable 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '이중 해제'/'double free': 같은 메모리를 두 번 free하는 문제.\n- '이미 해제된 자원': 4번 라인에서 해제된 data를 8번 라인에서 다시 해제함.\n- '해제 후 NULL 미할당': free 직후 data = NULL이 없어 이중 해제가 그대로 수행됨.\n- 'CWE-416': 본 약점의 분류.\n\n[수정 키워드 의미] free(data) 직후 data = NULL을 할당하여 이후 free가 무시되게 한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(두 번째 free가 있는 8번 라인 지목) 20점 / rationale(이중 해제·이미 해제된 자원·해제 후 NULL 미할당 등 키워드 포함) 30점 / fix(free 직후 data = NULL 할당) 30점.\n\n[자가확인 체크리스트] (1) 동일 포인터를 둘 이상의 분기에서 free하는가? (2) 두 분기가 모두 실행될 수 있는가(val_1, val_2 모두 같을 수 있는가)? (3) free 직후 NULL 할당이 있는가? → 없다면 이중 해제로 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — code_examples(C) 예제② vulnerable, CWE-416",
+      "tags": ["code_error", "implementation", "double-free", "정탐", "이중해제", "c"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-D2",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음 C 코드의 메모리 처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```c\nchar *data;\nint data_type;\nif (data_type == val_1) {\n  free(data);\n  data = NULL;\n}\n……\nif (data_type == val_2) {\n  free(data);\n  data = NULL;\n}\n```",
+      "vulnerable_code": "1  char *data;\n2  int data_type;\n3  if (data_type == val_1) {\n4    free(data);\n5    data = NULL;\n6  }\n7  ……\n8  if (data_type == val_2) {\n9    free(data);\n10   data = NULL;\n11 }",
+      "code_language": "c",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["해제 후 NULL 할당", "이중 해제 무시", "free(NULL) 무시", "동일 메모리 한 번만 해제", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 각 free(data) 직후 data = NULL을 할당하므로\n2  // 두 조건이 모두 참이어도 두 번째 free(data)는 free(NULL)이 되어 무시된다.\n3  // 동일 메모리에 대해 한 번만 해제되어 이중 해제가 방지된다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 각 free(data) 직후에 data = NULL을 할당하고 있다(5번·10번 라인). 따라서 data_type이 val_1, val_2와 모두 같아 두 조건이 모두 실행되더라도, 두 번째 free(data)는 free(NULL)이 되어 무시된다. 동일 메모리에 대해 한 번만 해제되므로 이중 해제(double free)가 발생하지 않는다. 이는 countermeasure가 제시하는 '해제 후 포인터에 NULL 저장' 방어 기법과 일치한다.",
+        "fix_description": "수정 불필요. 해제 직후 NULL을 할당하여 이중 해제를 방지하는 안전한 형태이므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-CE-03 code_examples(C) 둘째 예제의 safe 코드를 기반으로 한다(라이브러리에 false_positive 항목이 없어, 가이드가 권장한 safe 코드 자체를 안전 판정 대상으로 제시). 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] free(data)가 두 분기에 등장한다고 무조건 이중 해제로 단정해서는 안 된다. 각 free 직후 data = NULL이 있으면 두 번째 free는 free(NULL)이 되어 무시되므로 안전하다. NULL 할당 유무가 핵심이다.\n\n[안전 판정 근거 키워드 의미]\n- '해제 후 NULL 할당': 5번·10번 라인에서 free 직후 data = NULL을 수행함.\n- '이중 해제 무시'/'free(NULL) 무시': 두 번째 free가 free(NULL)이 되어 무시됨.\n- '동일 메모리 한 번만 해제': 같은 메모리가 한 번만 해제되어 double free가 발생하지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인이 없음을 정확히 판단) 20점 / rationale(해제 후 NULL 할당·이중 해제 무시·동일 메모리 한 번만 해제 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 동일 포인터를 둘 이상 분기에서 free하는가? → 그렇다. (2) 각 free 직후 data = NULL 할당이 있는가? → 그렇다. (3) 그렇다면 두 번째 free는 free(NULL)로 무시되는가? → 그렇다. — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — code_examples(C) 예제② safe/note, countermeasure",
+      "tags": ["code_error", "implementation", "double-free", "오탐", "NULL-할당", "c"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-B1",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "해제된 자원 사용의 대응방안에 관한 다음 설명의 빈칸을 채우시오.\n\n동적으로 할당된 메모리를 해제한 후 그 메모리를 참조하고 있던 포인터를 참조 추적이나 형 변환, 수식에서의 피연산자 등으로 사용하여 해제된 메모리에 접근하도록 해서는 안 된다. 또한 메모리 해제 후 포인터에 (가) 값을 저장하거나 다른 적절한 값을 저장하면 의도하지 않은 코드의 실행을 막을 수 있다.",
+      "blank_template": "메모리 해제 후 포인터에 ___(가)___ 값을 저장하거나 다른 적절한 값을 저장하면 의도하지 않은 코드의 실행을 막을 수 있다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["널"], "synonyms": ["null", "Null", "NULL", "널(Null)", "Null(널)"]}
+      ],
+      "explanation": "정답: (가) 널(Null). IMP-CE-03 countermeasure 원문('메모리 해제 후 포인터에 널(Null)값을 저장하거나 다른 적절한 값을 저장하면 의도하지 않은 코드의 실행을 막을 수 있다')을 그대로 묻는 문제다. 해제 후 포인터에 NULL을 할당하면 이중 해제 시 free(NULL)이 무시되고 해제된 메모리 접근도 막을 수 있다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — countermeasure",
+      "tags": ["code_error", "implementation", "use-after-free", "빈칸", "대응방안", "NULL-할당"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "code_error",
+      "weakness_code": "IMP-CE-03-B2",
+      "weakness_name_ko": "해제된 자원 사용",
+      "chapter_code": "IMP-CE-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 이중 해제를 방지하도록 수정한 C 코드다. 각 free 직후 동일 메모리의 재해제를 무시하도록 빈칸을 채우시오.\n\n```c\nif (data_type == val_1) {\n  free(data);\n  data = (가);\n}\n……\nif (data_type == val_2) {\n  free(data);\n  data = (가);\n}\n```",
+      "blank_template": "if (data_type == val_1) { free(data); data = ___(가)___; } ... if (data_type == val_2) { free(data); data = ___(가)___; }",
+      "blank_answers": [
+        {"idx": 1, "answers": ["NULL"], "synonyms": ["null", "널", "Null", "0"]}
+      ],
+      "explanation": "정답: (가) NULL. IMP-CE-03 code_examples(C) 둘째 예제의 safe 코드 그대로다. note가 '메모리를 해제한 후 항상 포인터에 NULL을 할당하여 이중 해제하더라도 무시되게 한다'고 명시한다. free(data) 직후 data = NULL을 두면 두 조건이 모두 참이어도 두 번째 free는 free(NULL)이 되어 무시되므로 동일 메모리가 한 번만 해제되어 이중 해제가 방지된다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 해제된 자원 사용 — code_examples(C) 예제② safe/note",
+      "tags": ["code_error", "implementation", "double-free", "빈칸", "NULL-할당", "c"]
+    }
+  ]
+}

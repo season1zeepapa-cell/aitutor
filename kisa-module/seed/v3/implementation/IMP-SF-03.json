@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-03",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-M1",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안기능 항목 중 '중요한 자원에 대한 잘못된 권한 설정'(CWE-732)에 대한 설명이다. 옳지 않은 것은?\n\n이 보안약점은 SW가 중요한 보안관련 자원에 대해 읽기 또는 수정하기 권한을 의도하지 않게 허가할 때 발생한다.",
+      "choices": [
+        {"num": 1, "text": "설정파일, 실행파일, 라이브러리 등은 SW 관리자에 의해서만 읽고 쓰기가 가능하도록 설정한다."},
+        {"num": 2, "text": "설정파일과 같이 중요한 자원을 사용하는 경우 허가받지 않은 사용자가 접근 가능한지 검사한다."},
+        {"num": 3, "text": "권한을 갖지 않은 사용자가 중요자원을 사용하지 못하도록 최소권한 원칙에 따라 권한을 부여한다."},
+        {"num": 4, "text": "설정파일이나 문서파일에는 모든 사용자에게 실행 권한을 부여하는 것이 호환성 측면에서 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). countermeasure가 '설정파일, 실행파일, 라이브러리 등은 SW 관리자에 의해서만 읽고 쓰기가 가능하도록 설정'하라고 하므로 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 중요한 자원 사용 시 허가받지 않은 사용자의 접근 가능 여부를 검사하라고 하므로 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 최소권한 원칙에 따라 권한을 부여하는 것이 이 보안약점의 핵심 대책이므로 정확하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). diagnosis는 '설정파일, 문서파일의 경우 실행 권한이 설정되지 않았는지 확인'하라고 명시한다. 설정·문서 파일에 모든 사용자에게 실행 권한을 부여하는 것은 잘못된 권한 설정으로 취약하므로 권장될 수 없다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-03 overview·countermeasure(관리자 전용 읽기/쓰기, 비인가 접근 검사)와 diagnosis(설정·문서 파일에 실행권한 미설정 확인)로 검증한다. 1·2·3번은 일치하는 옳은 진술이다. 4번은 설정·문서 파일에 모든 사용자 실행 권한 부여를 권장했으나, 이는 잘못된 권한 설정으로 취약하므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정(pp.325-329), CWE-732 — overview·countermeasure·diagnosis",
+      "tags": ["security_feature", "implementation", "파일권한", "최소권한", "실행권한", "CWE-732"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-M2",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 파일 권한 설정 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nFile file = new File(\"/home/setup/system.ini\");\nfile.setExecutable(true, false);\nfile.setReadable(true, false);\nfile.setWritable(true, false);\n```",
+      "choices": [
+        {"num": 1, "text": "setExecutable/setReadable/setWritable의 두 번째 파라미터(ownerOnly)가 false이면 모든 사용자에게 권한이 부여된다."},
+        {"num": 2, "text": "system.ini라는 설정파일에 모든 사용자가 실행·읽기·쓰기 권한을 갖게 되어 취약하다."},
+        {"num": 3, "text": "최소권한 원칙에 따라 setExecutable(false)/setReadable(true)/setWritable(false)처럼 소유자에게만 필요한 권한을 부여해야 안전하다."},
+        {"num": 4, "text": "ownerOnly 인자를 false로 주면 소유자에게만 권한이 한정되므로 모든 사용자 권한 부여보다 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). note가 '두 번째 파라미터가 false이면 모든 사용자에게 권한이 부여된다'고 명시하므로 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). setXxx(true, false) 세 줄이 system.ini 설정파일에 모든 사용자에게 실행·읽기·쓰기 권한을 허용하므로 취약하다는 설명은 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 setExecutable(false)/setReadable(true)/setWritable(false)로 소유자에게만 읽기를 허용하고 실행·쓰기를 금지하므로 정확하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). ownerOnly가 false이면 소유자 한정이 아니라 모든 사용자에게 권한이 부여된다(note). 소유자 한정은 ownerOnly=true 또는 1-인자형이다. 따라서 'false면 소유자 한정'이라는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-03 code_examples(Java) vulnerable/safe와 note('두 번째 파라미터 false → 모든 사용자에게 권한 부여')로 검증한다. 1·2·3번은 일치하는 옳은 설명이다. 4번은 ownerOnly=false를 소유자 한정으로 잘못 해석했다. false는 모든 사용자 대상이므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — code_examples(Java) vulnerable/safe·note, CWE-732",
+      "tags": ["security_feature", "implementation", "파일권한", "setExecutable", "ownerOnly", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-M3",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "진단원이 '중요한 자원에 대한 잘못된 권한 설정'을 진단할 때의 절차와 판정에 대한 설명으로 옳지 않은 것은?\n\n해당 취약점은 중요자원에 대한 접근 권한 설정과 관련된 보안특성으로, 진단원이 직접 중요자원을 식별하고 취약성을 판단해야 한다.",
+      "choices": [
+        {"num": 1, "text": "사용자 업로드 파일, 프로그램이 사용하는 설정파일 등 중요자원에 대해 읽기·쓰기·실행 권한을 사전에 정의하였는지 확인한다."},
+        {"num": 2, "text": "사전에 정의한 권한대로 중요자원에 접근 권한을 허용하는지 확인한다."},
+        {"num": 3, "text": "umask 0으로 설정하여 파일 권한이 rw-rw-rw-, 디렉토리 권한이 rwxrwxrwx가 되는 코드는 취약하다고 판정한다."},
+        {"num": 4, "text": "설정파일이나 문서파일에 실행 권한이 부여되어 있어도, 읽기 권한만 정상이라면 안전하다고 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis가 업로드 파일·설정파일 등 중요자원에 대한 읽기·쓰기·실행 권한의 사전 정의 여부를 확인하라고 하므로 정확하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis가 사전 정의한 권한대로 접근 권한을 허용하는지 확인하라고 하므로 정확하다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). true_positive가 'umask 0으로 설정하여 모든 사용자에게 권한이 부여되므로 취약'이라고 판정하므로 정확하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 진술). diagnosis는 '설정파일, 문서파일의 경우 실행 권한이 설정되지 않았는지 확인'하라고 명시한다. 설정·문서 파일에 실행 권한이 부여되어 있으면 취약으로 판정해야 하므로, '안전하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-03 diagnosis(중요자원 식별, 권한 사전 정의 확인, 설정·문서 파일 실행권한 미설정 확인)와 true_positive(umask 0 → 취약)로 검증한다. 1·2·3번은 진단 절차·판정과 일치한다. 4번은 설정·문서 파일에 실행 권한이 있어도 안전하다고 했으나, 가이드는 실행권한 설정 시 취약으로 보므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — diagnosis.method·true_positive, CWE-732",
+      "tags": ["security_feature", "implementation", "진단방법", "umask", "실행권한", "정탐"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-D1",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 파일 권한 설정에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\n// 파일 권한 : rw-rw-rw-, 디렉토리 권한 : rwxrwxrwx\nString cmd = \"umask 0\";\nFile file = new File(\"/home/report/report.txt\");\nRuntime.getRuntime().exec(cmd);\n```",
+      "vulnerable_code": "1  // 파일 권한 : rw-rw-rw-, 디렉토리 권한 : rwxrwxrwx\n2  String cmd = \"umask 0\";\n3  File file = new File(\"/home/report/report.txt\");\n4  Runtime.getRuntime().exec(cmd);",
+      "code_language": "java",
+      "vulnerable_lines": [2],
+      "rationale_keywords": ["umask 0", "모든 사용자 권한 부여", "rw-rw-rw-", "최소권한 위반", "잘못된 권한 설정"],
+      "fix_keywords": ["umask 077", "소유자 전용 권한", "최소권한"],
+      "safe_code": "1  // 소유자 외에는 권한을 주지 않도록 umask를 077로 설정한다.\n2  String cmd = \"umask 077\";\n3  File file = new File(\"/home/report/report.txt\");\n4  Runtime.getRuntime().exec(cmd);",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 umask를 0으로 설정하여 이후 생성되는 파일은 rw-rw-rw-, 디렉토리는 rwxrwxrwx 권한을 갖게 되어 모든 사용자에게 읽기·쓰기 권한이 부여된다. 중요자원(report.txt)에 대해 최소권한 원칙을 위반하고 허가받지 않은 사용자의 접근을 허용하므로 중요한 자원에 대한 잘못된 권한 설정(CWE-732)에 해당한다.",
+        "fix_description": "umask를 077 등으로 설정하여 소유자(유저) 외에는 권한을 주지 않도록 한다. 중요자원에 대해서는 최소권한 원칙에 따라 소유자에게만 필요한 권한을 부여한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-03 diagnosis.true_positive(umask 0 → 모든 사용자 권한 부여)를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'umask 0'/'rw-rw-rw-': 2번 라인이 모든 사용자에게 읽기·쓰기 권한을 허용함.\n- '모든 사용자 권한 부여'/'최소권한 위반': 비인가 사용자 접근을 허용하고 최소권한을 위반함.\n- '잘못된 권한 설정': CWE-732 분류.\n\n[수정 키워드 의미] umask 077로 소유자 전용 권한을 설정한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2번 라인 umask 0 지목) 20점 / rationale(umask 0·모든 사용자 권한·최소권한 위반 키워드 포함) 30점 / fix(umask 077·소유자 전용·최소권한) 30점.\n\n[자가확인 체크리스트] (1) 중요자원(설정파일·문서파일 등)의 권한을 설정하는가? (2) 모든 사용자에게(everyone/umask 0/ownerOnly=false) 권한을 부여하는가? (3) 최소권한 원칙(소유자 전용)을 따르는가? — 모든 사용자에게 권한을 부여하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — diagnosis.true_positive, CWE-732",
+      "tags": ["security_feature", "implementation", "정탐", "umask", "파일권한", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-D2",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 파일 권한 설정에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\ntry {\n  File file = new File(\"/home/setup/system.ini\");\n  file.setExecutable(false);\n  file.setReadable(true);\n  file.setWritable(false);\n  if (file.createNewFile()) {\n    System.out.println(\"File is created!\");\n  } else {\n    System.out.println(\"File already exists.\");\n  }\n} catch (IOException e) {\n}\n```",
+      "vulnerable_code": "1  try {\n2    File file = new File(\"/home/setup/system.ini\");\n3    file.setExecutable(false);\n4    file.setReadable(true);\n5    file.setWritable(false);\n6    if (file.createNewFile()) {\n7      System.out.println(\"File is created!\");\n8    } else {\n9      System.out.println(\"File already exists.\");\n10   }\n11 } catch (IOException e) {\n12 }",
+      "code_language": "java",
+      "vulnerable_lines": [0],
+      "rationale_keywords": ["setExecutable(false)", "setWritable(false)", "읽기 권한만 허용", "소유자 전용", "최소권한 준수"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 1-인자형 setExecutable(false)/setReadable(true)/setWritable(false)로\n2  // 실행·쓰기 권한을 금지하고 소유자에게만 읽기 권한을 부여한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3~5번 라인에서 1-인자형 setExecutable(false)·setReadable(true)·setWritable(false)를 사용하여 실행 권한과 쓰기 권한은 제외하고 소유자에게 읽기 권한만 부여하고 있다. 모든 사용자에게 권한을 부여하는 2-인자형(ownerOnly=false)을 쓰지 않고 최소권한 원칙을 준수하므로 중요한 자원에 대한 잘못된 권한 설정에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 이미 실행·쓰기 권한을 금지하고 소유자에게만 읽기 권한을 부여하여 최소권한 원칙을 따르므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-03 diagnosis.false_positive(setExecutable(false) 등 읽기 권한만 허용)를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] setExecutable/setReadable/setWritable이 등장한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 1-인자형으로 소유자에게만 읽기를 허용하는 안전한 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'setExecutable(false)'/'setWritable(false)': 실행·쓰기 권한을 금지함.\n- '읽기 권한만 허용'/'소유자 전용': setReadable(true) 1-인자형으로 소유자에게만 읽기를 허용함.\n- '최소권한 준수': 필요한 최소 권한만 부여함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — vulnerable_lines=[0]은 '해당 라인 없음' 판정용 표식) 20점 / rationale(실행·쓰기 금지·읽기만 허용·소유자 전용 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 권한 설정이 모든 사용자 대상(ownerOnly=false)인가? → 아니다(1-인자형). (2) 불필요한 실행·쓰기 권한을 금지하는가? → 그렇다. (3) 최소권한 원칙을 따르는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — diagnosis.false_positive·code_examples(Java) safe, CWE-732",
+      "tags": ["security_feature", "implementation", "오탐", "setExecutable", "최소권한", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-B1",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '중요한 자원에 대한 잘못된 권한 설정'의 보안대책에 대한 설명이다. 빈칸에 들어갈 알맞은 용어를 쓰시오.",
+      "blank_template": "(①)파일, 실행파일, 라이브러리 등은 SW (②)에 의해서만 읽고 쓰기가 가능하도록 설정하고, 중요한 자원을 사용하는 경우 허가받지 않은 사용자가 접근 가능한지 검사한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["설정"], "synonyms": ["설정 파일", "환경설정", "config"]},
+        {"idx": 2, "answers": ["관리자"], "synonyms": ["SW 관리자", "소유자", "administrator"]}
+      ],
+      "explanation": "정답: ① 설정, ② 관리자. IMP-SF-03 countermeasure는 '설정파일, 실행파일, 라이브러리 등은 SW 관리자에 의해서만 읽고 쓰기가 가능하도록 설정'하고 '허가받지 않은 사용자가 중요한 자원에 접근 가능한지 검사'할 것을 요구한다. 즉 중요자원은 최소권한 원칙에 따라 관리자(소유자)에게만 필요한 권한을 부여해야 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — countermeasure, CWE-732",
+      "tags": ["security_feature", "implementation", "설정파일", "관리자", "보안대책", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-03-B2",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "chapter_code": "IMP-SF-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 C 언어에서 파일 생성 시 소유자 외에는 권한을 주지 않도록 한 안전한 코드다. 빈칸에 들어갈 알맞은 함수와 인자값을 쓰시오. (유저 외에는 아무런 권한을 주지 않는다.)",
+      "blank_template": "// 유저 외에는 아무런 권한을 주지 않습니다.\n(①)(②);\nFILE *out = fopen(\"file_name\", \"w\");",
+      "blank_answers": [
+        {"idx": 1, "answers": ["umask"], "synonyms": ["umask()"]},
+        {"idx": 2, "answers": ["077"], "synonyms": ["0077", "0o077"]}
+      ],
+      "explanation": "정답: ① umask, ② 077. IMP-SF-03 code_examples(C)의 safe 코드는 umask(077)로 설정하여 유저(소유자) 외에는 아무런 권한을 주지 않은 뒤 파일을 생성한다. vulnerable 코드는 umask(0)으로 모든 사용자에게 읽기/쓰기 권한을 부여하여 취약하다. note는 'umask()를 사용하여 권한 설정을 할 때 올바른 권한을 설정해야 한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 중요한 자원에 대한 잘못된 권한 설정 — code_examples(C) safe·note, CWE-732",
+      "tags": ["security_feature", "implementation", "umask", "최소권한", "C", "빈칸"]
+    }
+  ]
+}

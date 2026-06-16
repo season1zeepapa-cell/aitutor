@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EN-03",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-M1",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "구현 단계 캡슐화 항목 중 'Public 메소드로부터 반환된 Private 배열' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "private로 선언된 배열을 public 메소드로 반환하면 그 배열의 레퍼런스가 외부에 공개되어 외부에서 배열 수정과 객체 속성 변경이 가능해진다."},
+        {"num": 2, "text": "배열은 참조형 타입이므로, private 배열을 그대로 반환하면 배열 객체의 주소(참조)가 외부에 전달되어 권한 없는 사용자가 캡슐화된 데이터를 직접 수정할 수 있다."},
+        {"num": 3, "text": "방어 방법으로 private 배열을 직접 반환하지 않고 복사본을 반환하거나, 수정을 제어하는 별도의 public 메소드를 사용한다."},
+        {"num": 4, "text": "private 배열을 public 메소드로 반환하더라도 접근 제어자가 private이므로 외부에서는 어떤 경우에도 내부 배열을 수정할 수 없어 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 'private로 선언된 배열을 public으로 선언된 메소드로 반환하면 그 배열의 레퍼런스가 외부에 공개되어 외부에서 배열수정과 객체 속성변경이 가능해진다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course 보충에서 배열은 참조형 타입으로 변수가 배열 객체의 주소를 가리키며, 그대로 반환하면 권한 없는 사용자가 캡슐화된 중요 데이터를 직접 수정할 수 있다고 설명한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 복사본 반환·clone()·수정 제어용 별도 public 메소드를 방어책으로 제시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 필드가 private이라도 그 배열의 레퍼런스를 public 메소드로 반환하면 외부에 주소가 공개되어 외부에서 원소를 수정할 수 있다. 'private이므로 어떤 경우에도 수정 불가'는 이 약점의 핵심을 정반대로 진술한 것이다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-03 라이브러리 overview·countermeasure 및 course의 '레퍼런스 노출' 개념과 대조한다. private 배열을 public 메소드가 반환하면 배열 객체의 주소가 외부로 새어 나가 외부에서 내부 원소를 직접 수정할 수 있다(CWE-495). 따라서 'private이라 어떤 경우에도 수정 불가하여 안전하다'는 4번이 잘못된 설명이다. 1·2·3번은 overview·course 보충·countermeasure와 그대로 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3 Public 메소드부터 반환된 Private 배열(pp.481-485), CWE-495 — overview/countermeasure",
+      "tags": ["encapsulation", "implementation", "private-array", "return", "레퍼런스", "cwe-495"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-M2",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nprivate Color[] colors;\npublic Color[] getUserColors(Color[] userColors) {\n  return colors;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "private 배열 colors를 public 메소드 getUserColors()가 그대로 반환하므로 배열의 레퍼런스가 외부에 공개된다."},
+        {"num": 2, "text": "Color는 일반 객체이므로 안전하게 만들려면 새 배열을 만들고 각 원소를 clone()으로 복사하여 반환해야 한다."},
+        {"num": 3, "text": "이 코드는 Public 메소드로부터 반환된 Private 배열(CWE-495) 보안약점에 해당한다."},
+        {"num": 4, "text": "원소가 일반 객체일 때 새 배열에 원소를 단순 대입(retColors[i] = this.colors[i])만 해도 원본과 완전히 분리되어 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 그대로이며 private 배열 colors를 public 메소드가 return colors로 반환해 레퍼런스가 노출된다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). safe 코드와 note가 '원소가 일반 객체이면 배열뿐 아니라 원소도 clone()으로 복사'하도록 요구한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). 이 약점의 CWE 분류는 CWE-495(Private Array-Typed Field Returned From A Public Method)다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). diagnosis 정탐 사례처럼 원소가 일반 객체(Color)일 때 retColors[i] = this.colors[i]는 주소값만 복사되어 외부에서 원소를 바꾸면 원본도 바뀐다. clone()으로 원소까지 복사해야 분리된다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-03 code_examples(Java 일반객체)의 vulnerable 코드를 제시했다. note가 '원소가 일반 객체이면 배열뿐 아니라 원소도 clone()으로 복사해야 한다'고 명시하며, diagnosis.true_positive 두 번째 사례는 새 배열을 만들고 단순 대입만 하면 주소값만 복사되어 여전히 취약하다고 한다. 따라서 4번은 잘못된 설명이다. 1·2·3번은 vulnerable 코드·note·CWE 분류와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3 — code_examples(Java 일반객체) vulnerable/safe, diagnosis.true_positive, CWE-495",
+      "tags": ["encapsulation", "implementation", "private-array", "clone", "주소값-복사", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-M3",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 캡슐화 보충 개념(접근 제어자·Accessor·불변/가변 객체)에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "접근 제어자 가시성은 private(동일 클래스만) < default(동일 패키지) < protected(자식 클래스 포함) < public(모든 클래스) 순으로 넓어진다."},
+        {"num": 2, "text": "접근자(Accessor) 중 Getter는 값을 읽고, Setter(뮤테이터)는 값을 설정하며, 이는 private 필드에 간접 접근하는 캡슐화 구현 수단이다."},
+        {"num": 3, "text": "원소가 String 등 불변(Immutable) 타입인 배열은 배열 자체의 복사본만 만들어 반환해도 외부에서 원소를 의도치 않게 바꿀 수 없어 안전하다."},
+        {"num": 4, "text": "원소가 String 등 불변 타입이어도 안전하게 만들려면 반드시 각 원소까지 clone()으로 복사해야 하며, 배열 복사본만 반환하면 여전히 취약하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). course 보충의 접근 제어자 가시성 순서(private < default < protected < public)와 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course 보충에서 Accessor는 private 필드에 간접 접근하는 캡슐화 수단이며 Getter는 읽기, Setter(뮤테이터)는 설정이라고 설명한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). code_examples(Java 불변타입) note가 '원소가 불변 타입(String 등)이면 배열의 복사본만 만들어 반환해도 안전하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 원소가 불변 타입이면 배열 복사본만 만들어도 안전하다. 원소까지 clone()이 필요한 경우는 원소가 '일반(가변) 객체'일 때다. 불변 타입에 대해 원소 clone()을 '반드시' 요구하고 배열 복사본만으로는 취약하다는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-03 code_examples의 두 note(일반객체는 원소까지 clone, 불변타입은 배열 복사본만으로 안전)와 course 보충(접근 제어자·Accessor·Immutable/Mutable)을 기준으로 검증한다. 불변 타입(String 등)은 배열 복사본만 반환해도 외부가 원소 객체 자체를 바꿀 수 없으므로 안전하다. 4번은 일반 객체에 적용되는 원칙을 불변 타입에 잘못 강제하여 틀렸다. 1·2·3번은 course 보충·note와 일치한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3; 2025 진단원 기본과정 캡슐화 6-3 보충(접근 제어자·Accessor·Immutable/Mutable) — code_examples note",
+      "tags": ["encapsulation", "implementation", "접근제어자", "accessor", "immutable", "clone"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-D1",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 캡슐화에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class AddManager extends BaseManager {\n  private String[] checkb;\n  private String[] prsn_info_sn;\n  private String act;\n  public String[] getChkb() {\n    return this.checkb;\n  }\n}\n```",
+      "vulnerable_code": "1  public class AddManager extends BaseManager {\n2    private String[] checkb;\n3    private String[] prsn_info_sn;\n4    private String act;\n5    public String[] getChkb() {\n6      return this.checkb;\n7    }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [6],
+      "rationale_keywords": ["private 배열", "public 메소드 반환", "레퍼런스 공개", "외부 수정 가능", "CWE-495"],
+      "fix_keywords": ["복사본 반환", "새 배열 생성", "원소 복사"],
+      "safe_code": "1  public class AddManager extends BaseManager {\n2    private String[] checkb;\n3    public String[] getChkb() {\n4      String[] ret = null;\n5      if (this.checkb != null) {\n6        ret = new String[checkb.length];\n7        for (int i = 0; i < checkb.length; i++) { ret[i] = this.checkb[i]; }\n8      }\n9      return ret;\n10   }\n11 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 6번 라인에서 private 배열 checkb를 public 메소드 getChkb()가 return this.checkb로 그대로 반환하고 있어, 배열의 레퍼런스(주소값)가 외부에 공개된다. 호출자가 반환받은 배열의 원소를 수정하면 private의 의도에 벗어나 내부 checkb까지 변경되므로 캡슐화가 깨지는 보안약점(CWE-495)이다.",
+        "fix_description": "private 배열을 그대로 반환하지 말고, 새 배열을 생성하여 원소를 하나씩 복사한 복사본을 반환한다. String 등 불변 타입이면 배열 복사본만으로 충분하고, 원소가 일반 객체이면 clone()으로 원소까지 복사한다. 또는 수정을 제어하는 별도의 public 메소드를 둔다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EN-03 diagnosis.true_positive 첫 사례(AddManager.getChkb)를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'private 배열'/'public 메소드 반환': checkb는 private인데 public getChkb()가 그대로 반환함.\n- '레퍼런스 공개'/'외부 수정 가능': 반환된 배열 주소를 통해 외부가 내부 원소를 직접 수정할 수 있음.\n- 'CWE-495': Private Array-Typed Field Returned From A Public Method.\n\n[수정 키워드 의미] 새 배열을 만들어 원소를 복사한 복사본을 반환(불변 타입은 배열 복사본, 일반 객체는 원소 clone)한다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(6번 라인) 20점 / rationale(private 배열을 public 반환·레퍼런스 노출·외부 수정 가능 키워드) 30점 / fix(복사본 반환·새 배열 생성·원소 복사) 30점.\n\n[자가확인 체크리스트] (1) 반환되는 배열이 private 멤버인가? (2) public 메소드가 그 배열을 그대로(this.field) 반환하는가? (3) 복사본이 아니라 원본 레퍼런스를 반환하는가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3 — diagnosis.true_positive, CWE-495",
+      "tags": ["encapsulation", "implementation", "private-array", "정탐", "레퍼런스", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-D2",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 캡슐화에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nprivate String[] colors;\npublic String[] getColors() {\n  String[] ret = null;\n  if (this.colors != null) {\n    ret = new String[colors.length];\n    for (int i = 0; i < colors.length; i++) {\n      ret[i] = this.colors[i];\n    }\n  }\n  return ret;\n}\n```",
+      "vulnerable_code": "1  private String[] colors;\n2  public String[] getColors() {\n3    String[] ret = null;\n4    if (this.colors != null) {\n5      ret = new String[colors.length];\n6      for (int i = 0; i < colors.length; i++) {\n7        ret[i] = this.colors[i];\n8      }\n9    }\n10   return ret;\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["복사본 반환", "불변 타입", "String", "레퍼런스 미노출", "원본 분리"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 원소가 불변 타입(String)인 private 배열에 대해\n2  // 새 배열(ret)을 만들어 원소를 복사한 복사본을 반환하므로\n3  // 외부가 반환 배열을 수정해도 내부 colors에는 영향을 주지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). private 배열 colors를 그대로 반환(return this.colors)하지 않고, 새 배열 ret를 생성하여 원소를 하나씩 복사한 복사본을 반환한다. 원소가 불변 타입(String)이므로 배열의 복사본만 만들어 반환해도 외부가 내부 원소 객체를 바꿀 수 없다. 외부에서 반환 배열을 수정해도 내부 colors와 분리되어 있어 캡슐화가 유지된다.",
+        "fix_description": "수정 불필요. IMP-EN-03 code_examples의 safe 코드(불변 타입 배열 복사본 반환)를 그대로 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EN-03 code_examples(Java 불변타입)의 safe 코드를 기반으로 한다. 핵심은 '안전한 복사본 반환 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] private 배열을 반환하는 메소드가 있다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 새 배열을 만들어 원소를 복사해 반환하므로 가이드의 안전 코드 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '복사본 반환'/'원본 분리': new String[]로 만든 ret에 원소를 복사해 반환하므로 내부 colors와 분리됨.\n- '불변 타입'/'String': 원소가 String(불변)이라 배열 복사본만으로 충분히 안전(note 근거).\n- '레퍼런스 미노출': this.colors를 그대로 반환하지 않아 내부 배열 주소가 외부에 새지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음으로 정확히 판단) 20점 / rationale(복사본 반환·불변 타입·원본 분리 등 안전 근거 키워드) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) this.colors를 그대로 반환하는가? → 아니다(새 배열 반환). (2) 원소가 불변 타입인가? → 그렇다(String). (3) 복사본이 원본과 분리되는가? → 그렇다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3 — code_examples(Java 불변타입) safe",
+      "tags": ["encapsulation", "implementation", "private-array", "오탐", "복사본반환", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-B1",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 'Public 메소드로부터 반환된 Private 배열' 보안약점의 원인과 대책에 대한 설명이다. 빈칸을 채우시오.",
+      "blank_template": "private로 선언된 배열을 public 메소드로 반환하면, 그 배열의 ①______(주소값)가 외부에 공개되어 외부에서 배열 수정과 객체 속성 변경이 가능해진다. 이를 방지하려면 private 배열을 그대로 반환하지 않고 ②______을 반환하거나, 수정을 제어하는 별도의 public 메소드를 사용한다. 이 보안약점의 CWE 분류는 CWE-③______이다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["레퍼런스"], "synonyms": ["참조", "reference", "주소", "주소값"]},
+        {"idx": 2, "answers": ["복사본"], "synonyms": ["복제본", "복제", "사본", "clone"]},
+        {"idx": 3, "answers": ["495"], "synonyms": ["CWE-495"]}
+      ],
+      "explanation": "①은 '레퍼런스'(주소값). overview가 private 배열을 public 메소드로 반환하면 그 배열의 레퍼런스가 외부에 공개된다고 명시한다. ②는 '복사본'. countermeasure가 private 배열의 복사본을 반환하도록 한다. ③은 '495'. 이 약점은 CWE-495(Private Array-Typed Field Returned From A Public Method)다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3(pp.481-485) — overview/countermeasure, CWE-495",
+      "tags": ["encapsulation", "implementation", "private-array", "레퍼런스", "복사본", "cwe-495"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-03-B2",
+      "weakness_name_ko": "Public 메소드로부터 반환된 Private 배열",
+      "chapter_code": "IMP-EN-03",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 안전 코드는 private 배열을 안전하게 반환하기 위한 것이다. 빈칸을 채워 코드를 완성하시오. (원소가 일반 객체인 경우)",
+      "blank_template": "public Color[] getUserColors(Color[] userColors) {\n  Color[] colors = new Color[userColors.length];\n  for (int i = 0; i < colors.length; i++)\n    // 원소가 일반 객체이므로 원소도 복사한다.\n    colors[i] = this.colors[i].①______();\n  return colors;\n}\n// 만약 원소가 ②______ 타입(String 등)이라면 배열의 복사본만 만들어 반환해도 안전하다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["clone"], "synonyms": ["clone()"]},
+        {"idx": 2, "answers": ["불변"], "synonyms": ["immutable", "이뮤터블", "변경되지 않는", "변경 불가"]}
+      ],
+      "explanation": "①은 'clone'. code_examples(Java 일반객체)의 safe 코드는 원소가 일반 객체일 때 clone() 메소드로 원소까지 복사한다. ②는 '불변'(Immutable). note가 원소가 불변 타입(String 등)이면 배열의 복사본만 만들어 반환해도 안전하다고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §3 — code_examples(Java) safe/note",
+      "tags": ["encapsulation", "implementation", "private-array", "clone", "불변타입", "java"]
+    }
+  ]
+}

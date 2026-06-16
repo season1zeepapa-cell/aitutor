@@ -1,0 +1,245 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-IV-09",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-M1",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계의 '보안기능 입력값 검증' 설계항목에 대한 보안대책이다. 옳지 않은 것은?\n\n보안기능 입력값 검증은 보안기능(인증, 권한부여 등) 입력 값과 함수(또는 메소드)의 외부입력값 및 수행 결과에 대한 유효성 검증방법을 설계하고, 유효하지 않은 값에 대한 처리방법을 설계하는 항목이다.",
+      "choices": [
+        {"num": 1, "text": "사용자의 역할, 권한을 결정하는 정보는 서버 측의 세션이나 DB에 저장해서 사용하도록 설계한다."},
+        {"num": 2, "text": "쿠키값, 환경변수, 파라미터 등 외부입력값이 보안기능 함수의 인자로 사용되는 경우, 입력값에 대한 검증작업을 수행한 뒤 제한적으로 사용한다."},
+        {"num": 3, "text": "중요상태정보나 인증·권한 결정에 사용되는 정보를 쿠키로 전송하는 경우, 별도 처리 없이 평문 그대로 전송하여 클라이언트가 직접 값을 확인·수정할 수 있도록 설계한다."},
+        {"num": 4, "text": "입력값 검증은 클라이언트 측 검증방식과 서버 측 검증방식이 동일하도록 설계하고, 외부 입력값은 사용 전에 NULL 여부를 체크한 뒤 사용한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 보안대책 ① 및 design_considerations ①과 일치한다. 사용자의 역할·권한 등 중요정보는 서버 측 세션이나 DB에 저장해서 사용하도록 설계해야 한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 보안대책 ②와 일치한다. 외부입력값(쿠키·환경변수·파라미터)이 보안기능 함수 인자로 사용되면 검증작업을 수행한 뒤 제한적으로 사용해야 한다."},
+        {"num": 3, "correct": true, "why": "정답(옳지 않은 진술). 보안대책 ③은 '중요상태정보나 인증·권한 결정에 사용되는 정보는 쿠키로 전송되지 않아야 하며, 불가피하게 전송하는 경우에는 해당 정보를 암호화해서 전송'하도록 요구한다. 평문 그대로 전송하여 클라이언트가 값을 확인·수정할 수 있게 하는 것은 보안기능 결정에 사용되는 부적절한 입력값(권한상승) 취약점을 유발하므로 정반대로 틀린 설계다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). design_considerations ②와 일치한다. 입력값 검증은 클라이언트 측과 서버 측 검증방식이 동일해야 하며, 외부에서 입력된 값은 사용 전에 NULL 여부를 체크한 뒤 사용해야 한다."}
+      ],
+      "explanation": "정답은 3번. DSG-IV-09 라이브러리의 security_measures ①②③(역할·권한 정보 서버 관리 / 외부입력값 검증 후 제한적 사용 / 중요정보 쿠키 전송 금지·불가피 시 암호화)과 design_considerations와 대조하여 검증한다. 1·2·4번은 각각 보안대책·설계고려사항과 일치하는 옳은 진술이다. 3번은 보안대책 ③(쿠키로 전송하지 않거나 불가피하면 암호화)을 정반대로 뒤집어 평문 전송·클라이언트 조작 허용으로 진술하여 잘못되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증(pp.86-92) — security_measures ①②③, design_considerations ①②③",
+      "tags": ["input_validation", "design", "보안기능", "역할권한", "쿠키암호화", "NULL검사", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-M2",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '보안기능 입력값 검증' 설계항목과 관련된 보안약점·개념에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "보안기능 결정에 사용되는 부적절한 입력값: 서버가 쿠키·환경변수·파라미터 등을 충분히 검증하지 않고 사용하면, 공격자가 권한·역할을 나타내는 변수를 조작하여 상승된 권한으로 작업을 수행할 수 있다."},
+        {"num": 2, "text": "정수형 오버플로우: 정수 값이 증가하면서 허용된 가장 큰 값보다 커져 의도하지 않게 아주 작은 수나 음수가 되며, 반복문 제어·메모리 할당·복사 조건으로 사용하는 외부입력값이 오버플로우되면 보안문제를 유발한다."},
+        {"num": 3, "text": "Null Pointer 역참조: 객체가 '널(Null)이 될 수 없다'는 가정을 위반했을 때 발생하며, 공격자가 의도적으로 널 포인터 역참조를 발생시켜 예외 상황을 추후 공격에 사용할 수 있다."},
+        {"num": 4, "text": "중요정보가 포함되는 쿠키는 클라이언트가 자유롭게 수정할 수 있어야 하므로, 무결성 검증(HMAC 등)이나 암호화 없이 평문으로 두는 것이 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview 사례1과 일치한다. 쿠키·환경변수·파라미터를 충분히 검증하지 않고 사용하면 권한·역할 변수 조작으로 권한상승이 발생할 수 있다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview 사례2와 일치한다. 정수형 오버플로우는 외부입력값이 반복문 제어·메모리 할당·복사 조건으로 사용될 때 보안문제를 유발한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). overview 사례3과 일치한다. Null Pointer 역참조는 '널이 될 수 없다'는 가정을 위반했을 때 발생하며 공격에 악용될 수 있는 관련 보안약점이다."},
+        {"num": 4, "correct": true, "why": "정답(옳지 않은 진술). 보안대책 ③ 및 design_considerations ③은 '중요정보가 포함되는 쿠키는 암호화하여 전송하거나 HMAC과 같은 메시지인증코드를 이용하여 서버 측에서 무결성을 검증'할 것을 요구한다. 클라이언트가 자유롭게 수정 가능하도록 평문으로 두는 것이 권장된다는 진술은 정반대로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. overview(사례1 보안기능 결정에 사용되는 부적절한 입력값, 사례2 정수형 오버플로우, 사례3 Null Pointer 역참조)와 design_considerations ③(쿠키 암호화·HMAC 무결성 검증)으로 검증한다. 1·2·3번은 관련 보안약점 설명과 일치하는 옳은 진술이다. 4번은 중요정보 쿠키를 암호화·HMAC 무결성 검증 없이 평문으로 두는 것이 권장된다고 하여 보안대책 ③을 정반대로 진술하므로 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — overview(사례1·2·3), design_considerations ③, related_weaknesses",
+      "tags": ["input_validation", "design", "보안기능", "정수형오버플로우", "NullPointer역참조", "권한상승", "HMAC", "쿠키"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-M3",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'보안기능 입력값 검증' 설계항목의 진단방법과 확인 대상 산출물의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·클래스설계서·DB설계서·유즈케이스설계서·개발가이드·단위테스트케이스 등 산출물을 검토하여 보안기능 입력값 검증 설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "사용자의 역할과 권한을 정의하여 저장할 수 있도록 데이터베이스가 설계되어 있는지 — DB설계서 검토"},
+        {"num": 2, "text": "보안기능 수행에 외부 입력값이 사용되는 경우, 외부 입력값에 대한 검증 방법(NULL 검사, 정수 오버플로우 등 값 범위 초과 점검)이 정의되어 있는지 — 개발가이드(코딩 규칙) 검토"},
+        {"num": 3, "text": "중요정보를 쿠키로 전달해야 하는 경우, 중요정보에 대한 암호화 처리 방식이 설계되어 있는지 — 유즈케이스명세서, 클래스설계서 검토"},
+        {"num": 4, "text": "조작된 입력 파라미터·쿠키를 전달하여 사용자의 역할이나 권한 체크가 우회되는지 점검하기 위한 테스트 계획이 수립되어 있는지 — DB설계서 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항① checklist 1-4의 method가 '사용자의 역할과 권한을 정의하여 저장할 수 있도록 데이터베이스가 설계되어 있는지 확인'이며 artifacts가 'DB설계서 검토'로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항② checklist 1-4의 method가 '외부 입력값에 대한 검증 방법(NULL 검사, 정수오버플로우 등 값 범위 초과 점검)이 정의되어 있는지 확인'이며 artifacts가 '개발가이드 검토(코딩 규칙)'로 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항③ checklist 1-3의 method가 '중요정보를 쿠키로 전달해야 하는 경우 암호화 처리 방식이 설계되어 있는지 확인'이며 artifacts가 '유즈케이스명세서, 클래스설계서 검토'로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항① checklist 2-1의 method '조작된 입력 파라미터·쿠키를 전달하여 역할·권한 체크가 우회되는지 점검하기 위한 테스트 계획이 수립되어 있는지 확인'의 관련산출물은 '단위테스트케이스 검토'이다. 'DB설계서'는 역할·권한 정의·저장 설계(checklist 1-4)에 쓰이는 산출물이므로 테스트 계획 점검에 연결하는 것은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-IV-09 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 요구사항①1-4, ②1-4, ③1-3의 method-artifacts 짝과 정확히 일치한다. 4번은 인증우회·권한상승 점검 '테스트 계획'(요구사항① checklist 2-1)의 올바른 산출물이 '단위테스트케이스'인데 'DB설계서'로 잘못 연결되었다. DB설계서는 역할·권한 정의·저장 설계(1-4) 확인 산출물이라는 점이 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — diagnosis.requirements checklist methods/artifacts",
+      "tags": ["input_validation", "design", "보안기능", "진단방법", "산출물", "DB설계서", "단위테스트케이스", "개발가이드"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-D1",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 보안기능(권한 판정)에서 외부입력값을 사용하는 Java 코드다. 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\n1  // 클라이언트가 보낸 쿠키 'role' 값으로 관리자 권한을 판정\n2  public boolean isAdmin(HttpServletRequest req) {\n3    Cookie[] cookies = req.getCookies();\n4    for (Cookie c : cookies) {\n5      if (\"role\".equals(c.getName())) {\n6        return \"admin\".equals(c.getValue());\n7      }\n8    }\n9    return false;\n10 }\n```",
+      "vulnerable_code": "1  // 클라이언트가 보낸 쿠키 'role' 값으로 관리자 권한을 판정\n2  public boolean isAdmin(HttpServletRequest req) {\n3    Cookie[] cookies = req.getCookies();\n4    for (Cookie c : cookies) {\n5      if (\"role\".equals(c.getName())) {\n6        return \"admin\".equals(c.getValue());\n7      }\n8    }\n9    return false;\n10 }",
+      "code_language": "java",
+      "vulnerable_lines": [3, 6],
+      "rationale_keywords": ["역할·권한 서버 관리", "외부입력값 검증", "쿠키 조작", "권한상승", "NULL 검사 누락"],
+      "fix_keywords": ["서버 세션·DB 권한 조회", "쿠키 의존 제거", "NULL 검사"],
+      "safe_code": "1  // 권한은 서버 세션/DB의 사용자 정보로 판정 (쿠키 role 값에 의존하지 않음)\n2  public boolean isAdmin(HttpServletRequest req) {\n3    HttpSession session = req.getSession(false);\n4    if (session == null) return false;          // NULL 검사\n5    Long userId = (Long) session.getAttribute(\"userId\");\n6    if (userId == null) return false;           // NULL 검사\n7    Role role = userRepository.findRoleByUserId(userId); // 서버 DB에서 역할 조회\n8    return role == Role.ADMIN;\n9  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 6번 라인이 클라이언트가 전송한 쿠키 'role' 값을 검증 없이 그대로 사용하여 관리자 권한을 판정한다. 사용자의 역할·권한을 결정하는 정보는 서버에서 관리해야 한다는 보안대책 ①을 위반하며, 공격자가 쿠키 role=admin으로 조작하면 권한상승(보안기능 결정에 사용되는 부적절한 입력값)이 발생한다. 또한 3번 라인의 req.getCookies()는 쿠키가 없으면 null을 반환할 수 있는데 4번 for문에서 NULL 검사 없이 순회하여 NullPointerException(Null Pointer 역참조)이 발생할 수 있다.",
+        "fix_description": "권한 판정은 쿠키 같은 외부입력값에 의존하지 않고 서버 측 세션이나 DB에 저장된 사용자 역할 정보로 수행하도록 설계한다(보안대책 ①). 불가피하게 외부입력값을 써야 하면 검증 후 제한적으로 사용하고, getCookies()/세션 속성 등 외부값은 사용 전 NULL 여부를 체크한다. 권한 정보를 쿠키로 전송해야 한다면 암호화하거나 HMAC으로 무결성을 검증한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. DSG-IV-09 security_measures ①②③, design_considerations ①②, overview 사례1(권한상승)·사례3(Null Pointer 역참조)을 근거로 한다.\n\n[근거 키워드 의미]\n- '역할·권한 서버 관리': 보안대책 ①. 권한 결정 정보는 서버 세션·DB에서 관리해야 함.\n- '외부입력값 검증'/'쿠키 조작'/'권한상승': 6번 라인이 쿠키 role 값을 검증 없이 사용 → 조작 시 권한상승(사례1).\n- 'NULL 검사 누락': 3번 getCookies()가 null일 수 있는데 검사 없이 순회 → Null Pointer 역참조(사례3).\n\n[수정 키워드 의미] 서버 세션·DB로 역할 조회 / 쿠키 의존 제거 / 외부값 NULL 검사.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(6번 쿠키 권한 판정·3번 NULL 미검사 지목) 20점 / rationale(역할·권한 서버관리 위반·쿠키 조작 권한상승·NULL 검사 누락 키워드 포함) 30점 / fix(서버 세션·DB 권한 조회·NULL 검사·쿠키 암호화/HMAC) 30점.\n\n[자가확인 체크리스트] (1) 권한·역할 판정을 클라이언트 외부입력값(쿠키 등)에 의존하는가? (2) 외부입력값을 검증 없이 보안기능에 사용하는가? (3) 외부값 사용 전 NULL 검사가 누락되었는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — security_measures ①②③, overview 사례1·3, related_weaknesses(IMP-IV-15, Null Pointer 역참조)",
+      "tags": ["input_validation", "design", "보안기능", "정탐", "권한상승", "쿠키조작", "NullPointer", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-D2",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 보안기능(권한 판정)을 수행하는 Java 코드다. 취약 여부를 판정하고, 안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\n1  // 권한은 서버 세션/DB의 사용자 정보로 판정\n2  public boolean isAdmin(HttpServletRequest req) {\n3    HttpSession session = req.getSession(false);\n4    if (session == null) return false;                 // NULL 검사\n5    Long userId = (Long) session.getAttribute(\"userId\");\n6    if (userId == null) return false;                  // NULL 검사\n7    Role role = userRepository.findRoleByUserId(userId); // 서버 DB에서 역할 조회\n8    return role == Role.ADMIN;\n9  }\n```",
+      "vulnerable_code": "1  // 권한은 서버 세션/DB의 사용자 정보로 판정\n2  public boolean isAdmin(HttpServletRequest req) {\n3    HttpSession session = req.getSession(false);\n4    if (session == null) return false;                 // NULL 검사\n5    Long userId = (Long) session.getAttribute(\"userId\");\n6    if (userId == null) return false;                  // NULL 검사\n7    Role role = userRepository.findRoleByUserId(userId); // 서버 DB에서 역할 조회\n8    return role == Role.ADMIN;\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["서버 세션·DB 권한 관리", "외부입력값 미의존", "NULL 검사 수행", "쿠키 조작 무력화", "정보노출 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 역할·권한 정보를 클라이언트 외부입력값(쿠키 등)이 아닌\n2  // 서버 세션/DB에서 조회하여 판정하고, 세션·userId에 대해 NULL 검사를 수행한다.\n3  // 클라이언트가 쿠키를 조작해도 권한 판정에 영향을 주지 못한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 사용자의 역할·권한을 결정하는 정보를 클라이언트가 보낸 쿠키·파라미터 같은 외부입력값이 아니라 서버 측 세션과 DB(findRoleByUserId)에서 조회하여 판정하므로 보안대책 ①(역할·권한 서버 관리)을 충족한다. 또한 3·6번 라인에서 session과 userId에 대해 사용 전 NULL 여부를 체크하므로(design_considerations ②) Null Pointer 역참조 위험도 없다. 클라이언트가 쿠키 role 값을 조작해도 권한 판정에 사용되지 않아 권한상승이 발생하지 않는다.",
+        "fix_description": "수정 불필요. 역할·권한의 서버 관리, 외부입력값 미의존, NULL 검사 등 가이드가 요구하는 보안대책을 이미 충족하여 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. 핵심은 '세션/쿠키를 다룬다는 사실만으로 취약하다고 오판하지 않기'다. 이 코드는 오히려 권한을 서버 세션·DB로 판정하고 NULL 검사를 갖춘 안전 사례다.\n\n[오판 주의] (1) req.getSession()·쿠키 관련 코드가 보인다는 이유로 취약 판정 → 오탐. (2) 권한을 클라이언트 값이 아니라 DB에서 조회하고 NULL 검사를 하고 있음을 놓치면 안 됨.\n\n[안전 판정 근거 키워드 의미]\n- '서버 세션·DB 권한 관리': 역할을 findRoleByUserId로 서버 DB에서 조회 → 보안대책 ① 충족.\n- '외부입력값 미의존'/'쿠키 조작 무력화': 권한 판정에 클라이언트 쿠키 role 값을 쓰지 않음 → 권한상승 불가.\n- 'NULL 검사 수행': session·userId 사용 전 null 체크 → design_considerations ② 충족, Null Pointer 역참조 없음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음 — vulnerable_lines=[]는 '해당 라인 없음' 판정) 20점 / rationale(서버 세션·DB 권한관리·외부입력값 미의존·NULL 검사 수행 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 권한·역할 판정을 외부입력값이 아닌 서버 세션·DB로 하는가? → 그렇다. (2) 외부값 사용 전 NULL 검사를 하는가? → 그렇다. (3) 클라이언트가 쿠키를 조작하면 권한이 바뀌는가? → 아니다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — security_measures ①, design_considerations ①②",
+      "tags": ["input_validation", "design", "보안기능", "오탐", "서버세션", "권한관리", "NULL검사", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-C1",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 4종(요구사항정의서·DB설계서·개발가이드·유즈케이스/클래스설계서)이다. '보안기능 입력값 검증' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 역할·권한 정보의 서버 관리, ② 외부입력값 검증 후 제한적 사용(NULL 검사·정수오버플로우 점검), ③ 중요정보 쿠키 전송 통제(암호화·HMAC 무결성)의 세 축과 각 요구사항의 진단방법을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 보안기능 입력값 검증(SR-SEC)",
+          "content": "SR-SEC-01 사용자의 역할·권한을 결정하는 정보는 서버에서 관리한다.\nSR-SEC-02 외부입력값(쿠키·환경변수·파라미터)이 보안기능 함수 인자로 사용되는 경우 검증 후 제한적으로 사용한다.\nSR-SEC-03 인증·권한 결정에 사용되는 중요정보는 쿠키로 전송하지 않으며, 불가피하면 암호화한다.\n(주: 위 항목은 아키텍처설계서·DB설계서·개발가이드로 추적 가능하도록 요구사항추적표에 매핑되어 있다.)"
+        },
+        {
+          "type": "DB설계서",
+          "title": "사용자 역할·권한 데이터 설계",
+          "content": "USER 테이블에 user_id, login_id를 정의하고, ROLE 테이블(role_id, role_name: USER/ADMIN/SUPER)과 USER_ROLE 매핑 테이블을 설계하여 사용자의 역할과 권한을 정의·저장할 수 있도록 한다. 역할·권한 검증 시 서버는 세션의 userId로 DB의 역할 정보를 조회한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "보안기능 외부입력값 처리 코딩규칙",
+          "content": "보안기능 수행에 외부입력값을 사용해야 하는 경우의 처리 규칙을 정의한다: (1) 외부입력값은 사용 전 NULL 여부를 체크한 뒤 사용한다. 단, '외부입력값에 대한 정수형 오버플로우와 같이 값의 범위를 넘어서는 값이 사용되지 않도록 점검 후 사용'하는 코딩규칙은 본 가이드에 명시되어 있지 않다."
+        },
+        {
+          "type": "유즈케이스/클래스설계서",
+          "title": "세션·쿠키 처리 설계",
+          "content": "로그인 후 인증·권한 결정에 사용되는 사용자 식별정보는 서버 세션에 저장하고, 클라이언트에는 세션ID만 전달한다. 인증·권한 결정에 사용되는 중요정보는 쿠키로 직접 전송하지 않도록 설계한다."
+        }
+      ],
+      "rubric": [
+        {
+          "item": "역할·권한 서버 관리 — DB 역할·권한 정의·저장 및 서버 처리 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["역할·권한", "서버 관리", "DB설계서"],
+          "artifact_ref": "DB설계서",
+          "method": "요구사항① checklist 1-2~1-5: 사용자 역할 구분·권한 구분·역할/권한 정의·저장 DB 설계, 검증정보를 DB·세션에 저장하도록 설계되어 있는지 확인. ROLE/USER_ROLE 테이블과 세션 기반 조회로 역할·권한을 서버에서 관리하여 적합."
+        },
+        {
+          "item": "외부입력값 검증 — 정수형 오버플로우 값 범위 점검 코딩규칙 누락 진단",
+          "points": 2,
+          "required_keywords": ["정수형 오버플로우", "값 범위 점검", "개발가이드"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항② checklist 1-4: 외부입력값 검증 방법(NULL 검사 + 정수오버플로우 등 값 범위 초과 점검)이 개발가이드에 정의되어 있는지 확인. NULL 검사는 있으나 정수형 오버플로우 값 범위 점검 코딩규칙이 누락됨(결함)."
+        },
+        {
+          "item": "쿠키 전송 통제 — 중요정보 쿠키 미전송·세션 사용 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["중요정보", "쿠키 미전송", "세션"],
+          "artifact_ref": "유즈케이스/클래스설계서",
+          "method": "요구사항③ checklist 1-2·1-3: 인증·권한 결정 중요정보를 쿠키로 전송하지 않거나 불가피 시 암호화하도록 설계되어 있는지 확인. 중요정보는 서버 세션에 저장하고 세션ID만 전달하여 쿠키로 직접 전송하지 않으므로 적합."
+        },
+        {
+          "item": "테스트 계획 — 인증우회·권한상승 점검 단위테스트케이스 수립 여부 진단(누락)",
+          "points": 2,
+          "required_keywords": ["조작된 파라미터·쿠키", "권한 우회", "단위테스트케이스"],
+          "artifact_ref": "요구사항정의서",
+          "method": "요구사항① checklist 2-1 / ② checklist 2-1: 조작된 입력 파라미터·쿠키로 역할/권한 체크가 우회되는지, 외부입력값 조작으로 보안기능이 무력화/오작동하는지 점검하는 테스트 계획(단위테스트케이스) 수립 여부 확인. 제시 산출물에 단위테스트케이스가 없어 테스트 계획 수립 여부가 확인되지 않음(결함)."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-IV-09 diagnosis.requirements①②③ checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 세 축(①②③)이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) DB설계서·유즈케이스/클래스설계서에서 역할·권한 정의·저장 및 서버 관리, 중요정보 쿠키 전송 통제 설계 확인 → (3) 개발가이드에서 외부입력값 검증(NULL 검사·정수오버플로우 값 범위 점검) 코딩규칙 확인 → (4) 인증우회·권한상승 점검 테스트(단위테스트케이스) 수립 여부 확인.\n\n[모범 진단보고서]\n■ 진단항목 1 — 역할·권한 서버 관리(DB설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: ROLE/USER_ROLE 테이블로 역할·권한을 정의·저장하고 세션의 userId로 서버에서 역할을 조회하여 보안대책 ① 및 요구사항① 1-2~1-5를 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n■ 진단항목 2 — 외부입력값 검증 코딩규칙(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: NULL 검사 코딩규칙은 있으나 외부입력값에 대한 정수형 오버플로우 등 값의 범위를 넘어서는 값 점검 코딩규칙(요구사항② 1-4)이 누락되었다.\n  · 개선방안: 외부입력값이 반복문 제어·메모리 할당·복사 조건 등에 사용될 때 정수형 오버플로우가 발생하지 않도록 값 범위 점검 코딩규칙을 개발가이드에 추가한다.\n■ 진단항목 3 — 중요정보 쿠키 전송 통제(유즈케이스/클래스설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 인증·권한 결정 중요정보를 서버 세션에 저장하고 세션ID만 전달하여 쿠키로 직접 전송하지 않으므로 보안대책 ③ 및 요구사항③ 1-2·1-3을 충족한다.\n  · 개선방안: 현 설계 유지.\n■ 진단항목 4 — 인증우회·권한상승 점검 테스트(단위테스트케이스)\n  · 판정: 부적합(결함/미확인)\n  · 현황 및 문제점: 조작된 파라미터·쿠키로 역할·권한 체크 우회 여부, 외부입력값 조작으로 보안기능 무력화/오작동 여부를 점검하는 단위테스트케이스가 제시 산출물에 없어 테스트 계획 수립 여부를 확인할 수 없다(요구사항① 2-1, ② 2-1).\n  · 개선방안: 조작된 입력값(파라미터·쿠키)으로 인증우회·권한상승이 가능한지 점검하는 단위테스트케이스를 수립한다.\n\n[정탐/오탐 판정 근거] 진단항목 2·4는 산출물에 결함/누락이 존재하므로 정탐(결함)으로 지적한다. 진단항목 1·3은 역할·권한 서버 관리와 중요정보 쿠키 미전송이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — diagnosis.requirements①②③ checklist methods",
+      "tags": ["input_validation", "design", "보안기능", "복합서술형", "진단보고서", "역할권한", "정수형오버플로우", "쿠키"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-B1",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '보안기능 입력값 검증' 설계항목의 보안대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 사용자의 역할, 권한을 결정하는 정보는 (가) 에서 관리해야 한다. (상태정보·인증·인가·권한 관련 중요정보는 서버 측의 세션이나 DB에 저장)\n· 중요상태정보나 인증·권한결정에 사용되는 정보는 쿠키로 전송되지 않아야 하며, 불가피하게 전송하는 경우에는 해당 정보를 암호화하거나 (나) (Hash-based Message Authentication Code)과 같은 메시지인증코드를 이용하여 서버측에서 무결성을 검증한다.",
+      "blank_template": "· 사용자의 역할, 권한을 결정하는 정보는 {{1}} 에서 관리해야 한다. (상태정보·인증·인가·권한 관련 중요정보는 서버 측의 세션이나 DB에 저장)\n· 중요상태정보나 인증·권한결정에 사용되는 정보는 쿠키로 전송되지 않아야 하며, 불가피하게 전송하는 경우에는 해당 정보를 암호화하거나 {{2}} (Hash-based Message Authentication Code)과 같은 메시지인증코드를 이용하여 서버측에서 무결성을 검증한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["서버"], "synonyms": ["서버 측", "서버측", "server"]},
+        {"idx": 2, "answers": ["HMAC"], "synonyms": ["Hash-based Message Authentication Code", "해시 기반 메시지 인증 코드", "메시지인증코드"]}
+      ],
+      "explanation": "정답: (가) 서버, (나) HMAC. DSG-IV-09 security_measures ①은 사용자의 역할·권한을 결정하는 정보는 '서버'에서 관리해야 한다고 명시하며, design_considerations ①은 상태정보·인증·인가·권한 관련 중요정보를 서버 측 세션이나 DB에 저장하도록 설계할 것을 요구한다. design_considerations ③은 중요정보가 포함되는 쿠키는 암호화하여 전송하거나 'HMAC(Hash-based Message Authentication Code)'과 같은 메시지인증코드를 이용하여 서버 측에서 무결성을 검증하도록 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — security_measures ①, design_considerations ①③",
+      "tags": ["input_validation", "design", "보안기능", "빈칸", "서버관리", "HMAC", "쿠키무결성"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-09-B2",
+      "weakness_name_ko": "보안기능 입력값 검증",
+      "chapter_code": "DSG-IV-09",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 '보안기능 입력값 검증'의 외부입력값 검증 설계와 관련 보안약점에 대한 설명이다. 빈칸에 들어갈 용어를 채우시오.\n\n· 외부에서 입력된 값은 사용 전에 (가) 여부를 체크한 뒤 사용해야 하며, 이를 누락하면 'Null Pointer 역참조' 취약점이 발생할 수 있다.\n· 정수 값이 증가하면서 허용된 가장 큰 값보다 더 커져 실제 저장되는 값이 의도하지 않게 아주 작은 수이거나 음수가 되어 발생하는 관련 보안약점을 (나) (이)라고 한다.",
+      "blank_template": "· 외부에서 입력된 값은 사용 전에 {{1}} 여부를 체크한 뒤 사용해야 하며, 이를 누락하면 'Null Pointer 역참조' 취약점이 발생할 수 있다.\n· 정수 값이 증가하면서 허용된 가장 큰 값보다 더 커져 실제 저장되는 값이 의도하지 않게 아주 작은 수이거나 음수가 되어 발생하는 관련 보안약점을 {{2}} (이)라고 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["NULL"], "synonyms": ["널", "Null", "null"]},
+        {"idx": 2, "answers": ["정수형 오버플로우"], "synonyms": ["정수형 오버플로", "정수 오버플로우", "Integer Overflow", "정수형오버플로우"]}
+      ],
+      "explanation": "정답: (가) NULL, (나) 정수형 오버플로우. DSG-IV-09 design_considerations ②는 '외부에서 입력된 값은 사용 전에 NULL 여부를 체크한 뒤 사용해야 한다'고 명시하며, 이를 누락하면 overview 사례3의 Null Pointer 역참조가 발생한다. overview 사례2와 related_weaknesses(IMP-IV-14, CWE-190)는 정수 값이 허용된 최댓값을 넘어 의도치 않게 작은 수나 음수가 되는 관련 보안약점을 '정수형 오버플로우'로 정의하며, 반복문 제어·메모리 할당·복사 조건으로 사용되는 외부입력값에서 보안문제를 유발한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §1.9 보안기능 입력값 검증 — design_considerations ②, overview 사례2·3, related_weaknesses",
+      "tags": ["input_validation", "design", "보안기능", "빈칸", "NULL검사", "정수형오버플로우", "NullPointer역참조"]
+    }
+  ]
+}

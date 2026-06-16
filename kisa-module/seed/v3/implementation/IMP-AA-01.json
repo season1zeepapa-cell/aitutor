@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-AA-01",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-M1",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "구현 단계 API 오용 항목 중 'DNS lookup에 의존한 보안결정' 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "공격자가 DNS 엔트리를 속일 수 있으므로 도메인명에 의존해 인증·접근통제 등 보안결정을 하지 않아야 한다."},
+        {"num": 2, "text": "로컬 DNS 서버 캐시가 공격자에 의해 오염되면 트래픽이 공격자를 경유하거나, 공격자가 동일 도메인 서버인 것처럼 위장할 수 있다."},
+        {"num": 3, "text": "보안대책으로 호스트 이름 비교 대신 실제 서버의 IP 주소를 직접 비교한다."},
+        {"num": 4, "text": "getCanonicalHostName()으로 얻은 도메인명을 비교하는 방식은 DNS 변조에 강하므로 보안결정에 권장된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '공격자가 DNS 엔트리를 속일 수 있으므로 도메인명에 의존해서 보안결정(인증 및 접근통제 등)을 하지 않아야 한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview가 로컬 DNS 캐시 오염 시 트래픽이 공격자를 경유하거나 공격자가 동일 도메인 서버로 위장할 수 있다고 설명한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '호스트 이름 비교 대신 IP 주소를 직접 비교한다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). getCanonicalHostName()으로 얻은 호스트 이름(도메인) 비교는 DNS 변조에 취약한 vulnerable 방식이다. note가 호스트 이름 대신 IP 주소를 직접 비교하라고 하므로 '도메인명 비교가 DNS 변조에 강해 권장된다'는 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-01 overview·countermeasure·code note와 대조한다. 도메인명(getCanonicalHostName())에 의존한 보안결정은 DNS 캐시 오염·스푸핑으로 우회될 수 있어 취약하며(CWE-247), IP 주소를 직접 비교해야 안전하다. 따라서 '도메인명 비교가 DNS 변조에 강해 권장된다'는 4번이 잘못된 설명이다. 1·2·3번은 overview·countermeasure와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 DNS lookup에 의존한 보안결정(pp.492-495), CWE-247 — overview/countermeasure",
+      "tags": ["api_abuse", "implementation", "dns", "보안결정", "ip-비교", "cwe-247"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-M2",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nString ip = req.getRemoteAddr();\nInetAddress addr = InetAddress.getByName(ip);\nif (addr.getCanonicalHostName().endsWith(\"trustme.com\")) {\n  do_something_for_Trust_System();\n}\n```",
+      "choices": [
+        {"num": 1, "text": "getCanonicalHostName()으로 얻은 도메인명이 trustme.com에 속하는지로 신뢰 여부를 결정하므로 DNS 변조에 취약하다."},
+        {"num": 2, "text": "공격자가 DNS 캐시를 조작하면 잘못된 신뢰 상태를 얻을 수 있어 인증·접근통제가 우회될 수 있다(CWE-247)."},
+        {"num": 3, "text": "안전하게 만들려면 도메인명 비교 대신 신뢰하는 실제 IP 주소와 ip.equals()로 직접 비교해야 한다."},
+        {"num": 4, "text": "InetAddress.getByName()으로 DNS lookup을 거쳐 얻은 호스트 이름을 비교하므로 IP 직접 비교보다 더 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 그대로이며 getCanonicalHostName().endsWith(\"trustme.com\")으로 도메인 소속 여부로 신뢰를 결정해 DNS 변조에 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis가 공격자가 DNS 캐시 등을 조작하면 잘못된 신뢰 상태 정보를 얻을 수 있어 취약하다고 한다(CWE-247)."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 신뢰 IP(trustedAddr)와 ip.equals()로 직접 비교하여 DNS 변조를 방어한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). DNS lookup을 거쳐 얻은 호스트 이름 비교는 DNS 캐시 오염으로 위조될 수 있어 IP 직접 비교보다 오히려 취약하다. 'IP 직접 비교보다 안전하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-01 code_examples(Java)의 vulnerable 코드를 제시했다. getCanonicalHostName()은 DNS 역방향 조회 결과로 호스트 이름을 얻으므로 DNS 캐시 오염·스푸핑 시 위조될 수 있어 보안결정에 부적합하다. safe 코드처럼 신뢰 IP와 ip.equals()로 직접 비교해야 한다. 따라서 4번이 잘못된 설명이다. 1·2·3번은 vulnerable 코드·diagnosis·safe 코드와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 — code_examples(Java) vulnerable/safe, diagnosis, CWE-247",
+      "tags": ["api_abuse", "implementation", "dns", "getCanonicalHostName", "ip-비교", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-M3",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "DNS 변조 공격과 대응책에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "DNS Spoofing은 도메인 IP 요청 시 공격자가 잘못된 IP를 응답해 사용자를 악성 사이트로 리다이렉트하는 공격이다."},
+        {"num": 2, "text": "DNS Cache Poisoning은 DNS 서버 캐시에 위조된 도메인-IP 매핑을 주입(오염)하는 공격으로, DNS Spoofing을 일으키는 한 가지 방법이다."},
+        {"num": 3, "text": "DNSSEC은 DNS 응답에 디지털 서명을 적용해 무결성과 원본을 검증하는 효과적인 방어책 중 하나다."},
+        {"num": 4, "text": "DNS 변조 위협을 근본적으로 막을 수 있으므로, 애플리케이션은 도메인명 기반 보안결정을 그대로 유지해도 무방하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). course 보충이 DNS Spoofing을 공격자가 잘못된 IP를 응답해 사용자를 악성 사이트로 리다이렉트하는 공격으로 정의한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course 보충이 DNS Cache Poisoning을 캐시에 위조된 도메인-IP 매핑을 주입하는 공격이며 DNS Spoofing을 일으키는 한 방법이라고 설명한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 보충이 DNSSEC을 디지털 서명으로 무결성·원본을 검증하는 가장 효과적인 방어책 중 하나로 든다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). DNSSEC·DoH/DoT 등은 보완책일 뿐 모든 DNS 변조를 근본적으로 제거하지는 못하며, 약점의 본질적 대책은 보안결정에 DNS 조회결과를 쓰지 않고 IP를 직접 비교하는 것이다. '도메인명 기반 보안결정을 그대로 유지해도 무방'은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-AA-01 course의 DNS Spoofing·Cache Poisoning·DNSSEC 보충과 countermeasure로 검증한다. DNS 보호 기술은 위협을 완화하지만 애플리케이션 차원에서는 보안결정에 DNS 조회결과를 사용하지 않고 실제 IP 주소를 비교하는 것이 핵심 대책이다. 따라서 '도메인명 기반 보안결정 유지 무방'은 4번이 잘못된 설명이다. 1·2·3번은 course 보충과 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1; 2025 진단원 기본과정 API오용 7-1 보충(DNS Spoofing/Cache Poisoning/DNSSEC)",
+      "tags": ["api_abuse", "implementation", "dns-spoofing", "cache-poisoning", "dnssec", "보안결정"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-D1",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 보안결정에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic void doGet(HttpServletRequest req, HttpServletResponse res) {\n  boolean trusted = false;\n  String ip = req.getRemoteAddr();\n  InetAddress addr = InetAddress.getByName(ip);\n  if (addr.getCanonicalHostName().endsWith(\"trustme.com\")) {\n    trusted = true;\n  }\n}\n```",
+      "vulnerable_code": "1  public void doGet(HttpServletRequest req, HttpServletResponse res) {\n2    boolean trusted = false;\n3    String ip = req.getRemoteAddr();\n4    InetAddress addr = InetAddress.getByName(ip);\n5    if (addr.getCanonicalHostName().endsWith(\"trustme.com\")) {\n6      trusted = true;\n7    }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [5],
+      "rationale_keywords": ["DNS lookup", "도메인명 기반 보안결정", "getCanonicalHostName", "DNS 캐시 오염", "CWE-247"],
+      "fix_keywords": ["IP 주소 직접 비교", "ip.equals", "DNS 조회결과 미사용"],
+      "safe_code": "1  public void doGet(HttpServletRequest req, HttpServletResponse res) {\n2    String ip = req.getRemoteAddr();\n3    if (ip == null || \"\".equals(ip)) return;\n4    String trustedAddr = \"127.0.0.1\";\n5    if (ip.equals(trustedAddr)) {\n6      do_something_for_Trust_System();\n7    }\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인에서 InetAddress.getByName()으로 DNS lookup을 수행한 뒤 getCanonicalHostName()으로 얻은 도메인명이 trustme.com에 속하는지로 신뢰(trusted) 여부를 결정한다. 공격자가 DNS 엔트리나 로컬 DNS 캐시를 조작하면 잘못된 신뢰 상태 정보를 얻을 수 있어, 인증·접근통제가 우회되는 보안약점(CWE-247)이다.",
+        "fix_description": "보안결정에 DNS 조회결과(도메인명)를 사용하지 않는다. 호스트 이름 비교 대신 신뢰하는 실제 서버의 IP 주소를 ip.equals(trustedAddr)로 직접 비교하여 DNS 변조에 방어한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-AA-01 diagnosis.true_positive(U247)를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'DNS lookup'/'getCanonicalHostName': InetAddress.getByName + getCanonicalHostName으로 DNS 조회 결과(도메인명)를 사용함.\n- '도메인명 기반 보안결정': 도메인 소속 여부로 trusted를 결정함.\n- 'DNS 캐시 오염'/'CWE-247': 공격자의 DNS 조작으로 신뢰 판단이 우회됨.\n\n[수정 키워드 의미] 도메인명이 아닌 실제 IP 주소를 ip.equals()로 직접 비교하고 DNS 조회결과는 보안결정에 쓰지 않는다.\n\n[부분점수 채점] verdict(취약 'Y') 20점 / line(5번 라인) 20점 / rationale(DNS lookup·도메인명 보안결정·DNS 캐시 오염 키워드) 30점 / fix(IP 직접 비교·ip.equals·DNS 조회결과 미사용) 30점.\n\n[자가확인 체크리스트] (1) DNS lookup(getByName/getCanonicalHostName 등) 모듈이 존재하는가? (2) 그 결과(도메인명)로 신뢰·접근 여부를 결정하는가? (3) IP가 아닌 호스트 이름을 비교하는가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 — diagnosis.true_positive, CWE-247",
+      "tags": ["api_abuse", "implementation", "dns", "정탐", "getCanonicalHostName", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-D2",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 보안결정에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic void doGet(HttpServletRequest req, HttpServletResponse res) {\n  String ip = req.getRemoteAddr();\n  if (ip == null || \"\".equals(ip)) return;\n  String trustedAddr = \"127.0.0.1\";\n  if (ip.equals(trustedAddr)) {\n    do_something_for_Trust_System();\n  }\n}\n```",
+      "vulnerable_code": "1  public void doGet(HttpServletRequest req, HttpServletResponse res) {\n2    String ip = req.getRemoteAddr();\n3    if (ip == null || \"\".equals(ip)) return;\n4    String trustedAddr = \"127.0.0.1\";\n5    if (ip.equals(trustedAddr)) {\n6      do_something_for_Trust_System();\n7    }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["IP 주소 직접 비교", "DNS lookup 미사용", "getCanonicalHostName 미사용", "DNS 변조 방어", "도메인명 미의존"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 도메인명(getCanonicalHostName 등) 조회 없이\n2  // 신뢰하는 실제 IP 주소(trustedAddr)와 ip.equals()로 직접 비교하므로\n3  // DNS 캐시 오염·스푸핑에 영향을 받지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 보안결정에 DNS 조회결과(도메인명)를 사용하지 않고, req.getRemoteAddr()로 얻은 IP를 신뢰하는 실제 IP 주소(trustedAddr)와 ip.equals()로 직접 비교한다. getCanonicalHostName() 등 DNS lookup으로 얻은 호스트 이름에 의존하지 않으므로 공격자가 DNS 캐시를 오염시키거나 스푸핑해도 신뢰 판단이 우회되지 않는다. countermeasure가 요구하는 'IP 주소 직접 비교' 방식과 일치한다.",
+        "fix_description": "수정 불필요. IMP-AA-01 code_examples의 safe 코드(IP 직접 비교)를 그대로 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-AA-01 code_examples(Java)의 safe 코드를 기반으로 한다. 핵심은 'IP 직접 비교의 안전한 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] IP·신뢰(trust) 판단 로직이 있다는 사실만으로 DNS 약점이라고 단정해서는 안 된다. 이 코드는 도메인명 조회 없이 IP를 직접 비교하므로 가이드의 안전 코드 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- 'IP 주소 직접 비교'/'ip.equals': 신뢰 IP와 직접 비교해 보안결정을 내림.\n- 'DNS lookup 미사용'/'getCanonicalHostName 미사용': 도메인명을 조회·비교하지 않음.\n- 'DNS 변조 방어': DNS 캐시 오염·스푸핑에 영향을 받지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음으로 정확히 판단) 20점 / rationale(IP 직접 비교·DNS lookup 미사용·도메인명 미의존 등 안전 근거 키워드) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) getCanonicalHostName 등 DNS 조회 결과로 보안결정을 하는가? → 아니다. (2) IP 주소를 직접 비교하는가? → 그렇다. (3) 도메인명에 의존하는가? → 아니다. — 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 — code_examples(Java) safe",
+      "tags": ["api_abuse", "implementation", "dns", "오탐", "ip-직접비교", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-B1",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 'DNS lookup에 의존한 보안결정' 보안약점의 원인과 대책에 대한 설명이다. 빈칸을 채우시오.",
+      "blank_template": "공격자가 DNS 엔트리를 속일 수 있으므로 ①______에 의존해서 인증·접근통제 등 보안결정을 하지 않아야 한다. 보안대책으로 호스트 이름 비교 대신 실제 서버의 ②______ 주소를 직접 비교한다. 한편 DNS 서버 캐시에 위조된 도메인-IP 매핑을 주입하는 공격을 DNS ③______(이)라 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["도메인명"], "synonyms": ["도메인 명", "도메인 이름", "호스트 이름", "호스트명", "도메인"]},
+        {"idx": 2, "answers": ["IP"], "synonyms": ["IP 주소", "아이피", "ip"]},
+        {"idx": 3, "answers": ["Cache Poisoning"], "synonyms": ["캐시 포이즈닝", "캐시 오염", "Cache Poisoning", "캐시포이즈닝"]}
+      ],
+      "explanation": "①은 '도메인명'. overview가 도메인명에 의존한 보안결정을 하지 않아야 한다고 명시한다. ②는 'IP'. countermeasure가 호스트 이름 대신 IP 주소를 직접 비교하라고 한다. ③은 'Cache Poisoning'. course 보충이 DNS Cache Poisoning을 DNS 서버 캐시에 위조된 도메인-IP 매핑을 주입(오염)하는 공격으로 정의한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1(pp.492-495); 2025 진단원 기본과정 API오용 7-1 보충 — overview/countermeasure",
+      "tags": ["api_abuse", "implementation", "dns", "도메인명", "ip", "cache-poisoning"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "api_abuse",
+      "weakness_code": "IMP-AA-01-B2",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "chapter_code": "IMP-AA-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 안전 코드는 DNS 변조에 방어하기 위한 것이다. 빈칸을 채워 코드를 완성하시오.",
+      "blank_template": "String ip = req.getRemoteAddr();\nif (ip == null || \"\".equals(ip)) return;\n// 이용하려는 실제 서버의 IP 주소를 사용하여 DNS변조에 방어한다.\nString trustedAddr = \"127.0.0.1\";\n// 도메인명(getCanonicalHostName)이 아니라 IP 주소를 직접 비교한다.\nif (ip.①______(trustedAddr)) {\n  do_something_for_Trust_System();\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["equals"], "synonyms": ["equals()"]}
+      ],
+      "explanation": "①은 'equals'. safe 코드는 getCanonicalHostName()으로 얻은 도메인명 대신 신뢰 IP(trustedAddr)와 ip.equals()로 직접 비교하여 DNS 변조에 방어한다. 두 빈칸 모두 동일하게 ip.equals(trustedAddr) 형태로 IP 주소를 직접 비교하는 것이 핵심이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 — code_examples(Java) safe/note",
+      "tags": ["api_abuse", "implementation", "dns", "equals", "ip-비교", "java"]
+    }
+  ]
+}

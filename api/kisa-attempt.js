@@ -186,6 +186,7 @@ module.exports = withAuth(async (req, res) => {
     fix_text,
     fix_code,
     blank_answers_user,  // blank 타입: [{idx, text}]
+    report_text,         // composite 타입: 작성한 진단보고서 본문
     self_grade,
     time_spent_sec,
   } = body;
@@ -220,6 +221,7 @@ module.exports = withAuth(async (req, res) => {
     fix_text,
     fix_code,
     blank_answers_user: Array.isArray(blank_answers_user) ? blank_answers_user : [],
+    report_text,  // composite 채점용
   });
 
   // 3) attempt row 저장
@@ -229,11 +231,13 @@ module.exports = withAuth(async (req, res) => {
       mcq_selected, verdict_yn, cited_lines,
       rationale_text, fix_text, fix_code,
       blank_answers_user,
+      report_text, rubric_hits,
       auto_score, keyword_hits, final_score,
       self_grade, time_spent_sec
     ) VALUES (
       $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-      $11::jsonb, $12, $13::jsonb, $12, $14, $15
+      $11::jsonb, $12, $13::jsonb,
+      $14, $15::jsonb, $14, $16, $17
     )
     RETURNING id, submitted_at
   `, [
@@ -245,6 +249,9 @@ module.exports = withAuth(async (req, res) => {
     fix_text || '',
     fix_code || '',
     JSON.stringify(Array.isArray(blank_answers_user) ? blank_answers_user : []),
+    // composite 답안 본문 + 루브릭 채점 결과 (다른 타입은 빈값)
+    report_text || '',
+    JSON.stringify(scored.rubricHits || []),
     scored.autoScore,
     JSON.stringify(scored.keywordHits || {}),
     self_grade || null,
@@ -307,6 +314,10 @@ module.exports = withAuth(async (req, res) => {
     blank_detail: scored.blankDetail || null,
     blank_answers: question.question_type === 'blank' ? question.blank_answers : null,
     blank_template: question.question_type === 'blank' ? question.blank_template : null,
+    // composite 전용: 루브릭 항목별 채점 결과 + 채점 후 루브릭/산출물 공개
+    rubric_hits: question.question_type === 'composite' ? (scored.rubricHits || []) : null,
+    rubric: question.question_type === 'composite' ? question.rubric : null,
+    report_template: question.question_type === 'composite' ? question.report_template : null,
     // 기본 해설 (Claude Code 사전 작성) — 모든 문항 풀이 후 핵심 정보
     explanation: question.explanation || null,
     question: {

@@ -1,0 +1,179 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-16",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-M1",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '반복된 인증시도 제한 기능 부재' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\n일정 시간 내에 여러 번의 인증을 시도하여도 계정잠금 또는 추가 인증 방법 등의 충분한 조치가 수행되지 않는 경우 발생한다.",
+      "choices": [
+        {"num": 1, "text": "공격자는 예상 ID와 비밀번호 사전(Dictionary)을 만들어 무차별 대입(brute force)하여 로그인 성공 및 권한 획득이 가능하다."},
+        {"num": 2, "text": "인증시도 횟수를 적절한 횟수로 제한하고, 설정된 인증실패 횟수를 초과하면 계정을 잠그거나 추가 인증을 거치게 한다."},
+        {"num": 3, "text": "제한 횟수를 초과한 인증 시도에 대해 시도 시간 간격을 설정하여 툴을 이용한 공격을 어렵게 만든다."},
+        {"num": 4, "text": "인증시도 횟수에 제한을 두지 않아도 비밀번호가 복잡하면 무차별 대입 공격으로부터 항상 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '공격자는 예상 ID와 비밀번호들을 사전(Dictionary)으로 만들고 무차별 대입(brute force)하여 로그인 성공 및 권한획득이 가능하다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '인증시도 횟수를 적절한 횟수로 제한하고 설정된 인증실패 횟수를 초과했을 경우 계정을 잠금하거나 추가적인 인증과정을 거쳐서 시스템에 접근이 가능하도록 한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). course 대책①이 '제한된 횟수를 초과하는 인증 시도에 대해 인증시도 시간 간격을 설정하여 툴을 이용한 인증시도 공격을 최대한 어렵게 만든다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 약점의 핵심은 인증시도 횟수 제한 부재다. 횟수 제한이 없으면 비밀번호 복잡도와 무관하게 자동화 도구로 무차별 대입이 계속 가능하므로, '제한이 없어도 항상 안전하다'는 진술은 약점을 부정해 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-16 overview·countermeasure와 course 대책①로 검증한다. 인증시도 횟수 제한이 없으면 무차별 대입 공격에 노출되며, 대책은 횟수 제한·시간 간격·계정 잠금이다. 1·2·3번은 옳은 진술이고, 4번은 '제한 없이도 항상 안전'으로 약점을 부정해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재(pp.400-405), CWE-307 — overview/countermeasure",
+      "tags": ["security_feature", "implementation", "인증", "무차별 대입", "brute force", "계정 잠금", "CWE-307"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-M2",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 두 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\n// (가)\nwhile (result == FAIL) {\n  ...\n  result = verifyUser(username, password);\n}\n\n// (나)\nint count = 0;\nwhile (result == FAIL && count < MAX_ATTEMPTS) {\n  ...\n  result = verifyUser(username, password);\n  count++;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "(가)는 인증 실패에 대해 제한을 두지 않아 result가 성공이 될 때까지 무한정 인증을 시도할 수 있다."},
+        {"num": 2, "text": "(나)는 MAX_ATTEMPTS 변수로 인증시도 횟수를 제한하는 카운터를 두어 무차별 공격에 대응한다."},
+        {"num": 3, "text": "(나)는 반복마다 count++로 시도 횟수를 증가시켜 제한 횟수를 초과하면 반복을 종료한다."},
+        {"num": 4, "text": "(가)는 반복문 안에서 인증을 시도하므로 횟수 제한 없이도 (나)와 동일하게 무차별 대입 공격에 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). (가)는 vulnerable 코드로 '인증 실패에 대해 제한을 두지 않아 안전하지 않다'(주석)며 result가 FAIL인 동안 무한정 시도가 가능하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 '인증시도 횟수를 기록하는 MAX_ATTEMPTS 변수를 정의하고, 이를 인증시도 횟수를 제한하는 카운터로 사용함으로써 무차별 공격에 대응한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). (나) safe 코드는 count++로 시도 횟수를 증가시키고 count < MAX_ATTEMPTS 조건으로 제한 횟수 초과 시 반복을 종료한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). (가)는 횟수 제한이 없어 무차별 대입 공격에 그대로 노출된다. '반복문 안에서 인증하므로 제한 없이도 안전하다'는 진술은 약점의 핵심(인증시도 제한 부재)을 정반대로 뒤집어 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-16 code_examples(Java) vulnerable/safe와 note로 검증한다. (가)는 제한 없는 무한 반복으로 취약, (나)는 MAX_ATTEMPTS 카운터로 횟수를 제한해 안전하다. 1·2·3번은 옳은 진술이고, 4번은 (가)가 제한 없이도 안전하다며 약점을 부정해 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — code_examples(Java) vulnerable/safe/note, CWE-307",
+      "tags": ["security_feature", "implementation", "인증", "MAX_ATTEMPTS", "무차별 대입", "java", "CWE-307"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-M3",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'반복된 인증시도 제한 기능 부재' 약점의 대책과 진단방법에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "중요 시스템에 대해서는 인증시도 횟수 제한을 초과한 계정에 계정 잠금 정책을 적용하여 공격이 불가능하게 한다."},
+        {"num": 2, "text": "인증을 위한 함수를 호출하는 경우, 함수의 호출 횟수를 확인하고 호출을 제한하는 코드가 존재하는지 확인한다."},
+        {"num": 3, "text": "인증시도 횟수를 확인·제한하는 코드가 존재하지 않으면 취약하다고 판단한다."},
+        {"num": 4, "text": "인증 함수가 반복문 안에서 호출되기만 하면 횟수 제한 코드가 없어도 안전하다고 판단한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). course 대책②가 '중요 시스템에 대해서는 인증시도 횟수 제한을 초과한 계정에 대해 계정 잠금 정책을 적용하여 공격이 불가능하게 한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '인증을 위한 함수를 호출하는 경우, 이 함수의 호출 횟수를 확인하고 함수의 호출을 제한하는 코드가 존재하는지 확인한다'고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '그렇지 않은 경우는 취약하다고 판단한다'고 하여, 호출 횟수 확인·제한 코드가 없으면 취약으로 판정한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). 진단의 핵심은 인증 함수 호출 횟수를 확인·제한하는 코드의 존재 여부다. 반복문 안에서 호출되더라도 제한 코드가 없으면 취약하다. '제한 코드가 없어도 안전'은 진단방법을 정반대로 적용한 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-16 course 대책②·diagnosis.method로 검증한다. 대책은 시도 시간 간격·계정 잠금이며, 진단은 인증 함수 호출 횟수를 확인·제한하는 코드 존재 여부로 한다. 제한 코드가 없으면 취약이므로, 4번은 진단 기준을 뒤집어 틀렸다. 1·2·3번은 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — countermeasure/diagnosis.method, CWE-307",
+      "tags": ["security_feature", "implementation", "인증", "계정 잠금", "진단방법", "CWE-307"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-D1",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 C 코드의 인증 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\nint validateUser(char *host, int port) {\n  int socket = openSocketConnection(host, port);\n  if (socket < 0) {\n    printf(\"Unable to open socket connection\");\n    return(FAIL);\n  }\n  int isValidUser = 0;\n  char username[USERNAME_SIZE];\n  char password[PASSWORD_SIZE];\n  while (isValidUser == 0) {\n    if (getNextMessage(socket, username, USERNAME_SIZE) > 0) {\n      if (getNextMessage(socket, password, PASSWORD_SIZE) > 0) {\n        isValidUser = AuthenticateUser(username, password);\n      }\n    }\n  }\n  return(SUCCESS);\n}\n```",
+      "vulnerable_code": "1   int validateUser(char *host, int port) {\n2     int socket = openSocketConnection(host, port);\n3     if (socket < 0) {\n4       printf(\"Unable to open socket connection\");\n5       return(FAIL);\n6     }\n7     int isValidUser = 0;\n8     char username[USERNAME_SIZE];\n9     char password[PASSWORD_SIZE];\n10    while (isValidUser == 0) {\n11      if (getNextMessage(socket, username, USERNAME_SIZE) > 0) {\n12        if (getNextMessage(socket, password, PASSWORD_SIZE) > 0) {\n13          isValidUser = AuthenticateUser(username, password);\n14        }\n15      }\n16    }\n17    return(SUCCESS);\n18  }",
+      "code_language": "c",
+      "vulnerable_lines": [10],
+      "rationale_keywords": ["인증시도 제한 없음", "무한 반복", "무차별 대입", "검사 루틴 부재", "CWE-307"],
+      "fix_keywords": ["MAX_ATTEMPTS", "count 카운터", "횟수 제한 조건", "초과 시 FAIL"],
+      "safe_code": "1   #define MAX_ATTEMPTS 5\n2   int validateUser(char *host, int port) {\n3     ......\n4     int count = 0;\n5     // 연속적인 사용자 인증 시도에 대한 횟수를 제한\n6     while ((isValidUser == 0) && (count < MAX_ATTEMPTS)) {\n7       if (getNextMessage(socket, username, USERNAME_SIZE) > 0) {\n8         if (getNextMessage(socket, password, PASSWORD_SIZE) > 0) {\n9           isValidUser = AuthenticateUser(username, password);\n10        }\n11      }\n12      count++;\n13    }\n14    if (isValidUser) { return(SUCCESS); } else { return(FAIL); }\n15  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 10번 라인의 while (isValidUser == 0) 반복문이 인증 시도 횟수에 대한 제한 없이 isValidUser가 1이 될 때까지 계속 AuthenticateUser를 호출한다. 인증 시도 횟수를 확인·제한하는 검사 루틴이 존재하지 않으므로, 공격자가 툴로 무차별 대입(brute force)하여 계정 권한을 탈취할 수 있는 보안약점(CWE-307)이다.",
+        "fix_description": "MAX_ATTEMPTS 같은 최대 시도 횟수 상수와 count 카운터를 두고, while ((isValidUser == 0) && (count < MAX_ATTEMPTS)) 조건으로 반복을 제한하며 반복마다 count++로 횟수를 증가시킨다. 제한 횟수를 초과하면 FAIL을 반환하고, 중요 시스템은 계정 잠금 정책을 함께 적용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-16 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '인증시도 제한 없음'/'무한 반복': 10번 라인 while (isValidUser == 0)이 횟수 제한 없이 반복.\n- '무차별 대입'/'검사 루틴 부재': 횟수 검사 루틴이 없어 brute force에 노출.\n- 'CWE-307': 반복된 인증시도 제한 기능 부재 분류.\n\n[수정 키워드 의미] MAX_ATTEMPTS·count 카운터로 횟수를 제한하고 초과 시 FAIL 반환.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(10번 라인 — 제한 없는 while 반복 지목) 20점 / rationale(인증시도 제한 없음·무한 반복·무차별 대입·CWE-307 등 키워드 포함) 30점 / fix(MAX_ATTEMPTS·count 카운터·제한 조건·초과 시 FAIL·계정 잠금) 30점.\n\n[자가확인 체크리스트] (1) 인증 함수가 반복문 안에서 호출되는가? (2) 호출 횟수를 확인·제한하는 코드(카운터·조건)가 존재하는가? → 없으면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — diagnosis.true_positive, CWE-307",
+      "tags": ["security_feature", "implementation", "인증", "정탐", "무차별 대입", "c", "CWE-307"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-D2",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 인증 처리에 대해 취약 여부를 판정하고 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nprivate static final int MAX_ATTEMPTS = 5;\npublic void login() {\n  int result = FAIL;\n  int count = 0;\n  socket = new Socket(SERVER_IP, SERVER_PORT);\n  while (result == FAIL && count < MAX_ATTEMPTS) {\n    ...\n    result = verifyUser(username, password);\n    count++;\n  }\n}\n```",
+      "vulnerable_code": "1  private static final int MAX_ATTEMPTS = 5;\n2  public void login() {\n3    int result = FAIL;\n4    int count = 0;\n5    socket = new Socket(SERVER_IP, SERVER_PORT);\n6    while (result == FAIL && count < MAX_ATTEMPTS) {\n7      ...\n8      result = verifyUser(username, password);\n9      count++;\n10   }\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["인증시도 횟수 제한", "MAX_ATTEMPTS 적용", "count 카운터", "무차별 대입 방어", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — while 조건에 count < MAX_ATTEMPTS를 두고\n2  // count++로 시도 횟수를 증가시켜 인증시도 횟수를 제한한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 6번 라인의 while 반복 조건에 count < MAX_ATTEMPTS를 포함하고 9번 라인에서 count++로 시도 횟수를 증가시켜, 인증시도 횟수를 MAX_ATTEMPTS(5회)로 제한하고 있다. 이는 note가 권장하는 'MAX_ATTEMPTS 변수를 인증시도 횟수를 제한하는 카운터로 사용'하는 안전한 방식과 일치하므로, 반복된 인증시도 제한 기능 부재(CWE-307) 약점에 해당하지 않는다.",
+        "fix_description": "수정 불필요. 이미 IMP-SF-16 safe 코드가 권장하는 MAX_ATTEMPTS 기반 인증시도 횟수 제한을 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-16 code_examples(Java) safe 코드를 기반으로 한다. 핵심은 '인증시도 횟수를 이미 제한하는 안전한 코드를 취약하다고 오판하지 않기'다.\n\n[오판 주의] while 반복문 안에서 인증을 시도한다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 count < MAX_ATTEMPTS 조건과 count++로 횟수를 제한하는 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '인증시도 횟수 제한'/'MAX_ATTEMPTS 적용': 6번 라인 while 조건에 count < MAX_ATTEMPTS.\n- 'count 카운터'/'무차별 대입 방어': 9번 라인 count++로 시도 횟수를 증가시켜 brute force 차단.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(인증시도 횟수 제한·MAX_ATTEMPTS·count 카운터·무차별 대입 방어 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 인증 반복문에 시도 횟수 제한 조건(count < MAX_ATTEMPTS)이 있는가? → 그렇다(6번 라인). (2) 시도마다 카운터를 증가시키는가? → 그렇다(9번 라인). — 안전.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — code_examples(Java) safe/note, CWE-307",
+      "tags": ["security_feature", "implementation", "인증", "오탐", "MAX_ATTEMPTS", "java", "CWE-307"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-B1",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'반복된 인증시도 제한 기능 부재' 약점의 개요와 대책에 대한 빈칸을 채우시오.",
+      "blank_template": "일정 시간 내에 여러 번 인증을 시도해도 계정잠금 등 충분한 조치가 없으면, 공격자는 예상 ID·비밀번호 사전(Dictionary)을 만들어 ⓐ______ 대입(brute force)으로 로그인에 성공할 수 있다. 대책으로는 인증시도 횟수를 적절한 횟수로 ⓑ______하고, 설정된 인증실패 횟수를 초과했을 경우 계정을 ⓒ______하거나 추가적인 인증과정을 거치게 한다. 이 약점은 CWE-ⓓ______에 해당한다.",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["무차별"], "synonyms": ["무작위", "brute force", "무차별(brute force)", "전수"]},
+        {"idx": "ⓑ", "answers": ["제한"], "synonyms": ["제한(limit)", "한정"]},
+        {"idx": "ⓒ", "answers": ["잠금"], "synonyms": ["잠가", "잠근다", "잠금(lock)", "락"]},
+        {"idx": "ⓓ", "answers": ["307"], "synonyms": ["CWE-307"]}
+      ],
+      "explanation": "ⓐ 무차별: overview가 '무차별 대입(brute force)하여 로그인 성공 및 권한획득이 가능'하다고 한다. ⓑ 제한 / ⓒ 잠금: countermeasure가 '인증시도 횟수를 적절한 횟수로 제한하고 ... 계정을 잠금하거나 추가적인 인증과정을 거쳐서'라고 한다. ⓓ 307: 반복된 인증시도 제한 기능 부재는 CWE-307이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — overview/countermeasure, CWE-307",
+      "tags": ["security_feature", "implementation", "인증", "무차별 대입", "계정 잠금", "CWE-307", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-16-B2",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "chapter_code": "IMP-SF-16",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 인증시도 횟수를 제한한 안전한 Java 코드의 일부다. 빈칸에 들어갈 코드와 진단 포인트를 채우시오.\n\n```java\nint count = 0;\nwhile (result == FAIL && count <  ⓐ ) {\n  ...\n  result = verifyUser(username, password);\n   ⓑ ;\n}\n```",
+      "blank_template": "안전한 코드는 while 조건에 count < ⓐ______(을)를 두어 인증시도 횟수를 제한하고, 반복마다 ⓑ______(으)로 시도 횟수를 증가시킨다. 진단 시에는 인증을 위한 함수의 ⓒ______ 횟수를 확인하고 이를 제한하는 코드가 존재하는지 점검하며, 그렇지 않으면 취약하다고 판단한다.",
+      "blank_answers": [
+        {"idx": "ⓐ", "answers": ["MAX_ATTEMPTS"], "synonyms": ["최대 시도 횟수", "최대시도횟수", "max_attempts"]},
+        {"idx": "ⓑ", "answers": ["count++"], "synonyms": ["count = count + 1", "count += 1", "count 증가"]},
+        {"idx": "ⓒ", "answers": ["호출"], "synonyms": ["호출(call)", "함수 호출"]}
+      ],
+      "explanation": "ⓐ MAX_ATTEMPTS / ⓑ count++: safe 코드가 while (result == FAIL && count < MAX_ATTEMPTS) 조건과 count++로 시도 횟수를 제한·증가시킨다(note). ⓒ 호출: diagnosis.method가 '인증을 위한 함수를 호출하는 경우, 이 함수의 호출 횟수를 확인하고 함수의 호출을 제한하는 코드가 존재하는지 확인한다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 반복된 인증시도 제한 기능 부재 — code_examples(Java) safe, diagnosis.method",
+      "tags": ["security_feature", "implementation", "인증", "MAX_ATTEMPTS", "진단방법", "java", "빈칸"]
+    }
+  ]
+}

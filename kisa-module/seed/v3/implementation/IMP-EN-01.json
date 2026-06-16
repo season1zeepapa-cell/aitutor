@@ -1,0 +1,192 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-EN-01",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-M1",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현 단계 캡슐화 항목인 '잘못된 세션에 의한 데이터 정보 노출'에 대한 설명이다. 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "다중 스레드 환경에서는 싱글톤(Singleton) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다."},
+        {"num": 2, "text": "Servlet·JSP·Controller 등 싱글톤으로 존재하는 객체의 멤버변수가 여러 스레드에 의해 공유되면서 다른 스레드에게 정보를 노출시킬 수 있다."},
+        {"num": 3, "text": "정보를 저장하는 멤버변수를 싱글톤 객체에 두면 세션 간 데이터 공유가 차단되어 더 안전하므로, 멤버변수 사용을 권장한다."},
+        {"num": 4, "text": "싱글톤 패턴 사용 시 변수 범위(Scope)에 주의하여, HttpServlet 하위클래스에서 멤버 필드를 선언하지 않고 필요한 경우 지역 변수를 사용한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '다중 스레드 환경에서는 싱글톤(Singleton) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). course summary·sections가 'Servlet·JSP·Controller 등 싱글톤으로 존재하는 객체들의 멤버변수가 여러 스레드에 의해 공유되면서 다른 스레드에게 정보를 노출시킬 수 있다'고 기술한다."},
+        {"num": 3, "correct": true, "why": "정답(틀린 진술). 싱글톤 객체의 멤버변수는 모든 요청 스레드에 의해 공유되므로 세션 간 데이터가 공유·노출되는 것이 바로 이 약점의 원인이다. countermeasure는 멤버 필드를 선언하지 말고 지역 변수를 사용하라고 한다. '멤버변수가 더 안전하므로 권장한다'는 진술은 약점의 본질을 정반대로 뒤집은 것이다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). countermeasure가 '싱글톤 패턴을 사용하는 경우 변수 범위(Scope)에 주의하여야 하며, Java에서는 HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 지역 변수를 선언하여 사용한다'와 일치한다."}
+      ],
+      "explanation": "정답은 3번. IMP-EN-01 overview·countermeasure로 검증한다. 싱글톤 객체(Servlet·JSP·Controller)의 멤버변수는 모든 요청 스레드에 의해 공유되어 한 세션의 데이터가 다른 세션에 노출되는 것이 약점의 핵심이다. 대책은 멤버 필드를 선언하지 않고 지역 변수를 사용하는 것이다. 3번은 '멤버변수가 세션 공유를 차단해 더 안전하다'며 정반대로 주장하므로 틀렸다. 1·2·4번은 overview·course·countermeasure와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출(pp.469-475), CWE-488 — overview·countermeasure",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "싱글톤", "경쟁조건", "멤버변수", "CWE-488"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-M2",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Spring Controller 코드의 보안약점과 대책에 대한 설명으로 옳지 않은 것은?\n\n```java\n@Controller\npublic class TrendForecastController {\n  private int currentPage = 1;\n  public void doSomething(HttpServletRequest request) {\n    currentPage = Integer.parseInt(request.getParameter(\"page\"));\n  }\n}\n```",
+      "choices": [
+        {"num": 1, "text": "Controller의 currentPage가 멤버 변수로 선언되어 스레드 간에 공유된다."},
+        {"num": 2, "text": "doSomething()이 request 파라미터 값으로 멤버 변수 currentPage를 갱신하므로, 동시 요청 시 다른 사용자의 값이 적용되는 동기화 오류가 발생할 수 있다."},
+        {"num": 3, "text": "멤버 변수 대신 doSomething() 내부에서 int currentPage를 지역 변수로 선언하면 스레드 간 공유되지 않아 안전하다."},
+        {"num": 4, "text": "Controller는 요청마다 새 인스턴스가 생성되어 멤버 변수도 요청별로 분리되므로, 멤버 변수로 두어도 스레드 간 공유 문제가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 'Controller에서 int 필드가 멤버 변수로 선언되어 스레드간에 공유됨'이라고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note가 'Controller에 멤버 변수를 사용하면 공유가 발생하여 동기화 오류가 발생할 수 있다'고 하며, course도 request 값으로 멤버 변수를 갱신하면 스레드 간 정보가 노출된다고 한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 doSomething() 내부에서 'int currentPage'를 지역변수로 선언하여 스레드 간 공유되지 못하도록 한다. note도 '멤버 변수 대신 지역 변수로 사용한다'고 한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). Spring의 Controller는 기본적으로 싱글톤으로 관리되어 단 하나의 인스턴스가 모든 요청 스레드에 의해 공유되므로, 멤버 변수도 스레드 간 공유된다. '요청마다 새 인스턴스가 생성되어 분리된다'는 진술은 싱글톤 특성을 정반대로 설명한 것으로 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-01 code_examples(Spring Controller)의 vulnerable/safe/note와 course로 검증한다. Spring Controller는 싱글톤으로 관리되어 하나의 인스턴스가 모든 요청 스레드에 공유되므로 멤버 변수 currentPage도 스레드 간 공유되어 동기화 오류·정보 노출이 발생한다. 대책은 지역 변수 사용이다. 4번은 'Controller가 요청마다 새 인스턴스로 분리된다'며 싱글톤 특성을 부정하므로 틀렸다. 1·2·3번은 vulnerable·note·safe와 일치하는 옳은 설명으로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — code_examples(Spring Controller) vulnerable/safe/note, CWE-488",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "싱글톤", "Controller", "멤버변수", "지역변수", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-M3",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 '잘못된 세션에 의한 데이터 정보 노출'의 진단방법에 대한 설명이다. 진단원의 판단으로 옳지 않은 것은?\n\n진단원은 HttpServlet 하위클래스 및 JSP·Controller에서 멤버필드 선언 여부와 그 특성을 검토한다.",
+      "choices": [
+        {"num": 1, "text": "HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 final이 아닌 경우는 취약한 것으로 판단한다."},
+        {"num": 2, "text": "Final 필드는 클래스 내부에서 상수로 사용되는 값이므로 취약하지 않은 것으로 판단한다."},
+        {"num": 3, "text": "JSP 페이지나 서블릿 내에서의 내부 클래스 사용은 멤버필드가 아니므로 취약하지 않은 것으로 판단한다."},
+        {"num": 4, "text": "Spring 기반 eGov 프레임워크에서 IoC로 프레임워크가 인스턴스를 관리하더라도, @Resource로 주입된 필드는 항상 취약한 것으로 판단한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 final이 아닌 경우는 취약한 것으로 판단한다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). false_positive(오탐 주의)에 'Final 필드의 경우 클래스 내부에서 상수로 사용되는 값이므로 취약하지 않다'고 명시되어 있다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). false_positive(오탐 주의)에 'JSP 페이지나 서블릿 내에서의 내부 클래스 사용은 멤버필드가 아니므로 취약하지 않다'고 명시되어 있다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). false_positive(오탐 주의)에 'Spring 기반 eGov 프레임워크는 IoC를 사용하여 프레임워크가 인스턴스를 관리하므로 안전함'이라고 명시되어 있다. @Resource로 주입된 필드를 '항상 취약'으로 판단하면 오탐이다."}
+      ],
+      "explanation": "정답은 4번. IMP-EN-01 diagnosis.method와 false_positive(오탐 주의 항목)로 검증한다. Spring 기반 eGov 프레임워크는 IoC로 프레임워크가 인스턴스를 관리하므로 @Resource 주입 필드는 안전(오탐 주의)하다. 따라서 '항상 취약'으로 판단하는 4번은 틀렸다. 1번(final 아닌 멤버필드는 취약), 2번(final 필드는 안전), 3번(내부 클래스는 멤버필드 아님 → 안전)은 각각 diagnosis.method·false_positive와 일치하는 옳은 진술로 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — diagnosis.method·false_positive(final·내부클래스·eGov IoC), CWE-488",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "진단방법", "final필드", "내부클래스", "IoC"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-D1",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 서블릿 코드에 대해 잘못된 세션에 의한 데이터 정보 노출 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class U488 extends HttpServlet {\n    private String name;\n    protected void doPost(HttpServletRequest request, HttpServletResponse response)\n            throws ServletException, IOException {\n        name = request.getParameter(\"name\");\n        out.println(name + \", thanks for visiting!\");\n    }\n}\n```",
+      "vulnerable_code": "1  public class U488 extends HttpServlet {\n2      private String name;\n3      protected void doPost(HttpServletRequest request, HttpServletResponse response)\n4              throws ServletException, IOException {\n5          name = request.getParameter(\"name\");\n6          out.println(name + \", thanks for visiting!\");\n7      }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 5],
+      "rationale_keywords": ["멤버 변수", "final 아님", "싱글톤", "스레드 간 공유", "세션 정보 노출"],
+      "fix_keywords": ["지역 변수", "멤버 필드 제거", "메소드 내 선언"],
+      "safe_code": "1  public class U488 extends HttpServlet {\n2      protected void doPost(HttpServletRequest request, HttpServletResponse response)\n3              throws ServletException, IOException {\n4          // 멤버 필드를 제거하고 지역 변수로 선언하여 스레드 간 공유를 차단\n5          String name = request.getParameter(\"name\");\n6          out.println(name + \", thanks for visiting!\");\n7      }\n8  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 HttpServlet 하위클래스 U488에 final이 아닌 멤버 필드(private String name)가 선언되어 있다. 서블릿은 싱글톤으로 동작하여 하나의 인스턴스가 모든 요청 스레드에 공유되므로, 5번 라인에서 외부 입력값(request.getParameter)을 이 멤버 변수에 저장하면 다른 스레드(다른 세션)의 요청과 값이 섞여 한 사용자의 데이터가 다른 사용자에게 노출될 수 있다(CWE-488).",
+        "fix_description": "멤버 필드 name을 제거하고, doPost() 메소드 내부에서 'String name'을 지역 변수로 선언하여 사용한다. 그러면 각 스레드의 스택에 독립적으로 존재하여 스레드(세션) 간 공유가 발생하지 않는다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-EN-01 diagnosis.true_positive(U488 서블릿) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '멤버 변수'/'final 아님': 2번 라인 private String name이 final이 아닌 인스턴스 필드.\n- '싱글톤'/'스레드 간 공유': 서블릿은 싱글톤이라 하나의 인스턴스가 모든 요청 스레드에 공유됨.\n- '세션 정보 노출': 5번에서 외부 입력값을 멤버 변수에 저장해 다른 세션에 노출될 수 있음.\n\n[수정 키워드 의미] 멤버 필드를 제거하고 메소드 내 지역 변수로 선언한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2·5번 — 멤버 필드 선언·외부 입력값 저장 라인 지목) 20점 / rationale(멤버 변수·final 아님·싱글톤 공유·세션 노출 키워드 포함) 30점 / fix(지역 변수 선언·멤버 필드 제거) 30점.\n\n[자가확인 체크리스트] (1) HttpServlet 하위클래스(또는 JSP 선언부·Controller)에 멤버필드가 있는가? (2) 그 필드가 final(상수)이 아닌가? (3) 요청별 데이터를 그 멤버 변수에 저장·사용하는가? — 모두 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — diagnosis.true_positive(U488), CWE-488",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "정탐", "멤버변수", "서블릿", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-D2",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 JSP 코드의 변수 선언에 대해 잘못된 세션에 의한 데이터 정보 노출 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```jsp\n<%@ page import=\"java.util.*\" %>\n<%@ page import=\"maha.ns.comm.util.StringUtil\" %>\n<%@ taglib uri=\"comm.tld\" prefix=\"comm\" %>\n<%!\nfinal String imagePath = \"/img/\";\nString treeImagePath = imagePath + \"/port/tree.gif\";\n%>\n```",
+      "vulnerable_code": "1  <%@ page import=\"java.util.*\" %>\n2  <%@ page import=\"maha.ns.comm.util.StringUtil\" %>\n3  <%@ taglib uri=\"comm.tld\" prefix=\"comm\" %>\n4  <%!\n5  final String imagePath = \"/img/\";\n6  String treeImagePath = imagePath + \"/port/tree.gif\";\n7  %>",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["final 필드", "상수", "변경 불가", "스레드 공유되어도 안전", "정보 노출 없음"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — JSP 선언부의 imagePath는 final 상수이고,\n2  // treeImagePath도 final 상수로부터 파생된 고정 경로 문자열로 요청별로 변하지 않는다.\n3  // 요청 입력값을 멤버 변수에 저장하지 않으므로 세션 간 데이터 노출이 발생하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 5번 라인 imagePath는 final 필드로 선언된 상수이므로 클래스 내부에서 값이 변경되지 않으며, 6번 라인 treeImagePath도 이 final 상수로부터 만들어진 고정 경로 문자열일 뿐 외부 요청 입력값을 저장하지 않는다. diagnosis의 오탐 주의 사항에 따르면 'Final 필드는 클래스 내부에서 상수로 사용되는 값이므로 취약하지 않다'. 요청별로 변하는 데이터를 멤버 변수에 담지 않으므로 스레드(세션) 간 정보 노출이 발생하지 않는다.",
+        "fix_description": "수정 불필요. final 상수 및 그로부터 파생된 고정 값만 사용하므로 잘못된 세션에 의한 데이터 정보 노출이 발생하지 않는다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EN-01 diagnosis.false_positive(final 필드) 항목을 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] JSP 선언부(<%! %>)에 변수가 있다는 사실만으로 취약하다고 단정해서는 안 된다. 멤버 변수라도 final 상수이거나 요청 입력값을 담지 않는 고정 값이면 세션 간 노출이 발생하지 않는다.\n\n[안전 판정 근거 키워드 의미]\n- 'final 필드'/'상수'/'변경 불가': imagePath가 final 상수라 값이 바뀌지 않음.\n- '스레드 공유되어도 안전': 값이 고정이므로 스레드 간 공유되어도 한 요청의 데이터가 다른 요청에 영향을 주지 않음.\n- '정보 노출 없음': 외부 요청 입력값을 멤버 변수에 저장하지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(final 상수·요청 입력값 미저장·정보 노출 없음 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 멤버 필드가 final(상수)인가? → 그렇다. (2) 요청별로 변하는 외부 입력값을 멤버 변수에 저장하는가? → 아니다. (3) 따라서 세션 간 데이터가 섞여 노출될 수 있는가? → 아니다. — 모든 항목이 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — diagnosis.false_positive(final 필드), CWE-488",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "오탐", "final필드", "상수", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-B1",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 '잘못된 세션에 의한 데이터 정보 노출' 약점의 원인과 대책 일부다. 빈칸에 들어갈 용어를 채우시오.\n\n· 다중 스레드 환경에서는 (가) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있어, 서로 다른 세션에서 데이터를 공유하지 않도록 해야 한다.\n· Java에서는 HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 (나) 변수를 선언하여 사용한다.",
+      "blank_template": "· 다중 스레드 환경에서는 {{1}} 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있어, 서로 다른 세션에서 데이터를 공유하지 않도록 해야 한다.\n· Java에서는 HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 {{2}} 변수를 선언하여 사용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["싱글톤"],
+          "synonyms": ["싱글톤(Singleton)", "Singleton", "싱글턴"]
+        },
+        {
+          "idx": 2,
+          "answers": ["지역"],
+          "synonyms": ["지역(local)", "로컬", "local", "지역(local) 변수"]
+        }
+      ],
+      "explanation": "정답: (가) 싱글톤, (나) 지역. IMP-EN-01 overview는 '다중 스레드 환경에서는 싱글톤(Singleton) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다'고 명시한다. countermeasure는 'HttpServlet 클래스의 하위클래스에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 지역 변수를 선언하여 사용한다'고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — overview, countermeasure",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "빈칸", "싱글톤", "지역변수"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "encapsulation",
+      "weakness_code": "IMP-EN-01-B2",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "chapter_code": "IMP-EN-01",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '잘못된 세션에 의한 데이터 정보 노출'의 진단방법과 JSP 코드 특성에 대한 설명이다. 빈칸에 들어갈 용어를 채우시오.\n\n· HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 (가) 이(가) 아닌 경우는 취약한 것으로 판단한다.\n· JSP 선언부(<%! %>)에 선언한 변수는 모든 사용자에게 공유되지만, JSP 서블릿(<% %>)에 정의한 변수는 _jspService 메소드의 (나) 변수로 선언되므로 공유가 발생하지 않아 안전하다.",
+      "blank_template": "· HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 {{1}} 이(가) 아닌 경우는 취약한 것으로 판단한다.\n· JSP 선언부(<%! %>)에 선언한 변수는 모든 사용자에게 공유되지만, JSP 서블릿(<% %>)에 정의한 변수는 _jspService 메소드의 {{2}} 변수로 선언되므로 공유가 발생하지 않아 안전하다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["final"],
+          "synonyms": ["final(상수)", "상수", "파이널"]
+        },
+        {
+          "idx": 2,
+          "answers": ["지역"],
+          "synonyms": ["지역(local)", "로컬", "local"]
+        }
+      ],
+      "explanation": "정답: (가) final, (나) 지역. IMP-EN-01 diagnosis.method는 'HttpServlet의 하위클래스에 멤버필드가 선언되어 있고 final이 아닌 경우는 취약한 것으로 판단한다'고 명시한다. code_examples(JSP) note는 'JSP 서블릿(<% %>)에 정의한 변수는 _jspService 메소드의 지역변수로 선언되므로 공유가 발생하지 않아 안전하다'고 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제6절 캡슐화 §1 잘못된 세션에 의한 데이터 정보 노출 — diagnosis.method, code_examples(JSP) note",
+      "tags": ["encapsulation", "implementation", "세션정보노출", "빈칸", "final필드", "지역변수", "jsp"]
+    }
+  ]
+}

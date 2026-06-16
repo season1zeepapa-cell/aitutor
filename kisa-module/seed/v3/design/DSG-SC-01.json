@@ -1,0 +1,243 @@
+{
+  "version": "v3",
+  "chapter_code": "DSG-SC-01",
+  "stage": "design",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-M1",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 분석·설계 단계 '세션통제' 설계항목의 안전한 세션 관리에 대한 보안대책이다. 옳지 않은 것은?\n\n세션통제는 다른 세션 간 데이터 공유금지, 세션ID 노출금지, (재)로그인 시 세션ID 변경, 세션종료(비활성화·유효기간 등) 처리 등 세션을 안전하게 관리하는 방안을 설계하는 항목이다.",
+      "choices": [
+        {"num": 1, "text": "시스템 내의 모든 페이지에서 로그아웃이 가능하도록 UI를 설계하고, 로그아웃 요청 시 사용자에게 할당된 세션을 완전히 제거하는 API(예: session.invalidate())를 사용하도록 한다."},
+        {"num": 2, "text": "세션 타임아웃 시간은 중요기능의 경우 2~5분, 위험도가 낮은 애플리케이션의 경우 15~30분으로 설정한다."},
+        {"num": 3, "text": "웹 브라우저 종료로 인한 세션 종료는 서버가 인지할 수 있으므로 별도의 미사용 세션 강제 삭제 설계는 필요하지 않다."},
+        {"num": 4, "text": "세션ID가 포함된 쿠키에 HttpOnly 속성을 설정하여 자바스크립트로 조회할 수 없도록 만들어 XSS 공격에 대응한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). design_considerations ②는 모든 페이지에서 로그아웃이 가능하도록 UI를 설계하고, 로그아웃 요청 시 세션을 완전히 제거하는 API(Java session.invalidate())를 사용하도록 시큐어코딩 규칙을 정의할 것을 요구한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 세션 타임아웃 시간은 중요기능의 경우 2~5분, 위험도가 낮은 애플리케이션의 경우 15~30분으로 설정한다는 가이드 기준과 정확히 일치한다."},
+        {"num": 3, "correct": true, "why": "정답(잘못된 진술). 가이드는 '웹 브라우저 종료로 인한 세션 종료는 서버 측에서 인지할 수 없으므로 일정 시간 동안 사용되지 않는 세션 정보는 강제적으로 삭제되도록 설계한다'고 명시한다. 즉 서버는 브라우저 종료를 인지할 수 없으며 미사용 세션 강제 삭제 설계가 반드시 필요하다. 이 선지는 그 핵심을 정반대로 뒤집었다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). design_considerations ②는 세션ID가 포함된 쿠키에 HttpOnly 속성을 설정하여 자바스크립트로 조회할 수 없도록 만들어 XSS 공격에 대응한다고 명시한다."}
+      ],
+      "explanation": "정답은 3번. DSG-SC-01 라이브러리 design_considerations ②(안전한 세션 관리)와 대조하여 검증한다. 가이드는 '웹 브라우저 종료로 인한 세션 종료는 서버 측에서 인지할 수 없으므로 일정 시간 동안 사용되지 않는 세션 정보는 강제적으로 삭제되도록 설계한다'고 명시하므로, '서버가 인지할 수 있어 강제 삭제 설계가 불필요하다'는 3번은 명백히 틀렸다. 1·2·4번은 각각 로그아웃 시 session.invalidate() 사용, 타임아웃 2~5분/15~30분, HttpOnly 설정 등 보안대책 ②와 그대로 일치하는 옳은 진술이라 오답 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제(pp.171-177) — design_considerations ②(안전한 세션 관리)",
+      "tags": ["session_control", "design", "세션통제", "세션타임아웃", "HttpOnly", "session.invalidate", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-M2",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '세션통제' 설계항목의 안전한 세션ID 관리에 대한 보안대책이다. 옳지 않은 것은?\n\n세션ID 관리는 세션ID의 생성·사용·폐기 전 과정에서 노출·예측·고정 공격에 대응할 수 있도록 설계하는 것을 목표로 한다.",
+      "choices": [
+        {"num": 1, "text": "세션ID는 안전한 서버에서 생성하며, 최소 128비트의 길이로 생성하고 안전한 난수 알고리즘을 적용하여 예측 불가능한 값을 사용한다."},
+        {"num": 2, "text": "세션ID가 URL에 노출될 수 있는 URL Rewrite 기능을 적극 사용하여 쿠키를 사용할 수 없는 환경에서도 세션을 유지하도록 설계한다."},
+        {"num": 3, "text": "로그인 성공 시 로그인 전에 할당받은 세션ID는 파기하고 새로운 값으로 재할당하여 세션ID 고정 공격에 대응한다."},
+        {"num": 4, "text": "장기간 접속 시 세션ID 노출 위험이 커지므로 일정 시간 주기적으로 세션ID를 재할당하도록 설계한다."}
+      ],
+      "answer_index": 1,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). design_considerations ③(ㄱ) 세션ID 생성은 안전한 서버에서 생성하고 최소 128비트 길이, 안전한 난수 알고리즘으로 예측 불가능한 값을 사용하도록 명시한다."},
+        {"num": 2, "correct": true, "why": "정답(잘못된 진술). design_considerations ③(ㄴ) 세션ID 사용은 'URL Rewrite 기능을 사용하는 경우 세션ID가 URL에 노출될 수 있으므로 사용하지 않도록 설계한다'고 명시한다. 즉 URL Rewrite는 사용하지 않아야 하는데, 이 선지는 '적극 사용'으로 정반대로 진술하여 틀렸다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). design_considerations ③(ㄷ) 세션ID 폐기는 로그인 성공 시 로그인 전에 할당받은 세션ID를 파기하고 새로운 값으로 재할당하여 세션ID 고정 공격에 대응하도록 명시한다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). design_considerations ③(ㄷ)은 장기간 접속 시 세션ID 노출 위험이 커지므로 일정 시간 주기적으로 세션ID를 재할당하도록 설계한다고 명시한다."}
+      ],
+      "explanation": "정답은 2번. DSG-SC-01 라이브러리 design_considerations ③(안전한 세션ID 관리)의 (ㄱ)생성·(ㄴ)사용·(ㄷ)폐기와 대조한다. (ㄴ)은 'URL Rewrite 기능을 사용하는 경우 세션ID가 URL에 노출될 수 있으므로 사용하지 않도록 설계한다'고 명시하므로, 'URL Rewrite를 적극 사용한다'는 2번은 정반대로 틀린 진술이다. 1·3·4번은 각각 128비트 난수 서버 생성, 로그인 후 세션ID 재할당(고정 공격 대응), 일정 주기 재할당이라는 보안대책과 일치하는 옳은 진술로 함정 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — design_considerations ③(안전한 세션ID 관리)",
+      "tags": ["session_control", "design", "세션ID", "128비트난수", "URL Rewrite", "세션고정공격", "보안대책"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-M3",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "세션통제 설계항목의 진단방법과 확인 대상 산출물(관련산출물)의 연결로 잘못된 것은?\n\n진단원은 요구사항정의서·아키텍처설계서·개발가이드·유즈케이스설계서·클래스설계서·단위테스트계획서 등을 검토하여 세션통제 설계 적용 여부를 확인한다.",
+      "choices": [
+        {"num": 1, "text": "로그인에 성공하면 세션을 재할당하도록 코딩규칙이 정의되어 있는지 확인 — 개발가이드 검토"},
+        {"num": 2, "text": "오랫동안 사용하지 않는 세션에 대해 타임아웃을 설정(중요기능 2~5분, 위험도 낮음 15~30분)하여 세션이 제거되도록 설계되어 있는지 확인 — 요구사항정의서·아키텍처설계서·유즈케이스설계서·클래스설계서 검토"},
+        {"num": 3, "text": "세션ID 전송 방법을 쿠키로 제한하며 쿠키 속성에 HttpOnly가 설정되도록 웹서버 환경설정 계획이 수립되어 있는지 확인 — 요구사항정의서·아키텍처설계서 검토"},
+        {"num": 4, "text": "비밀번호 변경 시 재인증을 수행하여 새로운 세션이 할당되도록 설계되어 있는지 확인 — 단위테스트계획서 검토"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항②의 checklist 1-2 method가 '로그인에 성공하면 세션을 재할당하도록 코딩규칙이 정의되어 있는지 확인'이며 관련산출물(artifacts)이 '개발가이드 검토'로 정확히 일치한다."},
+        {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항②의 checklist 1-5 method가 '오랫동안 사용하지 않는 세션에 대해 타임아웃을 설정(중요기능 2~5분, 위험도 낮음 15~30분)하여 세션이 제거되도록 설계되어 있는지 확인'이며 artifacts가 '요구사항정의서, 아키텍처설계서, 유즈케이스설계서, 클래스설계서 검토'로 정확히 일치한다."},
+        {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항③의 checklist 1-3 method가 '세션ID 전송 방법을 쿠키로 제한하며, 쿠키 속성에 HttpOnly가 설정되도록 웹서버 환경설정 계획이 수립되어 있는지 확인'이며 artifacts가 '요구사항정의서, 아키텍처설계서 검토'로 정확히 일치한다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항②의 checklist 1-6 method '비밀번호 변경 시 재인증을 수행하여 새로운 세션이 할당되도록 설계되어 있는지 확인'의 관련산출물은 '유즈케이스설계서, 클래스설계서 검토'이다. '단위테스트계획서 검토'는 설계 여부(checklist 1번)가 아니라 테스트 계획 수립 여부(checklist 2번, 예: 2-3 비밀번호 변경 시 세션 관리 점검 테스트 계획 확인)에 연결되는 산출물이므로 진단방법과 산출물의 연결이 틀렸다."}
+      ],
+      "explanation": "정답은 4번. DSG-SC-01 라이브러리 diagnosis.requirements[].checklist[].methods의 method-artifacts 짝과 대조하여 검증한다. 1·2·3번은 각각 요구사항②1-2(개발가이드), ②1-5(요구사항정의서·아키텍처설계서·유즈케이스설계서·클래스설계서), ③1-3(요구사항정의서·아키텍처설계서)의 짝과 정확히 일치한다. 4번은 '비밀번호 변경 시 재인증 후 새 세션 할당' 설계 진단방법(②1-6)의 올바른 산출물이 '유즈케이스설계서·클래스설계서'인데 '단위테스트계획서'로 잘못 연결되어 있다. 단위테스트계획서는 세션 관리 점검 테스트 계획 확인(checklist 2번)에 쓰이는 산출물이라는 점이 함정이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — diagnosis.requirements②③ checklist methods/artifacts",
+      "tags": ["session_control", "design", "세션통제", "진단방법", "산출물", "개발가이드", "유즈케이스설계서"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-D1",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음은 다중 스레드 환경(Java 서블릿)에서 동작하는 클래스 설계의 일부다. 세션통제 관점에서 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic class UserServlet extends HttpServlet {\n    private String userName;  // 멤버변수\n\n    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {\n        userName = req.getParameter(\"name\");\n        resp.getWriter().write(\"Hello \" + userName);\n    }\n}\n```",
+      "vulnerable_code": "1  public class UserServlet extends HttpServlet {\n2      private String userName;  // 멤버변수\n3\n4      protected void doGet(HttpServletRequest req, HttpServletResponse resp) {\n5          userName = req.getParameter(\"name\");\n6          resp.getWriter().write(\"Hello \" + userName);\n7      }\n8  }",
+      "code_language": "java",
+      "vulnerable_lines": [2, 5],
+      "rationale_keywords": ["멤버변수", "세션 간 공유", "경쟁조건", "다중 스레드", "정보노출"],
+      "fix_keywords": ["지역변수", "멤버변수 제거", "공유 데이터 미사용"],
+      "safe_code": "1  public class UserServlet extends HttpServlet {\n2      // 멤버변수를 제거하고 요청마다 독립적인 지역변수 사용\n3      protected void doGet(HttpServletRequest req, HttpServletResponse resp) {\n4          String userName = req.getParameter(\"name\");  // 지역변수\n5          resp.getWriter().write(\"Hello \" + userName);\n6      }\n7  }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 서블릿(다중 스레드로 동작) 클래스에 읽고 쓰기가 가능한 멤버변수(userName)를 선언하고, 5번 라인에서 요청마다 이 멤버변수에 값을 대입한다. 서블릿·컨트롤러처럼 스레드로 동작하거나 싱글톤으로 생성되는 컴포넌트에서 멤버변수·클래스변수는 세션 간에 공유되는 데이터가 되므로, 다중 스레드 환경에서 경쟁조건(Race Condition)이 발생하여 다른 세션의 값이 노출되거나 잘못된 세션에 의한 정보노출(캡슐화 관련 보안약점)이 발생할 수 있다.",
+        "fix_description": "클래스 설계 시 읽고 쓰기가 가능한 멤버변수·클래스변수를 사용하지 않도록 한다. userName 멤버변수를 제거하고 doGet 내부의 지역변수로 선언하여 요청(스레드)마다 독립적인 값을 갖도록 수정한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. DSG-SC-01 design_considerations ①(세션 간 데이터 비공유)과 overview 사례2(잘못된 세션에 의한 정보노출, 경쟁조건)를 기반으로 한다.\n\n[근거 키워드 의미]\n- '멤버변수'/'세션 간 공유': 서블릿·컨트롤러·싱글톤 컴포넌트의 멤버변수·클래스변수는 세션 간 공유 데이터가 된다.\n- '경쟁조건'/'다중 스레드': 다중 스레드 환경(java 서블릿)에서 싱글톤 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다.\n- '정보노출': 잘못된 세션에 의한 데이터 정보노출(관련 보안약점, 캡슐화)로 이어진다.\n\n[수정 키워드 의미] 멤버변수를 제거하고 요청마다 독립적인 지역변수를 사용하여 세션 간 공유 데이터가 생기지 않도록 한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2번 멤버변수 선언·5번 대입 지목) 20점 / rationale(멤버변수가 세션 간 공유·경쟁조건·다중 스레드·정보노출 키워드 포함) 30점 / fix(지역변수 전환·멤버변수 제거) 30점.\n\n[자가확인 체크리스트] (1) 서블릿·컨트롤러·싱글톤 등 스레드로 동작/단일 인스턴스 클래스인가? (2) 읽고 쓰기가 가능한 멤버변수·클래스변수가 선언되어 있는가? (3) 그 변수에 요청별 데이터를 쓰는가? — 모두 해당하면 세션 간 데이터 공유 취약점이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — design_considerations ①, overview 사례2(경쟁조건), 관련 보안약점 IMP-EN-01(잘못된 세션에 의한 데이터 정보 노출, CWE-488)",
+      "tags": ["session_control", "design", "세션통제", "정탐", "멤버변수", "경쟁조건", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-D2",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 로그인 처리 컨트롤러의 설계 코드다. 세션통제(세션ID 재할당) 관점에서 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nprotected void doPost(HttpServletRequest req, HttpServletResponse resp) {\n    if (authenticate(req)) {\n        // 로그인 성공 시 기존 세션을 폐기하고 새 세션을 발급\n        HttpSession oldSession = req.getSession(false);\n        if (oldSession != null) {\n            oldSession.invalidate();\n        }\n        HttpSession newSession = req.getSession(true);\n        newSession.setAttribute(\"user\", req.getParameter(\"id\"));\n    }\n}\n```",
+      "vulnerable_code": "1  protected void doPost(HttpServletRequest req, HttpServletResponse resp) {\n2      if (authenticate(req)) {\n3          // 로그인 성공 시 기존 세션을 폐기하고 새 세션을 발급\n4          HttpSession oldSession = req.getSession(false);\n5          if (oldSession != null) {\n6              oldSession.invalidate();\n7          }\n8          HttpSession newSession = req.getSession(true);\n9          newSession.setAttribute(\"user\", req.getParameter(\"id\"));\n10     }\n11 }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["로그인 성공 시 재할당", "기존 세션ID 파기", "세션고정공격 대응", "invalidate", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 로그인 성공 시 기존 세션을 invalidate()로 파기하고\n2  // getSession(true)로 새 세션ID를 재할당하여 세션ID 고정 공격에 대응한다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 로그인 성공(authenticate) 시 기존 세션을 oldSession.invalidate()로 완전히 폐기하고 getSession(true)로 새로운 세션을 발급하여 세션ID를 재할당하고 있다. 이는 design_considerations ③(ㄷ) '로그인 성공 시 로그인 전에 할당받은 세션ID는 파기하고 새로운 값으로 재할당하여 세션ID 고정 공격에 대응'하는 안전한 설계와 정확히 일치한다. 로그인 전 세션ID가 그대로 유지되지 않으므로 세션ID 고정 공격에 노출되지 않는다.",
+        "fix_description": "수정 불필요. 이미 로그인 성공 시 기존 세션ID 파기 + 새 세션 재할당이라는 가이드 권장 설계를 따르고 있어 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. DSG-SC-01 design_considerations ③(ㄷ) 세션ID 폐기(로그인 성공 시 재할당, 세션ID 고정 공격 대응)를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 세션을 다룬다고 무조건 취약한 것이 아니다. 이 코드는 오히려 가이드가 제시하는 세션ID 고정 공격 대응의 모범 사례다. invalidate() 호출과 getSession(true)로 새 세션을 발급하는 흐름을 정확히 읽어야 한다.\n\n[안전 판정 근거 키워드 의미]\n- '로그인 성공 시 재할당'/'기존 세션ID 파기': authenticate 성공 후 oldSession.invalidate() + getSession(true)로 세션ID를 새로 발급함.\n- '세션고정공격 대응': 로그인 전 할당받은 세션ID를 파기하므로 세션ID 고정 공격이 통하지 않음.\n- '안전': 가이드 ③(ㄷ) 권장 설계와 일치.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(로그인 성공 시 재할당·기존 세션ID 파기·세션고정공격 대응·invalidate 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 로그인 성공 시점에 기존 세션을 파기(invalidate)하는가? → 그렇다. (2) 새 세션ID를 재할당(getSession(true))하는가? → 그렇다. (3) 로그인 전 세션ID가 그대로 유지되는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — design_considerations ③(ㄷ) 세션ID 폐기(세션ID 고정 공격 대응)",
+      "tags": ["session_control", "design", "세션통제", "오탐", "세션ID재할당", "세션고정공격", "java"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-C1",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 애플리케이션 프로젝트의 분석·설계 단계 산출물 3종(요구사항정의서·아키텍처설계서·개발가이드)이다. '세션통제' 설계항목의 적용 여부를 진단하고, 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 세션 간 데이터 비공유, ② 안전한 세션 관리(세션 생성·종료·타임아웃), ③ 안전한 세션ID 관리(생성·사용·폐기)의 세 축과, 각 요구사항의 진단방법(요구사항정의서·아키텍처설계서·개발가이드 반영 여부)을 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 세션통제(SR-SC)",
+          "content": "SR-SC-01 다른 세션 간 데이터가 공유되지 않도록 설계한다.\nSR-SC-02 세션이 안전하게 관리(생성·종료·타임아웃)되도록 설계한다.\nSR-SC-03 세션ID가 안전하게 관리(생성·사용·폐기)되도록 설계한다.\n(주: 본 정의서의 세 항목은 아키텍처설계서·개발가이드로 추적 가능하도록 요구사항추적표에 매핑되어 있다.)"
+        },
+        {
+          "type": "아키텍처설계서",
+          "title": "세션 관리 아키텍처 설계 — 타임아웃·세션ID·쿠키",
+          "content": "[타임아웃] 오랫동안 사용되지 않는 세션은 강제 삭제되도록 한다. 단, 타임아웃 시간을 모든 기능에 일괄 60분으로 설정한다. (중요기능 2~5분 / 위험도 낮음 15~30분 구분 없음)\n[세션ID 생성·전송] 세션ID는 안전한 서버에서 최소 128비트 길이의 안전한 난수로 생성한다. 세션ID 전송은 쿠키로 제한하고 쿠키에 HttpOnly 속성을 설정한다.\n(결함 후보) 세션ID 생성 길이·난수는 적절하나, 타임아웃 시간 기준이 가이드(중요기능 2~5분, 위험도 낮음 15~30분)와 다르게 일괄 60분으로 설계되어 있다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "세션통제 시큐어코딩 가이드 + 예시 코드",
+          "content": "코딩 규칙: (1) 로그아웃 시 session.invalidate()로 세션을 완전히 제거한다. (2) 로그인 성공 시 기존 세션ID를 파기하고 새 세션을 재할당한다. 단, '서블릿·컨트롤러·싱글톤 컴포넌트에서 읽고 쓰기가 가능한 멤버변수·클래스변수를 사용하지 않는다(세션 간 데이터 비공유)'는 코딩 규칙은 본 가이드에 명시되어 있지 않다. 아래는 가이드에 첨부된 예시 코드다.",
+          "code": "// 개발가이드 첨부 예시 (Java 서블릿)\npublic class OrderServlet extends HttpServlet {\n    private String orderId;  // 멤버변수\n    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {\n        orderId = req.getParameter(\"oid\");\n        process(orderId);\n    }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "세션 간 데이터 비공유 — 개발가이드의 멤버변수 비공유 코딩 규칙 누락 + 예시 코드의 멤버변수 사용 결함 진단",
+          "points": 2,
+          "required_keywords": ["멤버변수", "세션 간 데이터 비공유", "지역변수"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항①1-1·1-2: 세션 간 데이터가 공유되지 않도록 클래스가 설계되어 있는지 확인. 개발가이드에 멤버변수·클래스변수 비사용(세션 간 데이터 비공유) 코딩 규칙이 누락되었고, 첨부 예시 코드가 서블릿에 멤버변수(orderId)를 선언·대입하여 세션 간 데이터 공유 결함이 있음."
+        },
+        {
+          "item": "안전한 세션 관리 — 세션 타임아웃 시간 기준 부적합 진단",
+          "points": 2,
+          "required_keywords": ["세션 타임아웃", "2~5분", "15~30분"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항②1-5: 오랫동안 사용하지 않는 세션에 타임아웃을 설정하여 세션이 제거되도록(중요기능 2~5분, 위험도 낮음 15~30분) 설계되어 있는지 확인. 아키텍처설계서가 일괄 60분으로 설계하여 가이드 기준(중요기능 2~5분/위험도 낮음 15~30분)을 충족하지 못함."
+        },
+        {
+          "item": "안전한 세션 관리 — 로그아웃 시 세션 완전 제거·로그인 후 세션 재할당 코딩 규칙 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["session.invalidate()", "로그인 성공 시 세션 재할당", "적합"],
+          "artifact_ref": "개발가이드",
+          "method": "요구사항②1-2·1-3: 로그인 성공 시 세션 재할당, 로그아웃 시 세션 완전 제거 코딩 규칙이 개발가이드에 정의되어 있는지 확인. 개발가이드가 session.invalidate() 사용과 로그인 후 세션 재할당을 명시하여 이 항목은 적합."
+        },
+        {
+          "item": "안전한 세션ID 관리 — 세션ID 생성(128비트 난수)·전송(쿠키 제한+HttpOnly) 설계 적합성 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["128비트 난수", "쿠키 제한", "HttpOnly"],
+          "artifact_ref": "아키텍처설계서",
+          "method": "요구사항③1-2·1-3: 세션ID를 서버에서 생성하고, 전송을 쿠키로 제한하며 HttpOnly가 설정되도록 웹서버 환경설정 계획이 수립되어 있는지 확인. 아키텍처설계서가 128비트 난수 서버 생성·쿠키 전송 제한·HttpOnly 설정을 명시하여 이 항목은 적합."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). DSG-SC-01 diagnosis.requirements ①②③ checklist의 method/artifacts를 채점 기준의 근거로 사용한다.\n\n[진단 단계 흐름] (1) 요구사항정의서에서 세션통제 세 축(①②③)이 보안요구사항으로 수립되고 요구사항추적표로 추적 가능한지 확인 → (2) 아키텍처설계서에서 타임아웃 시간·세션ID 생성/전송 설계 확인 → (3) 개발가이드에서 세션 간 데이터 비공유 코딩 규칙·로그아웃 세션 제거·로그인 후 재할당 규칙 확인 → (4) 첨부 예시 코드의 실제 결함 점검.\n\n[모범 진단보고서]\n■ 진단항목 1 — 세션 간 데이터 비공유(개발가이드)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 개발가이드에 서블릿·컨트롤러·싱글톤 컴포넌트의 읽고 쓰기 가능한 멤버변수·클래스변수 비사용 규칙이 누락되었고, 첨부 예시 코드가 서블릿에 멤버변수(orderId)를 선언·대입하여 세션 간 데이터가 공유되어 경쟁조건·정보노출이 발생할 수 있다.\n  · 개선방안: 멤버변수·클래스변수 대신 요청마다 독립적인 지역변수를 사용하도록 개발가이드 코딩 규칙과 예시 코드를 수정한다.\n■ 진단항목 2 — 세션 타임아웃 시간(아키텍처설계서)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 타임아웃이 모든 기능에 일괄 60분으로 설계되어, 중요기능 2~5분·위험도 낮은 애플리케이션 15~30분이라는 가이드 기준을 충족하지 못한다.\n  · 개선방안: 기능 위험도에 따라 중요기능 2~5분, 위험도 낮은 애플리케이션 15~30분으로 타임아웃 시간을 구분하여 재설계한다.\n■ 진단항목 3 — 로그아웃 세션 제거·로그인 후 세션 재할당(개발가이드)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 개발가이드가 로그아웃 시 session.invalidate()로 세션을 완전히 제거하고, 로그인 성공 시 기존 세션ID를 파기하고 새 세션을 재할당하도록 명시하여 요구사항②를 충족한다.\n  · 개선방안: 현 설계 유지.\n■ 진단항목 4 — 세션ID 생성·전송(아키텍처설계서)\n  · 판정: 적합(정탐 아님)\n  · 현황 및 문제점: 세션ID를 안전한 서버에서 128비트 난수로 생성하고, 전송을 쿠키로 제한하며 HttpOnly를 설정하여 요구사항③의 진단방법을 충족한다.\n  · 개선방안: 현 설계 유지. (불필요한 결함 지적은 오탐이므로 주의)\n\n[정탐/오탐 판정 근거] 진단항목 1·2는 산출물에 명시적으로 누락/기준 불일치가 존재하므로 정탐(결함)으로 지적한다. 진단항목 3·4는 로그아웃/로그인 세션 처리와 세션ID 생성·전송이 적절히 설계되어 있으므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — diagnosis.requirements①②③ checklist methods; design_considerations ①②③",
+      "tags": ["session_control", "design", "세션통제", "복합서술형", "진단보고서", "타임아웃", "멤버변수"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-B1",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "다음은 '세션통제' 설계항목의 안전한 세션ID·세션 관리에 대한 보안대책이다. 빈칸에 들어갈 값을 쓰시오.",
+      "blank_template": "세션ID는 안전한 서버에서 생성하며, 최소 (①)비트의 길이로 안전한 난수 알고리즘을 적용하여 예측 불가능한 값을 사용한다. 세션ID가 포함된 쿠키에는 (②) 속성을 설정하여 자바스크립트로 조회할 수 없도록 만들어 XSS 공격에 대응한다. 세션 타임아웃 시간은 중요기능의 경우 (③)분, 위험도가 낮은 애플리케이션의 경우 15~30분으로 설정한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["128"], "synonyms": ["128비트", "최소 128"]},
+        {"idx": 2, "answers": ["HttpOnly"], "synonyms": ["httponly", "HTTPOnly", "HttpOnly 속성"]},
+        {"idx": 3, "answers": ["2~5"], "synonyms": ["2-5", "2~5분", "2분~5분", "2분에서 5분"]}
+      ],
+      "explanation": "정답: ① 128, ② HttpOnly, ③ 2~5.\n\n[① 128] design_considerations ③(ㄱ) 세션ID 생성은 '최소 128비트의 길이로 생성하고 안전한 난수 알고리즘을 적용하여 예측 불가능한 값을 사용'하도록 명시한다. 세션ID 길이가 짧으면 예측·무차별 대입 공격에 취약해진다.\n\n[② HttpOnly] design_considerations ②는 '세션ID가 포함된 쿠키에 HttpOnly 속성을 설정하여 자바스크립트로 조회할 수 없도록 만들어 XSS 공격에 대응'한다고 명시한다. HttpOnly가 설정되면 document.cookie 등 자바스크립트로 세션 쿠키를 읽을 수 없어 XSS를 통한 세션 탈취를 막는다.\n\n[③ 2~5] 세션 타임아웃 시간은 중요기능의 경우 2~5분, 위험도가 낮은 애플리케이션의 경우 15~30분으로 설정한다. 중요기능일수록 도용 위험을 줄이기 위해 짧은 타임아웃을 적용한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — design_considerations ②(HttpOnly·타임아웃), ③(ㄱ)(세션ID 128비트 난수)",
+      "tags": ["session_control", "design", "세션통제", "128비트", "HttpOnly", "타임아웃", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "session_control",
+      "weakness_code": "DSG-SC-01-B2",
+      "weakness_name_ko": "세션통제",
+      "chapter_code": "DSG-SC-01",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 '세션통제' 설계항목의 세션 간 데이터 비공유·세션ID 폐기에 대한 보안대책이다. 빈칸에 들어갈 용어를 쓰시오.",
+      "blank_template": "스레드로 동작하는 컨트롤러 컴포넌트나 (①) 객체로 생성되는 서비스 컴포넌트를 설계하는 경우, 클래스 (②)나 클래스변수는 세션 간에 공유되는 데이터가 되므로 읽고 쓰기가 가능한 변수를 사용하지 않도록 설계한다. 또한 로그인 성공 시 로그인 전에 할당받은 세션ID는 파기하고 새로운 값으로 재할당하여 (③) 공격에 대응한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["싱글톤"], "synonyms": ["Singleton", "singleton", "싱글턴"]},
+        {"idx": 2, "answers": ["멤버변수"], "synonyms": ["멤버 변수", "member variable", "인스턴스변수", "인스턴스 변수"]},
+        {"idx": 3, "answers": ["세션ID 고정"], "synonyms": ["세션 고정", "세션ID 고정 공격", "Session Fixation", "세션 ID 고정", "세션고정"]}
+      ],
+      "explanation": "정답: ① 싱글톤(Singleton), ② 멤버변수, ③ 세션ID 고정.\n\n[① 싱글톤] design_considerations ①은 '스레드로 동작하는 웹애플리케이션의 컨트롤러 컴포넌트나, 싱글톤(Singleton) 객체로 생성되는 서비스 컴포넌트를 설계하는 경우' 세션 간 데이터 공유 문제가 발생할 수 있음을 명시한다. 싱글톤은 애플리케이션에서 단일 인스턴스만 생성되므로 그 필드가 모든 요청·세션에서 공유된다.\n\n[② 멤버변수] '클래스 멤버 변수나 클래스변수는 세션 간에 공유되는 데이터가 되므로 클래스 설계 시 읽고 쓰기가 가능한 변수를 사용하지 않도록 설계해야 한다.' 멤버변수에 요청별 데이터를 쓰면 다중 스레드 환경에서 경쟁조건(Race Condition)으로 다른 세션의 정보가 노출될 수 있다.\n\n[③ 세션ID 고정] design_considerations ③(ㄷ)은 '로그인 성공 시 로그인 전에 할당받은 세션ID는 파기하고 새로운 값으로 재할당하여 세션ID 고정 공격에 대응'하도록 명시한다. 공격자가 미리 알고 있는 세션ID를 피해자에게 사용하게 한 뒤 로그인 후 그 세션을 가로채는 세션ID 고정(Session Fixation) 공격을, 로그인 시 세션ID를 새로 발급함으로써 무력화한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제3장 §4.1 세션 통제 — design_considerations ①(싱글톤·멤버변수), ③(ㄷ)(세션ID 고정 공격 대응)",
+      "tags": ["session_control", "design", "세션통제", "싱글톤", "멤버변수", "세션고정공격", "빈칸"]
+    }
+  ]
+}

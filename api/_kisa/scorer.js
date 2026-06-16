@@ -157,11 +157,70 @@ function scoreBlank(question, attempt) {
   };
 }
 
+/**
+ * composite(복합서술형) 문항 자동 채점
+ *   question.rubric: [{ item, points, required_keywords:[], artifact_ref, method }]
+ *                    (배점 합계는 8점 기준 — migration 005 참조)
+ *   attempt.report_text: 사용자가 작성한 진단보고서 본문(단일 텍스트)
+ *
+ * 채점 방식:
+ *   - 각 rubric 항목마다 required_keywords 를 report_text 에서 부분매칭(diagnosis4와 동일한 countHits 재사용)
+ *   - 항목 점수 = points × (매칭 키워드 수 / 전체 키워드 수)
+ *     (required_keywords 가 비어 있으면 만점 부여 — diagnosis4 의 total===0 규약과 동일)
+ *   - 항목 점수를 합산해 rubric 총점(0~8 등)을 구한 뒤, 배점 합계 기준 0~100으로 환산
+ *     → scoreAttempt 의 autoScore 반환 규약(0~100)에 맞춤
+ */
+function scoreComposite(question, attempt) {
+  const rubric = Array.isArray(question.rubric) ? question.rubric : [];
+  const reportText = attempt.report_text || '';
+
+  let earnedSum = 0;   // 획득 점수 합 (rubric 원점수 스케일)
+  let pointsSum = 0;   // 배점 합 (보통 8)
+  const rubricHits = [];
+
+  for (const r of rubric) {
+    const points = Number(r.points) || 0;
+    const keywords = Array.isArray(r.required_keywords) ? r.required_keywords : [];
+    // diagnosis4 키워드 매칭 그대로 재사용 (normalizeText + 부분 포함 + synonyms)
+    const { hits, total, matched } = countHits(reportText, keywords);
+
+    // 항목 점수: 키워드 없으면 만점, 있으면 비율 배분
+    const pointsEarned = total > 0 ? (points * hits / total) : points;
+
+    earnedSum += pointsEarned;
+    pointsSum += points;
+
+    rubricHits.push({
+      item: r.item,
+      matched,                       // 매칭된 키워드 목록
+      total,                         // 전체 키워드 수
+      points,                        // 항목 배점
+      points_earned: Math.round(pointsEarned * 100) / 100,  // 소수 2자리 보존
+    });
+  }
+
+  // 배점 합계 기준 0~100 환산 (배점 0이면 0점)
+  const autoScore = pointsSum > 0
+    ? Math.min(100, Math.max(0, Math.round((earnedSum / pointsSum) * 100)))
+    : 0;
+
+  return {
+    autoScore,
+    breakdown: {
+      rubricEarned: Math.round(earnedSum * 100) / 100,
+      rubricTotal: pointsSum,
+    },
+    keywordHits: null,
+    rubricHits,
+  };
+}
+
 /** 통합 채점 함수 — question_type에 따라 위임 */
 function scoreAttempt(question, attempt) {
   if (question.question_type === 'mcq') return scoreMcq(question, attempt);
   if (question.question_type === 'diagnosis4') return scoreDiagnosis4(question, attempt);
   if (question.question_type === 'blank') return scoreBlank(question, attempt);
+  if (question.question_type === 'composite') return scoreComposite(question, attempt);
   throw new Error(`Unknown question_type: ${question.question_type}`);
 }
 
@@ -170,6 +229,7 @@ module.exports = {
   scoreDiagnosis4,
   scoreMcq,
   scoreBlank,
+  scoreComposite,
   // 내부 유틸 (테스트용)
   normalizeText,
   keywordHit,

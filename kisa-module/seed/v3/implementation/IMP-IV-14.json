@@ -1,0 +1,177 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-14",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-M1",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "정수형 오버플로우(Integer Overflow) 보안약점에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "정수값이 증가하면서 허용된 가장 큰 값보다 커지면, 실제 저장되는 값이 의도치 않게 아주 작은 수이거나 음수가 될 수 있다."},
+        {"num": 2, "text": "반복문 제어, 메모리 할당, 메모리 복사 등의 조건으로 사용자 입력값을 사용할 때 오버플로우가 발생하면 보안상 문제를 유발할 수 있다."},
+        {"num": 3, "text": "외부 입력값을 동적 메모리 할당(배열 크기 등)에 사용하는 경우, 변수값이 적절한 범위 내에 존재하는 값인지 확인해야 한다."},
+        {"num": 4, "text": "정수 연산은 항상 결과가 입력보다 커지므로, 입력값의 범위만 검증하면 연산 결과값의 범위는 별도로 확인할 필요가 없다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview와 일치한다. 정수값이 최대값을 초과하면 저장값이 아주 작은 수이거나 음수가 된다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). overview와 일치한다. 반복문 제어·메모리 할당·메모리 복사 조건으로 입력값을 쓸 때 오버플로우가 보안 문제를 일으킨다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure와 일치한다. 외부 입력값을 동적 메모리 할당에 사용할 때 변수값이 적절한 범위 내인지 확인한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). countermeasure는 '정수형 변수를 연산에 사용하는 경우 결과값의 범위를 체크하는 모듈을 사용한다'이다. 연산 결과는 오버플로우로 입력보다 작아지거나 음수가 될 수 있으므로 결과값 범위 체크는 반드시 필요하다. '결과값 범위 확인이 불필요하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-14 라이브러리 overview·countermeasure와 대조한다. 정수형 오버플로우는 정수가 최대값을 넘어 작은 수·음수로 순환(wrap-around)되는 현상이며, 대책은 ① 언어·플랫폼별 정수 타입 범위 확인, ② 연산 결과값 범위 체크, ③ 동적 할당 값 범위 검사다. 4번은 ②를 정면으로 부정하므로 틀렸다. 1·2·3번은 각각 overview·countermeasure와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우(pp.290-296), CWE-190 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "integer-overflow", "범위검증", "음수", "wrap-around"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-M2",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nString tmp = request.getParameter(\"slf_msg_param_num\");\ntmp = StringUtil.isNullTrim(tmp);\nif (tmp.equals(\"0\")) {\n    msg_str = PropertyUtil.getValue(msg_id);\n} else {\n    int param_ct = Integer.parseInt(tmp);\n    String[] strArr = new String[param_ct];\n}\n```",
+      "choices": [
+        {"num": 1, "text": "외부 입력값(slf_msg_param_num)을 Integer.parseInt로 정수화한 뒤 크기 검증 없이 배열 크기(param_ct)로 사용하고 있어 정수형 오버플로우에 취약하다."},
+        {"num": 2, "text": "param_ct가 오버플로우로 음수가 되면 배열 크기가 음수가 되어 시스템에 문제가 발생할 수 있다."},
+        {"num": 3, "text": "안전하게 하려면 Integer.parseInt 후 if (param_ct < 0) throw new Exception(); 와 같이 범위를 검증한 뒤 배열 크기로 사용해야 한다."},
+        {"num": 4, "text": "Integer.parseInt는 내부적으로 입력값의 범위를 항상 검증하므로, 별도의 음수·과대값 검사 없이도 배열 크기로 안전하게 사용할 수 있다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 그대로다. 외부 입력값을 크기 검증 없이 배열 크기로 사용하므로 취약하다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). note와 일치한다. param_ct가 음수가 되면 배열 크기가 음수가 되어 시스템 문제가 발생한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드의 대책이다. parseInt 후 if (param_ct < 0) throw new Exception();으로 범위를 검증한다."},
+        {"num": 4, "correct": true, "why": "정답(틀린 진술). Integer.parseInt는 문자열을 정수로 변환할 뿐, 그 값이 배열 크기로 적합한지(음수·과대값 여부)는 검증하지 않는다. 동적 할당에 쓰려면 별도의 범위 검사(param_ct < 0 등)가 반드시 필요하다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-14 code_examples(Java) vulnerable 코드다. Integer.parseInt는 단순 변환 함수일 뿐 배열 크기 적합성을 검증하지 않으며, countermeasure는 동적 할당 시 값 범위를 검사하라고 요구한다. 4번은 parseInt가 범위를 검증한다고 잘못 진술하므로 틀렸다. 1·2·3번은 각각 취약 근거·note·safe 코드의 대책과 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — code_examples(Java) vulnerable/safe, note",
+      "tags": ["input_validation", "implementation", "integer-overflow", "배열크기", "범위검증", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-M3",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "정수형 오버플로우 진단 시, 다음 코드 중 '취약하지 않다'고 판정하는 것이 잘못된 것은? (진단방법: ① 변수로 배열 크기를 동적 결정 → ② 변수가 외부 입력값인지 확인 → ③ 의도한 범위 내인지 검증 절차 확인)",
+      "choices": [
+        {"num": 1, "text": "byte[] bytes = new byte[pubKey.available()]; — available()은 int 값을 리턴하므로 정수 한계를 벗어난 값이 발생하지 않아 안전"},
+        {"num": 2, "text": "String refererValue = referer_split[referer_split.length-1]; — 입력이 HTTP 헤더(Referer)에서 오므로 헤더 한계값이 있어 정수 한계 초과 가능성이 없어 안전"},
+        {"num": 3, "text": "String[] allArgs = new String[jsargs.length + args.length]; — 인자 개수가 정수 한계 이상으로 입력될 가능성이 희박하고 외부 값이 아니므로 안전"},
+        {"num": 4, "text": "int cntI = Integer.parseInt(request.getParameter(\"cnt\")); String[] arr = new String[cntI]; — 안전"}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. pubKey.available()은 int 값을 리턴하므로 정수 한계를 벗어난 값이 발생하지 않아 안전하다."},
+        {"num": 2, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. 입력값이 HTTP 헤더(Referer)에서 오므로 헤더 한계값이 있어 정수 한계 초과 가능성이 없어 안전하다."},
+        {"num": 3, "correct": false, "why": "옳은 안전 판정(함정). false_positive 사례다. 인자 개수가 정수 한계 이상으로 입력될 가능성이 희박하고 사용자 입력 등 외부 값이 아니므로 안전하다."},
+        {"num": 4, "correct": true, "why": "정답(잘못된 안전 판정). cnt는 request.getParameter로 받은 외부 입력값이며(②), 음수·과대값 범위 검증 없이(③ 미충족) 배열 크기로 사용(①)하므로 정수형 오버플로우에 취약하다. 이를 안전하다고 판정하면 틀렸다(true_positive 사례)."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-14 diagnosis의 true_positive/false_positive 사례를 섞어 제시했다. 1·2·3번은 모두 false_positive(안전) 사례 — int 리턴 함수, 헤더 한계값, 외부 값이 아닌 인자 개수 — 이므로 안전 판정이 옳다. 4번은 true_positive 사례로, 외부 입력값(cnt)을 범위 검증 없이 배열 크기로 사용하므로 취약하다. 따라서 '안전하지 않다고 판정하는 것이 잘못된' 보기를 고르라는 질문에서 4번이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — diagnosis.true_positive / false_positive",
+      "tags": ["input_validation", "implementation", "integer-overflow", "진단", "정탐", "오탐", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-D1",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 정수형 오버플로우 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\nString cnt = request.getParameter(\"cnt\");\nif (cnt == null) {\n    cnt = \"0\";\n}\nint cntI = Integer.parseInt(cnt);\nString[] arr = new String[cntI];\nfor (int i = 0; i < cntI; i++) {\n    arr[i] = request.getParameter(\"r\" + i);\n}\n```",
+      "vulnerable_code": "1  String cnt = request.getParameter(\"cnt\");\n2  if (cnt == null) {\n3    cnt = \"0\";\n4  }\n5  int cntI = Integer.parseInt(cnt);\n6  String[] arr = new String[cntI];\n7  for (int i = 0; i < cntI; i++) {\n8    arr[i] = request.getParameter(\"r\" + i);\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [5, 6],
+      "rationale_keywords": ["외부 입력값", "범위 검증 없음", "동적 배열 할당", "음수 배열 크기", "정수형 오버플로우"],
+      "fix_keywords": ["범위 검증", "음수 검사(cntI < 0)", "예외 처리"],
+      "safe_code": "1  String cnt = request.getParameter(\"cnt\");\n2  if (cnt == null) {\n3    cnt = \"0\";\n4  }\n5  try {\n6    int cntI = Integer.parseInt(cnt);\n7    // 외부 입력값을 배열 크기로 사용하기 전에 범위(음수 등)를 검증\n8    if (cntI < 0 || cntI > MAX_ALLOWED) {\n9      throw new Exception();\n10   }\n11   String[] arr = new String[cntI];\n12   for (int i = 0; i < cntI; i++) {\n13     arr[i] = request.getParameter(\"r\" + i);\n14   }\n15 } catch (Exception e) {\n16   // 잘못된 입력 처리\n17 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 5번 라인에서 외부 입력값(cnt)을 Integer.parseInt로 정수화하고, 6번 라인에서 그 값(cntI)을 범위 검증 없이 배열 크기로 사용한다. 외부 입력으로 정수 한계를 초과하는 큰 값이 들어오면 오버플로우로 음수가 되어 배열 크기가 음수가 되거나, 과대한 값으로 메모리 문제가 발생할 수 있는 정수형 오버플로우(CWE-190)에 취약하다.",
+        "fix_description": "Integer.parseInt 후 배열 크기로 사용하기 전에 if (cntI < 0 || cntI > 허용최대값) 처럼 음수·과대값 범위를 검증하고, try-catch로 잘못된 입력을 예외 처리한 뒤 적절한 범위의 값만 배열 크기로 사용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-14 diagnosis.true_positive 첫 번째 사례를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력값': 5번 라인 request.getParameter(\"cnt\")로 받은 cnt.\n- '범위 검증 없음': 음수·과대값 여부 검사가 없음.\n- '동적 배열 할당': 6번 라인 new String[cntI]로 입력값을 배열 크기에 사용.\n- '음수 배열 크기'/'정수형 오버플로우': 한계 초과 시 음수가 되어 발생하는 결과.\n\n[수정 키워드 의미] 배열 크기 사용 전에 if (cntI < 0 ...) 범위 검증 후 예외 처리한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(5·6번 라인 지목) 20점 / rationale(외부 입력값·범위 검증 부재·동적 할당·음수/오버플로우 키워드 포함) 30점 / fix(음수 등 범위 검증 + 예외 처리) 30점.\n\n[자가확인 체크리스트] (1) 변수로 배열 크기를 동적 결정하는가? (2) 그 변수가 외부 입력값인가? (3) 의도한 범위(음수·과대값) 검증 절차가 있는가? — (1)(2) 예 + (3) 아니오이면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — diagnosis.true_positive, CWE-190",
+      "tags": ["input_validation", "implementation", "integer-overflow", "정탐", "배열크기", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-D2",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 정수형 오버플로우 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nString[] referer_split = Util.split(request.getHeader(\"Referer\").toString(), \"/\");\nString refererValue = referer_split[referer_split.length - 1];\n```",
+      "vulnerable_code": "1  String[] referer_split = Util.split(request.getHeader(\"Referer\").toString(), \"/\");\n2  String refererValue = referer_split[referer_split.length - 1];",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["HTTP 헤더 한계값", "Referer", "정수 한계 초과 불가", "배열 크기 동적 할당 아님", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 입력값이 HTTP 헤더(Referer)에서 오므로 헤더의 한계값이 존재해\n2  // 정수의 한계를 초과할 가능성이 없으며, 외부 입력값을 배열 크기로 동적 할당하는 구조가 아니므로\n3  // 정수형 오버플로우가 발생하지 않는다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 입력값이 HTTP 헤더(Referer)에서 오는데, HTTP 헤더는 길이 한계값이 존재하므로 정수의 한계를 초과하는 값이 발생할 가능성이 없다. 또한 referer_split.length-1은 split 결과 배열의 마지막 인덱스를 참조하는 것일 뿐 외부 입력값을 배열 크기로 동적 할당하는 구조가 아니다. 따라서 정수형 오버플로우에 안전하다.",
+        "fix_description": "수정 불필요. 입력 출처(HTTP 헤더)의 한계값과 배열 인덱스 참조 구조상 오버플로우가 발생하지 않으므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-14 diagnosis.false_positive 두 번째 사례를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] request.getHeader로 외부 값을 다룬다는 사실만으로 정수형 오버플로우라고 단정해서는 안 된다. HTTP 헤더는 길이 한계가 있어 정수 한계를 넘는 값이 만들어질 수 없고, 이 코드는 입력값을 배열 크기로 동적 할당하지도 않는다.\n\n[안전 판정 근거 키워드 의미]\n- 'HTTP 헤더 한계값'/'Referer': 입력 출처가 헤더라 길이 한계가 존재함.\n- '정수 한계 초과 불가': 그 한계로 인해 정수 오버플로우가 발생할 수 없음.\n- '배열 크기 동적 할당 아님': length-1은 인덱스 참조일 뿐 입력값을 배열 크기로 쓰지 않음.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음을 정확히 판단) 20점 / rationale(헤더 한계값·정수 한계 초과 불가·동적 할당 아님 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 변수로 배열 크기를 동적 결정하는가? → 아니다(인덱스 참조). (2) 입력 출처에 한계값이 있어 정수 한계 초과가 불가능한가? → 그렇다(HTTP 헤더). — 두 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — diagnosis.false_positive",
+      "tags": ["input_validation", "implementation", "integer-overflow", "오탐", "http-header", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-B1",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "정수형 오버플로우의 발생 원리와 보안대책에 대한 다음 설명의 빈칸을 채우시오.",
+      "blank_template": "정수형 오버플로우는 정수값이 증가하면서 허용된 가장 큰 값보다 커져서 실제 저장되는 값이 의도치 않게 아주 작은 수이거나 ___(1)___가 되어 발생한다. 특히 외부 입력값을 ___(2)___ 할당(배열 크기 등)에 사용하는 경우 변수값이 적절한 범위 내인지 확인해야 한다. 보안대책으로는 언어·플랫폼별 정수 타입의 ___(3)___를 확인하여 사용하고, 연산 결과값의 범위를 체크해야 한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["음수"], "synonyms": ["마이너스", "음의 정수", "negative"]},
+        {"idx": 2, "answers": ["동적 메모리"], "synonyms": ["동적", "동적메모리", "dynamic"]},
+        {"idx": 3, "answers": ["범위"], "synonyms": ["표현 범위", "한계값", "범위(한계값)", "range"]}
+      ],
+      "explanation": "정답: (1) 음수 / (2) 동적 메모리 / (3) 범위. IMP-IV-14 overview·countermeasure 기반이다. 정수가 최대값을 초과하면 wrap-around되어 아주 작은 수나 음수가 되고, 이 값을 배열 크기 등 동적 메모리 할당에 쓰면 음수 크기 배열 등 보안 문제가 발생한다. 대책은 언어·플랫폼별 정수 타입의 범위 확인, 연산 결과값 범위 체크, 동적 할당 값 범위 검사다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "integer-overflow", "빈칸", "음수", "범위검증"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-14-B2",
+      "weakness_name_ko": "정수형 오버플로우",
+      "chapter_code": "IMP-IV-14",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 정수형 오버플로우를 방지하기 위한 안전한 Java 코드의 일부다. 빈칸을 채우시오.",
+      "blank_template": "try {\n    int param_ct = Integer.___(1)___(tmp);\n    // 외부 입력값의 크기를 검증 — 음수이면 예외 발생\n    if (param_ct ___(2)___ 0) {\n        throw new Exception();\n    }\n    String[] strArr = new String[param_ct];\n} catch (Exception e) {\n    msg_str = \"잘못된 입력(접근) 입니다.\";\n}",
+      "blank_answers": [
+        {"idx": 1, "answers": ["parseInt"], "synonyms": ["parseint"]},
+        {"idx": 2, "answers": ["<"], "synonyms": ["< (미만)", "보다 작다", "미만"]}
+      ],
+      "explanation": "정답: (1) parseInt / (2) <. IMP-IV-14 code_examples(Java) safe 코드 기반이다. (1) Integer.parseInt(tmp)로 외부 입력값을 정수화한다. (2) if (param_ct < 0)으로 음수 여부를 검증하여, 음수이면 throw new Exception()으로 예외를 던지고 catch에서 '잘못된 입력' 메시지로 처리한다. 즉 배열 크기로 사용하기 전에 음수(< 0) 범위를 반드시 검증하는 것이 핵심 대책이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §14 정수형 오버플로우 — code_examples(Java) safe",
+      "tags": ["input_validation", "implementation", "integer-overflow", "빈칸", "parseInt", "java"]
+    }
+  ]
+}

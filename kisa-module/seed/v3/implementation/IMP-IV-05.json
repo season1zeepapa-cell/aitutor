@@ -1,0 +1,176 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-IV-05",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-M1",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 '운영체제 명령어 삽입(OS Command Injection)' 보안약점에 대한 설명이다. 옳지 않은 것은?\n\n운영체제 명령어 삽입은 적절한 검증절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행될 때 발생하는 보안약점이다.",
+      "choices": [
+        {"num": 1, "text": "검증되지 않은 외부 입력값이 운영체제 명령어의 일부 또는 전부로 사용되어 실행되면 의도하지 않은 시스템 명령어가 실행될 수 있다."},
+        {"num": 2, "text": "삽입된 명령어가 웹 애플리케이션 서버의 실행 권한으로 실행되어 중요 파일 삭제, 백도어 실행 등 심각한 문제가 발생할 수 있다."},
+        {"num": 3, "text": "외부 입력에 따라 명령어 생성·선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하여 사용한다."},
+        {"num": 4, "text": "클라이언트에서 전송된 입력값은 신뢰할 수 있으므로 검증 없이 시스템 내부 명령어로 그대로 사용해도 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '적절한 검증절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행되는 경우 의도하지 않은 시스템 명령어가 실행된다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). 과정 교재의 영향 설명과 일치한다. 삽입된 OS 명령어가 웹 애플리케이션 서버의 실행 권한으로 실행되어 중요 파일 삭제·백도어 실행 등 심각한 문제가 발생한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure가 '외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하여 사용한다'고 그대로 명시한다(화이트리스트)."},
+        {"num": 4, "correct": true, "why": "정답. overview는 '외부 입력 문자열은 신뢰할 수 없기 때문에 적절한 처리를 해주지 않으면 공격자가 원하는 명령어 실행이 가능하다'고 명시한다. 클라이언트 전송값을 신뢰하여 검증 없이 명령어로 사용하면 바로 명령어 삽입에 취약해지므로 명백히 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-05 라이브러리 overview·countermeasure와 대조하여 확인한다. 외부 입력 문자열은 신뢰할 수 없으므로 검증·제한 없이 명령어로 사용해서는 안 되며, 미리 정의한 허용 목록(White List)에서 선택하도록 구성해야 한다. 1·2·3번은 overview·영향·countermeasure와 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 이를 정반대로 뒤집어 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입(pp.223-231), CWE-78 — overview·countermeasure",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "command-injection", "화이트리스트", "보안약점"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-M2",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\npublic static void main(String args[]) throws IOException {\n  String cmd = args[0];\n  Process ps = null;\n  ps = Runtime.getRuntime().exec(cmd);\n  ...\n}\n```",
+      "choices": [
+        {"num": 1, "text": "실행할 프로그램을 제한하고 있지 않아 파라미터로 전달되는 모든 프로그램이 실행될 수 있는 운영체제 명령어 삽입 취약점이 있다."},
+        {"num": 2, "text": "args[0]으로 받은 외부 입력값을 검증 없이 그대로 Runtime.getRuntime().exec()에 전달하고 있다."},
+        {"num": 3, "text": "allowedCommands 같은 허용 목록을 만들어 contains() 검사로 미포함 명령어를 거부하면 안전하게 개선할 수 있다."},
+        {"num": 4, "text": "exec()는 내부적으로 입력값을 자동 검증하므로 별도의 화이트리스트 없이도 임의 명령 실행이 차단된다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석이 '해당 프로그램에서 실행할 프로그램을 제한하고 있지 않아 파라미터로 전달되는 모든 프로그램이 실행될 수 있다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). args[0]을 cmd로 받아 검증 없이 그대로 Runtime.getRuntime().exec(cmd)에 전달하는 것이 이 코드의 핵심 결함이다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드가 allowedCommands에 notepad·calc를 add하고 contains(cmd) 검사로 미포함 명령어를 거부하므로 정확한 개선 방안이다."},
+        {"num": 4, "correct": true, "why": "정답. Runtime.getRuntime().exec()는 전달된 명령 문자열을 그대로 실행할 뿐 입력값을 자동 검증하지 않는다. 화이트리스트(allowedCommands.contains) 등 별도 검증을 적용하지 않으면 임의 명령 실행이 가능하므로 명백히 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-05 code_examples(Java exec 화이트리스트) vulnerable/safe 쌍으로 검증한다. exec()는 명령을 자동 검증하지 않으므로 안전한 코드처럼 allowedCommands(notepad·calc)를 정의하고 contains 검사로 미포함 명령을 거부해야 한다. 1·2·3번은 vulnerable 코드 결함·safe 코드 개선책과 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입(pp.223-231) — code_examples(Java exec 화이트리스트) vulnerable/safe",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "exec", "화이트리스트", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-M3",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "운영체제 명령어 삽입의 진단방법과 취약/안전 판정에 대한 설명으로 옳지 않은 것은?\n\n진단원은 exec()·system() 등 명령어 실행 함수 호출 여부와 외부 입력값이 명령어로 사용되는지를 확인하여 판정한다.",
+      "choices": [
+        {"num": 1, "text": "Runtime.getRuntime().exec, system(), exec() 등 운영체제 명령어를 실행할 수 있는 함수가 호출되는지 확인한다."},
+        {"num": 2, "text": "외부에서 전달되는 값이 정해진 후보군에서 선택된 값(White List)이거나 적절하게 검증되면 안전, 그 외에는 취약으로 판정한다."},
+        {"num": 3, "text": "개별 사용 프로퍼티가 아닌 시스템 프로퍼티 등 공용 프로퍼티에서 가져온 값을 명령어로 사용하면 안전한 것으로 판정한다."},
+        {"num": 4, "text": "외부 입력값을 명령어로 사용하더라도 멀티라인·리다이렉트 특수문자(| ; & : > >>)를 전혀 제거하지 않으면 안전한 것으로 판정한다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis method가 'exec(), system(), Runtime.getRuntime().exec 등 운영체제 명령어를 실행할 수 있는 함수가 호출되는지 확인(①)'한다고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis method가 '정해진 후보군에서 선택된 값(White List)이거나 적절하게 검증하면 안전하고 그 외에는 취약하다'고 그대로 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). diagnosis method가 '시스템 프로퍼티 등 공용 프로퍼티가 아닌 개별 사용 프로퍼티일 경우는 취약, 시스템 프로퍼티 사용은 안전한 것으로 판정한다'고 명시하므로 정확하다(false_positive 사례1과 일치)."},
+        {"num": 4, "correct": true, "why": "정답. 특수문자(| ; & : > >>)를 제거하지 않고 외부 입력값을 명령어로 사용하면 멀티라인·파일 리다이렉트로 임의 명령이 실행되어 오히려 취약하다. safe 코드(특수문자 필터링)는 이들 문자를 제거하므로, '전혀 제거하지 않으면 안전'은 정반대의 틀린 진술이다."}
+      ],
+      "explanation": "정답은 4번. IMP-IV-05 diagnosis.method 및 code_examples(특수문자 필터링)와 대조한다. 멀티라인 특수문자(| ; & :)와 파일 리다이렉트 특수문자(> >>)를 제거하지 않으면 원하지 않은 운영체제 명령어가 실행되어 취약하다. 1·2·3번은 diagnosis method의 판정 기준(실행 함수 확인·화이트리스트 안전·시스템 프로퍼티 안전)과 일치하는 옳은 진술이라 함정으로 배치되었고, 4번만 틀렸다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입(pp.223-231) — diagnosis.method, code_examples(특수문자 필터링)",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "진단방법", "특수문자필터링", "시스템프로퍼티"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-D1",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 운영체제 명령어 삽입 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic static String getProcessId(String processNm) throws Exception {\n  Process p = null;\n  String execStr = \"tasklist /fo table /nh /fi \\\"imagename eq \" + processNm + \"\\\"\";\n  if (\"WINDOWS\".equals(Globals.OS_TYPE)) {\n    p = Runtime.getRuntime().exec(execStr);\n  }\n}\n```",
+      "vulnerable_code": "1  public static String getProcessId(String processNm) throws Exception {\n2    Process p = null;\n3    String execStr = \"tasklist /fo table /nh /fi \\\"imagename eq \" + processNm + \"\\\"\";\n4    if (\"WINDOWS\".equals(Globals.OS_TYPE)) {\n5      p = Runtime.getRuntime().exec(execStr);\n6    }\n7  }",
+      "code_language": "java",
+      "vulnerable_lines": [3, 5],
+      "rationale_keywords": ["외부 입력값", "검증 없이", "명령어 문자열 조합", "Runtime.getRuntime().exec", "화이트리스트 미적용", "CWE-78"],
+      "fix_keywords": ["화이트리스트", "허용 목록 선택", "특수문자 제거"],
+      "safe_code": "1  public static String getProcessId(String processNm) throws Exception {\n2    List<String> allowedProcess = new ArrayList<String>();\n3    allowedProcess.add(\"java.exe\");\n4    allowedProcess.add(\"was.exe\");\n5    if (!allowedProcess.contains(processNm)) {\n6      throw new Exception(\"허용되지 않은 프로세스입니다.\");\n7    }\n8    Process p = null;\n9    String execStr = \"tasklist /fo table /nh /fi \\\"imagename eq \" + processNm + \"\\\"\";\n10   if (\"WINDOWS\".equals(Globals.OS_TYPE)) {\n11     p = Runtime.getRuntime().exec(execStr);\n12   }\n13 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 외부 입력값 processNm을 검증 없이 3번 라인에서 execStr 명령어 문자열에 그대로 조합하고, 5번 라인에서 Runtime.getRuntime().exec(execStr)로 실행하고 있다. 화이트리스트(허용 목록) 검증이나 특수문자 필터링이 적용되지 않아, 공격자가 processNm에 멀티라인 특수문자(| ; & :)를 삽입하면 의도하지 않은 운영체제 명령어가 서버 권한으로 실행될 수 있는 운영체제 명령어 삽입(CWE-78) 취약점이다.",
+        "fix_description": "processNm을 명령어 문자열에 직접 조합하기 전에 미리 정의한 허용 목록(White List)에 포함되는지 contains()로 검사하여 미포함 시 거부하거나, 멀티라인·리다이렉트 특수문자(| ; & : > >>)를 제거하는 필터링을 적용한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-IV-05 diagnosis.true_positive 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- '외부 입력값'/'검증 없이': processNm이 외부에서 전달되며 화이트리스트·필터링 검증을 거치지 않음.\n- '명령어 문자열 조합'/'Runtime.getRuntime().exec': 3번 라인 문자열 조합 + 5번 라인 exec 실행이 취약 지점.\n- '화이트리스트 미적용'/'CWE-78': countermeasure가 요구하는 허용 목록 선택이 없어 운영체제 명령어 삽입에 노출.\n\n[수정 키워드 의미] 허용 목록 contains 검사로 선택하거나 멀티라인·리다이렉트 특수문자를 제거한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(3·5번 라인 지목) 20점 / rationale(외부 입력값 미검증·명령어 조합·화이트리스트 미적용 등 키워드 포함) 30점 / fix(화이트리스트 선택 또는 특수문자 제거) 30점.\n\n[자가확인 체크리스트] (1) exec()/system() 등 OS 명령 실행 함수가 호출되는가? (2) 외부 입력값이 명령어 문자열의 일부로 쓰이는가? (3) 화이트리스트·특수문자 필터링 등 검증이 없는가? — 셋 다 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입 — diagnosis.true_positive, CWE-78",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "정탐", "exec", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-D2",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 운영체제 명령어 삽입 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\npublic static float getMoryFreeCpcty() throws Exception {\n  Process p = null;\n  String cmdStr = EgovProperties.getPathProperty(Globals.SERVER_CONF_PATH, \"SHELL.\" + Globals.OS_TYPE + \".getMoryInfo\");\n  String[] command = { cmdStr.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR), \"FREE\" };\n  p = Runtime.getRuntime().exec(command);\n}\n```",
+      "vulnerable_code": "1  public static float getMoryFreeCpcty() throws Exception {\n2    Process p = null;\n3    String cmdStr = EgovProperties.getPathProperty(Globals.SERVER_CONF_PATH, \"SHELL.\" + Globals.OS_TYPE + \".getMoryInfo\");\n4    String[] command = { cmdStr.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR), \"FREE\" };\n5    p = Runtime.getRuntime().exec(command);\n6  }",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["시스템 프로퍼티", "공용 프로퍼티", "외부 입력값 아님", "EgovProperties", "안전"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — 명령어 값(cmdStr)이 외부 입력이 아니라\n2  // 시스템 프로퍼티(EgovProperties.getPathProperty)에서 가져온 값이므로\n3  // 공격자가 임의 명령을 주입할 수 없어 취약하지 않다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 3번 라인의 cmdStr 변수는 외부 입력값이 아니라 EgovProperties.getPathProperty로 시스템(공용) 프로퍼티에서 값을 가져온 이후 명령어로 사용된다. 진단기준상 시스템 프로퍼티 등 공용 프로퍼티 사용은 안전한 것으로 판정한다. 외부 사용자가 명령어 문자열을 조작할 수 없으므로 운영체제 명령어 삽입에 노출되지 않는다. (다만 개별 사용 프로퍼티였다면 취약으로 판정해야 한다.)",
+        "fix_description": "수정 불필요. 명령어 값이 외부 입력이 아닌 시스템 프로퍼티에서 오므로 추가 조치가 필요 없다."
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-IV-05 diagnosis.false_positive 사례1을 기반으로 한다. 핵심은 'Runtime.exec()가 보인다고 무조건 취약하다고 오판하지 않기'다.\n\n[오판 주의] exec()가 호출된다는 사실만으로 취약하다고 단정해서는 안 된다. 진단 기준은 명령어로 사용되는 값이 외부 입력인지를 따진다. 이 값은 시스템(공용) 프로퍼티에서 온 값이라 안전하다.\n\n[안전 판정 근거 키워드 의미]\n- '시스템 프로퍼티'/'공용 프로퍼티': EgovProperties.getPathProperty로 가져온 공용 프로퍼티 값이라 외부 조작 불가.\n- '외부 입력값 아님': request 등 외부에서 입력받는 변수가 아님.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(지목할 취약 라인 없음을 정확히 판단. vulnerable_lines=[]) 20점 / rationale(시스템·공용 프로퍼티·외부 입력값 아님 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) 명령어로 쓰이는 값이 외부 입력(request 등)인가? → 아니다(시스템 프로퍼티). (2) 공용 프로퍼티가 아닌 개별 사용 프로퍼티인가? → 아니다. — 둘 다 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입 — diagnosis.false_positive 사례1",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "오탐", "시스템프로퍼티", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-B1",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "운영체제 명령어 삽입의 보안대책에 대한 빈칸을 채우시오.",
+      "blank_template": "외부에서 전달되는 값을 검증 없이 시스템 내부 명령어로 사용하지 않으며, 외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 {{1}}하여 사용한다. 즉 미리 정의된 허용 목록인 {{2}} 방식으로 관리한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["선택"], "synonyms": ["선택적으로 사용", "골라"]},
+        {"idx": 2, "answers": ["화이트리스트", "White List"], "synonyms": ["화이트 리스트", "허용 목록", "허용목록", "whitelist"]}
+      ],
+      "explanation": "정답: {{1}} 선택, {{2}} 화이트리스트(White List). IMP-IV-05 countermeasure에 '명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하여 사용한다'고 명시되어 있으며, 이는 곧 허용 목록(White List) 방식으로 관리하는 것을 의미한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입 — countermeasure",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "화이트리스트", "빈칸"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "input_validation",
+      "weakness_code": "IMP-IV-05-B2",
+      "weakness_name_ko": "운영체제 명령어 삽입",
+      "chapter_code": "IMP-IV-05",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "외부 입력값을 명령어 인자로 사용할 때 특수문자 필터링으로 운영체제 명령어 삽입을 막는 코드의 빈칸을 채우시오.",
+      "blank_template": "외부 입력값에 포함될 수 있는, 멀티라인을 지원하는 특수문자({{1}})나 파일 리다이렉트 특수문자({{2}}) 등을 제거하여 원하지 않은 운영체제 명령어가 실행될 수 없도록 필터링한다.",
+      "blank_answers": [
+        {"idx": 1, "answers": ["| ; & :"], "synonyms": ["| ; &", "파이프, 세미콜론, 앰퍼샌드, 콜론", "|;&:"]},
+        {"idx": 2, "answers": ["> >>"], "synonyms": [">", ">>", "리다이렉트 기호", "> 와 >>"]}
+      ],
+      "explanation": "정답: {{1}} | ; & :, {{2}} > >>. IMP-IV-05 code_examples(특수문자 필터링) note에 '멀티라인을 지원하는 특수문자(| ; & :)나 파일 리다이렉트 특수문자(> >>) 등을 제거하여 원하지 않은 운영체제 명령어가 실행될 수 없도록 필터링한다'고 명시되어 있다. safe 코드는 date 변수에서 |, ;, &, :, > 문자를 replaceAll로 제거한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §5 운영체제 명령어 삽입 — code_examples(특수문자 필터링) safe·note",
+      "tags": ["input_validation", "implementation", "운영체제명령어삽입", "특수문자필터링", "java", "빈칸"]
+    }
+  ]
+}

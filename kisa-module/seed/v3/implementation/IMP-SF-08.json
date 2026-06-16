@@ -1,0 +1,192 @@
+{
+  "version": "v3",
+  "chapter_code": "IMP-SF-08",
+  "stage": "implementation",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-M1",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "다음은 구현단계 보안약점 '적절하지 않은 난수 값 사용'에 대한 설명이다. 옳지 않은 것은?\n\n예측 가능한 난수를 사용하는 것은 시스템에 보안약점을 유발한다.",
+      "choices": [
+        {"num": 1, "text": "예측 불가능한 숫자가 필요한 상황에서 예측 가능한 난수를 사용하면, 공격자가 다음에 생성될 숫자를 예상하여 시스템을 공격할 수 있다."},
+        {"num": 2, "text": "난수발생기는 시드(Seed)값이 고정될 경우 매번 동일한 난수값이 발생하므로, 고정 시드 사용을 피해야 한다."},
+        {"num": 3, "text": "세션 ID·암호화키 등 보안결정을 위한 값을 생성할 때는 java.security.SecureRandom 클래스를 사용하는 것이 안전하다."},
+        {"num": 4, "text": "세션 ID·암호화키 등 보안결정용 난수는 java.util.Random의 Random()·Math.random()으로 생성하면 가장 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). overview가 '예측 가능한 난수를 사용하면 공격자는 SW에서 생성되는 다음 숫자를 예상하여 시스템을 공격하는 것이 가능하다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). countermeasure가 '난수발생기는 시드(Seed)값이 고정될 경우 매번 동일한 난수값이 발생한다'며 이를 피하라고 명시한다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). countermeasure·course가 '세션 ID·암호화키 등 보안결정용 값에는 암호학적으로 보호된 java.security.SecureRandom 클래스를 사용하는 것이 안전하다'고 명시한다."},
+        {"num": 4, "correct": true, "why": "정답. countermeasure는 '세션 ID·암호화키 등 보안결정을 위한 값을 생성하는 경우에는 Java에서 Random()과 Math.random()을 사용하지 말아야 한다'고 명시한다. 보안결정용 난수에는 SecureRandom을 써야 하므로 'Random/Math.random이 가장 안전하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-08 overview·countermeasure에 따르면, 보안결정(세션 ID·암호화키)을 위한 난수에는 Random()·Math.random()을 사용하지 말고 암호학적으로 보호된 SecureRandom을 사용해야 한다. 4번은 이를 정반대로 진술하여 틀렸다. 1·2·3번은 각각 overview(예측 가능 난수 위협)·countermeasure(고정 시드 회피·SecureRandom 사용)와 일치하는 옳은 진술이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용(pp.364-369), CWE-330 — overview·countermeasure",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "SecureRandom", "Math.random", "보안기능"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-M2",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드에 대한 설명으로 옳지 않은 것은?\n\n```java\nimport java.util.Random;\npublic static int getRandomValue(int maxValue) {\n  Random random = new Random(100);\n  return random.nextInt(maxValue);\n}\npublic static String getAuthKey() {\n  Random random = new Random();\n  String authKey = Integer.toString(random.nextInt());\n  return authKey;\n}\n```",
+      "choices": [
+        {"num": 1, "text": "new Random(100)은 고정된 시드값(100)을 사용하여 매번 동일한 난수값이 생성되므로 안전하지 않다."},
+        {"num": 2, "text": "getAuthKey()의 authKey는 보안결정을 위한 값이므로 java.util.Random으로 생성하면 안전하지 않다."},
+        {"num": 3, "text": "보안결정을 위한 난수(인증키 등)는 java.security.SecureRandom을 사용하여 생성해야 안전하다."},
+        {"num": 4, "text": "getAuthKey()는 new Random()으로 매번 변경되는 시드를 쓰므로 보안결정용 난수로도 충분히 안전하다."}
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). vulnerable 코드 주석대로 new Random(100)은 고정된 시드값을 사용하여 동일한 난수값이 생성되어 안전하지 않다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). authKey는 인증키로 보안결정을 위한 값이며, java.util.Random은 예측 가능하여 보안결정용 난수로 안전하지 않다."},
+        {"num": 3, "correct": false, "why": "옳은 진술(함정). safe 코드·countermeasure대로 보안결정용 난수는 암호학적으로 보호된 SecureRandom을 사용해야 안전하다."},
+        {"num": 4, "correct": true, "why": "정답. note가 '매번 변경되는 시드를 설정하더라도 보안결정을 위한 난수에는 안전하지 않다'고 명시한다. getAuthKey()는 보안결정용이므로 new Random()으로는 부족하고 SecureRandom을 써야 한다. '충분히 안전하다'는 진술은 틀렸다."}
+      ],
+      "explanation": "정답은 4번. IMP-SF-08 code_examples(Java)의 vulnerable 코드다. new Random(100)은 고정 시드로 동일 난수가 생성되어 취약하고, getAuthKey()는 new Random()으로 매번 변경되는 시드를 쓰더라도 보안결정용 난수로는 안전하지 않다(note). 보안결정에는 SecureRandom을 사용해야 한다. 1·2·3번은 고정 시드 취약·보안결정용 난수 부적합·SecureRandom 사용에 대한 옳은 설명이라 함정으로 배치되었다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — code_examples(Java) vulnerable/safe, CWE-330",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "고정 시드", "java.util.Random", "SecureRandom", "java"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-M3",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'적절하지 않은 난수 값 사용'의 진단방법과 정탐/오탐 판정에 대한 설명으로 옳지 않은 것은?",
+      "choices": [
+        {"num": 1, "text": "Math.random() 메소드를 사용하는 경우 취약하다고 판정한다."},
+        {"num": 2, "text": "난수값을 세션ID로 설정하여 보안결정에 사용하는 경우, java.security.SecureRandom을 사용하면 안전하다."},
+        {"num": 3, "text": "java.security.SecureRandom 객체로 난수를 생성하는 코드는 복잡도가 상대적으로 높아 취약하다고 판정한다."},
+        {"num": 4, "text": "자체 랜덤 키 생성으로 취약점을 보완하는 경우(예: Date 요소들로 보완)는 안전하다고 판정한다."}
+      ],
+      "answer_index": 2,
+      "choice_explanations": [
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 'Math.random()을 사용하는 경우 취약하다'고 명시한다."},
+        {"num": 2, "correct": false, "why": "옳은 진술(함정). diagnosis.method가 '난수값을 세션ID로 설정하여 보안결정에 사용하는 경우 java.security.SecureRandom을 사용하면 안전하다'고 명시한다."},
+        {"num": 3, "correct": true, "why": "정답. diagnosis.false_positive(오탐 주의)는 'java.util.Random, java.security.SecureRandom 사용 시 복잡도가 상대적으로 높으므로 취약하지 않다'고 명시한다. SecureRandom 사용은 안전하므로 취약하다고 판정하면 오탐이다. 따라서 '취약하다고 판정한다'는 진술은 틀렸다."},
+        {"num": 4, "correct": false, "why": "옳은 진술(함정). diagnosis.false_positive가 '자체 랜덤 키 생성으로 취약점을 보완하는 경우(Date 요소들로 보완) → 안전하다고 판정'을 명시한다."}
+      ],
+      "explanation": "정답은 3번. IMP-SF-08 diagnosis(method·false_positive)와 대조한다. java.security.SecureRandom 사용은 암호학적으로 보호된 안전한 난수 생성이므로 오탐 주의(false_positive) 대상이며 취약하지 않다. 3번은 안전한 경우를 취약으로 뒤집은 진술이다. 1(Math.random 취약)·2(보안결정 시 SecureRandom 안전)·4(Date 보완 자체 키 생성 안전)는 diagnosis와 일치하는 옳은 진술이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — diagnosis.method/false_positive",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "진단방법", "오탐", "SecureRandom", "Math.random"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-D1",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "중",
+      "body": "다음 Java 코드의 난수 생성에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```java\npublic static int[] insertRandom(int[] Cnt, int i, int scope) {\n  int ran = (int) (Math.random() * scope) - 1;\n  if (checkDigit(ran, Cnt)) {\n    Cnt[i] = ran;\n  } else {\n    insertRandom(Cnt, i, scope);\n  }\n  return Cnt;\n}\n```",
+      "vulnerable_code": "1  public static int[] insertRandom(int[] Cnt, int i, int scope) {\n2    int ran = (int) (Math.random() * scope) - 1;\n3    if (checkDigit(ran, Cnt)) {\n4      Cnt[i] = ran;\n5    } else {\n6      insertRandom(Cnt, i, scope);\n7    }\n8    return Cnt;\n9  }",
+      "code_language": "java",
+      "vulnerable_lines": [2],
+      "rationale_keywords": ["Math.random()", "예측 가능한 난수", "보안결정 부적합", "다음 값 예측", "CWE-330"],
+      "fix_keywords": ["SecureRandom", "java.security.SecureRandom", "암호학적 난수"],
+      "safe_code": "1  public static int[] insertRandom(int[] Cnt, int i, int scope) {\n2    SecureRandom secureRandom = new SecureRandom();\n3    int ran = secureRandom.nextInt(scope) - 1;\n4    if (checkDigit(ran, Cnt)) {\n5      Cnt[i] = ran;\n6    } else {\n7      insertRandom(Cnt, i, scope);\n8    }\n9    return Cnt;\n10 }",
+      "model_answer": {
+        "verdict": true,
+        "rationale": "취약함. 2번 라인에서 Math.random() 함수를 사용하여 난수 값을 발생시키고 있다. Math.random()은 예측 가능한 난수를 생성하므로, 이 값이 보안결정(예: 세션 ID·키 등)에 사용될 경우 공격자가 다음에 생성될 값을 예측하여 시스템을 공격할 수 있는 적절하지 않은 난수 값 사용(CWE-330) 약점이다. 진단방법상 Math.random() 사용은 취약으로 판정한다.",
+        "fix_description": "보안결정을 위한 난수 생성에는 Math.random() 대신 암호학적으로 보호된 java.security.SecureRandom 클래스를 사용한다. 예: SecureRandom의 nextInt() 등으로 예측 불가능한 난수를 생성한다."
+      },
+      "explanation": "정탐(verdict=true) 문제. IMP-SF-08 diagnosis.true_positive(Math.random() 사용) 코드를 기반으로 한다.\n\n[근거 키워드 의미]\n- 'Math.random()'/'예측 가능한 난수': 2번 라인이 예측 가능한 난수 API를 사용함.\n- '보안결정 부적합'/'다음 값 예측': 보안결정용 난수로 쓰이면 다음 값 예측으로 공격 가능.\n- 'CWE-330': Use of Insufficiently Random Values 분류.\n\n[수정 키워드 의미] java.security.SecureRandom으로 암호학적 난수를 생성한다.\n\n[부분점수 채점] verdict(취약 'Y' 판정) 20점 / line(2번 라인 지목) 20점 / rationale(Math.random·예측 가능·보안결정 부적합 등 키워드 포함) 30점 / fix(SecureRandom 사용) 30점.\n\n[자가확인 체크리스트] (1) Math.random()을 사용하는가? (2) 난수가 세션 ID·키 등 보안결정에 쓰이는가? (3) 고정 시드 또는 예측 가능한 java.util.Random을 보안결정에 쓰는가? — 하나라도 해당하면 취약.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — diagnosis.true_positive(Math.random), CWE-330",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "정탐", "Math.random", "java"]
+    },
+    {
+      "question_type": "diagnosis4",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-D2",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음 Java 코드의 난수 생성에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\nimport java.security.SecureRandom;\nSecureRandom r = new SecureRandom();\nlong rand = ((r.nextLong() >>> 1) % (endDate.getTimeInMillis() - beginDate.getTimeInMillis() + 1)) + beginDate.getTimeInMillis();\n```",
+      "vulnerable_code": "1  import java.security.SecureRandom;\n2  SecureRandom r = new SecureRandom();\n3  long rand = ((r.nextLong() >>> 1) % (endDate.getTimeInMillis() - beginDate.getTimeInMillis() + 1)) + beginDate.getTimeInMillis();",
+      "code_language": "java",
+      "vulnerable_lines": [],
+      "rationale_keywords": ["SecureRandom 사용", "암호학적으로 보호", "복잡도 높음", "예측 불가", "오탐 주의"],
+      "fix_keywords": ["수정 불필요", "안전"],
+      "safe_code": "1  // 이미 안전한 코드 — java.security.SecureRandom으로 난수를 생성하므로\n2  // 암호학적으로 보호되어 예측이 거의 불가능하다.",
+      "model_answer": {
+        "verdict": false,
+        "rationale": "안전함(취약하지 않음). 2번 라인에서 java.security.SecureRandom 객체로 난수를 생성하고 있다. SecureRandom은 암호학적으로 보호되어 예측이 거의 불가능한 난수를 생성하므로, Math.random()이나 java.util.Random과 달리 적절하지 않은 난수 값 사용 약점이 없다. diagnosis.false_positive가 명시하듯 SecureRandom 사용 시 복잡도가 상대적으로 높아 취약하지 않다.",
+        "fix_description": "수정 불필요. 이미 암호학적으로 보호된 SecureRandom을 사용하고 있어 추가 조치가 필요 없다. (Math.random() 사례와 혼동하여 취약 판정하면 오탐)"
+      },
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-SF-08 diagnosis.false_positive(SecureRandom 사용) 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] 난수를 생성한다는 사실만으로 취약으로 단정해서는 안 된다. SecureRandom은 암호학적으로 보호되어 예측이 거의 불가능하므로 보안결정용으로도 안전하다. Math.random()·java.util.Random 사례와 혼동하지 않도록 주의한다.\n\n[안전 판정 근거 키워드 의미]\n- 'SecureRandom 사용'/'암호학적으로 보호': java.security.SecureRandom은 예측 불가능한 난수를 생성.\n- '복잡도 높음': false_positive가 'SecureRandom 사용 시 복잡도가 상대적으로 높으므로 취약하지 않다'고 명시.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단) 20점 / rationale(SecureRandom·암호학적 보호·예측 불가 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) Math.random()이나 java.util.Random(보안결정용)을 쓰는가? → 아니다. (2) java.security.SecureRandom을 쓰는가? → 그렇다(암호학적 보호). — 안전 쪽이므로 취약하지 않다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — diagnosis.false_positive(SecureRandom)",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "오탐", "SecureRandom", "java"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-B1",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "'적절하지 않은 난수 값 사용'의 안전한 코딩 대책에 대한 빈칸을 채우시오.",
+      "blank_template": "세션 ID, 암호화키 등 보안결정을 위한 값을 생성할 때는 java.util.Random의 Random()이나 Math.random()을 사용하지 말고, 예측이 거의 불가능하게 암호학적으로 보호된 java.security.{{1}} 클래스를 사용한다. 또한 난수발생기는 {{2}}값이 고정되면 매번 동일한 난수값이 발생하므로 고정 사용을 피한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["SecureRandom"],
+          "synonyms": ["SecureRandom 클래스", "java.security.SecureRandom"]
+        },
+        {
+          "idx": 2,
+          "answers": ["시드"],
+          "synonyms": ["시드(Seed)", "Seed", "시드값", "씨드"]
+        }
+      ],
+      "explanation": "정답: (1) SecureRandom, (2) 시드. countermeasure는 보안결정용 값 생성 시 Random()·Math.random()을 사용하지 말고 암호학적으로 보호된 java.security.SecureRandom 클래스를 사용하라고 명시한다. 또한 난수발생기는 시드(Seed)값이 고정되면 매번 동일한 난수값이 발생하므로(course 고정 시드 문제) 고정 시드 사용을 피해야 한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — countermeasure·code_examples(Java) safe",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "빈칸", "SecureRandom", "시드"]
+    },
+    {
+      "question_type": "blank",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-08-B2",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "chapter_code": "IMP-SF-08",
+      "stage": "implementation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "'적절하지 않은 난수 값 사용'의 언어별 시드 처리와 진단 기준에 대한 빈칸을 채우시오.",
+      "blank_template": "C에서 rand() 함수는 매번 변경되는 기본 시드값이 없으므로, {{1}}() 함수로 현재시간(time(NULL)) 기반 등으로 시드값을 설정해야 한다. 한편 진단 시 {{2}}() 메소드를 사용하는 경우는 예측 가능한 난수이므로 취약하다고 판정한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": ["srand"],
+          "synonyms": ["srand()", "srandom", "srandom()", "srand 함수"]
+        },
+        {
+          "idx": 2,
+          "answers": ["Math.random"],
+          "synonyms": ["Math.random()", "Math.random 메소드"]
+        }
+      ],
+      "explanation": "정답: (1) srand, (2) Math.random. countermeasure는 'C에서는 rand() 함수 사용 시 매번 변경되는 기본 시드값이 없으므로 srand()로 매번 변경되는 현재시간 기반 등으로 시드값을 설정하여야 한다'고 명시한다(code_examples C의 safe는 srandom(time(NULL)) 사용). diagnosis.method는 'Math.random() 메소드를 사용하는 경우 취약하다'고 명시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §8 적절하지 않은 난수 값 사용 — countermeasure·diagnosis.method·code_examples(C)",
+      "tags": ["security_feature", "implementation", "적절하지 않은 난수", "빈칸", "srand", "Math.random", "시드"]
+    }
+  ]
+}

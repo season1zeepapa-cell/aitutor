@@ -12,12 +12,15 @@
 import McqCard from '../../tabs/KisaTab/McqCard';
 import BlankCard from '../../tabs/KisaTab/BlankCard';
 import DiagnosisCard from '../../tabs/KisaTab/DiagnosisCard';
+import CompositeCard from '../../tabs/KisaTab/CompositeCard';
 import McqResult, { McqHeaderExtra } from './results/McqResult';
 import BlankResult, { BlankHeaderExtra } from './results/BlankResult';
 import DiagnosisResult, { DiagnosisHeaderExtra } from './results/DiagnosisResult';
+import CompositeResult, { CompositeHeaderExtra } from './results/CompositeResult';
 import McqExamBody from './exam/McqExamBody';
 import BlankExamBody from './exam/BlankExamBody';
 import DiagnosisExamBody from './exam/DiagnosisExamBody';
+import CompositeExamBody from './exam/CompositeExamBody';
 
 export const QUESTION_TYPES = {
   mcq: {
@@ -58,6 +61,18 @@ export const QUESTION_TYPES = {
     hasAnswer: (ans) => typeof ans?.verdict_yn === 'boolean'
       || (ans?.rationale_text?.length > 0)
       || (ans?.fix_text?.length > 0),
+  },
+  composite: {
+    Card: CompositeCard,
+    Result: CompositeResult,
+    HeaderExtra: CompositeHeaderExtra,
+    ExamBody: CompositeExamBody,
+    label: '복합실기',
+    icon: '📋',
+    resultLabel: '📋 복합실기',
+    showLlmGrade: true,
+    needsCodeBlockInteraction: false,
+    hasAnswer: (ans) => (ans?.report_text || '').trim().length > 0,
   },
 };
 
