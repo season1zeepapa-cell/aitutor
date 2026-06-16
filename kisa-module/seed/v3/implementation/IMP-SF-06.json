@@ -187,6 +187,71 @@
       "explanation": "정답: (1) 역컴파일, (2) getenv. course 위협에 따르면 실행파일이 유출되면 역컴파일(디컴파일)을 통해 하드코딩된 암호화 키가 유출되어 암호화된 중요정보를 복호화하는 데 악용될 수 있다. code_examples(C, 하드코드된 비밀번호)의 safe 코드는 char *password = getenv(\"password\")처럼 비밀번호를 소스에 하드코딩하지 않고 환경 변수에서 외부 값을 불러와 코드 상에서 보이지 않게 사용한다.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — code_examples(C) safe; 2025 진단원 기본과정 위협(역컴파일)",
       "tags": ["security_feature", "implementation", "하드코드된 중요정보", "빈칸", "역컴파일", "getenv", "환경변수"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-06-C1",
+      "weakness_name_ko": "하드코드된 중요정보",
+      "chapter_code": "IMP-SF-06",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 시스템 연동 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '하드코드된 중요정보' 항목 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 서버 접속 비밀번호가 소스코드에 직접 코딩되어 있는지, ② 암호화에 사용되는 암호화 키가 소스코드에 상수로 하드코딩되어 있는지를 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 중요정보 하드코딩 금지(SR-HC)",
+          "content": "SR-HC-01 DB·외부서버 접속 비밀번호를 소스코드에 직접 코딩하지 않고, 암호화하여 별도의 파일(프로퍼티 등)에 저장한 뒤 복호화하여 사용한다.\nSR-HC-02 암호화에 사용하는 암호화 키는 소스코드 내부에 상수 형태로 저장하지 않고, 외부에서 불러와 사용한다.\nSR-HC-03 외부에서 키·비밀번호를 불러올 때는 환경 변수 또는 암호화된 외부 파일을 사용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "비밀번호·암호화 키 관리 시큐어코딩 가이드",
+          "content": "1) DB 비밀번호: 소스코드에 상수(final String PASS = ...)로 두지 말고 프로퍼티에서 암호화된 값을 읽어 복호화하여 사용한다.\n2) 암호화 키: 소스코드에 상수로 두지 말고 외부 파일에서 암호화된 형태로 보관하고 사용 시 복호화한다.\n(주: MemberDAO의 DB 접속 처리와 EncryptUtil의 암호화 키 처리에 대한 하드코딩 여부는 개별 산출물 코드 검토로 확인한다.)"
+        },
+        {
+          "type": "개발산출물",
+          "title": "MemberDAO.java / EncryptUtil.java — DB 접속·암호화",
+          "content": "// [MemberDAO] DB 접속 정보\nprivate static final String DRIVER = \"oracle.jdbc.driver.OracleDriver\";\nprivate static final String URL = \"jdbc:oracle:thin:@192.168.0.3:1521:ORCL\";\nprivate static final String USER = \"SCOTT\";\n// DB 비밀번호를 외부 프로퍼티에서 읽어 복호화하여 사용\nString PASS = props.getProperty(\"EncryptedPswd\");\nbyte[] decryptedPswd = cipher.doFinal(PASS.getBytes());\nPASS = new String(decryptedPswd);\nConnection con = DriverManager.getConnection(URL, USER, PASS);\n\n// [EncryptUtil] 사용자 정보 암호화\npublic String encriptString(String usr) {\n  // 암호화 키를 소스코드 내부에 상수로 사용\n  String key = \"22df3023sf~2;asn!@#/>as\";\n  byte[] bToEncrypt = usr.getBytes(\"UTF-8\");\n  SecretKeySpec sKeySpec = new SecretKeySpec(key.getBytes(), \"AES\");\n  ...\n}",
+          "code": "// [MemberDAO] DB 접속 정보\nprivate static final String DRIVER = \"oracle.jdbc.driver.OracleDriver\";\nprivate static final String URL = \"jdbc:oracle:thin:@192.168.0.3:1521:ORCL\";\nprivate static final String USER = \"SCOTT\";\n// DB 비밀번호를 외부 프로퍼티에서 읽어 복호화하여 사용\nString PASS = props.getProperty(\"EncryptedPswd\");\nbyte[] decryptedPswd = cipher.doFinal(PASS.getBytes());\nPASS = new String(decryptedPswd);\nConnection con = DriverManager.getConnection(URL, USER, PASS);\n\n// [EncryptUtil] 사용자 정보 암호화\npublic String encriptString(String usr) {\n  // 암호화 키를 소스코드 내부에 상수로 사용\n  String key = \"22df3023sf~2;asn!@#/>as\";\n  byte[] bToEncrypt = usr.getBytes(\"UTF-8\");\n  SecretKeySpec sKeySpec = new SecretKeySpec(key.getBytes(), \"AES\");\n  ...\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "보안요구사항명세서 — 비밀번호·키 하드코딩 금지 요구사항 정의 여부 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["하드코딩", "별도 파일", "외부"],
+          "artifact_ref": "보안요구사항명세서",
+          "method": "SR-HC-01·02·03이 비밀번호·암호화 키를 소스코드에 직접 코딩하지 않고 외부(프로퍼티·환경 변수)에 두어 사용하도록 요구하는지 확인. 보안요구사항은 적합하게 정의됨."
+        },
+        {
+          "item": "개발산출물(MemberDAO) — DB 비밀번호 외부 복호화 적용 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["프로퍼티", "복호화", "별도 파일"],
+          "artifact_ref": "개발산출물",
+          "method": "MemberDAO가 DB 비밀번호를 상수로 하드코딩하는지 확인. props에서 암호화된 값을 읽어 복호화하여 사용하므로 비밀번호 측면은 적합 — 결함으로 지적하면 오탐."
+        },
+        {
+          "item": "개발산출물(EncryptUtil) — 암호화 키 하드코딩 결함 식별",
+          "points": 3,
+          "required_keywords": ["암호화 키", "상수", "하드코딩"],
+          "artifact_ref": "개발산출물",
+          "method": "EncryptUtil이 암호화 키를 외부에서 불러오는지 확인. String key를 상수(\"22df3023sf~2;asn!@#/>as\")로 소스에 하드코딩하여 코드 접근자에게 키가 노출되므로 결함(CWE-321, SR-HC-02 위배)."
+        },
+        {
+          "item": "개선방안 — 암호화 키 외부 파일 보관·복호화 적용 제시",
+          "points": 1,
+          "required_keywords": ["외부 파일", "복호화"],
+          "artifact_ref": "개발가이드",
+          "method": "암호화 키를 소스 상수가 아닌 외부 파일에 암호화된 형태로 보관하고 사용 시 복호화(getPassword·decrypt 등)하여 사용하도록 보강하는 개선방안을 제시했는지 확인."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-06 라이브러리 code_examples(Java 하드코드된 비밀번호·암호화 키) 취약/안전 코드, countermeasure(비밀번호는 별도 파일 암호화 저장·키는 상수 미사용), diagnosis.method(서버 접속 비밀번호·암호화 키 하드코딩 확인)를 채점 근거로 사용한다.\n\n[진단 단계 흐름] (1) 보안요구사항명세서에서 비밀번호·키 하드코딩 금지가 정의되었는지 확인(적합) → (2) MemberDAO가 DB 비밀번호를 외부 프로퍼티에서 복호화하여 쓰는지 확인 → 적용됨(적합) → (3) EncryptUtil이 암호화 키를 소스 상수로 두는지 확인 → 하드코딩(결함) → (4) 키를 외부 파일 암호화 보관·복호화로 개선.\n\n[모범 진단보고서]\n■ 진단항목 1 — 보안요구사항(하드코딩 금지)\n  · 판정: 적합\n  · 현황 및 문제점: SR-HC-01~03이 비밀번호·암호화 키를 소스에 직접 코딩하지 않고 외부(프로퍼티·환경 변수)에 두도록 명시하여 요구사항은 적절하다.\n  · 개선방안: 현 요구사항 유지.\n■ 진단항목 2 — DB 접속 비밀번호(외부 복호화)\n  · 판정: 적합\n  · 현황 및 문제점: MemberDAO는 DB 비밀번호를 상수로 두지 않고 props에서 암호화된 값을 읽어 복호화하여 사용한다. 비밀번호를 소스에 하드코딩하지 않아 안전하다.\n  · 개선방안: 현 구현 유지. (복호화 적용분을 결함으로 지적하면 오탐)\n■ 진단항목 3 — 암호화 키(하드코딩 결함)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: EncryptUtil이 AES 암호화 키를 소스코드 내부에 상수(String key = \"22df3023sf~2;asn!@#/>as\")로 하드코딩한다. 소스에 접근 가능한 사용자가 키를 획득해 암호화된 정보를 복호화할 수 있다(CWE-321, SR-HC-02 위배).\n  · 개선방안: 암호화 키를 외부 파일에 암호화된 형태로 보관하고 사용 시 복호화(getPassword(\"./password.ini\") 후 decrypt 등)하여 사용하도록 수정한다.\n\n[정탐/오탐 판정 근거] 진단항목 3은 암호화 키를 소스 상수로 하드코딩하므로 정탐(결함)으로 지적한다. 진단항목 1·2는 요구사항이 적절하고 DB 비밀번호를 외부 복호화 방식으로 사용하므로 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §6 하드코드된 중요정보 — code_examples(Java) 하드코드된 비밀번호·암호화 키, countermeasure, diagnosis.method, CWE-259·321",
+      "tags": ["security_feature", "implementation", "하드코드된 중요정보", "복합서술형", "진단보고서", "암호화키", "복호화"]
     }
   ]
 }

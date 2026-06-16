@@ -168,7 +168,7 @@
       "blank_answers": [
         {"idx": 1, "answers": ["equals"], "synonyms": ["equals()"]}
       ],
-      "explanation": "①은 'equals'. safe 코드는 getCanonicalHostName()으로 얻은 도메인명 대신 신뢰 IP(trustedAddr)와 ip.equals()로 직접 비교하여 DNS 변조에 방어한다. 두 빈칸 모두 동일하게 ip.equals(trustedAddr) 형태로 IP 주소를 직접 비교하는 것이 핵심이다.",
+      "explanation": "①은 'equals'. safe 코드는 getCanonicalHostName()으로 얻은 도메인명 대신 신뢰 IP(trustedAddr)와 ip.equals()로 직접 비교하여 DNS 변조에 방어한다. 도메인명이 아니라 IP 주소를 ip.equals(trustedAddr) 형태로 직접 비교하는 것이 핵심이다.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 제7절 API 오용 §1 — code_examples(Java) safe/note",
       "tags": ["api_abuse", "implementation", "dns", "equals", "ip-비교", "java"]
     }

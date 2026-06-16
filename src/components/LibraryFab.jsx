@@ -13,8 +13,8 @@ const SOURCE_BADGE = {
   course: { label: '교재', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
 };
 
-// 코드 lang 라벨 → Prism 언어 키 추정
-function guessLang(s) {
+// 코드 lang 라벨 → Prism 언어 키 추정 (QuestionLibraryModal 등에서 재사용)
+export function guessLang(s) {
   const l = (s || '').toLowerCase();
   if (l.includes('c#') || l.includes('csharp')) return 'csharp';
   if (l.includes('python')) return 'python';
@@ -23,7 +23,8 @@ function guessLang(s) {
 }
 
 // 코드 블록 — 취약(bad, 빨강) / 안전(good, 초록) 라벨 + 공통 CodeBlock(Prism 신택스 하이라이트)
-function CodeBlock({ label, code, variant, language }) {
+// QuestionLibraryModal 등에서 재사용하도록 export
+export function CodeBlock({ label, code, variant, language }) {
   const lab = variant === 'bad' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400';
   return (
     <div className="mt-1">
@@ -34,7 +35,8 @@ function CodeBlock({ label, code, variant, language }) {
 }
 
 // 예시코드 + 정탐/오탐 코드 섹션 (library 항목에만 존재)
-function CodeSection({ item }) {
+// 문제 풀이 중 지식 모달(QuestionLibraryModal)에서도 동일하게 재사용 — 중복 구현 금지
+export function CodeSection({ item }) {
   const ce = item.codeExamples || [];
   const dc = item.diagnosisCode || { truePositive: [], falsePositive: [] };
   const hasDiag = (dc.truePositive || []).length > 0 || (dc.falsePositive || []).length > 0;

@@ -12,6 +12,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { apiGet, apiPost } from '../../lib/api';
 import { getQuestionType } from '../../components/QuestionTypes/registry';
 import ResultOverlay from './ResultOverlay';
+import QuestionLibraryModal from '../../components/QuestionLibraryModal';
 
 const CATEGORY_LABELS = {
   input_validation: '입력검증',
@@ -50,6 +51,9 @@ export default function DrillSession() {
 
   // 제출 결과 (오버레이 표시용)
   const [result, setResult] = useState(null);
+
+  // 관련 지식 라이브러리 모달 표시 여부
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const fetchNextQuestion = useCallback(async () => {
     setLoading(true);
@@ -257,6 +261,16 @@ export default function DrillSession() {
           <Badge variant="blue">{question.language}</Badge>
           <Badge variant="amber">{question.difficulty}</Badge>
           {question.weakness_code && <Badge variant="neutral">{question.weakness_code}</Badge>}
+          {/* 관련 지식 라이브러리 조회 — 이 문제의 chapter_code에 해당하는 자료를 모달로 표시 */}
+          {question.chapter_code && (
+            <button
+              onClick={() => setShowLibrary(true)}
+              className="text-[10px] px-2 py-0.5 rounded-full border border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+              title="이 문제와 관련된 지식 자료 보기"
+            >
+              📚 관련 지식
+            </button>
+          )}
           {!srsOnly && (
             <button
               onClick={() => setGuideOrder((v) => !v)}
@@ -287,6 +301,14 @@ export default function DrillSession() {
           result={result}
           question={question}
           onSelfGrade={handleSelfGrade}
+        />
+      )}
+
+      {/* 관련 지식 라이브러리 모달 */}
+      {showLibrary && (
+        <QuestionLibraryModal
+          chapterCode={question.chapter_code}
+          onClose={() => setShowLibrary(false)}
         />
       )}
     </div>

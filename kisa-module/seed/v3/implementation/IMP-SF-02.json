@@ -170,6 +170,71 @@
       "explanation": "정답: ① Authorize. IMP-SF-02 code_examples(C#)의 safe 코드는 [Authorize(Roles = \"Administrator\")] 어트리뷰트로 운영자 권한을 검사한 뒤에만 개별 액션에 접근하도록 제한한다. vulnerable 코드는 이 어트리뷰트 없이 컨트롤러와 내부 액션에 누구나 접근 가능하여 부적절한 인가에 해당한다. note는 '운영자 권한 검사 후에 개별 액션에 접근해야 한다'고 명시한다.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 인가 — code_examples(C#) safe·note, CWE-285",
       "tags": ["security_feature", "implementation", "Authorize", "권한검사", "ACL", "빈칸"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "security_feature",
+      "weakness_code": "IMP-SF-02-C1",
+      "weakness_name_ko": "부적절한 인가",
+      "chapter_code": "IMP-SF-02",
+      "stage": "implementation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 게시판 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 인가' 항목 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 중요정보·기능을 호출하는 함수가 사전 정의된 권한 소유여부를 검사하는지, ② 접근제어가 클라이언트측이 아닌 서버측에서 수행되는지를 기준으로 한다.",
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 접근통제(SR-AZ)",
+          "content": "SR-AZ-01 중요기능(게시글 삭제·수정 등)을 호출하는 함수는 요청 사용자가 해당 작업 권한을 가졌는지 ACL(Access Control List)로 검사한 뒤에만 수행한다.\nSR-AZ-02 모든 권한 검사는 우회가 불가능하도록 서버측에서 수행한다. 클라이언트(JavaScript 등)측 검사만으로 권한을 판단하지 않는다.\nSR-AZ-03 역할에 따라 제공 기능을 배분하여 공격노출면(Attack Surface)을 최소화한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "접근통제 시큐어코딩 가이드",
+          "content": "1) 중요기능 수행 전 세션에 저장된 사용자 정보를 얻어와 checkAccessControlList(user, action) 호출로 권한을 확인한 뒤에만 작업을 수행한다.\n2) 권한 검사는 반드시 서버측 컨트롤러/서비스 계층에서 수행한다.\n(주: 게시글 '삭제' 기능에 대한 권한 검사 적용 여부는 개별 산출물 코드 검토로 확인한다.)"
+        },
+        {
+          "type": "개발산출물",
+          "title": "BoardController.java — 게시글 처리",
+          "content": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n// 화면단(JavaScript)에서 관리자만 삭제 버튼이 보이도록 처리되어 있다고 가정한다.\n// 요청을 하는 사용자의 delete 작업 권한 확인 없이 수행하고 있다.\nif (action != null && action.equals(\"delete\")) {\n  boardDao.delete(contentId);\n}",
+          "code": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n// 화면단(JavaScript)에서 관리자만 삭제 버튼이 보이도록 처리되어 있다고 가정한다.\n// 요청을 하는 사용자의 delete 작업 권한 확인 없이 수행하고 있다.\nif (action != null && action.equals(\"delete\")) {\n  boardDao.delete(contentId);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "보안요구사항명세서 — ACL 권한 검사·서버측 검사 요구사항 정의 여부 진단(적합 판정)",
+          "points": 2,
+          "required_keywords": ["ACL", "권한 검사", "서버측"],
+          "artifact_ref": "보안요구사항명세서",
+          "method": "SR-AZ-01·02·03이 중요기능 호출 시 ACL 권한 검사와 서버측 검사·공격노출면 최소화를 요구하는지 확인. 보안요구사항은 적합하게 정의됨."
+        },
+        {
+          "item": "개발산출물 — 삭제 기능의 권한 검사 누락 결함 식별",
+          "points": 3,
+          "required_keywords": ["권한 확인 없이", "checkAccessControlList", "삭제"],
+          "artifact_ref": "개발산출물",
+          "method": "BoardController.java가 delete 수행 전 세션 사용자 권한(checkAccessControlList)을 검사하는지 확인. 권한 확인 없이 boardDao.delete를 수행하므로 부적절한 인가 결함(SR-AZ-01·개발가이드 1) 위배)."
+        },
+        {
+          "item": "접근제어 위치 — 클라이언트측 의존 결함 식별",
+          "points": 2,
+          "required_keywords": ["클라이언트", "서버측", "우회"],
+          "artifact_ref": "개발산출물",
+          "method": "삭제 버튼 노출 제어를 화면단(JavaScript)에만 의존하는지 확인. 클라이언트측 제어는 요청 위·변조로 우회 가능하므로 서버측 권한 검사가 필요(SR-AZ-02 위배)."
+        },
+        {
+          "item": "개선방안 — 세션 기반 ACL 서버측 권한 검사 적용 제시",
+          "points": 1,
+          "required_keywords": ["세션", "권한 확인 후"],
+          "artifact_ref": "개발가이드",
+          "method": "세션의 사용자 정보로 checkAccessControlList(user, action)를 호출해 권한이 있는 경우에만 삭제를 수행하도록 서버측 코드에 보강하는 개선방안을 제시했는지 확인."
+        }
+      ],
+      "report_template": {
+        "sections": ["진단항목", "판정", "현황 및 문제점", "개선방안"]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-02 라이브러리 code_examples(Java) 취약/안전 코드, countermeasure(ACL·역할 배분으로 공격노출면 최소화), diagnosis.method(권한 소유여부 검사·클라이언트측 우회 확인)를 채점 근거로 사용한다.\n\n[진단 단계 흐름] (1) 보안요구사항명세서에서 ACL 권한 검사·서버측 검사 요구사항이 정의되었는지 확인(적합) → (2) 개발산출물 코드에서 delete 수행 전 권한 검사 호출이 있는지 확인 → 없음(결함) → (3) 접근제어가 클라이언트(JavaScript)에만 의존하는지 확인 → 우회 가능(결함) → (4) 세션 기반 ACL 서버측 검사로 보강하는 개선방안 제시.\n\n[모범 진단보고서]\n■ 진단항목 1 — 보안요구사항(ACL·서버측 검사)\n  · 판정: 적합\n  · 현황 및 문제점: SR-AZ-01~03이 ACL 권한 검사·서버측 검사·공격노출면 최소화를 명시하여 요구사항은 적절하다.\n  · 개선방안: 현 요구사항 유지.\n■ 진단항목 2 — 삭제 기능 권한 검사 누락\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: BoardController.java가 action이 delete일 때 요청 사용자의 권한 확인 없이 boardDao.delete(contentId)를 수행한다. 모든 실행경로에 대해 접근제어를 검사하지 않아 임의 사용자가 게시글을 삭제할 수 있다(CWE-285, SR-AZ-01 위배).\n  · 개선방안: 세션에 저장된 사용자 정보를 얻어 checkAccessControlList(user, action)로 delete 권한을 확인한 뒤 권한이 있는 경우에만 삭제를 수행하도록 수정한다.\n■ 진단항목 3 — 접근제어 위치(클라이언트 의존)\n  · 판정: 부적합(결함)\n  · 현황 및 문제점: 삭제 버튼 노출을 화면단(JavaScript)에만 의존하여 권한을 제어한다. 클라이언트측 제어는 요청 위·변조로 우회 가능하므로 서버측 권한 검사가 없으면 접근통제가 무력화된다(SR-AZ-02 위배).\n  · 개선방안: 권한 검사를 서버측 컨트롤러/서비스 계층에서 수행하도록 강제한다.\n\n[정탐/오탐 판정 근거] 진단항목 2·3은 코드에 권한 검사가 명시적으로 누락되어 클라이언트측에만 의존하므로 정탐(결함)으로 지적한다. 진단항목 1은 보안요구사항이 적절히 정의되어 있어 결함으로 지적하면 오탐이다 — 적합 판정이 정답이다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §2 부적절한 인가 — code_examples(Java) 취약/안전, countermeasure, diagnosis.method, CWE-285",
+      "tags": ["security_feature", "implementation", "부적절한 인가", "복합서술형", "진단보고서", "ACL", "권한검사"]
     }
   ]
 }

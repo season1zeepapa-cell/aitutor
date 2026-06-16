@@ -168,7 +168,7 @@
       "blank_answers": [
         {"idx": 1, "answers": ["true"], "synonyms": ["참", "True"]},
         {"idx": 2, "answers": ["getCodeSigners"], "synonyms": ["getCodeSigners()", ".getCodeSigners"]},
-        {"idx": 3, "answers": ["length"], "synonyms": ["length()", "길이", "size"]}
+        {"idx": 3, "answers": ["length"], "synonyms": [".length", "배열 길이"]}
       ],
       "explanation": "IMP-SF-10 code_examples(Java) safe 코드와 false_positive 안전 사례에 따르면 new JarFile(f, true)로 전자서명 여부를 확인하고, JarEntry.getCodeSigners()로 서명자 배열을 얻은 뒤 signers != null && signers.length != 0 조건으로 전자서명 주체를 검증한다. 빈칸 (1)=true, (2)=getCodeSigners, (3)=length.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §10. 부적절한 전자서명 확인 — code_examples(Java) safe·diagnosis.false_positive, CWE-347",

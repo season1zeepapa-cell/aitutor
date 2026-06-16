@@ -48,7 +48,7 @@
       ],
       "answer_index": 3,
       "choice_explanations": [
-        {"num": 1, "correct": false, "why": "옳은 진술(함정). 해당 try 블록은 url.openStream()/readLine()에서 IOи/IOException, URL 생성에서 MalformedURLException, format.parse()에서 ParseException이 발생할 수 있어 여러 예외가 혼재한다. IMP-EH-03 safe 코드가 이 셋을 분리하여 catch한다."},
+        {"num": 1, "correct": false, "why": "옳은 진술(함정). 해당 try 블록은 url.openStream()/readLine()에서 IOException, URL 생성에서 MalformedURLException, format.parse()에서 ParseException이 발생할 수 있어 여러 예외가 혼재한다. IMP-EH-03 safe 코드가 이 셋을 분리하여 catch한다."},
         {"num": 2, "correct": false, "why": "옳은 진술(함정). 코드가 광범위한 Exception 클래스 하나로만 잡아 예외를 세분화하지 못하는 것이 바로 이 코드의 문제점(부적절한 예외 처리, CWE-754)이다."},
         {"num": 3, "correct": false, "why": "옳은 진술(함정). IMP-EH-03 note·countermeasure가 '발생 가능한 예외를 세분화하고 발생 가능한 순서에 따라 예외를 처리해야 한다'고 명시하므로 안전한 방식에 대한 정확한 설명이다."},
         {"num": 4, "correct": true, "why": "정답. 광범위한 Exception 처리는 안전한 방식이 아니라 부적절한 예외 처리(IMP-EH-03)이며 예기치 않은 문제를 야기할 수 있다. countermeasure는 '광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다'고 하므로, '광범위 처리가 더 안전하고 권장된다'는 진술은 명백히 틀렸다."}
@@ -75,7 +75,7 @@
       ],
       "answer_index": 3,
       "choice_explanations": [
-        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-2 method가 'Exception 유형별 처리 방법을 정의하고 개발가이드에 안전한 처리 방법을 정의하고 있는지 확인'이며 관련산출물(artifacts)이 '개발가이드 검토'로 명시되어 정확히 일치한다."},
+        {"num": 1, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-2 method가 'Exception 유형별 처리 방법(시스템정보 미노출·반드시 처리·각각 분리 처리)을 정의하고 개발가이드에 안전한 처리 방법을 정의하고 있는지 확인'이며 관련산출물(artifacts)이 '유즈케이스설계서·클래스설계서·개발가이드 검토'로, 개발가이드가 그 산출물에 포함되므로 옳은 연결이다."},
         {"num": 2, "correct": false, "why": "옳은 연결(함정). 요구사항①의 checklist 1-3 method가 'Exception 발생에 대한 로깅 정책(시간·이유 포함, 로그 내 중요정보 암호화)이 설계에 반영되었는지 확인'이며 artifacts가 '아키텍처설계서 검토'로 정확히 일치한다."},
         {"num": 3, "correct": false, "why": "옳은 연결(함정). 요구사항③의 checklist 1-2 method가 '예외 발생 시 스택정보나 중요정보가 외부로 노출되지 않도록 개발가이드에 코딩 규칙이 정의되어 있는지 확인'이며 artifacts가 '개발가이드 검토'로 정확히 일치한다."},
         {"num": 4, "correct": true, "why": "정답(잘못된 연결). 요구사항③의 checklist 1-3 method '지정된 에러페이지를 이용하여 사용자에게 예외사항 정보를 제공하도록 서버설정 계획이 설계되어 있는지 확인'의 관련산출물은 '요구사항정의서, 아키텍처설계서 검토'이다. '단위테스트계획서 검토'는 테스트 계획 수립 여부(checklist 2번)에 연결되는 산출물이므로 진단방법과 산출물의 연결이 틀렸다."}
@@ -121,7 +121,7 @@
       "body": "다음 Java 코드의 예외처리에 대해 취약 여부를 판정하고, 그 근거를 서술하시오. (안전하다면 안전한 이유를, 취약하다면 취약 라인·근거·수정방안을 서술)\n\n```java\ntry {\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n} catch (MalformedURLException e) {\n    logger.warning(\"MalformedURLException 발생\");\n} catch (IOException e) {\n    logger.warning(\"IOException 발생\");\n} catch (ParseException e) {\n    logger.warning(\"ParseException 발생\");\n}\n```",
       "vulnerable_code": "1  try {\n2    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n3    String line = reader.readLine();\n4    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n5    Date date = format.parse(line);\n6  } catch (MalformedURLException e) {\n7    logger.warning(\"MalformedURLException 발생\");\n8  } catch (IOException e) {\n9    logger.warning(\"IOException 발생\");\n10 } catch (ParseException e) {\n11   logger.warning(\"ParseException 발생\");\n12 }",
       "code_language": "java",
-      "vulnerable_lines": [0],
+      "vulnerable_lines": [],
       "rationale_keywords": ["구체적인 예외 처리", "예외 세분화", "발생 순서", "Exception 미사용", "정보노출 없음"],
       "fix_keywords": ["수정 불필요", "안전"],
       "safe_code": "1  // 이미 안전한 코드 — 발생 가능한 예외(MalformedURLException, IOException, ParseException)를\n2  // 구체적으로 세분화하고 발생 가능한 순서에 맞춰 분리 catch하며,\n3  // catch 블록에서 메시지 본문 없이 로깅만 수행하여 중요정보 노출도 없다.",
@@ -130,7 +130,7 @@
         "rationale": "안전함(취약하지 않음). MalformedURLException, IOException, ParseException 등 발생 가능한 예외를 광범위한 Exception 으로 뭉뚱그리지 않고 구체적으로 세분화하여 분리 catch하고 있으며, 발생 가능한 순서에 맞춰 처리하고 있다. 이는 countermeasure가 요구하는 '구체적인 예외 처리' 방식과 일치한다. 또한 각 catch 블록에서 e.getMessage() 등 예외 상세 메시지를 사용자에게 노출하지 않고 로깅만 수행하므로 오류 메시지 정보노출도 없다.",
         "fix_description": "수정 불필요. 이미 IMP-EH-03 safe 코드가 권장하는 구체적·순서 기반 예외 처리를 따르고 있어 추가 조치가 필요 없다."
       },
-      "explanation": "오탐 유도(verdict=false) 문제. IMP-EH-03 code_examples의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] catch 절이 여러 개라고 무조건 취약한 것이 아니며, try-catch가 있다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 오히려 가이드가 제시하는 안전한 예외 처리의 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '구체적인 예외 처리'/'예외 세분화': MalformedURLException·IOException·ParseException으로 나눠 처리함.\n- '발생 순서': 발생 가능한 순서에 맞춰 catch 절을 배치함.\n- 'Exception 미사용': 광범위한 상위 클래스 Exception 으로 잡지 않음.\n- '정보노출 없음': catch에서 상세 메시지를 사용자에게 노출하지 않고 로깅만 함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단. 채점 데이터의 vulnerable_lines=[0]은 '해당 라인 없음'을 뜻하는 판정용 표식) 20점 / rationale(구체적 예외 세분화·발생 순서·Exception 미사용·정보노출 없음 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) catch가 광범위한 Exception/Throwable이 아니라 구체적 예외 타입인가? → 그렇다. (2) 발생 가능한 예외가 모두 분리 처리되었는가? → 그렇다. (3) catch에서 상세 에러/스택 정보를 사용자에게 노출하는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
+      "explanation": "오탐 유도(verdict=false) 문제. IMP-EH-03 code_examples의 safe 코드를 기반으로 한다. 핵심은 '안전한 코드인데 취약하다고 오판하지 않기'다.\n\n[오판 주의] catch 절이 여러 개라고 무조건 취약한 것이 아니며, try-catch가 있다는 사실만으로 취약하다고 단정해서는 안 된다. 이 코드는 오히려 가이드가 제시하는 안전한 예외 처리의 모범 사례다.\n\n[안전 판정 근거 키워드 의미]\n- '구체적인 예외 처리'/'예외 세분화': MalformedURLException·IOException·ParseException으로 나눠 처리함.\n- '발생 순서': 발생 가능한 순서에 맞춰 catch 절을 배치함.\n- 'Exception 미사용': 광범위한 상위 클래스 Exception 으로 잡지 않음.\n- '정보노출 없음': catch에서 상세 메시지를 사용자에게 노출하지 않고 로깅만 함.\n\n[부분점수 채점] verdict(안전 'N' 판정) 20점 / line(취약 라인 없음 — 지목할 취약 라인이 없다고 정확히 판단. 채점 데이터의 vulnerable_lines는 빈 배열로 '해당 라인 없음'을 표시) 20점 / rationale(구체적 예외 세분화·발생 순서·Exception 미사용·정보노출 없음 등 안전 근거 키워드 포함) 30점 / fix(수정 불필요·이미 안전 명시) 30점.\n\n[자가확인 체크리스트] (1) catch가 광범위한 Exception/Throwable이 아니라 구체적 예외 타입인가? → 그렇다. (2) 발생 가능한 예외가 모두 분리 처리되었는가? → 그렇다. (3) catch에서 상세 에러/스택 정보를 사용자에게 노출하는가? → 아니다. — 세 항목 모두 안전 쪽이므로 취약하지 않다.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §3 부적절한 예외 처리 — code_examples(Java) safe",
       "tags": ["error_handling", "design", "예외처리", "오탐", "구체적-예외처리", "java"]
     },

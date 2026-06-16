@@ -91,7 +91,7 @@
       "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
       "chapter_code": "IMP-SF-16",
       "stage": "implementation",
-      "language": "java",
+      "language": "etc",
       "difficulty": "중",
       "body": "다음 C 코드의 인증 처리에 대해 취약 여부를 판정하고, 취약하다면 취약 라인·근거·수정방안을 서술하시오.\n\n```c\nint validateUser(char *host, int port) {\n  int socket = openSocketConnection(host, port);\n  if (socket < 0) {\n    printf(\"Unable to open socket connection\");\n    return(FAIL);\n  }\n  int isValidUser = 0;\n  char username[USERNAME_SIZE];\n  char password[PASSWORD_SIZE];\n  while (isValidUser == 0) {\n    if (getNextMessage(socket, username, USERNAME_SIZE) > 0) {\n      if (getNextMessage(socket, password, PASSWORD_SIZE) > 0) {\n        isValidUser = AuthenticateUser(username, password);\n      }\n    }\n  }\n  return(SUCCESS);\n}\n```",
       "vulnerable_code": "1   int validateUser(char *host, int port) {\n2     int socket = openSocketConnection(host, port);\n3     if (socket < 0) {\n4       printf(\"Unable to open socket connection\");\n5       return(FAIL);\n6     }\n7     int isValidUser = 0;\n8     char username[USERNAME_SIZE];\n9     char password[PASSWORD_SIZE];\n10    while (isValidUser == 0) {\n11      if (getNextMessage(socket, username, USERNAME_SIZE) > 0) {\n12        if (getNextMessage(socket, password, PASSWORD_SIZE) > 0) {\n13          isValidUser = AuthenticateUser(username, password);\n14        }\n15      }\n16    }\n17    return(SUCCESS);\n18  }",

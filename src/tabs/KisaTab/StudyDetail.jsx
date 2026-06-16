@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiGet } from '../../lib/api';
 import CodeBlock from '../../components/CodeBlock';
+import QuestionLibraryModal from '../../components/QuestionLibraryModal';
 
 // REBUILD16 R5 — 가급적 src/tracks/kisa.js 를 사용하도록 마이그레이션 권고.
 // 이 파일은 study chapter 의 카테고리 키가 약간 다를 수 있어 호환성 유지 차원에서 유지.
@@ -31,6 +32,7 @@ export default function StudyDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openExamples, setOpenExamples] = useState(() => new Set([0])); // 예제 아코디언 (첫 예제 펼침)
+  const [showLibrary, setShowLibrary] = useState(false); // 관련 지식 라이브러리 모달
   const toggleExample = (i) =>
     setOpenExamples((prev) => {
       const next = new Set(prev);
@@ -100,6 +102,14 @@ export default function StudyDetail() {
           </span>
         </div>
         <h1 className="text-base font-bold text-primary">{chapter.title}</h1>
+        {/* 관련 지식 라이브러리 빠른 조회 (보조) */}
+        <button
+          onClick={() => setShowLibrary(true)}
+          className="mt-2 text-[11px] px-2 py-1 rounded-lg border border-primary/40 text-primary bg-card-bg hover:bg-primary/10 transition-colors"
+          title="이 챕터와 관련된 지식 자료 보기"
+        >
+          📚 관련 지식 보기
+        </button>
       </div>
 
       {/* 2. 정의 */}
@@ -340,6 +350,14 @@ export default function StudyDetail() {
         <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-700 dark:text-amber-300">
           ℹ️ 이 챕터는 아직 문항이 등록되지 않았습니다. 학습 자료만 참고하세요.
         </div>
+      )}
+
+      {/* 관련 지식 라이브러리 모달 */}
+      {showLibrary && (
+        <QuestionLibraryModal
+          chapterCode={chapter.chapter_code}
+          onClose={() => setShowLibrary(false)}
+        />
       )}
     </div>
   );

@@ -66,7 +66,7 @@
       "stage": "implementation",
       "language": "etc",
       "difficulty": "상",
-      "body": "메모리 버퍼 오버플로우 진단 시, 다음 코드 중 취약하다고 판정해야 하는데도 '안전하다'고 판정하면 잘못된 것은? (진단방법: 버퍼에 기록하는 값의 크기가 대상 버퍼보다 작은지, 인덱스가 음수가 아닌지, 문자열은 널 문자로 종료하는지 확인)",
+      "body": "메모리 버퍼 오버플로우 진단 시, 다음 코드 중 '취약하다'고 판정하는 것이 잘못된 것은? (진단방법: 버퍼에 기록하는 값의 크기가 대상 버퍼보다 작은지, 인덱스가 음수가 아닌지, 문자열은 널 문자로 종료하는지 확인)",
       "choices": [
         {"num": 1, "text": "char buf[16]; strcpy(buf, string); — 매개변수 string의 크기 검사 없이 16바이트 버퍼에 복사하므로 더 큰 입력 시 버퍼를 벗어남"},
         {"num": 2, "text": "char hostname[64]; strcpy(hostname, hp->h_name); — 외부 입력 기반 이름값이 64바이트보다 작음을 보장할 수 없어 긴 호스트 이름 입력 시 오버플로우"},
@@ -80,7 +80,7 @@
         {"num": 3, "correct": false, "why": "취약함(함정). true_positive 사례다. 공백 제거 루프에서 len이 음수가 되는지 검사하지 않아 음수 인덱스로 버퍼 범위를 벗어나 취약하다."},
         {"num": 4, "correct": true, "why": "정답(안전한 코드). safe(goodCode) 코드다. 복사 크기를 대상 멤버 sizeof(cv_struct.x)로 한정해 포인터 y 덮어쓰기를 방지하고, 마지막 인덱스에 널 문자를 삽입해 문자열을 종료하므로 안전하다. 이를 취약하다고 보지 않는 것이 옳다."}
       ],
-      "explanation": "정답은 4번. IMP-IV-16 diagnosis.true_positive 세 사례(1·2·3)와 code_examples safe(goodCode) 코드(4)를 섞었다. 1·2·3번은 각각 strcpy 크기 미검사, 외부 입력 호스트 이름, 음수 인덱스 미검사로 취약한 정탐 사례이므로 취약 판정이 옳다. 4번은 복사 크기를 sizeof(cv_struct.x)로 한정하고 널 문자로 종료한 안전한 코드라 안전 판정이 옳다. '취약한데 안전하다고 판정하면 잘못된 것'을 고르는 질문이므로, 실제로 안전한 4번이 정답이다.",
+      "explanation": "정답은 4번. IMP-IV-16 diagnosis.true_positive 세 사례(1·2·3)와 code_examples safe(goodCode) 코드(4)를 섞었다. 1·2·3번은 각각 strcpy 크기 미검사, 외부 입력 호스트 이름, 음수 인덱스 미검사로 취약한 정탐 사례이므로 취약 판정이 옳다. 4번은 복사 크기를 sizeof(cv_struct.x)로 한정하고 널 문자로 종료한 안전한 코드라 안전 판정이 옳다. '취약하다고 판정하는 것이 잘못된' 보기(= 실제로는 안전한 코드)를 고르라는 질문이므로, 안전한 4번이 정답이다.",
       "reference": "소프트웨어 보안약점 진단가이드(2021) 제4장 §16 메모리 버퍼 오버플로우 — diagnosis.true_positive, code_examples(C) safe",
       "tags": ["input_validation", "implementation", "buffer-overflow", "진단", "strcpy", "널문자", "c"]
     },
