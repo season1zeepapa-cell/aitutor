@@ -75,6 +75,12 @@ export default function Dashboard() {
           onClick={() => navigate('/kisa/drill?type=diagnosis4')}
         />
         <StartButton
+          title="복합서술형 드릴"
+          desc="산출물 검토→진단보고서"
+          emoji="📋"
+          onClick={() => navigate('/kisa/drill?type=composite')}
+        />
+        <StartButton
           title="실전 모의"
           desc="이론 60분/실기 100분"
           emoji="⏱️"

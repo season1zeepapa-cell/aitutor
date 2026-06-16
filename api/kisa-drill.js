@@ -15,7 +15,7 @@
 const { query } = require('./db');
 const { withAuth } = require('./middleware');
 
-const ALLOWED_TYPES = ['mcq', 'diagnosis4', 'blank'];
+const ALLOWED_TYPES = ['mcq', 'diagnosis4', 'blank', 'composite'];
 const ALLOWED_STAGES = ['design', 'implementation'];
 const ALLOWED_CATEGORIES = [
   'input_validation', 'security_feature', 'time_state',
