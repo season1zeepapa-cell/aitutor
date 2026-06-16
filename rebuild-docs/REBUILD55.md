@@ -68,6 +68,13 @@ composite 풀이 경로(드릴):
 - props 변경 없음(`chapterCode`만으로 동작) → DrillSession/StudyDetail 수정 불필요.
 - 코드 렌더는 `LibraryFab.CodeSection` 재사용 유지.
 
+### §6.1 현재 문제 키워드로 조회 (키워드 칩)
+> 사용자 피드백 — 버튼 클릭 시 **현재 페이지의 해당 키워드로 자료를 조회**.
+
+- 검색창 아래에 **현재 문제 키워드 칩**을 노출(정확매칭 항목의 `keywords`). 예: SQL삽입 → `#sql #injection #dbms #input_validation #prepared-statement`.
+- 칩을 탭하면 그 키워드로 전체 라이브러리 검색 결과를 조회(다시 탭하면 해제). 활성 칩은 강조.
+- 키워드별 조회 예: `#injection` 18건 · `#input_validation` 27건 · `#dbms` 3건 등.
+
 ---
 
 **완료 일시**: 2026-06-16 KST

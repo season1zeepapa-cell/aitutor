@@ -148,6 +148,31 @@ export default function QuestionLibraryModal({ chapterCode, onClose }) {
           />
         </div>
 
+        {/* 현재 문제 키워드 — 탭하면 그 키워드로 자료 검색·조회 */}
+        {exact && (exact.keywords || []).length > 0 && (
+          <div className="px-4 py-2 border-b border-border shrink-0">
+            <div className="text-[10px] text-primary/60 mb-1">이 문제 키워드 — 탭하여 자료 조회</div>
+            <div className="flex flex-wrap gap-1">
+              {exact.keywords.map((k) => {
+                const active = norm(query) === norm(k);
+                return (
+                  <button
+                    key={k}
+                    onClick={() => setQuery(active ? '' : k)}
+                    className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                      active
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-primary/10 text-primary/80 border-primary/20 hover:bg-primary/20'
+                    }`}
+                  >
+                    #{k}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* 본문 */}
         <div className="flex-1 overflow-y-auto px-4 py-3 safe-pb text-xs space-y-3 text-current/80">
           {searchResults ? (
