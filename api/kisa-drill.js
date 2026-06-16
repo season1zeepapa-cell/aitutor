@@ -158,6 +158,8 @@ module.exports = withAuth(async (req, res) => {
     weakness_category: q.weakness_category,
     weakness_code: q.weakness_code,
     weakness_name_ko: q.weakness_name_ko,
+    // chapter_code: 풀이 화면의 '관련 지식 라이브러리' 모달이 이 값으로 자료를 매칭
+    chapter_code: q.chapter_code,
     language: q.language,
     difficulty: q.difficulty,
     body: q.body,
@@ -172,6 +174,9 @@ module.exports = withAuth(async (req, res) => {
     blank_template: q.question_type === 'blank' ? q.blank_template : null,
     blank_count: q.question_type === 'blank' && Array.isArray(q.blank_answers)
       ? q.blank_answers.length : 0,
+    // composite(복합서술형): 산출물·보고서 양식은 노출. rubric(채점 기준)은 컨닝 방지를 위해 숨김
+    artifacts: q.question_type === 'composite' ? q.artifacts : null,
+    report_template: q.question_type === 'composite' ? q.report_template : null,
     reference: q.reference,
     tags: q.tags,
     // SRS 메타 (있으면)
