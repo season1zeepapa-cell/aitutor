@@ -3,7 +3,7 @@
 // - 아코디언: 자료원(진단가이드/교재) → 분류/단원 → 항목
 // - 검색: 제목·키워드·분류·요약 전체 필터
 // - 새 자료원은 src/data/kisa-library.json 의 sources 에 추가만 하면 자동 노출
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import libData from '../data/kisa-library.json';
 import SharedCodeBlock from './CodeBlock';
@@ -160,6 +160,12 @@ export default function LibraryFab() {
     [allItems, currentChapter]
   );
 
+  // 주제(풀이 문제/이론학습 챕터)가 바뀌면 이전 검색어·펼침 상태 초기화 (이전 키워드 잔류 방지)
+  useEffect(() => {
+    setQuery('');
+    setExpandedId(null);
+  }, [currentChapter]);
+
   // 자료원 → g1(단계/단원) → g2(분류) → 항목  2단계 중첩 (items 는 가이드 순서로 정렬돼 있음)
   const grouped = useMemo(
     () =>
@@ -206,7 +212,7 @@ export default function LibraryFab() {
     <>
       {/* 플로팅 버튼 — 상단이동(bottom-20) 위, 겹치지 않게 bottom-32 */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => { setQuery(''); setExpandedId(null); setOpen(true); }}
         className="fixed right-4 bottom-32 z-50 w-10 h-10 rounded-full bg-card-bg border border-border text-primary shadow-lg
           flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
         aria-label="자료 라이브러리 열기"
