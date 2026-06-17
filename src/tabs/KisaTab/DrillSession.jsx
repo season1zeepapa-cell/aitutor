@@ -13,6 +13,7 @@ import { apiGet, apiPost } from '../../lib/api';
 import { getQuestionType } from '../../components/QuestionTypes/registry';
 import ResultOverlay from './ResultOverlay';
 import QuestionLibraryModal from '../../components/QuestionLibraryModal';
+import { setCurrentChapter } from '../../lib/currentChapter';
 
 const CATEGORY_LABELS = {
   input_validation: '입력검증',
@@ -54,6 +55,12 @@ export default function DrillSession() {
 
   // 관련 지식 라이브러리 모달 표시 여부
   const [showLibrary, setShowLibrary] = useState(false);
+
+  // 현재 풀이 중 문제의 챕터를 전역 공유 → 우측 하단 플로팅 '자료 라이브러리'가 이 주제 키워드로 조회
+  useEffect(() => {
+    setCurrentChapter(question?.chapter_code || null);
+    return () => setCurrentChapter(null);
+  }, [question?.chapter_code]);
 
   const fetchNextQuestion = useCallback(async () => {
     setLoading(true);

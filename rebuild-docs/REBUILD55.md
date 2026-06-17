@@ -75,6 +75,14 @@ composite 풀이 경로(드릴):
 - 칩을 탭하면 그 키워드로 전체 라이브러리 검색 결과를 조회(다시 탭하면 해제). 활성 칩은 강조.
 - 키워드별 조회 예: `#injection` 18건 · `#input_validation` 27건 · `#dbms` 3건 등.
 
+### §6.2 전역 플로팅 '자료 라이브러리'에 현재 주제 키워드 조회
+> 사용자 피드백 — 우측 하단 플로팅 **자료 라이브러리(LibraryFab)**를 풀이/이론학습 중 누르면 현재 주제 키워드로 조회되어야 함. (배지형 '관련 지식'과 달리 LibraryFab은 전역이라 현재 주제를 몰랐음.)
+
+- **경량 전역 store** 신규: `src/lib/currentChapter.js` — `setCurrentChapter`/`useCurrentChapter`(useSyncExternalStore, Provider 불필요).
+- **현재 주제 등록**: `DrillSession`(풀이 문제 `question.chapter_code`)·`StudyDetail`(이론학습 `chapterCode`)이 마운트/문항변경 시 등록, 언마운트 시 해제.
+- **LibraryFab 구독**: `useCurrentChapter`로 현재 주제 항목을 찾아, 드로어 검색창 아래에 **"지금 보는 주제 · <제목>" 키워드 칩**을 노출. 칩 탭 → `setQuery`로 기존 검색에 반영되어 조회(재탭 해제, 활성 강조).
+- 시험 모드(KisaExamMode)는 현재 주제를 등록하지 않음 → 시험 중 LibraryFab은 전체 라이브러리만(컨닝 방지).
+
 ---
 
 **완료 일시**: 2026-06-16 KST

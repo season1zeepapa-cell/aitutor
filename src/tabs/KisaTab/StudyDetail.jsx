@@ -11,6 +11,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiGet } from '../../lib/api';
 import CodeBlock from '../../components/CodeBlock';
 import QuestionLibraryModal from '../../components/QuestionLibraryModal';
+import { setCurrentChapter } from '../../lib/currentChapter';
 
 // REBUILD16 R5 — 가급적 src/tracks/kisa.js 를 사용하도록 마이그레이션 권고.
 // 이 파일은 study chapter 의 카테고리 키가 약간 다를 수 있어 호환성 유지 차원에서 유지.
@@ -53,6 +54,12 @@ export default function StudyDetail() {
         setLoading(false);
       }
     })();
+  }, [chapterCode]);
+
+  // 현재 학습 중인 챕터를 전역 공유 → 우측 하단 플로팅 '자료 라이브러리'가 이 주제 키워드로 조회
+  useEffect(() => {
+    setCurrentChapter(chapterCode || null);
+    return () => setCurrentChapter(null);
   }, [chapterCode]);
 
   if (loading) {

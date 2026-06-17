@@ -7,6 +7,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import libData from '../data/kisa-library.json';
 import SharedCodeBlock from './CodeBlock';
+import { useCurrentChapter } from '../lib/currentChapter';
 
 const SOURCE_BADGE = {
   library: { label: '진단가이드', cls: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
@@ -149,6 +150,16 @@ export default function LibraryFab() {
 
   const allItems = useMemo(() => libData.sources.flatMap((s) => s.items), []);
 
+  // 현재 보고 있는 주제(풀이 문제 / 이론학습 챕터) — 그 주제의 라이브러리 항목과 키워드
+  const currentChapter = useCurrentChapter();
+  const currentItem = useMemo(
+    () =>
+      currentChapter
+        ? allItems.find((it) => it.source === 'library' && it.id === currentChapter)
+        : null,
+    [allItems, currentChapter]
+  );
+
   // 자료원 → g1(단계/단원) → g2(분류) → 항목  2단계 중첩 (items 는 가이드 순서로 정렬돼 있음)
   const grouped = useMemo(
     () =>
@@ -238,6 +249,33 @@ export default function LibraryFab() {
                 className="w-full px-3 py-2 rounded-lg border border-border bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
+
+            {/* 지금 보고 있는 주제(풀이/이론학습)의 키워드 — 탭하면 그 키워드로 자료 조회 */}
+            {currentItem && (currentItem.keywords || []).length > 0 && (
+              <div className="px-4 py-2 border-b border-border bg-primary/5">
+                <div className="text-[10px] text-primary/70 mb-1">
+                  지금 보는 주제 · {currentItem.title} — 키워드 탭하여 조회
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {currentItem.keywords.map((k) => {
+                    const active = q === k.toLowerCase();
+                    return (
+                      <button
+                        key={k}
+                        onClick={() => setQuery(active ? '' : k)}
+                        className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                          active
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-primary/10 text-primary/80 border-primary/20 hover:bg-primary/20'
+                        }`}
+                      >
+                        #{k}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* 본문 */}
             <div className="flex-1 overflow-y-auto px-3 py-2 safe-pb">
