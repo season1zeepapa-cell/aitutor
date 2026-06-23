@@ -1,0 +1,136 @@
+{
+  "chapter_code": "DSG-IV-08",
+  "title": "허용된 범위내 메모리 접근",
+  "stage": "design",
+  "category": "input_validation",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "§Ⅳ-02 보안설계 기준 및 설계 기준 실습 — 허용된 범위 내 메모리 접근",
+    "pages": "189-192"
+  },
+  "design_item": "허용된 범위내 메모리 접근",
+  "description": "해당 프로세스에 허용된 범위의 메모리 버퍼에만 접근하여 읽기 또는 쓰기 기능을 하도록 검증방법 설계 및 메모리 접근요청이 허용범위를 벗어났을 때 처리방법을 설계해야 한다.",
+  "overview": "사례1(버퍼 오버플로우): 스택(Stack)이나 힙(Heap)에 할당되는 메모리에 문자열 등이 저장될 때 최초 정의된 메모리의 크기를 초과하여 문자열을 저장하는 경우 버퍼 오버플로우가 발생한다. 사례2(포맷 스트링 삽입): 공격자는 외부입력값에 포맷 문자열을 삽입하여 취약한 프로세스를 공격하거나 메모리 내용을 읽거나 쓸 수 있고, 그 결과 취약한 프로세스의 권한을 취득하여 임의의 코드를 실행할 수 있다.",
+  "security_measures": [
+    "① C나 C++ 같이 메모리를 프로그래머가 관리하는 플랫폼을 사용하는 경우 메모리 버퍼의 경계값을 넘어서 메모리를 읽거나 저장하지 않도록 경계설정 또는 검사를 반드시 수행해야 한다.",
+    "② 개발시, 메모리 버퍼오버플로우를 발생시킬 수 있는 취약한 API를 사용하지 않도록 해야 한다."
+  ],
+  "design_considerations": [
+    {
+      "point": "① 메모리 버퍼 경계설정·검사",
+      "detail": "실행되는 시스템에 Non-executable Stack, 랜덤스택(ASLR), 스택가드(StackGuard)와 같은 메모리 보호 정책이 적용되도록 해야 하며, 구현단계에 안전한 함수사용법에 대한 설명과 메모리 사용 시 경계값을 검사하고 사용할 수 있도록 시큐어코딩 규칙을 정의하여 개발자들이 준수할 수 있도록 한다."
+    },
+    {
+      "point": "② 취약한 API 사용 금지",
+      "detail": "메모리 버퍼오버플로우 취약성을 가지고 있는 함수들을 식별하여, 개발자들이 해당 함수를 사용하지 않고 안전한 함수를 사용할 수 있도록 시큐어코딩 규칙을 정의하고 개발자가 준수할 수 있도록 한다."
+    }
+  ],
+  "diagnosis": {
+    "requirements": [
+      {
+        "requirement": "① C나 C++ 같이 메모리를 프로그래머가 관리하는 플랫폼을 사용하는 경우 메모리 버퍼의 경계값을 넘어서 메모리를 읽거나 저장하지 않도록 경계 설정 또는 검사를 반드시 수행해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 메모리를 프로그래머가 관리하는 플랫폼을 사용하는 경우, 메모리 버퍼오버플로우가 발생하지 않도록 보안설계가 적용되어 있는가?",
+            "methods": [
+              {
+                "method": "1-1 요구사항정의서에 설계항목 대책이 수립되어 있고, 아키텍처설계서에 적용계획이 수립되어 있으며, 요구사항추적표로 추적 가능 여부 확인",
+                "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토"
+              },
+              {
+                "method": "1-2 리눅스 환경인 경우, ASLR(Address Space Layout Randomization), StackGuard와 같은 메모리 보호를 위한 설정을 사용하도록 설계되어 있는지 확인",
+                "artifacts": "아키텍처설계서의 보안요구항목 적용 계획 검토"
+              },
+              {
+                "method": "1-3 개발가이드에서 배열의 값을 다른 배열로 복사하여 넣는 경우, 처리되는 데이터의 길이를 검사하고 사용하도록 코딩규칙을 정의하고 있는지 확인",
+                "artifacts": "개발가이드에서 코딩 규칙 검토"
+              }
+            ]
+          },
+          {
+            "question": "2. 메모리 버퍼오버플로우를 점검하는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              {
+                "method": "2-1 할당된 메모리보다 더 큰 입력값을 사용하여 버퍼오버플로우가 발생되는지를 점검할 수 있는 테스트 계획이 수립되어 있는지 확인 (테스트 입력값 예: 충분히 긴 문자열)",
+                "artifacts": "단위테스트케이스 검토"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "requirement": "② 개발시, 메모리 버퍼오버플로우를 발생시킬 수 있는 취약한 API를 사용하지 않도록 통제해야 한다.",
+        "checklist": [
+          {
+            "question": "1. 메모리 버퍼오버플로우 방지를 위한 안전한 API 목록이 정의되어 있는가?",
+            "methods": [
+              {
+                "method": "1-1 요구사항정의서에 설계항목 대책이 수립되어 있고, 아키텍처설계서에 적용계획이 수립되어 있으며, 요구사항추적표로 추적 가능 여부 확인",
+                "artifacts": "요구사항정의서, 요구사항추적표, 아키텍처설계서 검토"
+              },
+              {
+                "method": "1-2 메모리 버퍼오버플로우를 발생시킬 수 있는 API를 정의하고, 사용하지 않도록 하는 코딩규칙이 개발가이드에 정의되어 있는지 확인",
+                "artifacts": "개발가이드에서 코딩규칙 검토"
+              }
+            ]
+          },
+          {
+            "question": "2. 메모리 버퍼오버플로우를 점검하는 테스트 계획이 수립되어 있는가?",
+            "methods": [
+              {
+                "method": "2-1 할당된 메모리보다 더 큰 입력값을 사용하여 버퍼 오버플로우가 발생하는지 점검할 수 있는 테스트 계획이 수립되어 있는지 확인 (테스트 입력값 예: 충분히 긴 문자열)",
+                "artifacts": "단위테스트케이스 검토"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "related_weaknesses": [
+    {
+      "category": "입력데이터 검증 및 표현",
+      "weakness": "메모리 버퍼 오버플로우",
+      "code": "IMP-IV-16"
+    },
+    {
+      "category": "입력데이터 검증 및 표현",
+      "weakness": "포맷 스트링 삽입"
+    }
+  ],
+  "references": [
+    "CWE-119 Improper Restriction of Operations within the Bounds of a Memory Buffer, MITRE",
+    "Buffer Overflow, Wikipedia",
+    "WASC Threat Classification v2.0 Buffer Overflow, WASC",
+    "Smashing The Stack For Fun And Profit, Aleph One",
+    "Stack BufferOverflow(스택 버퍼오버플로우), Inhack",
+    "Stack-based Overflow Exploit: Introduction to Classical and Advanced Overflow Technique, wowhacker",
+    "CWE-134 Uncontrolled Format String, MITRE",
+    "WASC Threat Classification Format String, WASC"
+  ],
+  "tags": [
+    "memory",
+    "buffer_overflow",
+    "format_string",
+    "aslr",
+    "stackguard",
+    "input_validation",
+    "design",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "메모리 버퍼 오버플로우",
+      "경계값 검사",
+      "ASLR",
+      "StackGuard",
+      "Non-executable Stack",
+      "취약한 API 목록",
+      "안전한 함수",
+      "배열 길이 검사",
+      "단위테스트케이스"
+    ],
+    "mcq_seed": "버퍼오버플로우 방지 설계 보안대책(경계값 검사·ASLR/StackGuard·취약 API 금지) 또는 진단방법/관련산출물 짝 중 '옳지 않은 것'을 묻는 객관형",
+    "diagnosis_seed": "요구사항정의서·아키텍처설계서·개발가이드 산출물을 제시하고 허용된 범위내 메모리 접근(버퍼오버플로우 방지) 설계 적용 여부를 진단보고서로 작성하는 복합서술형(붙임2 8점형). 채점은 checklist 의 진단방법·관련산출물 포함 여부로 판정"
+  }
+}

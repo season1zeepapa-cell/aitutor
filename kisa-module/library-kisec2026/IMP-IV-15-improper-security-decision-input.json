@@ -1,0 +1,61 @@
+{
+  "chapter_code": "IMP-IV-15",
+  "title": "보안기능 결정에 사용되는 부적절한 입력값",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-807",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 01 입력데이터 검증 및 표현 항목에 대한 고려 / 1-15 보안기능 결정에 사용되는 부적절한 입력값",
+    "pages": "405-407"
+  },
+  "overview": "응용프로그램이 쿠키, 환경변수, 히든필드와 같은 입력값에 대한 신뢰를 전제로 보호 메커니즘을 구현하는 경우 발생하는 보안약점이다. 공격자가 입력값을 조작할 수 있다면 보호메커니즘을 우회할 수 있게 된다. 개발자들이 흔히 쿠키, 환경변수 또는 히든필드와 같은 입력값이 조작될 수 없다고 가정하지만 공격자는 다양한 방법으로 이러한 입력값들을 변경할 수 있고 조작된 내용은 탐지되지 않을 수 있다. 인증이나 인가와 같은 보안결정이 이런 입력값(쿠키, 환경변수, 히든필드 등)에 기반해 수행되는 경우 공격자는 이런 입력값을 조작하여 응용프로그램의 보안을 우회할 수 있으므로 충분한 암호화, 무결성 체크를 수행하고 이와 같은 메커니즘이 없는 경우엔 외부사용자에 의한 입력값을 신뢰해서는 안된다.",
+  "impact": "공격자가 입력값을 조작하여 보호 메커니즘을 우회하거나 권한상승을 시도하여 허가되지 않은 시스템의 기능을 사용할 수 있다.",
+  "countermeasure": "상태정보나 민감한 데이터 특히 사용자 세션정보와 같은 중요한 정보는 서버에 저장하고 보안확인 절차도 서버에서 실행한다. 사용자 권한, 인증 여부 등 보안 결정에 사용하는 값은 사용자 입력값을 사용하지 않고 내부 세션값을 활용한다. 보안설계관점에서 신뢰할 수 없는 입력값이 응용프로그램 내부로 들어올 수 있는 지점과 보안결정에 사용되는 입력값을 식별하고 제공되는 입력값에 의존할 필요가 없는 구조로 변경할 수 있는지 검토한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    // 서버가 보유하고 있는 가격(단가) 정보를 사용자 화면에서 받아서 처리\n    price = request.getParameter(\"price\");\n    quantity = request.getParameter(\"quantity\");\n    total = quantity * Float.parseFloat(price);\n} catch (Exception e) {\n......\n}",
+      "safe": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    // 서버가 보유하고 있는 가격정보를 이용하여 전체 가격을 계산\n    price = CONST_HDTV_UNIT_PRINCE;\n    quantity = request.getParameter(\"quantity\");\n    total = quantity * Float.parseFloat(price);\n} catch (Exception e) {\n......\n}",
+      "note": "구입품목의 가격을 사용자 웹브라우저에서 처리하면(히든필드 price) 사용자가 단가 정보를 임의 값으로 변경할 수 있다. 보안결정에 사용하는 값은 사용자 입력이 아닌 서버 내부의 값(상수/서버 보유 가격)을 활용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "HttpCookie cookie = new HttpCookie(\"Authentificated\", \"1\");\n// 평문으로 사용자의 인증정보를 쿠키에 저장한다.\nResponse.Cookies.Add(cookie);",
+      "safe": "// 사용자의 인증정보를 세션에 저장한다.\nSession[\"Authentificated\"] = \"1\";",
+      "note": "중요한 정보를 쿠키에 저장 시에는 암호화해서 사용하고, 되도록이면 해당 정보는 서버의 세션에 저장하도록 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void SecurityDecision() {\n    int sockfd = socket(PF_INET, SOCK_STREAM, 0);\n    char* server_info = getenv(\"server_addr\");\n    // 외부에서 가져온 서버 정보를 그대로 사용한다.\n    if( connect( sockfd, (struct sockaddr *)server_addr, sizeof(struct socketaddr) ) < 0 ) {\n        return;\n    }\n    /* 라이선스 검증 코드 */\n}",
+      "safe": "void SecurityDecision() {\n    int sockfd = socket(PF_INET, SOCK_STREAM, 0);\n    struct sockaddr_in server_addr;\n    memset( &server_info, 0, sizeof(server_info));\n    server_info.sin_family = AF_INET;\n    server_info.sin_port = htons(5555);\n    server_info.sin_addr.s_addr = inet_addr(\"127.0.0.1\");\n    // 고정된 서버 주소를 사용하여 연결을 진행한다.\n    if( connect( sockfd, (struct sockaddr *)server_addr, sizeof(struct socketaddr) ) < 0 ) {\n        return;\n    }\n    /* 라이선스 검증 코드 */\n}",
+      "note": "사용자가 환경 변수를 조작하면 의도하지 않은 곳으로 연결할 수 있다. 예를 들어 온라인 라이선스 검증 시 인증 서버 주소를 변경하여 검증을 우회할 수 있으므로, 환경 변수가 아닌 고정된 정보를 이용한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "인증여부를 확인하기 위해 사용하는 변수를 확인하고(①), 변수가 세션정보 등 서버내부에서 검증된 값인지 확인한다(②). 세션 정보 등 서버 내부에서 검증된 값을 사용하면 안전, 인증결정의 기준으로 외부 입력값을 그대로 사용(미사용)하는 경우 취약하다.",
+    "true_positive": [
+      {
+        "desc": "평문으로 사용자의 인증정보 및 \"authenticated\" 값을 쿠키에 저장. 공격자가 쿠키정보를 변경 가능하므로 보안결정에 부적절 → 취약 판정",
+        "code": "<%\nString username = request.getParameter(\"username\");\nString password = request.getParameter(\"password\");\nif (username==null || password==null || !isAuthenticatedUser(username, password)) {\n    throw new MyException(\"인증 에러\");\n}\nCookie userCookie = new Cookie(\"user\", username);\nCookie authCookie = new Cookie(\"authenticated\", \"1\");\nresponse.addCookie(userCookie);\nresponse.addCookie(authCookie);\n%>"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "HIDDEN 필드로 전송된 price 를 가격으로 사용하지 않고 8번 라인에서 정해진 가격(1000)을 사용하고 있어 보안결정에 외부 입력값을 쓰지 않음 → 취약하지 않음(오탐 주의)",
+        "code": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    // 서버가 보유하고 있는 정보를 이용하여 가격을 처리\n    price = 1000;\n    quantity = request.getParameter(\"quantity\");\n    total = quantity * Float.parseFloat(price);\n} catch (Exception e) {\n......\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-807 Reliance on Untrusted Inputs in a Security Decision, MITRE — http://cwe.mitre.org/data/definitions/807.html",
+    "ENV02-J. Do not trust the values of environment variables, CERT",
+    "Session Management Cheat Sheet, OWASP"
+  ],
+  "tags": ["security-decision", "cookie", "hidden-field", "environment-variable", "input_validation", "session", "kisec2026"],
+  "question_hooks": {
+    "keywords": ["쿠키 조작", "히든필드", "환경변수", "서버 세션 저장", "보안결정 입력값", "무결성 체크", "암호화"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

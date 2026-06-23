@@ -1,0 +1,77 @@
+{
+  "chapter_code": "IMP-SF-04",
+  "title": "취약한 암호화 알고리즘 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-327",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 02 보안기능 항목에 대한 고려 §2-4 취약한 암호화 알고리즘 사용",
+    "pages": "425-429"
+  },
+  "overview": "중요 정보를 암·복호화할 때 취약한 암호 알고리즘을 사용하면 외부로 유출된 중요 정보가 복호화되어 노출될 수 있다. SW 개발자들은 환경설정 파일에 저장된 비밀번호를 보호하기 위하여 간단한 인코딩 함수를 이용하여 비밀번호를 감추는 방법을 사용하기도 하지만, base64와 같은 지나치게 간단한 인코딩 함수로는 비밀번호를 제대로 보호할 수 없다. 정보보호 측면에서 취약하거나 위험한 암호화 알고리즘을 사용해서는 안 된다. 표준화되지 않은 암호화 알고리즘은 공격자가 분석하여 무력화시킬 가능성을 높이며, 컴퓨터 성능 향상에 따라 취약해진 RC2, RC4, RC5, RC6, MD4, MD5, SHA1, DES 알고리즘이 여기에 해당된다. [2026 교재 개념정리] DES(Data Encryption Standard)는 1976년 IBM이 개발하여 1977년 미국 연방정보처리표준(FIPS)으로 채택된 대칭키 암호로, 56비트 키로 데이터를 64비트 블록 단위로 암호화하며 컴퓨터 성능 발전으로 현재는 취약한 알고리즘이다. AES(Advanced Encryption Standard)는 현재 가장 널리 사용되고 안전하다고 여겨지는 대칭키 암호화 알고리즘 중 하나이다. CBC(Cipher Block Chaining)는 운영 모드(Operation Mode)로, 이전 암호 블록의 결과를 다음 블록에 연결하여 동일한 평문 블록이 항상 동일한 암호문으로 암호화되는 것을 방지하며 초기화 벡터(IV)가 필요하다. PKCS5Padding은 데이터 블록 길이가 블록 크기에 맞지 않을 때 마지막 블록을 채우는 표준 패딩 방식이다.",
+  "countermeasure": "자체적인 암호화 알고리즘을 개발해서 사용하는 것은 안전하지 않으므로, 학계 및 업계에서 이미 검증된 표준화된 알고리즘을 사용한다. 취약하다고 알려진 DES, RC5 등의 알고리즘 대신 3TDEA, AES, SEED, LEA, RSA, SHA2, SHA3 등의 안전한 암호 알고리즘을 사용하여 암·복호화 작업을 수행한다. 또한 업무관련 내용, 개인정보 등에 대한 암호 알고리즘 적용 시 IT보안인증 사무국이 안전성을 확인한 검증필 암호모듈을 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "import java.security.*;\nimport javax.crypto.Cipher;\nimport javax.crypto.NoSuchPaddingException;\n\npublic class CryptoUtils {\n  public byte[] encrypt(byte[] msg, Key k) {\n    byte[] rslt = null;\n    try {\n      //키 길이가 짧아 취약한 암호화 알고리즘인 DES를 사용하여 안전하지 않다.\n      Cipher c = Cipher.getInstance(\"DES\");\n      c.init(Cipher.ENCRYPT_MODE, k);\n      rslt = c.update(msg);\n    }",
+      "safe": "import java.security.*;\nimport javax.crypto.Cipher;\nimport javax.crypto.NoSuchPaddingException;\n\npublic class CryptoUtils {\n  public byte[] encrypt(byte[] msg, Key k) {\n    byte[] rslt = null;\n    try {\n      //키 길이가 길어 강력한 알고리즘인 AES를 사용하여 안전하다.\n      Cipher c = Cipher.getInstance(\"AES/CBC/PKCS5Padding\");\n      c.init(Cipher.ENCRYPT_MODE, k);\n      rslt = c.update(msg);\n    }",
+      "note": "취약한 DES 대신 안전하다고 알려진 AES 알고리즘 등을 적용해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "static string Enc(string input) {\n  //키 길이가 짧아 취약한 암호화 알고리즘인 DES를 사용하여 안전하지 않다.\n  var des = new DESCryptoServiceProvider();\n  ...\n}",
+      "safe": "static string Enc(string input) {\n  //키 길이가 길어 강력한 알고리즘인 AES를 사용하여 안전하다.\n  var des = new AesCryptoServiceProvider();\n  ...\n}",
+      "note": "취약한 DES 대신 안전하다고 알려진 AES 알고리즘 등을 적용해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "EVP_CIPHER_CTX ctx;\nEVP_CIPHER_CTX_init(&ctx);\n// 취약한 DES 알고리즘을 사용한다.\nEVP_EncryptInit(&ctx, EVP_des_ecb(), NULL, NULL);",
+      "safe": "EVP_CIPHER_CTX ctx;\nEVP_CIPHER_CTX_init(&ctx);\n// 안전한 AES 알고리즘을 사용한다.\nEVP_EncryptInit(&ctx, EVP_aes_128_cbc(), key, iv);",
+      "note": "취약한 DES 대신 안전하다고 알려진 AES 알고리즘을 사용하도록 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "정적분석 도구 및 진단원이 각 언어에서 제공하는 암호화 함수가 취약한 암호화 알고리즘을 사용하는지 여부는 확인가능하나, 자체 암호화 알고리즘을 사용하는 경우 알고리즘의 적절성 여부를 판단하는 것은 어려우며 수동진단이 필요하다. 자체 구현한 암호화 관련 알고리즘을 사용하는지 확인하고, 자체 구현한 암호알고리즘을 사용할 경우 취약함으로 판단한다(암호전문가가 존재하면 적절성을 판단·보증할 수 있다). 특정 언어에서 제공하는 암호관련 함수를 호출하는지 식별한다. 취약한 알고리즘은 RC2, RC4, RC5, RC6, MD4, MD5, SHA1, DES 등이며, 안전한 알고리즘은 SHA-256, AES, SEED, ARIA 등이다.",
+    "true_positive": [
+      {
+        "desc": "비밀번호를 Base64로 인코딩하여 configuration 파일에 저장한 경우이다. Base64는 암호화가 아닌 인코딩이며 개발자가 암호화를 위해 Base64 encoding을 사용하였다면 취약하다고 판정한다.",
+        "code": "public boolean DBConnect() {\n  String url = \"DBServer\";\n  String usr = \"Scott\";\n  Connection con = null;\n  FileInputStream fis = null;\n  try {\n    Properties prop = new Properties();\n    fis = new FileInputStream(\"config.properties\");\n    // 비밀번호를 64bit로 decoding한다.\n    byte password[] = Base64.decode(prop.getProperty(\"password\"));\n    // 유효성 점검없이 패스워드를 문자열로 읽는다.\n    con = DriverManager.getConnection(url, usr, password.toString());\n  } catch (FileNotFoundException e) {\n    ...\n  } catch (SQLException e) {\n    ...\n  }\n}"
+      },
+      {
+        "desc": "MD5 등의 낮은 보안 수준의 알고리즘을 사용하는 경우는 안전하지 않아 취약하다고 판정한다.",
+        "code": "public static EgovFormBasedUUID nameUUIDFromBytes(byte[] name) {\n  MessageDigest md = null;\n  try {\n    md = MessageDigest.getInstance(\"MD5\");\n  } catch (NoSuchAlgorithmException e) {\n    throw new InternalError(\"MD5 not supported\");\n  }\n  byte[] md5Bytes = md.digest(name);\n  md5Bytes[6] &= 0x0f; /* clear version */\n  md5Bytes[6] |= 0x30; /* set to version 3 */\n  md5Bytes[8] &= 0x3f; /* clear variant */\n  md5Bytes[8] |= 0x80; /* set to IETF variant */\n  return new EgovFormBasedUUID(md5Bytes);\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-327 Use of a Broken or Risky Cryptographic Algorithm, MITRE — http://cwe.mitre.org/data/definitions/327.html",
+    "Do not use insecure or weak cryptographic algorithms (MSC61-J), CERT",
+    "Cryptanalysis, OWASP — https://www.owasp.org/index.php/Cryptanalysis"
+  ],
+  "tags": [
+    "cryptography",
+    "weak-algorithm",
+    "des",
+    "md5",
+    "security_feature",
+    "aes",
+    "base64",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "취약 알고리즘(RC2/RC4/RC5/RC6/MD4/MD5/SHA1/DES)",
+      "안전 알고리즘(3TDEA/AES/SEED/LEA/RSA/SHA2/SHA3/ARIA)",
+      "검증필 암호모듈",
+      "Base64는 인코딩(암호화 아님)",
+      "자체 암호알고리즘 금지",
+      "Cipher.getInstance",
+      "AES/CBC/PKCS5Padding",
+      "초기화 벡터(IV)"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

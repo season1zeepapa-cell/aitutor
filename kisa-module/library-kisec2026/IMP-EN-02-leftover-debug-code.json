@@ -1,0 +1,71 @@
+{
+  "chapter_code": "IMP-EN-02",
+  "title": "제거되지 않고 남은 디버그 코드",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-489",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 03 캡슐화 항목에 대한 고려 6-2. 제거되지 않고 남은 디버그 코드",
+    "pages": "525-526"
+  },
+  "overview": "디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다. 디버그 코드는 설정 등의 민감한 정보를 담거나 시스템을 제어하게 허용하는 부분을 담고 있을 수 있다. 만일 남겨진 채로 배포될 경우, 공격자가 식별 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다.",
+  "countermeasure": "소프트웨어 배포 전, 반드시 디버그 코드를 확인 및 삭제한다. 일반적으로 Java 개발자의 경우 웹 응용 프로그램을 제작할 때 디버그 용도의 코드를 main()에 개발한 후 이를 삭제하지 않는 경우가 많다. 디버깅이 끝나면 main() 메서드를 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "class Base64 {\n    public static void main(String[] args) {\n        if (debug) {\n            byte[] a = { (byte) 0xfc, (byte) 0x0f, (byte) 0xc0 };\n            byte[] b = { (byte) 0x03, (byte) 0xf0, (byte) 0x3f };\n                 ……\n        }\n    }\n    public void otherMethod() { … }\n}",
+      "safe": "class Base64 {\n    public void otherMethod() { … }\n}",
+      "note": "main() 메서드 내에 화면에 출력하는 디버깅 코드를 포함하고 있다. J2EE의 경우 main() 메서드 사용이 필요 없으며, 개발자들이 콘솔 응용프로그램으로 화면에 디버깅코드를 사용하는 경우가 일반적이다. J2EE와 같은 응용프로그램에서 main() 메소드는 삭제한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "class Example {\npublic void Log() {\n//Console.WriteLine 등의 메소드를 사용한 디버그용 코드가 남아있습니다.\n    Console.WriteLine(\"sensitive info\");\n}\n}",
+      "safe": "class Example {\npublic void Log() {\n//디버그용 코드를 삭제해야 합니다.\n//Console.WriteLine(\"sensitive info\");\n}\n}",
+      "note": "디버그용 코드가 남아있는 C# 코드의 예제. 디버그용 코드를 삭제하여야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void LeftoverDebugCode() {\nint i, ntprs;\nchar **strings;\nnptrs = backtrace(buffer, 100);\nstrings = backtrace_symbols(buffer, nptrs);\n…\n// 디버그 모드일 시 콜스택을 출력한다\nif(debug) {\n     for(i=0; i < nptr; i++) printf(\"%s\\n\", strings[j]);\n}\n}",
+      "safe": "void LeftoverDebugCode() {\n… // 디버그 코드를 삭제하고 동작 코드만 남긴다.\n}",
+      "note": "디버그용 코드가 남아있는 C 코드의 예제. 공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있다. 릴리즈 시에는 디버그용 코드를 삭제하여야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "J2EE를 제외하고 디버그 코드를 정적도구만으로 판단하기는 쉽지 않다. 개발 중 테스트 목적으로 남아 있는 디버그 코드가 존재하는지 확인한다(①). J2EE 환경(J2EE Standard)에서는 main 메소드 작성을 금하고 있으며, 일반적으로 개발자들은 디버그 코드를 main으로 작성하므로 main 메소드가 사용되는 경우 디버그코드인지 확인하여야 한다.",
+    "true_positive": [
+      {
+        "desc": "HttpServlet 하위클래스에 테스트용 main() 메소드와 디버깅용 로그 출력문(System.err.printf)이 남아 있음. J2EE에서 디버깅용 main()은 삭제해야 함 → 취약 판정",
+        "code": "public class U489 extends HttpServlet {\nprotected void doGet(HttpServletRequest request, …) throws …{ …}\nprotected void doPost(HttpServletRequest request, …) throws …{ …}\n// 테스트를 위한 main()함수나 디버깅용 로그 출력문 등이 남아 있다.\npublic static void main(String args[]) {\nSystem.err.printf(\"Print debug code\");\n}\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-489 Leftover Debug Code, MITRE — http://cwe.mitre.org/data/definitions/489.html",
+    "Production code must not contain debugging entry points, CERT — http://www.securecoding.cert.org/confluence/display/java/ENV06-J.+Production+code+must+not+contain+debugging+entry+points"
+  ],
+  "tags": [
+    "encapsulation",
+    "debug-code",
+    "main-method",
+    "j2ee",
+    "information-exposure",
+    "release",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "디버그 코드",
+      "main() 메소드",
+      "J2EE",
+      "콜스택 출력",
+      "System.err.printf",
+      "Console.WriteLine",
+      "backtrace",
+      "배포 전 삭제"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

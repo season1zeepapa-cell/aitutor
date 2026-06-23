@@ -1,0 +1,72 @@
+{
+  "chapter_code": "IMP-SF-13",
+  "title": "주석문 안에 포함된 시스템 주요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-615",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 02 보안기능 항목에 대한 고려 §2-13 주석문 안에 포함된 시스템 주요 정보",
+    "pages": "464-465"
+  },
+  "overview": "비밀번호를 주석문에 넣어두면 시스템 보안이 훼손될 수 있다. 소프트웨어 개발자가 편의를 위해서 주석문에 비밀번호를 적어둔 경우, 소프트웨어가 완성된 후에는 제거하는 것이 어렵게 된다. 또한, 공격자가 소스코드에 접근할 수 있다면, 아주 쉽게 시스템에 침입할 수 있다.",
+  "countermeasure": "주석에는 ID, 비밀번호 등 보안과 관련된 내용을 기입하지 않는다.",
+  "code_examples": [
+    {
+      "lang": "java",
+      "vulnerable": "//주석문으로 DB연결 ID, 비밀번호의 중요한 정보를 노출시켜 안전하지 않다.\n// DB연결 root / a1q2w3r3f2!@\ncon = DriverManager.getConnection(URL, USER, PASS);",
+      "safe": "// ID, 비밀번호등의 중요 정보는 주석에 포함해서는 안된다.\ncon = DriverManager.getConnection(URL, USER, PASS);",
+      "note": "프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 비밀번호 등의 정보는 개발 완료 시에 확실하게 삭제하여야 한다."
+    },
+    {
+      "lang": "csharp",
+      "vulnerable": "//주석문으로 DB연결 ID, 비밀번호의 중요한 정보를 노출시켜 안전하지 않다.\n//DB연결 root / a1q2w3r3f2!@\nconn = customGetConnection(USER, PASS);",
+      "safe": "// ID, 비밀번호등의 중요 정보는 주석에 포함해서는 안된다.\nconn = customGetConnection(USER, PASS);",
+      "note": "프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 비밀번호 등의 정보는 개발 완료 시에 확실하게 삭제하여야 한다."
+    },
+    {
+      "lang": "c",
+      "vulnerable": "/* password is \"admin\" */\n/* passwd is \"admin\" */\nint verfiyAuth(char *ipasswd, char *orgpasswd){\n  char *admin = \"admin\";\n  if(strncmp(ipasswd, oprgpasswd, sizeof(ipasswd)) != 0){\n    printf(\"Authentication Fail!\\n\");\n  }\n  return admin;",
+      "safe": "int verfiyAuth(char *ipasswd, char *orgpasswd){\n  char *admin = \"admin\";\n  if(strncmp(ipasswd, oprgpasswd, sizeof(ipasswd)) != 0){\n    printf(\"Authentication Fail!\\n\");\n  }\n  return admin;\n}",
+      "note": "불필요한 주석은 삭제해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "DB접속, 관리자 로그인 등이 구현된 코드를 확인하고(①), 주석을 확인하여 암호 포함여부 확인한다(②).",
+    "true_positive": [
+      {
+        "desc": "주석문 안에 개발자의 이해를 돕기 위한 목적 등으로 비밀번호를 적어 놓고 있으므로 취약하다고 판정한다.",
+        "code": "public void daoTest() throws Exception {\n  // db sample : 84d5d0a08a3ec5e2d91a\n  // 암호화 전, 후 : 1365ADMIN_01, aa84c40031d808196537ad3dcf81f9af\n  String pwd= \"46c165a343fd6841273ae04655af24dd\";\n  String pwd1= ARIAEngine.decARIA(pwd);\n  System.out.println(pwd1);\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "주석문안에 \"password\", \"passwd\", \"비밀번호\"등의 텍스트가 존재하지만 실제로 그 내용이 비밀번호가 아닌 경우에는 취약하지 않다고 판정한다.",
+        "code": "// 암호화\nString Sid = getSessionValue(session, \"ihidnum\");\nSid = AEScryptWithSaltKey.encode(StrTool.sNN(Sid));\nString sIhidnum = Sid;"
+      }
+    ]
+  },
+  "references": [
+    "CWE-615 Information Exposure Through Comments, MITRE — http://cwe.mitre.org/data/definitions/615.html"
+  ],
+  "tags": [
+    "주석",
+    "비밀번호 노출",
+    "정보 노출",
+    "보안기능",
+    "CWE-615",
+    "소스코드 노출",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "주석문",
+      "비밀번호",
+      "정보 노출",
+      "소스코드 접근",
+      "계정 정보 삭제"
+    ],
+    "mcq_seed": "주석에 비밀번호/계정을 남긴 코드와 제거한 코드를 제시 → 보안약점 설명으로 잘못된 것 / 취약·안전 판정",
+    "diagnosis_seed": "주석에 password/passwd 텍스트가 등장하는 코드 제시 → 실제 비밀번호 노출 여부로 정탐·오탐 판정"
+  }
+}

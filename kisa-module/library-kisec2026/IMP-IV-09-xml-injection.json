@@ -1,0 +1,80 @@
+{
+  "chapter_code": "IMP-IV-09",
+  "title": "XML 삽입 (XML Injection)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-91",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 01 입력데이터 검증 및 표현 항목에 대한 고려 / 1-9 XML 삽입",
+    "pages": "375-382"
+  },
+  "overview": "외부입력값을 검증하지 않고 XQuery 또는 XPath 쿼리문을 생성하는 문자열로 사용하여 발생하는 보안약점이다. 공격자가 쿼리문의 구조를 임의로 변경하고 임의의 쿼리를 실행하여 허가되지 않은 데이터를 열람하거나 인증 절차를 우회할 수 있다.",
+  "impact": "공격자가 입력값을 조작하여 쿼리문을 조작할 수 있으며, 조작된 쿼리문은 데이터 무단 조회 및 인증 절차 우회와 같은 취약점을 유발할 수 있다.",
+  "countermeasure": "XQuery에 사용되는 외부입력값에 대하여 특수문자 및 쿼리 예약어를 필터링하고, XQuery를 사용한 쿼리문은 문자열을 연결하는 형태로 구성하지 않고 파라미터화된 쿼리문을 사용한다. XPath 쿼리에 사용되는 외부입력값에 대하여 특수문자( \" [ ] / = @ 등) 및 쿼리 예약어를 필터링하고, 파라미터화된 쿼리문을 지원하는 XQuery 표현식을 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (XQuery)",
+      "vulnerable": "// 외부 입력 값을 검증하지 않고 XQuery 표현식에 사용한다.\nString name = props.getProperty(\"name\");\n.......\n// 외부 입력 값에 의해 쿼리 구조가 변경 되어 안전하지 않다.\nString es = \"doc('users.xml')/userlist/user[uname='\"+name+\"']\";\nXQPreparedExpression expr = conn.prepareExpression(es);\nXQResultSequence result = expr.executeQuery();",
+      "safe": "// blingString 함수로 쿼리 구조가 변경되는 것을 방지한다.\nString name = props.getProperty(\"name\");\n.......\nString es = \"doc('users.xml')/userlist/user[uname='$xname']\";\nXQPreparedExpression expr = conn.prepareExpression(es);\nexpr.bindString(new QName(\"xname\"), name, null);\nXQResultSequence result = expr.executeQuery();",
+      "note": "공격 예: name의 값으로 something' or '1'='1 을 전달하면 doc('users.xml')/userlist/user[uname='something' or '1'='1'] 쿼리가 수행되어 파일 내 모든 값을 출력할 수 있다. bindString 함수를 이용하여 외부 입력값으로 쿼리 구조가 변경될 수 없도록 한다."
+    },
+    {
+      "lang": "C# (XQuery)",
+      "vulnerable": "//외부 입력 값으로 XQuery 문을 만듭니다.\nString squery =\n  \"for $user in doc(users.xml)//user[username='\"\n  + UserTextBox.Text\n  + \"'and pass='\"\n  + PwdTextBox.Text\n  + \"'] return $user\";\nProcessor processor = new Processor();\nXQueryCompiler compiler = processor.NewXQueryCompiler();\nXdmNode indoc = processor.NewDocumentBuilder().Build(new Uri(Server.MapPath(\"users.xml\")));\nusing (StreamReader query = new StreamReader(squery))\n{\n  XQueryCompiler compiler = processor.NewXQueryCompiler();\n  XQueryExecutable exp = compiler.Compile(query.ReadToEnd());\n  XQueryEvaluator eval = exp.Load();\n  eval.ContextItem = indoc;\n  Serializer qout = new Serializer();\n  qout.SetOutputProperty(Serializer.METHOD, \"xml\");\n  qout.SetOutputProperty(Serializer.DOCTYPE_PUBLIC, \"-//W3C//DTD XHTML 1.0 Strict//EN\");\n  qout.SetOutputProperty(Serializer.DOCTYPE_SYSTEM, \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\");\n  qout.SetOutputProperty(Serializer.INDENT, \"yes\");\n  qout.SetOutputProperty(Serializer.OMIT_XML_DECLARATION, \"no\");\n  qout.SetOutputWriter(Response.Output);\n  //별다른 검증 없이 XML 데이터에 접근합니다.\n  eval.Run(qout);\n}",
+      "safe": "String squery =\n  \"for $user in doc(users.xml)//user[username='\"\n  + UserTextBox.Text\n  + \"'and pass='\"\n  + PwdTextBox.Text\n  + \"'] return $user\";\n// 문자열 필터링으로 위험한 문자열을 제거해 줍니다.\nstring validatedQuery = squery.Replace('/','*');\nProcessor processor = new Processor();\nXQueryCompiler compiler = processor.NewXQueryCompiler();\nXdmNode indoc = processor.NewDocumentBuilder().Build(new Uri(Server.MapPath(\"users.xml\")));\nusing (StreamReader query = new StreamReader(validatedQuery))\n{\n  XQueryCompiler compiler = processor.NewXQueryCompiler();\n  XQueryExecutable exp = compiler.Compile(query.ReadToEnd());\n  XQueryEvaluator eval = exp.Load();\n  eval.ContextItem = indoc;\n  Serializer qout = new Serializer();\n  qout.SetOutputProperty(Serializer.METHOD, \"xml\");\n  qout.SetOutputProperty(Serializer.DOCTYPE_PUBLIC, \"-//W3C//DTD XHTML 1.0 Strict//EN\");\n  qout.SetOutputProperty(Serializer.DOCTYPE_SYSTEM, \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\");\n  qout.SetOutputProperty(Serializer.INDENT, \"yes\");\n  qout.SetOutputProperty(Serializer.OMIT_XML_DECLARATION, \"no\");\n  qout.SetOutputWriter(Response.Output);\n  eval.Run(qout);\n}",
+      "note": "문자열 필터링으로 쿼리문 조작을 막을 수 있다."
+    },
+    {
+      "lang": "Java (XPath)",
+      "vulnerable": "// 프로퍼티로부터 외부 입력값 name과 password를 읽어와 각각 nm, pw변수에 저장\nString nm = props.getProperty(\"name\");\nString pw = props.getProperty(\"password\");\n......\nXPathFactory factory = XPathFactory.newInstance();\nXPath xpath = factory.newXPath();\n......\n// 검증되지 않은 외부 입력값 nm, pw를 사용하여 안전하지 않은 질의문이 작성되어 expr 변수에 저장된다.\nXPathExpression expr = xpath.compile(\"//users/user[login/text()='\"+nm+\"' and password/text()='\"+pw+\"']/home_dir/text()\");\nObject result = expr.evaluate(doc, XPathConstants.NODESET);\nNodeList nodes = (NodeList) result;\nfor (int i=0; i<nodes.getLength(); i++) {\n  String value = nodes.item(i).getNodeValue();\n  if (value.indexOf(\">\") < 0) {\n    System.out.println(value);\n  }\n}",
+      "safe": "[ login.xq 파일 ]\ndeclare variable $loginID as xs:string external;\ndeclare variable $password as xs:string external;\n//users/user[@loginID=$loginID and @password=$password]\n\n// XQuery를 이용한 XPath Injection 방지\nString nm = props.getProperty(\"name\");\nString pw = props.getProperty(\"password\");\nDocument doc = new Builder().build(\"users.xml\");\n//파라미터화된 쿼리가 담겨있는 login.xq를 읽어와서 파라미터화된 쿼리를 생성한다.\nXQuery xquery = new XQueryFactory().createXQuery(new File(\"login.xq\"));\nMap vars = new HashMap();\n//검증되지 않은 외부값인 nm, pw를 파라미터화된 쿼리의 파라미터로 설정한다.\nvars.put(\"loginID\", nm);\nvars.put(\"password\", pw);\n// 파라미터화된 쿼리를 실행하므로 외부값을 검증 없이 사용하여도 안전하다.\nNodes results = xquery.execute(doc, null, vars).toNodes();\nfor (int i=0; i<results.size(); i++) {\n  System.out.println(results.get(i).toXML());\n}",
+      "note": "공격 예: nm 값으로 tester, pw 값으로 x' or 'x'='x 를 전달하면 //users/user[login/text()='tester' and password/text()='x' or //'x'='x']/home_dir/text() 질의문이 생성되어 인증과정을 거치지 않고 로그인할 수 있다. 파라미터화된 쿼리를 지원하는 XQuery 구문으로 대체할 수 없는 경우에는 XPath 삽입을 유발할 수 있는 문자들을 입력값에서 제거하고 XPath 구문을 생성·실행한다. 예: input.replaceAll(\"[',\\\\[]\", \"\")"
+    },
+    {
+      "lang": "Java (XPath - 문자열 필터 메소드)",
+      "vulnerable": "String nm = props.getProperty(\"name\");\nString pw = props.getProperty(\"password\");\n// 검증되지 않은 외부 입력값 nm, pw 를 사용하여 안전하지 않은 질의문이 작성되어 expr 변수에 저장된다.\nXPathExpression expr = xpath.compile(\"//users/user[login/text()='\" + nm +\n  \"' and password/text()='\" + pw + \"']/home_dir/text()\");\nObject result = expr.evaluate(doc, XPathConstants.NODESET);",
+      "safe": "// XPath 삽입을 유발할 수 있는 문자들을 입력값에서 제거하는 필터 메소드\npublic String XPathFilter(String input) {\n  if (input != null) return input.replaceAll(\"[',\\\\[]\", \"\");\n  else return \"\";\n}\n  :\n// 외부 입력값에 필터 메소드를 적용하여 사용한다.\nString nm = XPathFilter(props.getProperty(\"name\"));\nString pw = XPathFilter(props.getProperty(\"password\"));\n  :\nXPathFactory factory = XPathFactory.newInstance();\nXPath xpath = factory.newXPath();\n  :\n// 외부 입력값인 nm, pw를 검증하여 쿼리문을 생성하므로 안전하다.\nXPathExpression expr = xpath.compile(\"//users/user[login/text()='\" + nm +\n  \"' and password/text()='\" + pw + \"']/home_dir/text()\");\nObject result = expr.evaluate(doc, XPathConstants.NODESET);\nNodeList nodes = (NodeList) result;\nfor (int i=0; i<nodes.getLength(); i++) {\n  String value = nodes.item(i).getNodeValue();\n  if (value.indexOf(\">\") < 0) {\n    System.out.println(value);\n  }\n}",
+      "note": "파라미터화된 쿼리로 대체할 수 없는 경우, XPathFilter 같은 필터 메소드로 XPath 구문을 조작할 수 있는 문자(작은따옴표·대괄호 등)를 외부 입력값에서 제거한 뒤 쿼리문을 생성·실행한다."
+    },
+    {
+      "lang": "Java (XPath - 문자열 필터링)",
+      "vulnerable": "public static void main(String[] args) throws Exception {\n  if (args.length <= 0) {\n    System.err.println(\"가격을 검색할 식품의 이름을 입력하세요.\");\n    return;\n  }\n  String name = args[0];\n  DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();\n  Document doc = docBuilder.parse(\"http://www.w3schools.com/xml/simple.xml\");\n  XPath xpath = XPathFactory.newInstance().newXPath();\n  // 프로그램의 커맨드 옵션으로 입력되는 외부값 name을 사용하여 쿼리문을 직접 작성하여 수행하므로 안전하지 않다.\n  NodeList nodes = (NodeList) xpath.evaluate(\"//food[name='\" + name + \"']/price\", doc, XPathConstants.NODESET);\n  for (int i = 0; i < nodes.getLength(); i++) {\n    System.out.println(nodes.item(i).getTextContent());\n  }\n}",
+      "safe": "public static void main(String[] args) throws Exception {\n  if (args.length <= 0) {\n    System.err.println(\"가격을 검색할 식품의 이름을 입력하세요.\");\n    return;\n  }\n  //프로그램의 커맨드 옵션으로 입력되는 외부값 name에서 XPath 구문을 조작할 수 있는 문자를 제거하는 검증을 수행하여 안전하다.\n  String name = args[0];\n  if (name != null) {\n    name = name.replaceAll(\"[()\\\\-'\\\\[\\\\]:,*/]\", \"\");\n  }\n  DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();\n  Document doc = docBuilder.parse(\"http://www.w3schools.com/xml/simple.xml\");\n  XPath xpath = XPathFactory.newInstance().newXPath();\n  NodeList nodes = (NodeList) xpath.evaluate(\"//food[name='\" + name + \"']/price\", doc, XPathConstants.NODESET);\n  for (int i = 0; i < nodes.getLength(); i++) {\n    System.out.println(nodes.item(i).getTextContent());\n  }\n}",
+      "note": "공격 예: 입력값으로 any' or 'a' = 'a 를 전달하면 //food[name='any' or 'a' = 'a']/price 구문이 만들어져 모든 food의 가격(price)이 조회된다. XPath 구문을 조작할 수 있는 문자열을 제거하고 사용한다."
+    },
+    {
+      "lang": "C# (XPath)",
+      "vulnerable": "string acctID = Request[\"acctID\"];\nstring query = null;\nif(acctID != null)\n{\n  StringBuffer sb = new StringBuffer(\"/accounts/account[acctID='\");\n  sb.Append(acctID);\n  sb.Append(\"']/email/text()\");\n  query = sb.ToString();\n}\nXPathDocument docNav = new XPathDocument(myXml);\nXPathNavigator nav = docNav.CreateNavigator();\n//외부 입력값을 검증 없이 사용하고 있습니다.\nnav.Evaluate(query);",
+      "safe": "string xpath = \"/accounts/account[@acctID=$acctID]/email/text()\";\nXPathExpression expr = DynamicContext.Compile(xpath);\nDynamicContext ctx = new DynamicContext();\nctx.AddVariable(\"acctID\", AccountIDTextBox.Text);\nexpr.SetContext(ctx);\nXPathNodeIterator data = nav.Select(expr);",
+      "note": "외부입력을 XPath 식에 바로 사용하면 공격자의 입력에 따라 XQuery의 구조를 바꾸어 예기치 않은 공격이 발생할 수 있다. XPathExpression을 사용하여 미리 쿼리 골격을 생성함으로써 외부입력으로 인해 쿼리 구조가 바뀌는 것을 막을 수 있다."
+    }
+  ],
+  "diagnosis": {
+    "method": "[XQuery 삽입] XQuery가 실행되는 부분을 확인하고(①), XQuery 쿼리스트링에 사용되는 변수가 외부 입력값 여부를 확인한 후(②), 변수에 대한 필터링 모듈이 존재하는지 확인한다. 필터링 모듈이 존재하거나 관련 프레임워크에서 적절히 조치할 경우 안전한 것으로 판정한다. [XPath 삽입] XPath 객체로 쿼리 스트링이 컴파일 되는 부분을 확인하고(①), XPath 쿼리스트링에 사용되는 변수가 외부 입력값인지 확인한 후(②) 변수에 대한 필터링 모듈이 존재하는지 확인한다. 필터링 모듈이 존재하거나 관련 프레임워크에서 적절하게 조치된 경우엔 안전하다고 판정한다.",
+    "true_positive": [
+      {
+        "desc": "외부 입력(name)값을 executeQuery 쿼리생성의 문자열 인자 생성에 사용하고 있다. something' or '=' 1 을 name의 값으로 전달하면 파일 내 모든 값을 출력할 수 있어 취약하다.",
+        "code": "...\n// 외부로부터 입력을 받음\nString name = props.getProperty(\"name\");\nHashtable env = new Hashtable();\nenv.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\nenv.put(Context.PROVIDER_URL, \"ldap://localhost:389/o=rootDir\");\njavax.naming.directory.DirContext ctx = new InitialDirContext(env);\njavax.xml.xquery.XQDataSource xqds = (javax.xml.xquery.XQDataSource) ctx.lookup(\"x-qj/personnel\");\njavax.xml.xquery.XQConnection conn = xqds.getConnection();\nString es = \"doc('users.xml')/userlist/user[uname='\" + name + \"']\";\n// 입력 값이 Xquery의 인자로 사용\nXQPreparedExpression expr = conn.prepareExpression(es);\nXQResultSequence result = expr.executeQuery();\nwhile (result.next()) {\n  String str = result.getAtomicValue();\n  if (str.indexOf('>') < 0) {\n    System.out.println(str);\n  }\n}\n..."
+      },
+      {
+        "desc": "name의 값으로 user1, passwd의 값으로 ' or '='' 을 전달하면 //users/user[login/text()='user1' or ''='' and password/text() = '' or ''='']/home_dir/text() 쿼리문이 생성되어 인증과정을 거치지 않고 로그인할 수 있어 취약하다고 판정한다.",
+        "code": "...\n// 외부로부터 입력을 받음\nString name = props.getProperty(\"name\");\nString passwd = props.getProperty(\"password\");\n...\nXPathFactory factory = XPathFactory.newInstance();\nXPath xpath = factory.newXPath();\n...\n// 외부 입력이 xpath의 인자로 사용\nXPathExpression expr = xpath.compile(\"//users/user[login/text()='\" + name + \"' and password/text() = '\" + passwd + \"']/home_dir/text()\");\nObject result = expr.evaluate(doc, XPathConstants.NODESET);\nNodeList nodes = (NodeList) result;\nfor (int i = 0; i < nodes.getLength(); i++) {\n  String value = nodes.item(i).getNodeValue();\n  if (value.indexOf(\">\") < 0) {\n    System.out.println(value);\n  }\n}\n..."
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-652 XQuery Injection, MITRE — http://cwe.mitre.org/data/definitions/652.html",
+    "Prevent XML Injection, CERT — IDS16-J",
+    "CWE-643 XPath Injection, MITRE — http://cwe.mitre.org/data/definitions/643.html",
+    "Prevent XPath Injection, CERT — IDS53-J",
+    "XPATH Injection, OWASP — https://www.owasp.org/index.php/XPATH_Injection"
+  ],
+  "tags": ["xml", "injection", "xquery", "xpath", "input_validation", "authentication-bypass", "kisec2026"],
+  "question_hooks": {
+    "keywords": ["XQuery 파라미터화", "bindString", "XPath compile", "특수문자/예약어 필터링", "파라미터화된 쿼리(login.xq)", "DynamicContext.AddVariable", "인증 우회", "replaceAll 문자 제거", "XPathFilter"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

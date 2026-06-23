@@ -1,0 +1,58 @@
+{
+  "chapter_code": "IMP-CE-04",
+  "title": "초기화되지 않은 변수 사용",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-457",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 03 코드오류 항목에 대한 고려 5-4. 초기화되지 않은 변수 사용",
+    "pages": "512-513"
+  },
+  "overview": "C 언어의 경우 스택 메모리에 저장되는 지역변수는 생성될 때 자동으로 초기화되지 않는다. 초기화되지 않은 변수를 사용하게 될 경우 임의 값을 사용하게 되어 의도하지 않은 결과를 출력하거나 예상치 못한 동작을 수행할 수 있다.",
+  "countermeasure": "초기화되지 않은 스택 메모리 영역의 변수는 임의값이라 생각해서 대수롭지 않게 생각할 수 있으나 사실은 이전 함수에서 사용되었던 내용을 포함하고 있다. 공격자는 이러한 약점을 사용하여 메모리에 저장되어 있는 값을 읽거나 특정 코드를 실행할 수 있다. 모든 변수를 사용 전에 반드시 올바른 초기값을 할당함으로써 이러한 문제를 예방한다.",
+  "code_examples": [
+    {
+      "lang": "C",
+      "vulnerable": "//변수의 초기값을 지정하지 않을 경우 공격에 사용 될 수 있어 안전하지 않다.\nint x, y;\nswitch(position) {\n    case 0: x = base_position y = base_position beak;\n    case 1: x = base_position + i y = base_position - i break;\n    default: x=1; break;\n}\nsetCursorPosition(x,y);",
+      "safe": "//변수의 초기값은 항상 지정하여야 한다.\nint x=1, y=1;\nswitch(position) {\n    case 0: x = base_position y = base_position beak;\n    case 1: x = base_position + i y = base_position - i break;\n    default: x=1; break;\n}\nsetCursorPosition(x,y);",
+      "note": "커서의 위치를 정하는 프로그램이다. switch문 default 부분에서 변수 x만 초기화하고 변수 y는 초기화되지 않으므로, 이 함수가 수행되기 전에 공격자가 변수에 원하는 값을 저장해 놓으면 서비스 거부 공격도 가능하다. case 항목에 있던 초기화 구문을 switch문 밖으로 꺼내어 변수를 올바르게 초기화하면 안전하다."
+    }
+  ],
+  "diagnosis": {
+    "method": "변수의 선언과 동시에 초기화가 이루어지는지 확인한다. C++ 언어와 같이 객체의 필드가 초기 값을 가지지 않는 경우에는 생성자로 필드의 초기화가 이루어지는지 확인한다. 이와 같은 작업이 이루어지지 않을 경우에는 기본적으로 취약하다고 판단한다.",
+    "true_positive": [
+      {
+        "desc": "C++ 코드로, 디폴트 생성자에서 필드 a_의 초기화가 이루어지지 않기 때문에 디폴트 생성자를 이용할 경우 필드는 임의의 값을 가진다. 초기화되지 않은 필드에 접근하여 값을 가져오므로 취약 판정",
+        "code": "class Foo\n{\npublic:\n    Foo() {} // default constructor, doesn't initialize a_\n    Foo(int a) : a_(a) {} // constructor\n    int get_a() const {return a_;}\nprivate:\n    int a_;\n};\n\nint main(void)\n{\n    Foo foo1; // calls default constructor\n    std::cout << foo1.get_a() << std::endl;\n    return 0;\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-457, Use of Uninitialized Variable, MITRE — http://cwe.mitre.org/data/definitions/457.html",
+    "Do not read uninitialized memory, CERT — http://www.securecoding.cert.org/confluence/display/c/EXP33-C.+Do+not+read+uninitialized+memory",
+    "Uninitialized Variable, OWASP — https://www.owasp.org/index.php/Uninitialized_variable"
+  ],
+  "tags": [
+    "uninitialized",
+    "variable",
+    "code_error",
+    "stack-memory",
+    "constructor",
+    "initialization",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "변수 초기화",
+      "스택 메모리",
+      "지역변수",
+      "디폴트 생성자",
+      "필드 초기화",
+      "임의값"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "chapter_code": "IMP-SF-05",
+  "title": "암호화되지 않은 중요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-312",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 02 보안기능 항목에 대한 고려 §2-5 암호화되지 않은 중요정보",
+    "pages": "430-435"
+  },
+  "overview": "많은 응용프로그램은 메모리나 디스크에서 중요한 정보(개인정보, 인증정보, 금융정보 등)를 처리한다. 이러한 중요정보가 제대로 보호되지 않을 경우 보안이나 데이터의 무결성을 잃을 수 있다. 특히 사용자 또는 시스템의 중요정보가 포함된 데이터를 평문으로 송·수신하거나 저장할 때 인가되지 않은 사용자에게 민감한 정보가 노출될 수 있다.",
+  "countermeasure": "민감한 데이터를 저장할 때는 반드시 평문이 아닌 암호화된 형태로 보관한다. 개인정보(주민등록번호, 여권번호 등), 금융정보(카드번호, 계좌번호 등), 비밀번호 등 중요정보를 저장하거나 통신채널로 전송할 때는 반드시 암호화 과정을 거쳐야 하며, 중요정보를 읽거나 쓸 경우에 권한인증 등으로 적합한 사용자가 중요정보에 접근하도록 해야 한다. 디스크나 메모리에 있는 민감한 데이터는 지울 때도 안전한 방식으로 삭제한다. 로그인은 반드시 HTTPS와 같은 안전한 통신 채널을 사용하며, 필요한 경우 SSL 또는 HTTPS 등의 보안 채널을 사용해야 한다. 브라우저 쿠키에 중요 데이터를 저장하거나 전송하는 경우 쿠키객체에 보안속성을 설정하여(예: setSecure(true) 메소드 사용 등) HTTPS 통신으로만 값이 전달되도록 하여 중요정보의 노출을 방지한다.",
+  "code_examples": [
+    {
+      "lang": "Java (중요정보 평문저장)",
+      "vulnerable": "String id = request.getParameter(\"id\");\n// 외부값에 의해 비밀번호 정보를 얻고 있다.\nString pwd = request.getParameter(\"pwd\");\n......\nString sql = \" insert into customer(id, pwd, name, ssn, zipcode, addr)\"\n    + \" values (?, ?, ?, ?, ?, ?)\";\nPreparedStatement stmt = con.prepareStatement(sql);\nstmt.setString(1, id);\nstmt.setString(2, pwd);\n......\n// 입력받은 비밀번호가 평문으로 DB에 저장되어 안전하지 않다.\nstmt.executeUpdate();",
+      "safe": "String id = request.getParameter(\"id\");\n// 외부값에 의해 비밀번호 정보를 얻고 있다.\nString pwd = request.getParameter(\"pwd\");\n// 비밀번호를 솔트값을 포함하여 SHA-256 해시로 변경하여 안전하게 저장한다.\nMessageDigest md = MessageDigest.getInstance(\"SHA-256\");\nmd.reset();\nmd.update(salt);\nbyte[] hashInBytes = md.digest(pwd.getBytes());\nStringBuilder sb = new StringBuilder();\n    for (byte b : hashInBytes) {\n        sb.append(String.format(\"%02x\", b));\n    }\npwd = sb.toString();\n......\nString sql = \" insert into customer(id, pwd, name, ssn, zipcode, addr)\"\n    + \" values (?, ?, ?, ?, ?, ?)\";\nPreparedStatement stmt = con.prepareStatement(sql);\nstmt.setString(1, id);\nstmt.setString(2, pwd);\n......\nstmt.executeUpdate();",
+      "note": "인증을 통과한 사용자의 비밀번호 정보가 평문으로 DB에 저장된다. 비밀번호 등 중요 데이터는 솔트값을 포함한 해시값으로 변환하여 저장한다."
+    },
+    {
+      "lang": "C# (비밀번호 평문저장/출력)",
+      "vulnerable": "namespace Security\n{\n    public class FindPassword : System.Web.UI.Page\n    {\n        protected void Page_Load(object sender, EventArgs e)\n        {\n                var userId = \"tmp\";\n                MembershipUser user = Membership.GetUser(userId);\n                if (user != null)\n                {\n                        var password = user.GetPassword();\n                        Response.Write(password);\n                }\n                else\n                {\n                        Response.Write(\"the given userId is not valid\");\n                }\n        }\n }\n}",
+      "safe": "namespace Security\n{\n    public class FindPassword : System.Web.UI.Page\n    {\n            protected void Page_Load(object sender, EventArgs e)\n            {\n                    var userId = \"tmp\";\n                    MembershipUser user = Membership.GetUser(userId);\n                    if (user != null)\n                    {\n                         var encrypetedPassword = user.GetPassword();\n                         SecureFindPasswordFunction();\n            }\n            else\n            {\n                Response.Write(\"the given userId is not valid\");\n            }\n        }\n }\n}",
+      "note": "비밀번호를 평문으로 저장하여 출력하면 노출된다. 비밀번호는 암호화하여 저장하고 출력하지 않도록 한다."
+    },
+    {
+      "lang": "Java (중요정보 평문전송)",
+      "vulnerable": "try {\n    Socket s = new Socket(\"taranis\", 4444);\n    PrintWriter o = new PrintWriter(s.getOutputStream(), true);\n    //비밀번호를 평문으로 전송하여 안전하지 않다.\n    String password = getPassword();\n    o.write(password);\n} catch (FileNotFoundException e) {\n    ……",
+      "safe": "// 비밀번호를 암호화 하여 전송\ntry {\n    Socket s = new Socket(\"taranis\", 4444);\n    PrintStream o = new PrintStream(s.getOutputStream(), true);\n    //비밀번호를 강력한 AES암호화 알고리즘으로 전송하여 사용한다.\n    Cipher c = Cipher.getInstance(\"AES/CBC/PKCS5Padding\");\n    String password = getPassword();\n    byte[] encPassword = c.update(password.getBytes());\n    o.write(encPassword, 0, encPassword.length);\n} catch (FileNotFoundException e) {\n        ……",
+      "note": "비밀번호를 암호화하지 않고 네트워크로 전송하면 패킷 스니핑으로 노출될 수 있다. 전송 전 AES 등 안전한 암호알고리즘으로 암호화한다."
+    },
+    {
+      "lang": "C# (비밀번호 평문전송)",
+      "vulnerable": "public void EmailPassword_OnClick(object sender, EventArgs args)\n{\nMembershipUser u = Membership.GetUser(UsernameTextBox.Text, false);\nString password;\nif (u != null)\n{\n    try\n    {\n        password = u.GetPassword(); // sensitive data created\n}\ncatch (Exception e)\n{\n                  Msg.Text = \"An exception occurred retrieving your password: \" + Server.HtmlEncode(e.Message);\n        return;\n}\nMailMessage Message = new MailMessage();\nMessage.Body = \"Your password is: \" + Server.HtmlEncode(password);\n        //비밀번호가 포함된 메시지를 네트워크로 전송하고 있다.\nSmtpMail.Send(Message);\nMsg.Text = \"Password sent via e-mail.\";\n}\nelse\n{\nMsg.Text = \"User name is not valid. Please check the value and try again.\";\n}\n}",
+      "safe": "public void EmailPassword_OnClick(object sender, EventArgs args)\n{\nMembershipUser u = Membership.GetUser(UsernameTextBox.Text, false);\nString password;\nif (u != null)\n{\n     try\n     {\n         password = u.GetPassword();\n        byte[] data = System.Text.Encoding.ASCII.GetBytes(password);\n        data = new System.Security.Cryptography.SHA256Managed().ComputeHash(data); String hashedPassword = System.Text.Encoding.ASCII.GetString(data);\n}\ncatch (Exception e)\n{\n              Msg.Text = \"An exception occurred retrieving your password: \" + Server.HtmlEncode(e.Message);\n    return;\n}\nMailMessage Message = new MailMessage();\nMessage.Body =\"Your password is: \"+Server.HtmlEncode(hasedPassword);\nSmtpMail.Send(Message);\nMsg.Text = \"Password sent via e-mail.\";\n}\nelse\n{\nMsg.Text = \"User name is not valid. Please check the value and try again.\";\n}\n}",
+      "note": "비밀번호를 암호화하지 않고 메일로 전송하면 패킷 스니핑으로 노출될 수 있다. 네트워크 전송 시 암호화한다."
+    },
+    {
+      "lang": "C (파일에서 읽은 비밀번호)",
+      "vulnerable": "int dbaccess(){\nFILE *fp; char *server = \"DBserver\";\nchar passwd[20];\nchar user[20];\nSQLHENV henv;\nSQLHDBC hdbc;\nfp = fopen(\"config\", \"r\");\nfgets(user, sizeof(user), fp);\n// 비밀번호를 파일에서 읽어 옵니다.\nfgets(passwd, sizeof(passwd), fp);\nfclose(fp);\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\nSQLConnect(hdbc,\n              (SQLCHAR*) server,\n              (SQLSMALLINT) strlen(server),\n              (SQLCHAR*) user,\n              (SQLSMALLINT) strlen(user),\n              //비밀번호의 암호화 없이 직접 연결합니다.\n              (SQLCHAR*) passwd,\n              (SQLSMALLINT) strlen(passwd) );\nreturn 0;",
+      "safe": "int dbaccess(){\nFILE *fp; char *server = \"DBserver\";\nchar passwd[20];\nchar user[20];\nchar *encPasswd;\nchar *key;\nSQLHENV henv;\nSQLHDBC hdbc;\n// AES-CBC로 암호화 모드를 설정합니다.\nHCkCrypt2 crypt = CkCrypt2_putCryptAlgorithm(crypt,\"aes\");\nCkCrypt2_putCipherMode(crypt,\"cbc\");\n// 외부에서 암호화 키를 불러와 설정합니다.\nkey = getenv(\"encrypt_key\");\nCkCrypt2_SetEncodedKey(crypt,key,\"hex\");\nfp = fopen(\"config\", \"r\");\nfgets(user, sizeof(user), fp);\n// 비밀번호를 파일에서 읽어옵니다.\nfgets(passwd, sizeof(passwd), fp);\nfclose(fp);\n// 비밀번호 암호화를 진행합니다.\nncPasswd = CkCrypt2_encryptStringENC(crypt, passwd);\nSQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\nSQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\nSQLConnect(hdbc,\n              (SQLCHAR*) server,\n              (SQLSMALLINT) strlen(server),\n              (SQLCHAR*) user,\n              (SQLSMALLINT) strlen(user),\n              // 암호화된 비밀번호를 사용합니다.\n              (SQLCHAR*) encPasswd,\n              (SQLSMALLINT) strlen(verifiedPwd) );\nreturn 0;\n}",
+      "note": "파일에서 읽어온 비밀번호를 암호화 없이 바로 사용하면 안전하지 않다. 외부에서 불러온 키로 암호화하여 사용한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "[평문저장] 중요정보는 일반적으로 설계과정에서 결정되므로 평문저장을 일반적으로 검사하는 기법은 존재하지 않는다. 따라서 이러한 정보를 저장·사용할 때 반드시 암호화·복호화 과정을 거쳐야 한다. 다만 로그인·암호 사용과 같은 특정 경우 해당 메소드의 인자 값 추적으로 평문 유무를 판단할 수 있다. 중요정보로 판단된 데이터는 불필요한 참조를 제거하고, 임시변수에 저장 시에도 암호화 유무를 확인하며 사용 완료된 임시변수 값은 반드시 초기화해야 한다. 쿠키에 저장 시 중요정보를 저장하지 않거나 암호화하여 저장한다. [평문전송] 정적도구로 중요정보 기준을 판단하기는 어렵다. 개인정보·금융정보·비밀번호 등 민감한 정보를 다루는지 확인하고, 네트워크 전송 시 암호화 여부와 보안 채널 이용 여부를 확인한다. 쿠키에 저장하여 전송할 경우 setSecure(true)와 같은 함수로 암호화해야 하며, 이러한 절차가 생략되어 있으면 취약하다고 판단한다.",
+    "true_positive": [
+      {
+        "desc": "소켓 연결 수립 후 전달받은 암호 값을 password_buffer에 저장하고 이를 다시 파일에 암호화 없이 직접 기록 → 파일 접근 권한자가 암호 값을 획득 가능. 임시변수 buffer의 사용 후 초기화 여부도 확인 필요 → 취약 판정",
+        "code": "if (connect(sock, (struct sockaddr *)&server, sizeof server) < 0)\nerror(\"Connecting\");\n…\nwhile ((n=read(sock,buffer,BUFSIZE-1))!=-1) {\n… // buffer값을 password_buffer에 추가\nwrite(passFileD,password_buffer,n);\n…"
+      },
+      {
+        "desc": "DB 접근 정보를 설정파일로 작성한 경우. 다른 소스에서 Include하여 사용하지만 설정파일에 DB 접근 ID와 비밀번호가 평문으로 저장되어 외부로 노출될 위험 → 취약 판정",
+        "code": "…\n<connectionStrings>\n<add name=\"ud_DEV\" connectionString=\"connectDB=uDB; uid=db2admin; pwd=password; dbalias=uDB;\" providerName=\"System.Data.Odbc\" />\n</connectionStrings>\n…"
+      },
+      {
+        "desc": "외부에서 읽어 들인 비밀번호를 암호화하지 않고 네트워크로 서버에 전송 → 패킷 스니핑으로 노출 가능. 임시변수 password도 사용 후 초기화 필요 → 취약 판정",
+        "code": "void foo()\n{\ntry {\n    Socket socket = new Socket(\"taranis\", 4444);\n    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);\n    String password = getPassword();\n    out.write(password);\n} catch (FileNotFoundException e) {\n…"
+      },
+      {
+        "desc": "중요정보에 접근 가능한 URL을 보안 채널이 아닌 일반(http) 채널로 연결 → 주고받는 데이터를 외부에서 확인 가능, 공격에 활용 가능 → 취약 판정",
+        "code": "try {\n      URL u = new URL(\"http://www.secret.example.org/\");\n      HttpURLConnection hu = (HttpURLConnection) u.openConnection();\n      hu.setRequestMethod(\"PUT\");\n      hu.connect();\n      OutputStream os = hu.getOutputStream();\n      hu.disconnect();\n} catch (IOException e) {\n      //…\n}"
+      }
+    ],
+    "false_positive": []
+  },
+  "references": [
+    "CWE-312 Cleartext Storage of Sensitive Information, MITRE — http://cwe.mitre.org/data/definitions/312.html",
+    "Clear sensitive information stored in reusable resources (MEM03-C), CERT",
+    "Be careful while handling sensitive data, such as passwords, in program code (MSC18-C), CERT",
+    "Never hard code sensitive information (MSC03-J), CERT",
+    "Do not store unencrypted sensitive information on the client side (FIO52-J), CERT",
+    "Password Plaintext Storage, OWASP — https://www.owasp.org/index.php/Password_Plaintext_Storage",
+    "CWE-319 Cleartext Transmission of Sensitive Information, MITRE — http://cwe.mitre.org/data/definitions/319.html",
+    "Insecure Transport, OWASP — https://www.owasp.org/index.php/Insecure_Transport"
+  ],
+  "tags": [
+    "security_feature",
+    "encryption",
+    "sensitive-data",
+    "cleartext-storage",
+    "cleartext-transmission",
+    "password",
+    "https",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "평문저장",
+      "평문전송",
+      "암호화",
+      "SHA-256 해시",
+      "솔트(salt)",
+      "AES",
+      "보안 채널(SSL/HTTPS)",
+      "setSecure(true)",
+      "임시변수 초기화",
+      "패킷 스니핑"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '암호화되지 않은 중요정보 보안약점 설명으로 잘못된 것' 또는 '평문저장/전송 취약 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

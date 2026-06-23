@@ -1,0 +1,60 @@
+{
+  "chapter_code": "IMP-SF-10",
+  "title": "부적절한 전자서명 확인",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-347",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 02 보안기능 항목에 대한 고려 §2-10 부적절한 전자서명 확인",
+    "pages": "452-456"
+  },
+  "overview": "전자서명이란 서명자의 신원을 확인하고 서명된 파일의 무결성을 보장할 수 있는 디지털 정보이다. 전자서명이 사용된 경우, 전자서명을 검증하지 않거나 검증절차가 부적절하면 위변조된 파일로 악성코드에 감염될 수 있으므로 전자서명을 확인하여 위변조 여부를 판별하고 사용해야 한다.",
+  "countermeasure": "전자서명을 포함하는 파일을 사용할 때는 항상 전자서명을 확인하여야 한다. 이 경우, 전자서명 파일의 출처 등을 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "File f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f);",
+      "safe": "File f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f, true);\nEnumeration<JarEntry> ens = jf.entries();\nwhile (ens.hasMoreElements()) {\n  JarEntry en = ens.nextElement();\n  if (!en.isDirectory()) {\n    if (en.toString().equals(path)) {\n      byte[] data = readAll(jar.getInputStream(en), en.getSize());\n      CoeSigner[] signers = en.getCodeSigners();\n      ...\n    }\n  }\n}\njf.close();",
+      "note": "신뢰할 수 없는 곳에서 다운로드한 JAR 파일의 서명을 확인하지 않으면 악성코드가 삽입되어 실행될 수 있다. JarFile 생성자에 boolean형 파라미터(true)를 사용해 전자서명 여부를 확인하고, JarEntry.getCodeSigners() 메소드로 전자서명 주체를 신뢰할 수 있는지 확인해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "JarFile을 생성할 때 전자서명 여부를 확인하는 Boolean형 파라미터가 있는 생성자를 사용하여 전자서명 여부를 검증하는지 확인한다. 또한 JarEntry.getCodeSigners() 메소드로 전자서명 주체 검증 여부를 확인한다.",
+    "true_positive": [
+      {
+        "desc": "사용자가 업로드한 데이터로 JarFile 객체 생성 시, 전자서명 여부를 확인하는 생성자는 사용했으나 전자서명 주체를 검증하는 코드를 사용하지 않음 → 취약 판정",
+        "code": "@RequestMapping(value = \"/upload\", method = RequestMethod.POST)\npublic Student upload(@RequestParam(\"file\") MultipartFile multipartFile)\nthrows IllegalStateException, IOException {\n  File f = new File(multipartFile.getOriginalFilename());\n  multipartFile.transferTo(f);\n  JarFile jf = new JarFile(f, true);\n  ...\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "전자서명 여부를 확인하는 생성자를 사용하고, 전자서명 주체(getCodeSigners)를 검증하는 코드를 사용하므로 취약하지 않다고 판정(오탐 주의)",
+        "code": "@RequestMapping(value = \"/upload\", method = RequestMethod.POST)\npublic Student upload(@RequestParam(\"file\") MultipartFile multipartFile)\nthrows IllegalStateException, IOException {\n  File f = new File(multipartFile.getOriginalFilename());\n  multipartFile.transferTo(f);\n  JarFile jf = new JarFile(f, true);\n  Enumeration<JarEntry> ens = jf.entries();\n  while (ens.hasMoreElements()) {\n    JarEntry en = ens.nextElement();\n    if (!en.isDirectory()) {\n      if (en.toString().equals(path)) {\n        byte[] data = readAll(jar.getInputStream(en), en.getSize());\n        CodeSigner[] signers = en.getCodeSigners();\n        if (signers != null && signers.length != 0){\n          ...\n        }\n      }\n    }\n  }\n  return null;\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-347 Improper Verification of Cryptographic Signature, MITRE — http://cwe.mitre.org/data/definitions/347.html"
+  ],
+  "tags": [
+    "digital-signature",
+    "jar",
+    "code-signing",
+    "security_feature",
+    "integrity",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "전자서명 검증",
+      "JarFile(f, true)",
+      "getCodeSigners()",
+      "전자서명 주체 검증",
+      "위변조 판별",
+      "신뢰할 수 없는 출처"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

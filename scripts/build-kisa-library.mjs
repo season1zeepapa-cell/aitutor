@@ -13,13 +13,14 @@
 //
 // 실행: node scripts/build-kisa-library.mjs  (또는 npm run build:lib)
 
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const libDir = join(root, 'kisa-module/library');
 const courseDir = join(root, 'kisa-module/course');
+const kisec2026Dir = join(root, 'kisa-module/library-kisec2026'); // 2026 기본과정 교재(별도 자료원)
 const outDir = join(root, 'src/data');
 const outFile = join(outDir, 'kisa-library.json');
 
@@ -51,12 +52,12 @@ function readJsons(dir) {
 }
 
 // 진단가이드(library) → 카드. g1=단계, g2=분류
-function mapLibrary(d) {
+function mapLibrary(d, src = 'library') {
   const catLabel = CAT_LABEL[d.category] || d.category || '';
   return {
     id: d.chapter_code,
     title: d.title,
-    source: 'library',
+    source: src,
     g1: STAGE_LABEL[d.stage] || d.stage || '기타',
     g2: catLabel,
     order: (STAGE_ORDER[d.stage] || 9) * 100000 + (CAT_ORDER[d.category] || 9) * 1000 + codeNum(d.chapter_code),
@@ -79,14 +80,14 @@ function mapLibrary(d) {
 }
 
 // 양성과정 교재(course) → 카드. g1=단원, g2=분류(Ⅳ·Ⅴ 항목카드만)
-function mapCourse(d) {
-  const isItem = /^COURSE-(DSG|IMP)-/.test(d.unit_code);
+function mapCourse(d, src = 'course') {
+  const isItem = /-(DSG|IMP)-/.test(d.unit_code); // COURSE-/K26- 등 prefix 무관하게 약점 항목카드 판별
   const cat = isItem ? ABBR_CAT[catAbbr(d.unit_code)] : '';
   const catLabel = CAT_LABEL[cat] || (CAT_LABEL[d.category] || (isItem ? d.category : ''));
   return {
     id: d.unit_code,
     title: d.title,
-    source: 'course',
+    source: src,
     unit: d.unit || '', // 단원 로마숫자 (Ⅰ~Ⅵ) — 단원카드 학습 링크 분기용
     g1: d.unit ? `${d.unit}단원` : '단원',
     g2: isItem ? catLabel : '', // 단원카드(Ⅰ·Ⅱ·Ⅲ·Ⅵ)는 g2 없음 → 단원 직속
@@ -106,17 +107,24 @@ function mapCourse(d) {
   };
 }
 
-const libItems = readJsons(libDir).map(mapLibrary).sort((a, b) => a.order - b.order);
-const courseItems = readJsons(courseDir).map(mapCourse).sort((a, b) => a.order - b.order);
+const libItems = readJsons(libDir).map((d) => mapLibrary(d)).sort((a, b) => a.order - b.order);
+const courseItems = readJsons(courseDir).map((d) => mapCourse(d)).sort((a, b) => a.order - b.order);
+
+// 2026 기본과정 교재(별도 자료원). 약점카드(chapter_code)·이론카드(unit_code) 혼재 → 필드로 분기.
+// _extract/ 등 하위 폴더는 readdirSync 가 .json 만 필터하므로 자동 제외.
+const kisec2026Items = (existsSync(kisec2026Dir) ? readJsons(kisec2026Dir) : [])
+  .map((d) => (d.chapter_code ? mapLibrary(d, 'kisec2026') : mapCourse(d, 'kisec2026')))
+  .sort((a, b) => a.order - b.order);
 
 const data = {
   version: 2,
   sources: [
     { id: 'library', label: '진단가이드 (보안약점)', count: libItems.length, items: libItems },
     { id: 'course', label: '양성과정 교재', count: courseItems.length, items: courseItems },
+    { id: 'kisec2026', label: '2026 기본과정 교재', count: kisec2026Items.length, items: kisec2026Items },
   ],
 };
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, JSON.stringify(data));
-console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} = ${libItems.length + courseItems.length}개 (가이드 순서 정렬)`);
+console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} + kisec2026 ${kisec2026Items.length} = ${libItems.length + courseItems.length + kisec2026Items.length}개`);

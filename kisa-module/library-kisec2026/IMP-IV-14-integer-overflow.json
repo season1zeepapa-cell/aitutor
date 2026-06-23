@@ -1,0 +1,78 @@
+{
+  "chapter_code": "IMP-IV-14",
+  "title": "정수형 오버플로우 (Integer Overflow)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-190",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 01 입력데이터 검증 및 표현 항목에 대한 고려 / 1-14 정수형 오버플로우",
+    "pages": "402-404"
+  },
+  "overview": "사용자 입력값을 정수형으로 사용할 때 입력값의 크기를 검증하지 않을 경우 발생하는 보안약점이다. 정수형 오버플로우는 정수값이 증가하면서 허용된 가장 큰 값보다 더 커져서 실제 저장되는 값이 의도치 않게 아주 작은 수이거나 음수가 되어 발생한다. 특히 반복문 제어, 메모리 할당, 메모리 복사 등을 위한 조건으로 사용자가 제공하는 입력값을 사용하고 그 과정에서 정수형 오버플로우가 발생하는 경우 보안상 문제를 유발할 수 있다.",
+  "impact": "사용자 입력값이 반복문 제어, 메모리 할당, 메모리 복사 등을 위한 조건으로 사용되는 경우 정수형 오버플로우가 발생하면 시스템 오류 발생, 임의 명령 실행, 시스템 점령 등의 보안상 문제를 유발한다.",
+  "countermeasure": "언어·플랫폼별 정수타입의 범위를 확인하여 사용한다. 정수형 변수를 연산에 사용하는 경우, 결과값의 범위를 체크하는 모듈을 사용한다. 외부입력값을 동적으로 할당하여 사용하는 경우, 변수의 값 범위를 검사하여 적절한 범위 내에 존재하는 값인지를 확인한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "String msg_str = \"\";\nString tmp = request.getParameter(\"slf_msg_param_num\");\ntmp = StringUtil.isNullTrim(tmp);\nif (tmp.equals(\"0\")) {\n    msg_str = PropertyUtil.getValue(msg_id);\n} else {\n    // 외부 입력값을 정수형으로 사용할 때 입력값의 크기를 검증하지 않고 사용\n    int param_ct = Integer.parseInt(tmp);\n    String[] strArr = new String[param_ct];\n    :\n}",
+      "safe": "String msg_str = \"\";\nString tmp = request.getParameter(\"slf_msg_param_num\");\ntmp = StringUtil.isNullTrim(tmp);\nif (tmp.equals(\"0\")) {\n    msg_str = PropertyUtil.getValue(msg_id);\n} else {\n    try {\n        int param_ct = Integer.parseInt(tmp);\n        // 외부 입력값을 정수형으로 사용할 때 입력값의 크기를 검증하고 사용\n        if (param_ct < 0) {\n            throw new Exception();\n        }\n        String[] strArr = new String[param_ct];\n    } catch(Exception e) {\n        msg_str = \"잘못된 입력(접근) 입니다.\";\n    }\n    :\n}",
+      "note": "외부 입력으로부터 계산된 값(param_ct)이 오버플로우에 의해 음수값이 되면, 배열의 크기가 음수가 되어 시스템에 문제가 발생할 수 있다. 동적 메모리 할당을 위해 외부 입력값을 배열의 크기로 사용하는 경우 그 값이 음수가 아닌지 검사해야 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "public static void Main(string[] args)\n{\n    // 외부 입력값을 사용할 때, 입력 값의 크기가 너무 클 경우 오버플로우 발생\n    int usrNum = Int32.Parse(args[0]);\n    string[] array = {\"one\", \"two\", \"three\", \"four\"};\n    string num = array[usrNum];\n}",
+      "safe": "public static void Main(string[] args)\n{\n    // checked 구문을 사용하여 오버플로우의 발생 여부 및 크기 확인\n    try {\n        int usrNum = checked(Int32.Parse(args[0]));\n        string[] array = {\"one\", \"two\", \"three\", \"four\"};\n        if(usrNum < 3) string num = array[usrNum];\n    }\n    catch (System.OverflowException e) { ... }\n}",
+      "note": "외부 입력값으로 배열에 접근할 경우, 입력값이 너무 클 때 음수가 되어 시스템에 문제가 발생할 수 있다. checked 구문을 이용하여 오버플로우 발생 확인 및 처리를 해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void main(int argc, char* argv[])\n{\n    // 외부 입력값을 사용할 때, 입력 값의 크기가 너무 클 경우 오버플로우 발생\n    int usr_num = 0;\n    char* num_array[] = {\"one\", \"two\", \"three\", \"four\"};\n    char* num = NULL;\n    usr_num = atoi(argv[1]);\n    num = num_array[usr_num];\n}",
+      "safe": "void main(int argc, char* argv[])\n{\n    int usr_num = 0;\n    char* num_array[] = {\"one\", \"two\", \"three\", \"four\"};\n    char* num = NULL;\n    usr_num = atoi(argv[1]);\n    if (usr_num >= 0 && usr_num < 4) {\n        num = num_array[usr_num];\n    }\n}",
+      "note": "외부 입력값을 배열 인덱스로 사용할 때 0 이상이며 배열 범위 미만인지 경계값을 검사하여 접근한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "변수를 사용하여 배열의 크기를 동적으로 결정하고 있는 경우(①), 변수가 외부 입력값인지 확인하고(②), 해당 변수가 의도한 범위 내에 존재하는지 확인하는 절차가 있는지 확인한다. 외부 입력값을 변수로 사용하더라도 입력값 범위 확인이 있으면 안전, 검증 절차가 없다면 취약하다. 정수형 변수의 값이 증가하면서 정수형 한계값보다 더 커지는 경우 아주 작은 값이 되거나 음수가 될 수 있으며, 이러한 상황에 대한 검사가 이루어지지 않고 진행하는 경우 취약하다.",
+    "true_positive": [
+      {
+        "desc": "외부 입력값(cnt)을 정수로 변환하여 검증 없이 배열 크기로 사용(①). 외부 입력이 범위 검사 없이 동적 배열 할당에 쓰임 → 취약 판정",
+        "code": "String cnt = request.getParameter(\"cnt\");\nif( cnt == null ) {\n    cnt = \"0\";\n}\nint cntI = Integer.parseInt(cnt);\nString[] arr = new String[cntI];\nfor( int i = 0 ; i < cntI ; i++ ) {\n    arr[i] = request.getParameter(\"r\"+i);\n}"
+      },
+      {
+        "desc": "입력된 라인수(parLine)만큼 배열을 생성하지만 음수/한계값 검사가 없음. 정수형 한계 초과 시 음수가 될 수 있음 → 취약 판정",
+        "code": "public static Vector parsFileBySize(String parFile, int[] parLen, int parLine) throws Exception {\n    Vector parResult = new Vector();\n    String parFile1 = parFile.replace('\\\\', FILE_SEPARATOR).replace('/', FILE_SEPARATOR);\n    File file = new File(parFile1);\n    BufferedReader br = null;\n    if (file.exists() && file.isFile()) {\n        br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));\n        String [] strArr = new String [parLine];\n        String line = \"\";\n        int readCnt = 0;\n        while ((line = br.readLine()) != null && readCnt < parLine) {\n            if (line.length() <= MAX_STR_LEN) strArr[readCnt++] = line;\n        }\n    }\n}"
+      },
+      {
+        "desc": "외부 입력(slf_msg_param_num)을 정수로 변환하여 검증 없이 배열 크기로 사용. 음수값이면 배열 크기가 음수가 됨 → 취약 판정",
+        "code": "String msg_str = \"\";\nString tmp = request.getParameter(\"slf_msg_param_num\");\ntmp = StringUtil.isNullTrim(tmp);\nif (tmp.equals(\"0\")) {\n    msg_str = PropertyUtil.getValue(msg_id);\n} else {\n    // 외부 입력값을 정수형으로 사용할 때 입력값의 크기를 검증하지 않고 사용\n    int param_ct = Integer.parseInt(tmp);\n    String[] strArr = new String[param_ct];\n    ......\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "pubKey.available() 함수는 int 값을 리턴하므로 정수 값 한계를 벗어난 값은 발생하지 않음 → 취약하지 않음(오탐 주의)",
+        "code": "try {\n    URL url = Util.class.getClassLoader().getResource(publicKeyFilepath);\n    pubKey = url.openStream();\n} catch (MalformedURLException e) {\n    pubKey = new FileInputStream(publicKeyFilepath);\n}\nbyte[] bytes = new byte[pubKey.available()];"
+      },
+      {
+        "desc": "입력 값이 HTTP 헤더(Referer)에서 오므로 헤더의 한계값이 있어 정수의 한계를 초과할 가능성이 없음 → 취약하지 않음(오탐 주의)",
+        "code": "String[] referer_split = Util.split(request.getHeader(\"Referer\").toString(),\"/\");\nString refererValue = referer_split[referer_split.length-1];"
+      },
+      {
+        "desc": "인자의 개수가 정수의 한계 이상으로 입력된다는 것은 실현 가능성이 희박함. 사용자 입력 값 등 외부 값이 아니므로 취약하지 않음(오탐 주의)",
+        "code": "public static void main(String[] args) {\n    String[] jsargs = {\"-j=\"+args[0]};\n    String[] allArgs = new String[jsargs.length + args.length];"
+      }
+    ]
+  },
+  "references": [
+    "CWE-190 Integer Overflow, MITRE — http://cwe.mitre.org/data/definitions/190.html",
+    "INT04-C. Enforce limits on integer values originating from tainted sources, CERT",
+    "INT08-C. Verify that all integer values are in range, CERT",
+    "Integer Overflow/Underflow, OWASP"
+  ],
+  "tags": ["integer-overflow", "input_validation", "array-size", "boundary-check", "memory-allocation", "kisec2026"],
+  "question_hooks": {
+    "keywords": ["정수형 오버플로우", "음수 배열 크기", "범위 검증", "checked 구문", "경계값 검사", "동적 메모리 할당", "정수 한계값"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "chapter_code": "IMP-EH-01",
+  "title": "오류 메시지 정보노출",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-209",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 02 에러처리에 대한 고려 4-1. 오류메시지 정보 노출",
+    "pages": "483-486"
+  },
+  "overview": "응용프로그램이 실행환경, 사용자 등 관련 데이터에 대한 민감한 정보를 포함하는 오류 메시지를 생성하여 외부에 제공하는 경우, 공격자의 악성 행위를 도울 수 있다. 예외발생 시 예외이름이나 스택 트레이스를 출력하면 프로그램 내부구조를 쉽게 파악할 수 있기 때문이다.",
+  "countermeasure": "오류 메시지는 정해진 사용자에게 유용한 최소한의 정보만 포함하도록 한다. 소스코드에서 예외상황은 내부적으로 처리하고, 사용자에게 민감한 정보를 포함하는 오류를 출력하지 않도록 미리 정의된 메시지를 제공하도록 설정한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "try {\n  rd = new BufferedReader(new FileReader(new File(filename)));\n} catch(IOException e) {\n  // 에러 메시지로 스택 정보가 노출됨\n  e.printStackTrace();\n}\n\n// 또는: 오류발생시 화면에 출력된 시스템 정보로 다른 공격의 빌미를 제공한다.\n} catch(IOException e) {\n  System.err.print(e.getMessage());\n}",
+      "safe": "try {\n  rd = new BufferedReader(new FileReader(new File(filename)));\n} catch(IOException e) {\n  // 에러 코드와 정보를 별도로 정의하고 최소 정보만 로깅\n  logger.error(\"ERROR-01: 파일 열기 에러\");\n}",
+      "note": "예외 이름이나 오류추적(스택 트레이스) 정보를 출력하지 않도록 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "try\n{\n  //do something\n}\ncatch (CustomException e)\n{\n  Console.WriteLine(e);\n}",
+      "safe": "try\n{\n  //do something\n}\ncatch (CustomException e)\n{\n  _log.Debug(\"ERROR-01 : error information\");\n}",
+      "note": "예외 객체를 그대로 출력하면 내부 정보가 유출되므로 예외 관련 최소한의 정보만 출력하도록 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "시스템 환경, 유저정보, 민감한 정보 등에 대한 기준을 정적도구가 판단하기 어려우므로 진단원이 출력함수 등으로 외부에 출력되는 값 중 민감한 정보를 판단할 필요가 있다. 오류메시지를 출력하는 경우(①) 해당 오류에 시스템 환경, 유저정보, 데이터 등 민감한 정보가 포함되어 있는지 확인한다. 오류 메시지로 환경, 사용자, 관련 데이터 등의 내부 정보가 유출될 경우 취약하다.",
+    "true_positive": [
+      {
+        "desc": "예외 처리에서 e.printStackTrace()로 스택 정보가 외부에 출력되어 내부 정보가 유출됨 → 취약 판정",
+        "code": "public static void main(String[] args) {\n  String urlString = args[0];\n  try {\n    URL url = new URL(urlString);\n    URLConnection cmx = url.openConnection();\n    cmx.connect();\n  } catch (Exception e) {\n    e.printStackTrace();  // ①\n  }\n}"
+      },
+      {
+        "desc": "JSP에서 cmd 파라미터 처리 중 발생한 예외를 e.printStackTrace()로 출력하여 내부 정보가 유출됨 → 취약 판정",
+        "code": "<%@ page language=\"java\" contentType=\"text/html; charset=UTF-8\" buffer=\"none\"%>\n<%@page import=\"egovframework.com.utl.fda.ucc.service.EgovUnitCalcUtil\" %>\n<%\nString sCmd = request.getParameter(\"cmd\") == null ? \"\" : (String) request.getParameter(\"cmd\");\ndouble nResult=0.0;\ntry {\n  if(!sCmd.equals(\"\")) {\n    EgovUnitCalcUtil egovUnitCalcUtil= new EgovUnitCalcUtil();\n    ….\n  }\n  ……\n} catch(Exception e) {\n  e.printStackTrace();\n}\n%>"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "예외를 logger.error(e, e)로 로깅하되 화면(외부)에 민감 정보를 출력하지 않고 finally에서 자원을 정리함 → 취약하지 않음(오탐 주의)",
+        "code": "BufferedReader br = null;\ntry {\n  br = new BufferedReader(new InputStreamReader(new FileInputStream(file), \"UTF-8\"));\n  String line = null;\n  while ((line = br.readLine()) != null) {\n    // …\n  }\n} catch (IOException e) {\n  logger.error(e, e);\n} finally {\n  if (br != null) {\n    try {\n      br.close();\n    } catch (IOException e) {\n      logger.error(e, e);\n    }\n  }\n}"
+      }
+    ]
+  },
+  "references": [
+    "CWE-209 Information Exposure Through an Error Message, MITRE — http://cwe.mitre.org/data/definitions/209.html",
+    "Do not allow exceptions to expose sensitive information (ERR01-J), CERT — http://www.securecoding.cert.org/confluence/display/java/ERR01-J.+Do+not+allow+exceptions+to+expose+sensitive+information",
+    "Error Handling, OWASP — https://www.owasp.org/index.php/Error_Handling"
+  ],
+  "tags": [
+    "error_handling",
+    "information-exposure",
+    "error-message",
+    "stack-trace",
+    "logging",
+    "printStackTrace",
+    "kisec2026"
+  ],
+  "question_hooks": {
+    "keywords": [
+      "스택 트레이스",
+      "printStackTrace",
+      "getMessage",
+      "예외 이름 노출",
+      "민감 정보",
+      "최소 정보 로깅",
+      "미리 정의된 오류 메시지",
+      "내부 정보 유출"
+    ],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '오류 메시지 정보노출 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}

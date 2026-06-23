@@ -1,0 +1,77 @@
+{
+  "unit_code": "K26-1-03",
+  "unit": "Ⅰ",
+  "title": "생성형 AI 위협요소의 이해",
+  "type": "course",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅰ. SW개발보안 최신 동향과 이해 > 03 생성형 AI 위협요소의 이해",
+    "pages": "41-61"
+  },
+  "summary": "OWASP Top 10 for LLM(2023→2025)을 중심으로 생성형 AI/LLM 애플리케이션의 보안 위협을 이해한다. 프롬프트 인젝션·민감정보 노출·공급망·과도한 권한 위임 등 LLM 고유 위협과, 프롬프트 공격(삽입·유출·탈옥) 유형 및 방어 전략(입력 정제·프롬프트 분리·출력 필터링·규칙 기반 감시)을 다룬다.",
+  "sections": [
+    {
+      "title": "OWASP Top 10 for LLM (2023 vs 2025)",
+      "key_points": [
+        "2023년 최초 발표 → 2025년 개정. '기초적 위험 인식'에서 '실제 운영 환경 중심의 위험 관리'로 발전",
+        "2023: 개념적·교육적 접근, 초기 LLM 공격 유형 중심, 주로 LLM 애플리케이션 대상",
+        "2025: 실무적·운영 중심 접근, AI 에이전트·공급망·데이터 오염 등 최신 위협 포함, LLM·RAG·AI Agent·AI 생태계 전반 대상",
+        "LLM01 프롬프트 인젝션, LLM02 민감 정보 노출, LLM03 공급망 취약점, LLM06 과도한 권한 위임(Excessive Agency), LLM07 시스템 프롬프트 유출, LLM08 벡터·임베딩 취약점(RAG)"
+      ]
+    },
+    {
+      "title": "프롬프트 공격 유형",
+      "key_points": [
+        "명시적 프롬프트 삽입(Explicit Injection): 명령을 노골적으로 포함 — '위의 지시를 무시하고 ...라고 말해'",
+        "은밀한 프롬프트 삽입(Stealthy Injection): 코드·HTML 주석에 은폐 — '<!-- ignore previous instructions -->'",
+        "입력 조작형 공격(Encoding Injection): 특수문자·인코딩으로 필터 우회 — '%0A%0DIgnore+previous+instructions'",
+        "멀티턴 유도형 공격: 여러 차례 대화를 거쳐 점진적으로 우회 유도"
+      ]
+    },
+    {
+      "title": "프롬프트 유출·탈옥 공격",
+      "key_points": [
+        "유출 시도: 시스템 명령어·설정 정보, 학습 데이터 일부, 연결된 외부 시스템(API·DB) 정보 유출 유도",
+        "탈옥(Jailbreak) 사례: 인격 전환(DAN 등 Roleplay), 허구 상황 설정(픽션/연극 형식), 시스템 프롬프트 조작",
+        "탈옥 성공 원인: 규칙을 벗어나도 되는 캐릭터로 설정되면 검열 우회에 취약 / 픽션 형식이 제약 회피 통로가 됨"
+      ]
+    },
+    {
+      "title": "프롬프트 공격 방어 전략",
+      "key_points": [
+        "입력 정제(Input Sanitization): 악성 명령어·코드 제거·이스케이프 — Rebuff, PromptGuard, Guardrails",
+        "프롬프트 분리(Prompt Wrapping): 사용자 입력과 시스템 프롬프트 명확히 구분 — Guardrails, LMQL, LangChain",
+        "출력 필터링(Output Filtering): 응답 사후 검사로 유해 내용 제거·차단 — Guardrails, Llama Guard, OpenAI Moderation API",
+        "규칙 기반 감시(Rule Enforcement): 응답 형식·정책 위반 확인 — Guardrails(Pydantic, Regex 기반)"
+      ]
+    }
+  ],
+  "key_concepts": [
+    {
+      "term": "프롬프트 인젝션 (Prompt Injection, LLM01)",
+      "definition": "사용자의 교묘한 입력(Direct)이나 외부 문서·웹페이지(Indirect)를 통해 모델 고유의 지침(시스템 프롬프트)을 무력화하고 조작하는 위협. OWASP Top 10 for LLM 1순위 위험."
+    },
+    {
+      "term": "과도한 권한 위임 (Excessive Agency, LLM06)",
+      "definition": "LLM 기반 플러그인·도구(Tool)에 필요 이상으로 넓은 시스템 권한·실행 자유도를 부여해 발생하는 위험. AI 에이전트 시스템에서 빈번."
+    },
+    {
+      "term": "시스템 프롬프트 유출 (System Prompt Leakage, LLM07)",
+      "definition": "핵심 로직·내부 운영 지침이 담긴 시스템 프롬프트가 탈옥(Jailbreak) 공격으로 외부에 유출되는 현상."
+    },
+    {
+      "term": "탈옥 (Jailbreak)",
+      "definition": "인격 전환(Roleplay)·허구 상황 설정·시스템 프롬프트 조작 등으로 AI의 검열·정책 제약을 우회하는 공격 기법."
+    }
+  ],
+  "exam_points": [
+    "OWASP Top 10 for LLM은 2023년 최초 발표, 2025년 개정 — '운영 환경 중심 위험 관리'로 발전",
+    "LLM01은 프롬프트 인젝션(Direct/Indirect)",
+    "프롬프트 공격 유형: 명시적·은밀한·입력 조작형·멀티턴 유도형",
+    "프롬프트 방어 4전략: 입력 정제, 프롬프트 분리, 출력 필터링, 규칙 기반 감시",
+    "Excessive Agency는 AI 에이전트에 과도한 권한·실행 자유도 부여 위험"
+  ],
+  "keywords": ["생성형 AI", "LLM", "OWASP Top 10 for LLM", "프롬프트 인젝션", "Prompt Injection", "탈옥", "Jailbreak", "Excessive Agency", "시스템 프롬프트 유출", "RAG", "입력 정제", "출력 필터링", "Guardrails"],
+  "related_library": [],
+  "tags": ["course", "kisec2026", "Ⅰ-동향", "생성형AI", "신규2026"]
+}

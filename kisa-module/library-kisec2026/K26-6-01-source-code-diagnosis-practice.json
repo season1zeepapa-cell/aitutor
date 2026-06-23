@@ -1,0 +1,104 @@
+{
+  "unit_code": "K26-6-01",
+  "unit": "Ⅵ",
+  "title": "제공된 소스코드 진단 실습",
+  "type": "course",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅵ. 소스코드 보안약점 진단 실습 > 01 제공된 소스코드 구현단계 보안약점 진단 실습",
+    "pages": "543-570"
+  },
+  "summary": "구현단계 소스코드 보안약점 진단 실습 환경을 구축하고 진단을 수행하는 절차를 익힌다. JDK·Eclipse IDE 설치, SpotBugs와 FindSecurityBugs 플러그인 설치·설정, 실습 프로젝트(NIST Juliet Test Suite 기반) import, Find Bugs 실행과 결과 분석, 보고서 작성 템플릿을 다룬다. 부록의 핵심 보안 용어(CC인증·HMAC·LDAP·동적/정적 SQL·경로순회·시큐어 코딩 등)도 함께 정리한다.",
+  "sections": [
+    {
+      "title": "진단 환경 설치 (JDK·Eclipse)",
+      "key_points": [
+        "JDK(Java Development Kit): Oracle Java 1.8 버전 또는 이후 버전 설치, 설치 확인은 cmd에서 'java --version'",
+        "Eclipse IDE: Photon(4.8.0) 또는 이후 버전 설치",
+        "폴더 구조: C:/e 폴더와 C:/e/workspace 폴더 생성, zip을 C:/e에 압축 해제, eclipse.exe 최초 실행 시 workspace를 C:/e/workspace로 설정"
+      ]
+    },
+    {
+      "title": "SpotBugs 설치 및 설정",
+      "key_points": [
+        "Eclipse Help > Install New Software, Work with에 https://spotbugs.github.io/eclipse/ 입력 후 Add",
+        "라이선스 동의 후 설치, 완료 시 Restart",
+        "Window > Preferences > Java > SpotBugs > Reporter Configuration에서 설정: Minimum rank to report = 20, Minimum confidence to report = Low, Reported bug categories = Security",
+        "SpotBugs는 FindBugs의 후속 정적 분석 도구"
+      ]
+    },
+    {
+      "title": "FindSecurityBugs 설치",
+      "key_points": [
+        "https://find-sec-bugs.github.io/ 접속 후 플러그인(findsecbugs-plugin) 다운로드, jar 파일을 C:/e에 복사",
+        "Preferences > Java > SpotBugs > [Plugins and misc. Settings] 탭에서 Add로 findsecbugs-plugin jar 추가 후 Apply and Close",
+        "Full SpotBugs build required 팝업 시 OK",
+        "룰셋 확인: Detector configuration 탭에서 Provider 컬럼에 SpotBugs와 Find Security Bugs 두 가지 룰셋이 표시되면 설치 성공"
+      ]
+    },
+    {
+      "title": "프로젝트 import 및 파일 구성",
+      "key_points": [
+        "Import projects > General > Existing Projects into Workspace로 제공된 프로젝트 import(Copy projects into workspace 선택)",
+        "testcases 폴더 내에 보안약점 유형별 파일이 존재하며, 각 파일에 취약/취약하지 않은 코드가 포함",
+        "bad() 메소드: 취약한 코드, goodG2B()·goodB2G() 메소드: 취약하지 않은 코드",
+        "실습 소스는 NIST의 Juliet Test Suite를 참조"
+      ]
+    },
+    {
+      "title": "진단 수행 절차 및 보고서 작성",
+      "key_points": [
+        "프로젝트 우클릭 > SpotBugs > Find Bugs 선택으로 진단 실행",
+        "분석 후 Package Explorer의 프로젝트·자바 파일 이름 오른쪽에 위반 사항 개수가 숫자로 표시",
+        "Window > Perspective > Open Perspective > Other > SpotBugs로 SpotBugs 관점 열기",
+        "Bug Explorer에 심각도·항목별 목록 표시, 항목 더블 클릭 시 소스로 이동, BugInfo 확인하며 취약 코드 수정 후 재실행하여 제거 여부 확인",
+        "보고서 작성 템플릿: 보안약점(유형·이름), 파일경로·위반라인, 취약코드, 취약사유, 개선방안, 개선코드"
+      ]
+    },
+    {
+      "title": "부록 핵심 보안 용어",
+      "key_points": [
+        "CC인증·TOE·PP·ST·EAL: 정보보호 시스템의 보안 기능을 평가하는 국제 평가 기준과 구성 요소",
+        "AES(DES 대체 블록암호, FIPS 197)·DES(64비트 대칭키, 전수공격 취약)·SHA(MD5 취약성 대체 해쉬)·HMAC(해쉬기반 메시지 인증코드)",
+        "동적 SQL(실행 시 전체 쿼리 완성)·정적 SQL(소스에 쿼리 고정)·PreparedStatement(컴파일된 쿼리 객체)",
+        "경로순회/directory traversal('./', '../'로 다른 디렉터리 중요파일 접근), 화이트리스트(신뢰 가능 목록), 샌드박스(JVM 보호 영역에서 실행)",
+        "소프트웨어 개발보안(개발 과정의 보안취약점 최소화, 좁은 의미는 시큐어 코딩), 소프트웨어 보안약점(사이버공격 유발 가능 잠재 취약점), LDAP(디렉터리 서비스 조회 프로토콜)"
+      ]
+    }
+  ],
+  "key_concepts": [
+    {
+      "term": "SpotBugs",
+      "definition": "FindBugs의 후속 정적 분석 도구. Eclipse 플러그인으로 설치하며, Reporter Configuration에서 rank·confidence·category를 설정해 보안 약점을 진단한다."
+    },
+    {
+      "term": "FindSecurityBugs (FindSecBugs)",
+      "definition": "SpotBugs에 보안 룰셋을 추가하는 플러그인. 설치 후 Detector configuration에 'Find Security Bugs' 룰셋이 표시되면 정상 설치된 것이다."
+    },
+    {
+      "term": "Juliet Test Suite",
+      "definition": "NIST가 제공하는 보안약점 테스트 케이스 모음. 실습 프로젝트는 이를 참조하며, bad()는 취약한 코드, goodG2B()·goodB2G()는 취약하지 않은 코드를 담는다."
+    },
+    {
+      "term": "진단 보고서 템플릿",
+      "definition": "보안약점(유형·이름), 파일경로·위반라인, 취약코드, 취약사유, 개선방안, 개선코드 항목으로 구성된 소스코드 진단 결과 보고 양식."
+    },
+    {
+      "term": "경로순회 (Directory Traversal)",
+      "definition": "상대경로참조 방식('./', '../' 등)을 이용해 다른 디렉터리의 중요파일에 접근하는 공격방법. 경로추적이라고도 한다."
+    }
+  ],
+  "exam_points": [
+    "진단 실습 환경: JDK 1.8 이상 + Eclipse Photon(4.8.0) 이상 + SpotBugs + FindSecurityBugs",
+    "SpotBugs Reporter 설정: Minimum rank 20, Minimum confidence Low, Reported categories Security",
+    "FindSecBugs 정상 설치 확인은 Detector configuration의 'Find Security Bugs' 룰셋 표시 여부",
+    "실습 소스는 NIST Juliet Test Suite 기반 — bad()는 취약 코드, goodG2B()/goodB2G()는 안전 코드",
+    "진단 실행은 프로젝트 우클릭 > SpotBugs > Find Bugs, 결과는 Bug Explorer에서 확인",
+    "보고서 템플릿 6요소: 보안약점(유형·이름)·파일경로/위반라인·취약코드·취약사유·개선방안·개선코드",
+    "SpotBugs는 FindBugs의 후속 정적 분석 도구",
+    "정적 SQL은 쿼리가 고정, 동적 SQL은 실행 시 전체 쿼리가 완성 — 정적 쿼리(PreparedStatement)로 SQL 삽입 방어"
+  ],
+  "keywords": ["소스코드 진단 실습", "JDK", "Eclipse", "SpotBugs", "FindSecurityBugs", "FindBugs", "Juliet Test Suite", "bad", "goodG2B", "goodB2G", "Find Bugs", "Bug Explorer", "진단 보고서 템플릿", "정적 SQL", "동적 SQL", "PreparedStatement", "경로순회", "CC인증", "시큐어 코딩"],
+  "related_library": ["K26-3-03"],
+  "tags": ["course", "kisec2026", "Ⅵ-실습", "소스코드진단", "SpotBugs", "FindSecBugs", "실습환경"]
+}

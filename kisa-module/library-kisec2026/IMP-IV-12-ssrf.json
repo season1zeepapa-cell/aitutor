@@ -1,0 +1,109 @@
+{
+  "chapter_code": "IMP-IV-12",
+  "title": "서버사이드 요청 위조 (SSRF)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-918",
+  "source": {
+    "doc": "KISEC 2026년 SW보안약점 진단원 기본과정",
+    "section": "Ⅴ. 구현 단계 보안약점 진단 / 01 입력데이터 검증 및 표현 항목에 대한 고려 / 1-12 서버사이드 요청 위조",
+    "pages": "388-398"
+  },
+  "overview": "적절한 검증절차를 거치지 않은 사용자 입력 값을 서버간의 요청에 사용하여 악의적인 행위가 발생할 수 있는 보안약점이다. 외부에 노출된 웹 서버에 취약한 애플리케이션이 존재하는 경우 공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크에 있는 데이터를 획득할 수 있다. 공격자가 외부에서 조작된 HTTP 요청을 취약한 애플리케이션에 보내면, 그 요청에 포함된 페이로드를 이용하여 내부의 공격 대상 애플리케이션에 요청(HTTP, FTP 등)을 보내고 응답 결과를 외부로 반환받는 형태로 동작한다.",
+  "impact": "외부에서 내부의 신뢰된 네트워크에 있는 데이터를 획득할 수 있다.",
+  "countermeasure": "식별할 수 있는 범위 내에서 사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력 값을 화이트리스트 방식으로 필터링한다. 사용자가 지정하는 무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다. 또한 동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  // 사용자 입력값(url)을 검증없이 사용하여 안전하지 않다.\n  URL url = new URL(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}",
+      "safe": "public class Connect {\n  // key, value 형식으로 URL의 리스트를 작성한다.\n  private Map<String, URL> urlMap;\n  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n    // 사용자에게 urlMap의 key를 입력받아 urlMap에서 URL값을 참조한다.\n    URL url = urlMap.get(req.getParameter(\"url\"));\n    // urlMap에서 참조한 값으로 Connection을 만들어 접속한다.\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n  }\n}",
+      "note": "공격자는 URL을 조작하여 내부 서버에 질의하게 하여 데이터를 획득할 수 있다(예: /connect?url=http://192.168.0.45/member/list.json). 사전에 정의된 URL 목록을 Map 객체에 정의하고 키 값으로 입력받아 키에 매칭되는 URL만 사용하면 URL값을 임의로 조작할 수 없다."
+    },
+    {
+      "lang": "Java (Properties 참조)",
+      "vulnerable": "public class ConnectProperties {\n  FileReader newFile = new FileReader(\"File.properties\");\n  Properties properties = new Properties();\n  properties.load(newFile);\n\n  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n    // 프로퍼티에서 읽은 url 값을 검증없이 사용하여 안전하지 않다(프로퍼티는 위변조될 수 있다).\n    URL url = new URL(properties.getProperty(\"connectUrl\"));\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n  }\n}",
+      "safe": "// 입력되는 프로퍼티 값을 검증하는 메소드(화이트리스트 또는 내부 IP 블랙리스트)를 추가한다.\nString connectUrl = properties.getProperty(\"connectUrl\");\nif (!isAllowedUrl(connectUrl)) {     // 허용 목록 검증\n  throw new IllegalArgumentException(\"invalid url\");\n}\nURL url = new URL(connectUrl);\nHttpURLConnection conn = (HttpURLConnection) url.openConnection();",
+      "note": "openConnection에 사용하는 URL을 properties에서 참조하면 properties가 다른 공격 등으로 위변조될 수 있어 안전하지 않다. 입력되는 프로퍼티 값을 검증하는 메소드를 추가해야 한다."
+    },
+    {
+      "lang": "Java (openStream)",
+      "vulnerable": "private String getRemoteContent(String url) throws IOException {\n  // inUrl 값이 추가 검증 없이 openStream 에 전달되어 안전하지 않다.\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}\n\npublic String getContent(String inUrl) throws IOException {\n  try {\n    String str = getRemoteContent(inUrl);\n    str = str.replace(\"<head>\", \"<head><base href='\" + inUrl\n      + \"' /><base target='_blank' /><script>top.studio.startPageIFrameLoaded();\"\n      + \"</script>\");\n    return str;\n  } catch (Exception e) {\n    return \"\";\n  }\n}",
+      "safe": "// 입력되는 url 값을 검증하는 메소드를 추가한다(내부 대역 IP 차단 등).\nprivate static String getRemoteContent(String url) throws IOException {\n  if ( isPrivateIP(url) == true ) {   // 내부 IP 접근 차단\n    return \"invalid url\";\n  }\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}",
+      "note": "inURL 값이 추가 검증 없이 new URL(url).openStream() 에 전달되면 공격자가 입력 값을 악의적으로 조작하여 피해를 끼칠 수 있다. 입력되는 url 값을 검증하는 메소드(내부 IP 블랙리스트 등)를 추가한다."
+    },
+    {
+      "lang": "Java (favicon host)",
+      "vulnerable": "public void doGet(HttpServletRequest request, HttpServletResponse response) {\n  String host = request.getParameter(\"host\");\n\n  // host 파라미터를 검증 없이 전달하여 안전하지 않다.\n  byte[] bytes = getImage(host, defaultBytes);\n  if (bytes != null) {\n    writeBytesToStream(bytes, response);\n  }\n}\n\nprivate byte[] getImage(String host, byte[] defaultImage) {\n  byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n  ...\n}",
+      "safe": "// 입력되는 host 값을 검증하는 메소드(화이트리스트/내부 IP 블랙리스트)를 추가한다.\nString host = request.getParameter(\"host\");\nif (!isAllowedHost(host)) {\n  return;   // 허용되지 않은 host 차단\n}\nbyte[] bytes = getImage(host, defaultBytes);",
+      "note": "host 파라미터를 별도 검증 없이 \"http://\"+host+\"/favicon.ico\" 로 요청하면 공격자가 host를 조작(/getFavicon?host=192.168.176.1:8080/secrets.txt?)하여 내부 서버 데이터를 외부로 유출시킬 수 있다. 입력되는 host 값을 검증하는 메소드를 추가한다."
+    },
+    {
+      "lang": "PHP",
+      "vulnerable": "<?php\n  require_once('./htmlpurifier/library/HTMLPurifier.includes.php');\n  $purifier = new HTMLPurifier();\n\n  $ch = curl_init();\n  $url = $_GET['url'];\n  $urlinfo = parse_url($url); // URL 파싱\n  $scheme = $urlinfo['scheme'];\n  $host = $urlinfo['host'];\n  $ip = gethostbyname($host);\n  // 파싱만 하고 IP/스킴 검증 없이 그대로 요청하여 안전하지 않다.\n  curl_setopt($ch, CURLOPT_URL, $url);\n  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n  $html = curl_exec($ch);\n  echo $purifier->purify($html);",
+      "safe": "<?php\n  require_once('./htmlpurifier/library/HTMLPurifier.includes.php');\n  $purifier = new HTMLPurifier();\n\n  $ch = curl_init();\n  $url = $_GET['url'];\n  $urlinfo = parse_url($url); // URL 파싱\n  $scheme = $urlinfo['scheme'];\n  $host = $urlinfo['host'];\n  $ip = gethostbyname($host);\n  if ($ip === \"169.254.169.254\") { // 퍼블릭클라우드 메타데이터 서비스 IP를 검증\n    die(\"Invalid host\");\n  } elseif ($scheme !== 'http' && $scheme !== 'https') { // HTTP(S) 스킴 체크\n    die(\"Invalid scheme\");\n  }\n  curl_setopt($ch, CURLOPT_URL, $url);\n  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n  $html = curl_exec($ch);\n  echo $purifier->purify($html);",
+      "note": "퍼블릭 클라우드 메타데이터 서비스 IP(169.254.169.254)를 블랙리스트로 검증하고 http(s) 스킴만 허용하여 메타서버 크레덴셜 조회 등을 차단한다. 블랙리스트는 인코딩 우회 공격을 감안해 정규화 후 검증해야 한다."
+    }
+  ],
+  "diagnosis": {
+    "method": "외부에 노출된 웹 애플리케이션에 URL을 파라미터로 입력할 수 있는지(다른 시스템의 서비스를 호출하는 함수가 존재하는지) 확인하고(①), 호출에 사용되는 입력 값이 신뢰할 수 있는 값인지 확인한다(②). URL 필터링(화이트리스트/블랙리스트)이 적용되면 안전, 적용되지 않으면 동일 내부 네트워크의 기기 인증 여부, 내부 IP 접근권한 확인 여부를 추가로 점검한다. 입력 값이 신뢰할 수 없고 별도의 검증절차(URL 필터링·기기 인증·접근권한 확인)가 없으면 위험으로 판정한다.",
+    "true_positive": [
+      {
+        "desc": "openConnection에 사용하는 URL을 properties에서 참조함. properties는 다른 공격 등으로 위변조될 수 있으므로 취약 판정",
+        "code": "public class ConnectProperties {\n  FileReader newFile = new FileReader(\"File.properties\");\n  Properties properties = new Properties();\n  properties.load(newFile);\n\n  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException{\n    URL url = new URL(properties.getProperty(\"connectUrl\"));\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n  }\n}"
+      },
+      {
+        "desc": "inURL 값이 추가 검증 없이 new URL(url).openStream() 에 전달됨. 공격자가 inURL 입력 값을 악의적으로 조작하여 피해를 끼칠 수 있으므로 취약 판정",
+        "code": "private String getRemoteContent(String url) throws IOException {\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}\n\npublic String getContent(String inUrl) throws IOException {\n  try {\n    String str = getRemoteContent(inUrl);\n    str = str.replace(\"<head>\", \"<head><base href='\" + inUrl\n      + \"' /><base target='_blank' /><script>top.studio.startPageIFrameLoaded();\"\n      + \"</script>\");\n    return str;\n  } catch (Exception e) {\n    return \"\";\n  }\n}"
+      },
+      {
+        "desc": "host 파라미터를 별도 검증 없이 전달하여 \"http://\"+host+\"/favicon.ico\" 로 요청. 공격자가 host를 조작(/getFavicon?host=192.168.176.1:8080/secrets.txt?)하여 내부 서버 데이터가 외부로 유출될 수 있으므로 취약 판정",
+        "code": "public void doGet(HttpServletRequest request, HttpServletResponse response) {\n  String host = request.getParameter(\"host\");\n\n  byte[] bytes = getImage(host, defaultBytes);\n  if (bytes != null) {\n    writeBytesToStream(bytes, response);\n  }\n}\n\nprivate byte[] getImage(String host, byte[] defaultImage) {\n  byte[] bytes = getImage(\"http://\" + host + \"/favicon.ico\");\n  ...\n}"
+      }
+    ],
+    "false_positive": [
+      {
+        "desc": "11라인에서 Public Cloud 메타데이터 서비스 주소 169.254.169.254를 블랙리스트로 필터링하여 에러를 리턴, 메타서버 크레덴셜 조회를 차단하므로 취약하지 않다고 판정",
+        "code": "<?php\n  require_once('./htmlpurifier/library/HTMLPurifier.includes.php');\n  $purifier = new HTMLPurifier();\n\n  $ch = curl_init();\n  $url = $_GET['url'];\n  $urlinfo = parse_url($url); // URL 파싱\n  $scheme = $urlinfo['scheme'];\n  $host = $urlinfo['host'];\n  $ip = gethostbyname($host);\n  if ($ip === \"169.254.169.254\") { // 퍼블릭클라우드 메타데이터 서비스 IP를 검증\n    die(\"Invalid host\");\n  } elseif ($scheme !== 'http' && $scheme !== 'https') { // HTTP(S) 스킴 체크\n    die(\"Invalid scheme\");\n  }\n  curl_setopt($ch, CURLOPT_URL, $url);\n  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);\n  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n\n  $html = curl_exec($ch);\n  echo $purifier->purify($html);"
+      },
+      {
+        "desc": "내부 대역 IP 접근 시도를 블랙리스트 방식으로 필터링. isPrivateIP()로 입력 값을 블랙리스트와 비교하여 허용되지 않은 접근에 오류를 리턴 → 취약하지 않으나, 블랙리스트 우회 공격을 감안해 필터링하는지 검토 후 취약 여부 판단 필요",
+        "code": "private static String getRemoteContent(String url) throws IOException {\n  if ( isPrivateIP(url) == true ) {\n    return \"invalid url\";\n  }\n  BufferedReader in = new BufferedReader(new InputStreamReader(\n    new URL(url).openStream()));\n  return FileCopyUtils.copyToString(in);\n}\n\npublic static boolean isPrivateIP(String r){\n  //블랙리스트 목록(lookback 주소, IPv4 및 IPv6 주소)\n  String private_ip[] = {\n    //loopback addresses\n    \"127.\", \"0.\",\n    //IP V4 prefix for private addresses\n    \"10.\",\n    \"172.16.\", \"172.17.\", \"172.18.\", \"172.19.\", \"172.20.\", \"172.21.\",\n    \"172.22.\", \"172.23.\", \"172.24.\", \"172.25.\", \"172.26.\", \"172.27.\",\n    \"172.28.\", \"172.29.\", \"172.30.\", \"172.31.\", \"192.168.\", \"169.254.\",\n    //IP V6 prefix for private addresses\n    \"fc\", \"fd\", \"fe\", \"ff\", \"::1\"\n  };\n\n  for(int i = 0; i<private_ip.length; i++){\n    if(r.toLowerCase().trim().startsWith(private_ip[i])){\n      return true;\n    }\n  }\n  return false;\n}"
+      }
+    ]
+  },
+  "attack_vectors": {
+    "desc": "SSRF 블랙리스트 필터를 우회하기 위한 대표적인 인코딩·파서 우회 기법(교재 p397-398). 진단 시 단순 문자열 비교만 하는 필터는 아래 변형 입력으로 우회되므로, IP/URL을 정규화(canonicalize)한 후 검증하는지 확인해야 한다.",
+    "encoding_bypass": [
+      "http://425.510.425.510/ — 오버플로우된 형식의 점 포함 IP",
+      "http://2852039166/ — 점이 포함되지 않은 10진수 형식",
+      "http://7147006462/ — 점이 포함되지 않은 오버플로우된 형식",
+      "http://0xA9.0xFE.0xA9.0xFE/ — 점이 포함된 16진수 형식",
+      "http://0xA9FEA9FE/ — 점이 포함되지 않은 16진수 형식",
+      "http://0x41414141A9FEA9FE/ — 점이 포함되지 않은 16진수의 오버플로우된 형식",
+      "http://0251.0376.0251.0376/ — 점이 포함된 8진수 형식",
+      "http://0251.00376.000251.0000376/ — 패딩이 포함된 점 포함 8진수 형식"
+    ],
+    "idna2003_bypass": [
+      "http://ⓖⓞⓞⓖⓛⓔ.com — http://google.com (원문자가 영문으로 인식됨)",
+      "http://wordpreß.com — http://wordpress.com (독일어 ß는 'ss'로 변환됨)"
+    ],
+    "broken_parser_bypass": [
+      "https://evil-host#expected-host — #을 추가하여 탐지룰 회피 시도",
+      "https://expected-host@evil-host — @을 추가하여 탐지룰 회피 시도"
+    ],
+    "ssrf_to_lfi": [
+      "file:///etc/passwd — 로컬 파일을 읽음(LFI)",
+      "ldap://localhost:1337/%0astats%0aquit — 로컬 LDAP을 읽음"
+    ]
+  },
+  "references": [
+    "CWE-918: Server-Side Request Forgery (SSRF), MITRE — https://cwe.mitre.org/data/definitions/918.html",
+    "Server Side Request Forgery, OWASP — https://owasp.org/www-community/attacks/Server_Side_Request_Forgery"
+  ],
+  "tags": ["ssrf", "url", "internal-network", "input_validation", "whitelist", "kisec2026"],
+  "question_hooks": {
+    "keywords": ["URL 화이트리스트", "내부 URL 블랙리스트", "메타데이터 서비스(169.254.169.254)", "사설IP(isPrivateIP)", "도메인 체크 우회", "URL Map 키 참조", "블랙리스트 우회", "인코딩 우회(10진수/16진수/8진수 IP)", "IDNA2003 변환", "Broken Parser(#, @)", "SSRF-to-LFI(file://)", "기기 인증", "내부 IP 접근권한"],
+    "mcq_seed": "code_examples 의 vulnerable/safe 쌍, diagnosis 의 정탐/오탐 코드, 또는 attack_vectors 의 우회 기법을 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
+    "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  }
+}
