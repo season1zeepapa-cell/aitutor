@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "chapter_code": "DSG-IV-08",
+  "stage": "design",
+  "description": "허용된 범위내 메모리 접근 — 요구사항↔진단방법 객관식/주관식(진단방법 서술) 문항",
+  "source": "KISEC 2026년 SW보안약점 진단원 기본과정 / library-kisec2026 DSG-IV-08 diagnosis.requirements",
+  "questions": [
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-08-DM1",
+      "weakness_name_ko": "허용된 범위내 메모리 접근",
+      "chapter_code": "DSG-IV-08",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "「허용된 범위내 메모리 접근」 설계항목의 보안 요구사항 ‘① C나 C++ 같이 메모리를 프로그래머가 관리하는 플랫폼을 사용하는 경우 메모리 버퍼의 경계값을 넘어서 읽거나 저장하지 않도록 경계 설정 또는 검사를 반드시 수행해야 한다’의 적용 여부를 진단하는 방법으로 옳지 않은 것은?",
+      "choices": [
+        { "num": 1, "text": "요구사항정의서에 대책이 수립되고 아키텍처설계서에 적용계획이 있으며 요구사항추적표로 추적 가능한지 확인한다." },
+        { "num": 2, "text": "리눅스 환경인 경우 ASLR, StackGuard와 같은 메모리 보호를 위한 설정을 사용하도록 설계되어 있는지 아키텍처설계서의 보안요구항목 적용계획에서 확인한다." },
+        { "num": 3, "text": "배열의 값을 다른 배열로 복사할 때 처리되는 데이터의 길이를 검사하고 사용하도록 코딩규칙이 개발가이드에 정의되어 있는지 확인한다." },
+        { "num": 4, "text": "운영 서버에서 메모리 사용량을 모니터링하고 OOM(Out Of Memory) 발생 시 자동 재기동되도록 인프라가 구성되어 있는지 확인한다." }
+      ],
+      "answer_index": 3,
+      "choice_explanations": [
+        { "num": 1, "correct": false, "why": "요구사항①의 진단방법 1-1과 일치하는 옳은 진술이다(요구사항정의서·요구사항추적표·아키텍처설계서 검토)." },
+        { "num": 2, "correct": false, "why": "진단방법 1-2와 일치한다. 리눅스 환경에서 ASLR·StackGuard 등 메모리 보호 설정의 설계 여부를 아키텍처설계서에서 확인한다." },
+        { "num": 3, "correct": false, "why": "진단방법 1-3과 일치한다. 배열 복사 시 데이터 길이 검사 코딩규칙이 개발가이드에 정의되어 있는지 확인한다." },
+        { "num": 4, "correct": true, "why": "옳지 않다. 운영 서버 메모리 모니터링·OOM 자동 재기동은 운영단계의 가용성 관리로, 분석·설계 단계의 ‘버퍼 경계값 검사’ 설계항목 진단(요구사항·산출물 검토)과 무관하다." }
+      ],
+      "explanation": "설계단계 진단은 산출물(요구사항정의서·아키텍처설계서·개발가이드·요구사항추적표) 검토로 보안설계 적용 여부를 확인하는 활동이다. 요구사항①의 진단방법은 ① 산출물 추적성 확인, ② ASLR·StackGuard 등 메모리 보호 설정 설계 확인, ③ 배열 복사 시 길이 검사 코딩규칙 확인이다. 4번은 운영단계 인프라 관리라 설계단계 진단방법이 아니다.",
+      "reference": "library-kisec2026 DSG-IV-08 diagnosis.requirements[0]",
+      "tags": ["design-method", "diagnosis-method", "kisec2026"]
+    },
+    {
+      "question_type": "mcq",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-08-DM2",
+      "weakness_name_ko": "허용된 범위내 메모리 접근",
+      "chapter_code": "DSG-IV-08",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "「허용된 범위내 메모리 접근」 요구사항 ‘② 개발 시 메모리 버퍼오버플로우를 발생시킬 수 있는 취약한 API를 사용하지 않도록 통제해야 한다’를 진단할 때, 다음 진단방법에 사용되는 ‘관련 산출물’의 연결이 옳은 것은?\n\n[진단방법] 메모리 버퍼오버플로우를 발생시킬 수 있는 API를 정의하고, 사용하지 않도록 하는 코딩규칙이 정의되어 있는지 확인한다.",
+      "choices": [
+        { "num": 1, "text": "개발가이드" },
+        { "num": 2, "text": "단위테스트케이스" },
+        { "num": 3, "text": "운영 매뉴얼, 백업정책서" },
+        { "num": 4, "text": "정적분석 도구 스캔 리포트" }
+      ],
+      "answer_index": 0,
+      "choice_explanations": [
+        { "num": 1, "correct": true, "why": "옳다. 취약한 API 정의와 미사용 코딩규칙은 개발가이드에서 확인한다(요구사항② 진단방법 1-2의 관련 산출물)." },
+        { "num": 2, "correct": false, "why": "단위테스트케이스는 ‘충분히 긴 문자열로 버퍼오버플로우 발생을 점검하는 테스트 계획’(점검항목 2) 진단의 산출물이다." },
+        { "num": 3, "correct": false, "why": "운영 매뉴얼·백업정책서는 운영단계 산출물로 설계단계 진단 대상이 아니다." },
+        { "num": 4, "correct": false, "why": "정적분석 도구 스캔 리포트는 구현·점검단계 산출물로, 설계단계의 코딩규칙 정의 여부 진단과 무관하다." }
+      ],
+      "explanation": "설계단계 진단은 진단방법마다 검토하는 ‘관련 산출물’이 정해져 있다. 취약 API 정의와 미사용 코딩규칙은 개발가이드로 확인하고, 충분히 긴 문자열을 사용한 버퍼오버플로우 점검 테스트 계획은 단위테스트케이스로 확인한다.",
+      "reference": "library-kisec2026 DSG-IV-08 diagnosis.requirements[1]",
+      "tags": ["design-method", "diagnosis-artifact", "kisec2026"]
+    },
+    {
+      "question_type": "composite",
+      "weakness_category": "input_validation",
+      "weakness_code": "DSG-IV-08-DME1",
+      "weakness_name_ko": "허용된 범위내 메모리 접근",
+      "chapter_code": "DSG-IV-08",
+      "stage": "design",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 C/C++ 기반 시스템의 분석·설계 단계 보안요구사항정의서 일부다. 「허용된 범위내 메모리 접근」 요구사항 ‘① 메모리 버퍼의 경계값을 넘어서 읽거나 저장하지 않도록 경계 설정 또는 검사를 반드시 수행한다’에 대하여, 설계단계 진단원이 수행할 진단방법을 관련 산출물과 함께 서술하시오. (8점)",
+      "artifacts": [
+        {
+          "type": "요구사항정의서",
+          "title": "보안요구사항정의서 — 허용된 범위내 메모리 접근(SR-IV-08)",
+          "content": "SR-IV-08-01 C/C++ 등 메모리를 프로그래머가 관리하는 플랫폼에서 메모리 버퍼의 경계값을 넘어서 읽거나 저장하지 않도록 경계 설정 또는 검사를 수행한다.\n(점검항목) 메모리 버퍼오버플로우가 발생하지 않도록 보안설계(경계 검사, 메모리 보호 설정)가 적용되어 있는가? 충분히 긴 입력값으로 버퍼오버플로우 발생을 점검하는 테스트 계획이 수립되어 있는가?"
+        }
+      ],
+      "rubric": [
+        { "item": "산출물 추적성 확인", "points": 3, "required_keywords": ["요구사항정의서", "아키텍처설계서", "요구사항추적표"], "artifact_ref": "요구사항정의서", "method": "요구사항정의서에 대책이 수립되고 아키텍처설계서에 적용계획이 있으며 요구사항추적표로 추적 가능한지 확인" },
+        { "item": "메모리 보호 설정·경계 검사 코딩규칙 확인", "points": 3, "required_keywords": [{ "base": "ASLR", "synonyms": ["StackGuard", "스택가드", "Non-executable Stack", "메모리 보호"] }, { "base": "길이 검사", "synonyms": ["경계값 검사", "경계 검사", "배열 길이", "개발가이드", "코딩규칙"] }], "artifact_ref": "아키텍처설계서·개발가이드", "method": "ASLR·StackGuard 등 메모리 보호 설정 사용 설계(아키텍처설계서)와 배열 복사 시 데이터 길이 검사 코딩규칙(개발가이드)을 확인" },
+        { "item": "테스트 계획 확인", "points": 2, "required_keywords": [{ "base": "단위테스트케이스", "synonyms": ["테스트 계획", "테스트계획"] }, { "base": "긴 문자열", "synonyms": ["충분히 긴 문자열", "큰 입력값", "버퍼오버플로우"] }], "artifact_ref": "단위테스트케이스", "method": "할당된 메모리보다 큰 입력값(충분히 긴 문자열)으로 버퍼오버플로우 발생을 점검하는 테스트 계획 수립 여부를 단위테스트케이스에서 확인" }
+      ],
+      "report_template": {
+        "sections": [
+          { "key": "diagnosis_method", "title": "진단방법", "hint": "요구사항①을 진단하기 위해 어떤 산출물을 어떻게 검토하는지 서술" },
+          { "key": "artifacts", "title": "관련 산출물", "hint": "각 진단방법에 대응하는 산출물 명시" }
+        ]
+      },
+      "explanation": "요구사항①의 설계단계 진단은 세 축으로 한다. ① 요구사항정의서·아키텍처설계서·요구사항추적표로 대책 수립·적용계획·추적성 확인, ② 리눅스 환경의 ASLR·StackGuard·Non-executable Stack 등 메모리 보호 설정 설계를 아키텍처설계서에서, 배열 복사 시 데이터 길이 검사 코딩규칙을 개발가이드에서 확인, ③ 충분히 긴 문자열(할당 메모리 초과 입력값)로 버퍼오버플로우 발생을 점검하는 테스트 계획을 단위테스트케이스에서 확인. 채점은 세 축의 핵심 키워드·산출물 포함 여부로 한다.",
+      "reference": "library-kisec2026 DSG-IV-08 diagnosis.requirements[0]",
+      "tags": ["design-method", "diagnosis-essay", "kisec2026"]
+    }
+  ]
+}
