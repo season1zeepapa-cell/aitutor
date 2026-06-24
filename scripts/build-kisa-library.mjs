@@ -112,8 +112,22 @@ const courseItems = readJsons(courseDir).map((d) => mapCourse(d)).sort((a, b) =>
 
 // 2026 기본과정 교재(별도 자료원). 약점카드(chapter_code)·이론카드(unit_code) 혼재 → 필드로 분기.
 // _extract/ 등 하위 폴더는 readdirSync 가 .json 만 필터하므로 자동 제외.
+//
+// 2026 교재는 설계/구현 '단계'가 아니라 교재 '단원(Ⅰ~Ⅵ)'으로 묶는다(교재 목차 기준).
+//   - 약점카드: DSG → Ⅳ단원(분석·설계 단계), IMP → Ⅴ단원(구현 단계)
+//   - 이론카드(K26): mapCourse 가 이미 unit 기반 g1(Ⅰ~Ⅵ단원)을 부여
 const kisec2026Items = (existsSync(kisec2026Dir) ? readJsons(kisec2026Dir) : [])
-  .map((d) => (d.chapter_code ? mapLibrary(d, 'kisec2026') : mapCourse(d, 'kisec2026')))
+  .map((raw) => {
+    const item = raw.chapter_code ? mapLibrary(raw, 'kisec2026') : mapCourse(raw, 'kisec2026');
+    if (raw.chapter_code) {
+      const unit = raw.chapter_code.startsWith('DSG') ? 'Ⅳ' : 'Ⅴ';
+      item.unit = unit;
+      item.g1 = `${unit}단원`;
+      // 단원 우선 정렬(Ⅳ=4·Ⅴ=5) + 단원 내 기존 분류·번호 순서 보존
+      item.order = (UNIT_ORDER[unit] || 9) * 100000 + (item.order % 100000);
+    }
+    return item;
+  })
   .sort((a, b) => a.order - b.order);
 
 const data = {
