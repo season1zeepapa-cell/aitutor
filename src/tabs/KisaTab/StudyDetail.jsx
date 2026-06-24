@@ -6,10 +6,11 @@
 //   4. 실제 코드 예시들 (언어/난이도별, 취약 vs 안전 비교)
 //   5. 참조 문서
 //   6. [이 챕터 드릴 시작] 버튼
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiGet } from '../../lib/api';
 import CodeBlock from '../../components/CodeBlock';
+import libData from '../../data/kisa-library.json';
 import QuestionLibraryModal from '../../components/QuestionLibraryModal';
 import { setCurrentChapter } from '../../lib/currentChapter';
 
@@ -33,6 +34,7 @@ export default function StudyDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openExamples, setOpenExamples] = useState(() => new Set([0])); // 예제 아코디언 (첫 예제 펼침)
+  const [open2026, setOpen2026] = useState(() => new Set([0])); // 2026 교재 코드예시 아코디언
   const [showLibrary, setShowLibrary] = useState(false); // 관련 지식 라이브러리 모달
   const toggleExample = (i) =>
     setOpenExamples((prev) => {
@@ -40,6 +42,18 @@ export default function StudyDetail() {
       next.has(i) ? next.delete(i) : next.add(i);
       return next;
     });
+  const toggle2026 = (i) =>
+    setOpen2026((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+
+  // 2026 교재 코드예시 — src/data/kisa-library.json 의 kisec2026 자료원에서 chapter_code 매칭
+  const kisec2026Ex = useMemo(() => {
+    const it = libData.sources.find((s) => s.id === 'kisec2026')?.items.find((i) => i.id === chapterCode);
+    return it?.codeExamples || []; // [{ lang, vulnerable, safe, note }]
+  }, [chapterCode]);
 
   useEffect(() => {
     (async () => {
@@ -233,6 +247,55 @@ export default function StudyDetail() {
         </div>
       )}
 
+      {/* 5.1. 2026 교재 코드예시 — 라이브러리(kisec2026) 직참조, diagnosis4 와 별도 */}
+      {kisec2026Ex.length > 0 && (
+        <div className="rounded-xl bg-card-bg border border-border p-3">
+          <h3 className="text-sm font-bold mb-1">
+            📘 2026 교재 코드예시 <span className="text-[10px] text-text-secondary font-normal">({kisec2026Ex.length})</span>
+          </h3>
+          <p className="text-[11px] text-text-secondary mb-2 leading-relaxed">KISEC 2026 기본과정 교재의 언어·기법별 취약/안전 코드.</p>
+          <div className="space-y-2">
+            {kisec2026Ex.map((ex, exIdx) => {
+              const open = open2026.has(exIdx);
+              const lang = (ex.lang || '').toLowerCase().split(/[ (]/)[0] || 'java';
+              return (
+                <div key={exIdx} className="rounded-lg border border-border overflow-hidden">
+                  <button
+                    onClick={() => toggle2026(exIdx)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    <span className="text-primary/60 text-xs">{open ? '▾' : '▸'}</span>
+                    <span className="flex-1 text-xs font-semibold">{ex.lang || '코드'}</span>
+                    <span className="text-[10px] text-text-secondary">{open ? '접기' : '펼치기'}</span>
+                  </button>
+                  {open && (
+                    <div className="p-3 space-y-3">
+                      {ex.vulnerable && (
+                        <div>
+                          <div className="text-xs font-bold text-red-600 dark:text-red-400 mb-1">❌ 취약한 코드</div>
+                          <CodeBlock code={ex.vulnerable} language={lang} />
+                        </div>
+                      )}
+                      {ex.safe && (
+                        <div>
+                          <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">✅ 안전한 코드</div>
+                          <CodeBlock code={ex.safe} language={lang} />
+                        </div>
+                      )}
+                      {ex.note && (
+                        <p className="text-xs text-text-secondary leading-relaxed pt-1 border-t border-border">
+                          <span className="font-bold text-text">설명: </span>{ex.note}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 5.5. 연관 챕터 (설계↔구현 매핑) */}
       {(related_forward.length > 0 || related_reverse.length > 0) && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3">
@@ -353,7 +416,7 @@ export default function StudyDetail() {
         </div>
       )}
 
-      {code_examples.length === 0 && mcq_count === 0 && blank_count === 0 && (
+      {code_examples.length === 0 && kisec2026Ex.length === 0 && mcq_count === 0 && blank_count === 0 && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-700 dark:text-amber-300">
           ℹ️ 이 챕터는 아직 문항이 등록되지 않았습니다. 학습 자료만 참고하세요.
         </div>

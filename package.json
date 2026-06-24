@@ -8,6 +8,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build:fe": "vite build",
     "build:lib": "node scripts/build-kisa-library.mjs",
+    "build:practice": "node scripts/build-kisa-practice.mjs",
     "start": "node server.js",
     "test": "npx playwright test",
     "test:ui": "npx playwright test --ui",
