@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { apiGet, apiPost, apiFetch } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
 
-export default function MemoPanel({ questionId }) {
+export default function MemoPanel({ questionId, chapterCode }) {
   const toast = useToast();
   const [memos, setMemos] = useState([]);
   const [newText, setNewText] = useState('');
@@ -13,13 +13,20 @@ export default function MemoPanel({ questionId }) {
   const [pendingFiles, setPendingFiles] = useState([]); // 새 메모에 첨부할 파일
   const fileInputRef = useRef(null);
 
+  // 메모 식별자: 기출문제(questionId) 또는 약점 학습(chapterCode)
+  const listUrl = chapterCode
+    ? `/api/memos?action=list&chapter_code=${encodeURIComponent(chapterCode)}`
+    : `/api/memos?action=list&question_id=${questionId}`;
+  // 저장 시 보낼 키 (chapterCode 우선)
+  const saveKey = chapterCode ? { chapter_code: chapterCode } : { question_id: questionId };
+
   // 메모 로드
   useEffect(() => {
-    if (!questionId) return;
-    apiGet(`/api/memos?action=list&question_id=${questionId}`)
+    if (!questionId && !chapterCode) return;
+    apiGet(listUrl)
       .then(data => setMemos(data.memos || []))
       .catch(err => console.error('[Memo] 로드 실패:', err));
-  }, [questionId]);
+  }, [questionId, chapterCode]);
 
   // 파일 → base64
   const fileToBase64 = (file) => new Promise((resolve, reject) => {
@@ -36,7 +43,7 @@ export default function MemoPanel({ questionId }) {
     try {
       const data = await apiPost('/api/memos', {
         action: 'save',
-        question_id: questionId,
+        ...saveKey,
         content: newText.trim() || '(첨부파일)',
       });
       const memo = data.id ? data : { id: Date.now(), content: newText, created_at: new Date().toISOString(), files: [] };

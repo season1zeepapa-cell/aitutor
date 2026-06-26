@@ -12,6 +12,7 @@ import { apiGet } from '../../lib/api';
 import CodeBlock from '../../components/CodeBlock';
 import libData from '../../data/kisa-library.json';
 import QuestionLibraryModal from '../../components/QuestionLibraryModal';
+import MemoPanel from '../QuizTab/MemoPanel';
 import { setCurrentChapter } from '../../lib/currentChapter';
 
 // REBUILD16 R5 — 가급적 src/tracks/kisa.js 를 사용하도록 마이그레이션 권고.
@@ -378,6 +379,11 @@ export default function StudyDetail() {
           </ul>
         </Section>
       )}
+
+      {/* 6.5. 메모 — 약점 항목별 학습 메모(chapter_code 기준, 첨부파일 지원) */}
+      <Section title="📝 메모">
+        <MemoPanel chapterCode={chapterCode} />
+      </Section>
 
       {/* 7. 드릴 시작 버튼 — 이 챕터의 문제 유형별 전부 노출 */}
       {(diagnosis_count > 0 || mcq_count > 0 || blank_count > 0) && (

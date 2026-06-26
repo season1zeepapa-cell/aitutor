@@ -6,10 +6,20 @@ const { withCors } = require('./middleware');
 module.exports = withCors(async (req, res) => {
   const action = req.query?.action || req.body?.action;
 
-    // ── 메모 목록 조회 ──
+    // ── 메모 목록 조회 (기출문제 question_id 또는 약점 chapter_code) ──
     if (req.method === 'GET' && action === 'list') {
-      const { question_id } = req.query;
-      if (!question_id) return res.status(400).json({ error: 'question_id가 필요합니다.' });
+      const { question_id, chapter_code } = req.query;
+      if (chapter_code) {
+        const result = await query(
+          `SELECT id, chapter_code, content, created_at, updated_at
+           FROM question_memos
+           WHERE chapter_code = $1
+           ORDER BY created_at DESC`,
+          [chapter_code]
+        );
+        return res.json({ memos: result.rows });
+      }
+      if (!question_id) return res.status(400).json({ error: 'question_id 또는 chapter_code가 필요합니다.' });
 
       const result = await query(
         `SELECT id, question_id, content, created_at, updated_at
@@ -41,12 +51,20 @@ module.exports = withCors(async (req, res) => {
       return res.json({ counts });
     }
 
-    // ── 메모 저장 ──
+    // ── 메모 저장 (기출문제 question_id 또는 약점 chapter_code) ──
     if (req.method === 'POST' && action === 'save') {
-      const { question_id, content } = req.body;
-      if (!question_id || !content?.trim()) {
-        return res.status(400).json({ error: 'question_id와 content는 필수입니다.' });
+      const { question_id, chapter_code, content } = req.body;
+      if (!content?.trim()) return res.status(400).json({ error: 'content는 필수입니다.' });
+
+      if (chapter_code) {
+        const result = await query(
+          `INSERT INTO question_memos (chapter_code, content)
+           VALUES ($1, $2) RETURNING id, created_at`,
+          [chapter_code, content.trim()]
+        );
+        return res.json({ id: result.rows[0].id, created_at: result.rows[0].created_at, message: '메모가 저장되었습니다.' });
       }
+      if (!question_id) return res.status(400).json({ error: 'question_id 또는 chapter_code가 필요합니다.' });
 
       const result = await query(
         `INSERT INTO question_memos (question_id, content)
