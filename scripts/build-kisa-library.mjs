@@ -136,6 +136,15 @@ function mapLibrary(d, src = 'library') {
     // 이론교육 4박스 — 교재 원인/영향/대응(배열, 문구 그대로) + 진단방법 플로우차트 이미지
     theory: d.theory && (d.theory.cause || d.theory.impact || d.theory.countermeasure) ? d.theory : null,
     diagnosisImage: resolveDiagnosisImage(d),
+    // 설계영역(DSG) 이론교육 — 요구사항 설명/내용 + 관련 보안약점(IMP 링크). 교재 문구 그대로.
+    design:
+      d.stage === 'design' && (d.description || d.security_measures)
+        ? {
+            description: d.description || '',
+            measures: d.security_measures || [],
+            related: (d.related_weaknesses || []).map((r) => ({ category: r.category || '', weakness: r.weakness || '', code: r.code || '' })),
+          }
+        : null,
     detail: [
       d.countermeasure ? { label: '보안대책', text: d.countermeasure } : null,
       Array.isArray(d.security_measures) && d.security_measures.length ? { label: '보안대책', text: d.security_measures.join('\n') } : null,
