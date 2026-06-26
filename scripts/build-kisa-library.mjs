@@ -21,8 +21,38 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const libDir = join(root, 'kisa-module/library');
 const courseDir = join(root, 'kisa-module/course');
 const kisec2026Dir = join(root, 'kisa-module/library-kisec2026'); // 2026 기본과정 교재(별도 자료원)
+const jssec2023Dir = join(root, 'kisa-module/library-jssec2023'); // JS 시큐어코딩 가이드(별도 자료원)
+const imageDir = join(root, 'public/q-images/library'); // 약점별 개요 다이어그램 이미지
 const outDir = join(root, 'src/data');
 const outFile = join(outDir, 'kisa-library.json');
+
+// ── 약점명 ↔ 이미지 파일 자동 매칭 ─────────────────────────────────────
+// 사용자가 이미지를 "약점명.png" 로 public/q-images/library/ 에 넣으면,
+// 약점 제목(title)과 파일명을 정규화해 비교하여 자동으로 연결한다.
+// 정규화: 소문자화 + 공백·괄호·대괄호·언더스코어·하이픈·점 제거 → "SQL 삽입" == "sql삽입.png"
+const normalizeName = (s) =>
+  String(s || '')
+    .normalize('NFC')                           // macOS 파일명 NFD(자모분리) → NFC(완성형) 통일
+    .toLowerCase()
+    .replace(/\.(png|jpg|jpeg|gif|webp)$/i, '') // 확장자 제거(파일명용)
+    .replace(/[\s()[\]_\-.]/g, '')              // 공백·구분자 제거
+    .trim();
+
+const imageMap = (() => {
+  const map = {};
+  if (!existsSync(imageDir)) return map;
+  for (const f of readdirSync(imageDir)) {
+    if (!/\.(png|jpg|jpeg|gif|webp)$/i.test(f)) continue;
+    map[normalizeName(f)] = `/q-images/library/${f}`; // 절대경로(server.js 정적 서빙 대상)
+  }
+  return map;
+})();
+
+// title(약점명)로 이미지 자동 탐색. JSON 에 image 가 명시돼 있으면 그것을 우선한다.
+const resolveImage = (d) => {
+  if (d.image) return `/q-images/library/${d.image}`;
+  return imageMap[normalizeName(d.title)] || '';
+};
 
 const CAT_LABEL = {
   input_validation: '입력데이터 검증 및 표현',
@@ -65,6 +95,14 @@ function mapLibrary(d, src = 'library') {
     summary: d.overview || d.description || '',
     keywords: d.tags || [],
     cwe: d.cwe || '',
+    // 취약점 개요 다이어그램. JSON 의 image 명시 또는 약점명↔파일명 자동 매칭(resolveImage).
+    image: resolveImage(d),
+    // 상세 타입별 다이어그램(예: XSS 의 Reflective/Persistent/DOM). "유형 맞히기" 문제에 사용.
+    typeImages: Array.isArray(d.type_images)
+      ? d.type_images
+          .map((t) => ({ type: t.type || '', desc: t.desc || '', image: imageMap[normalizeName(t.file || t.type)] || '' }))
+          .filter((t) => t.image)
+      : [],
     detail: [
       d.countermeasure ? { label: '보안대책', text: d.countermeasure } : null,
       Array.isArray(d.security_measures) && d.security_measures.length ? { label: '보안대책', text: d.security_measures.join('\n') } : null,
@@ -130,15 +168,23 @@ const kisec2026Items = (existsSync(kisec2026Dir) ? readJsons(kisec2026Dir) : [])
   })
   .sort((a, b) => a.order - b.order);
 
+// JS 시큐어코딩 가이드(별도 자료원). 전부 구현단계(implementation) 약점카드.
+const jssec2023Items = (existsSync(jssec2023Dir) ? readJsons(jssec2023Dir) : [])
+  .map((raw) => mapLibrary(raw, 'jssec2023'))
+  .sort((a, b) => a.order - b.order);
+
 const data = {
   version: 2,
   sources: [
     { id: 'library', label: '진단가이드 (보안약점)', count: libItems.length, items: libItems },
     { id: 'course', label: '양성과정 교재', count: courseItems.length, items: courseItems },
     { id: 'kisec2026', label: '2026 기본과정 교재', count: kisec2026Items.length, items: kisec2026Items },
+    { id: 'jssec2023', label: 'JS 시큐어코딩 가이드', count: jssec2023Items.length, items: jssec2023Items },
   ],
 };
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, JSON.stringify(data));
-console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} + kisec2026 ${kisec2026Items.length} = ${libItems.length + courseItems.length + kisec2026Items.length}개`);
+const total = libItems.length + courseItems.length + kisec2026Items.length + jssec2023Items.length;
+console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} + kisec2026 ${kisec2026Items.length} + jssec2023 ${jssec2023Items.length} = ${total}개`);
+console.log(`  이미지 자동매칭: public/q-images/library/ 에서 ${Object.keys(imageMap).length}개 파일 인식`);

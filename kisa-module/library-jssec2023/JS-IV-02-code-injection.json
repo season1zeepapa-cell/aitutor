@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-02",
+  "title": "코드 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-94",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 코드 삽입",
+    "pages": "본문 16쪽~"
+  },
+  "overview": "공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입해 소프트웨어가 비정상적으로 동작하도록 하는 보안약점을 말한다. 코드 삽입은 프로그래밍 언어 자체의 기능에 한해 이뤄진다는 점에서 운영체제 명령어 삽입과 다르다. 프로그램에서 사용자의 입력값 내에 코드가 포함되는 것을 허용할 경우 공격자는 개발자가 의도하지 않은 코드를 실행해 권한을 탈취하거나 인증 우회, 시스템 명령어 실행 등으로 이어질 수 있다. 자바스크립트에서 코드 삽입 공격을 유발할 수 있는 함수로는 eval(), setTimeOut(), setInterval() 등이 있으며, 해당 함수의 인자를 면밀히 검증하지 않는 경우 공격자가 전달한 코드가 그대로 실행될 수 있다. 다만 브라우저 위에서 동작하는 클라이언트측 환경에서는 주요 자원을 포함하는 서버와 달리 코드 삽입 자체만으로는 위협이 되지 않는다.",
+  "impact": "공격자가 개발자가 의도하지 않은 코드를 실행해 권한 탈취, 인증 우회, 시스템 명령어 실행 등으로 이어질 수 있다. 외부 입력값을 검증 없이 eval() 등에 사용할 경우 공격자는 자바스크립트 코드를 통해 악성 기능 실행을 위한 라이브러리 로드 및 원격 대화형 쉘 등을 실행할 수도 있다.",
+  "countermeasure": "동적 코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시 실행 가능한 동적 코드를 입력값으로 받지 않도록 외부 입력값에 대해 화이트리스트 기반 검증을 수행해야 한다. 유효한 문자만 포함하도록 동적 코드에 사용되는 사용자 입력값을 필터링 하는 방법도 있다. 또한, 데이터와 명령어를 엄격히 분리해 처리하는 별도의 로직을 구현할 수도 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.post(\"/vuln/server\", (req, res) => {\n    // 사용자로부터 전달 받은 값을 그대로 eval 함수의 인자로 전달\n    const data = eval(req.body.data);\n    return res.send({ data });\n});",
+      "safe": "const express = require('express');\n\nfunction alphanumeric(input_text) {\n  // 정규표현식 기반 문자열 검사\n  const letterNumber = /^[0-9a-zA-Z]+$/;\n\n      if (input_text.match(letterNumber)) {\n        return true;\n      } else {\n        return false;\n      }\n}\n\nrouter.post(\"/patched/server\", (req, res) => {\n  let ret = null;\n  const { data } = req.body;\n  // 사용자 입력을 영문, 숫자로 제한하며, 만약 입력값 내에 특수문자가 포함되어\n  // 있을 경우 에러 메시지를 반환\n  if (alphanumeric(data)) {\n        ret = eval(data);\n      } else {\n        ret = 'error';\n      }\n      return res.send({ ret });\n});",
+      "note": "eval()을 사용해 사용자로부터 입력받은 값을 검증 없이 그대로 실행하여 결과를 반환하는 예제다. 외부 입력값을 검증 없이 사용할 경우 공격자는 자바스크립트 코드를 통해 악성 기능 실행을 위한 라이브러리 로드 및 원격 대화형 쉘 등을 실행할 수도 있다. 안전한 코드는 정규표현식(영문·숫자) 기반 화이트리스트 사전 검증을 통과한 입력값만 eval()의 인자로 전달한다."
+    }
+  ]
+}

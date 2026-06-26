@@ -1,0 +1,34 @@
+{
+  "chapter_code": "JS-EN-02",
+  "title": "제거되지 않고 남은 디버그 코드",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-489",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제6절 캡슐화 / 제거되지 않고 남은 디버그 코드",
+    "pages": "본문 130쪽~"
+  },
+  "overview": "디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다. 디버그 코드는 설정 등의 민감한 정보 또는 의도하지 않은 시스템 제어로 이어지는 정보를 담고 있을 수 있다. 만일 디버그 코드가 남겨진 채로 배포될 경우 공격자가 식별 과정을 우회하거나 의도하지 않은 정보 노출 문제가 발생할 수 있다. 기본적으로 자바스크립트에서는 console.log 또는 console.error 함수를 사용해 디버그 메시지를 출력하므로, 개발 완료 후에는 디버깅용으로 작성한 코드를 오버라이드(override)해 애플리케이션 동작 시 콘솔 로그가 출력되지 않도록 한다. 또한 ExpressJS는 기본적으로 디버그 모드가 비활성화된 상태에서 동작하며 서버 구동 시 'DEBUG=' prefix 설정을 하지 않는 한 서버 디버깅 메시지는 출력하지 않는다.</overview>\n<parameter name=\"impact\">디버그 코드가 남겨진 채로 배포될 경우 공격자가 식별 과정을 우회하거나, 설정 등의 민감한 정보 노출 및 의도하지 않은 시스템 제어로 이어질 수 있다.",
+  "impact": "디버그 코드가 남겨진 채로 배포될 경우 공격자가 식별 과정을 우회하거나, 설정 등의 민감한 정보 노출 및 의도하지 않은 시스템 제어로 이어질 수 있다.",
+  "countermeasure": "소프트웨어 배포 전 반드시 디버그 코드를 확인 및 삭제한다. 코드 에디터에서 console.log 또는 console.error를 모두 삭제하거나, 서비스 배포 모드에서만 console.log가 동작하지 않도록 설정할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ReactJS)",
+      "vulnerable": "",
+      "safe": "// 애플리케이션 진입 코드인 Index.js에 다음 코드를 추가하면\n// 코드 내에 삭제되지 않은 모든 console.log 코드로 인해 아무런 내용도 출력되지 않음\nif (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {\n    console.log = () => {};\n}",
+      "note": "ReactJS 예제 — 개발이 끝난 코드 배포 전 불필요한 디버그 코드를 모두 삭제해야 하며, 개발자의 실수로 인한 미삭제 로그 대응을 위해 위 코드를 추가해 운영(production) 환경에서 로그가 출력되지 않도록 한다. 안전하지 않은 코드 예시는 별도로 제시되지 않음."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "",
+      "safe": "// 서버 진입 코드인 index.js 내의 서버 구동 부분에 다음 코드 추가\napp.listen(80, () => {\n    if (!process.env.DEBUG) {\n        console.log = function(){}\n    }\n});",
+      "note": "ExpressJS 예제 — 개발이 끝난 코드 배포 전 불필요한 디버그 코드를 모두 삭제해야 하며, 개발자의 실수로 인한 미삭제 로그 대응을 위해 서버 구동 부분에 위 코드를 추가해 DEBUG 환경변수가 설정되지 않은 경우 로그가 출력되지 않도록 한다. 안전하지 않은 코드 예시는 별도로 제시되지 않음."
+    }
+  ]
+}

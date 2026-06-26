@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-CE-01",
+  "title": "Null Pointer 역참조",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-476",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제5절 코드오류 / Null Pointer 역참조",
+    "pages": "본문 119쪽~"
+  },
+  "overview": "널 포인터(Null Pointer) 역참조는 '일반적으로 그 객체가 널(Null)이 될 수 없다'라고 하는 가정을 위반했을 때 발생한다. 공격자가 의도적으로 널 포인터 역참조를 발생시키는 경우 그 결과로 발생하는 예외 상황을 이용해 추후 공격 계획에 활용할 수 있다. 다만 자바스크립트에서는 Null pointer dereference가 발생하지 않는데, 자바스크립트에서는 Null 객체가 사용되지 않으며 정의되지 않은 변수는 undefined로, null 개체는 null 값을 가지며 '정의되지 않음'과 '없음'을 다르게 처리하기 때문이다.",
+  "impact": "공격자가 의도적으로 널 포인터 역참조를 발생시키면 그 결과로 발생하는 예외 상황을 이용해 추후 공격 계획에 활용할 수 있다. 변수의 값을 검사할 때 undefined 상태와 null 상태를 구분해서 처리하지 않으면 기대하지 않은 결과값이 나오거나 시스템 오류가 발생할 수 있다.",
+  "countermeasure": "변수의 값을 검사할 때 undefined 상태와 null 상태를 구분해서 처리하지 않으면 기대하지 않은 결과값이 나올 수 있다. undefined 또는 null이 될 수 있는 데이터를 참조하기 전에 해당 데이터의 값을 정확히 검사하여 시스템 오류를 줄일 수 있다. 즉, 참조하고자 하는 자원을 호출할 때에는 반드시 개체가 undefined 또는 null이 아닌지 검증해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.get(\"/vuln\", (req, res) => {\n      const id = req.query.id;\n      // 사용자가 id 값을 전달하지 않을 경우(undefined) 에러 발생\n      return res.send(\"length = \" + id.length);\n});",
+      "safe": "const express = require('express');\n\nrouter.get(\"/patched\", (req, res) => {\n      const id = req.query.id;\n      if (id === undefined) {\n          // id 값이 전달되지 않을 경우 사용자에게 요구하는 예외 코드 추가\n          return res.send(\"id is required\");\n      } else {\n          return res.send(\"length = \" + id.length);\n      }\n});",
+      "note": "자바스크립트에서는 포인터를 사용하지는 않지만 데이터에 대한 적절한 검사를 수행하지 않을 경우 Null pointer와 유사한 None 값 참조 오류를 범할 수 있다. 사용자가 id 값을 전달하지 않을 경우(undefined) id.length 참조에서 에러가 발생한다."
+    }
+  ]
+}

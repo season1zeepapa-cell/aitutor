@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-06",
+  "title": "위험한 형식 파일 업로드",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-434",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 위험한 형식 파일 업로드",
+    "pages": "본문 35쪽~"
+  },
+  "overview": "서버 측에서 실행 가능한 스크립트 파일(asp, jsp, php, sh 파일 등)이 업로드 가능하고 이 파일을 공격자가 웹을 통해 직접 실행시킬 수 있는 경우 시스템 내부 명령어를 실행하거나 외부와 연결해 시스템을 제어할 수 있는 보안약점이다. 서버 사이드 언어(ASP, JSP, PHP)와 달리 NodeJS에서는 파일 업로드가 성공했다고 하더라도 설정파일 수정 및 반영과 같이 파일 실행을 위해 거쳐야 할 추가 작업들로 인해 웹쉘 공격이 그리 간단하지 않다. 가능성이 낮을 뿐 NodeJS를 기반으로 하는 서버 또한 업로드 공격에 취약하므로 이에 대비가 필요하다.",
+  "impact": "공격자가 업로드한 실행 가능한 스크립트 파일을 웹을 통해 직접 실행시켜 시스템 내부 명령어를 실행하거나 외부와 연결해 시스템을 제어할 수 있다(웹쉘 공격). 또한 파일 개수·크기 등을 제한하지 않으면 시스템 자원 고갈로 인한 서비스 거부(DoS) 공격이 발생할 수 있다.",
+  "countermeasure": "파일 업로드 공격을 방지하기 위해서 특정 파일 유형만 허용하도록 화이트리스트 방식으로 파일 유형을 제한해야 한다. 이때 파일의 확장자 및 업로드된 파일의 Content-Type도 함께 확인해야 한다. 또한 파일 크기 및 파일 개수를 제한하여 시스템 자원 고갈 등으로 서비스 거부 공격이 발생하지 않도록 제한해야 한다. 업로드된 파일을 웹 루트 폴더 외부에 저장해 공격자가 URL을 통해 파일을 실행할 수 없도록 해야 하며, 가능하면 업로드된 파일의 이름은 공격자가 추측할 수 없는 무작위한 이름으로 변경 후 저장하는 것이 안전하다. 또한 업로드된 파일을 저장할 경우에는 최소 권한만 부여하는 것이 안전하고 실행 여부를 확인하여 실행 권한을 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.post(\"/vuln\", (req, res) => {\n      const file = req.files.products;\n      const fileName = file.name;\n\n      // 업로드 한 파일 타입 검증 부재로 악성 스크립트 파일 업로드 가능\n      file.mv(\"/usr/app/temp/\" + fileName, (err) => {\n            if (err) return res.send(err);\n            res.send(\"upload success\");\n      });\n});",
+      "safe": "const express = require('express');\n\nrouter.post(\"/patched\", (req, res) => {\n      const allowedMimeTypes = [\"image/png\", \"image/jpeg\"];\n      const allowedSize = 5242880;\n\n      const file = req.files.products;\n      const fileName = file.name;\n\n      // 업로드 한 파일 타입 검증을 통해 악성 스크립트 파일 업로드 방지\n      if (allowedMimeTypes.indexOf(file.mimetype) < 0) {\n            res.send(\"file type not allowed\");\n      } else {\n            file.mv(\"/usr/app/temp/\" + fileName, (err) => {\n                  if (err) return res.send(err);\n                  res.send(\"upload success\");\n            });\n      }\n});",
+      "note": "업로드 대상 파일 개수, 크기, 확장자 등의 유효성 검사를 하지 않고 파일 시스템에 그대로 저장할 경우 공격자에 의해 악성코드, 쉘코드 등 위험한 형식의 파일이 시스템에 업로드될 수 있다. 안전한 코드는 파일 개수·크기·파일 확장자 등을 검사해 업로드를 제한하며, 파일 이름에서 확장자만 검사하면 변조된 확장자로 우회할 수 있으므로 MIME 타입을 확인한다."
+    }
+  ]
+}

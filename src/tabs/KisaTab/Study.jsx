@@ -96,6 +96,13 @@ export default function Study() {
         <p className="text-xs text-text-secondary leading-relaxed">
           설계·구현 단계 69개 챕터의 정의·원인·대응 원칙과 취약/안전 코드 예시, 그리고 2026 교재 설계기준 실습을 학습하세요.
         </p>
+        {/* 그림으로 약점 맞히기 퀴즈 진입 */}
+        <button
+          onClick={() => navigate('/kisa/diagram-quiz')}
+          className="mt-2 w-full py-2 rounded-lg bg-primary text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5"
+        >
+          🖼️ 그림으로 약점 맞히기
+        </button>
       </div>
 
       {/* 단계 탭 (설계단계 · 설계기준 실습 · 구현단계) */}

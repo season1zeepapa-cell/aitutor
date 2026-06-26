@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-EH-03",
+  "title": "부적절한 예외 처리",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-754",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제4절 에러처리 / 부적절한 예외 처리",
+    "pages": "본문 116쪽~"
+  },
+  "overview": "프로그램 수행 중에 함수의 결과 값에 대한 적절한 처리 또는 예외 상황에 대한 조건을 적절하게 검사하지 않을 경우 예기치 않은 문제를 야기할 수 있다. 특히 다양한 예외가 발생할 수 있음에도 불구하고 광범위한 예외 처리만 수행하면, 예외상황에 따른 적절한 조치를 취하지 못하게 된다.",
+  "impact": "함수의 결과값이나 예외 상황을 적절히 검사·구분하지 않으면 프로그램이 개발자의 의도와 다르게 동작하여 예기치 않은 문제가 발생할 수 있다. 서로 다른 예외 상황을 동일하게 처리할 경우 상황별 적합한 조치를 취하지 못한다.",
+  "countermeasure": "값을 반환하는 모든 함수의 결과값을 검사해야 한다. 결과값이 개발자가 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에는 광범위한 예외 처리 대신 발생 가능한 예외를 세분화하여 구체적인 예외 처리를 수행한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.post(\"/vuln\", (req, res) => {\n  const password = req.body.password;\n  const user = {\n     user: \"user\",\n     password: password,\n  };\n  function getUser() {\n     return new Promise((resolve, reject) => {\n         resolve(user);\n     });\n  }\n  function getUserPassword(user) {\n     return new Promise((resolve, reject) => {\n         if (user.password === undefined) {\n            reject(new Error(\"login fail\"));\n         } else {\n            resolve(user);\n         }\n     });\n  }\n\n  function checkPassword(user) {\n    return new Promise((resolve, reject) => {\n        if (user.password == \"abc\") {\n           resolve(user);\n        } else {\n           reject(new Error(\"login fail\"));\n        }\n    });\n  }\n  return getUser()\n    .then(getUserPassword)\n    .then(checkPassword)\n    .then((result) => res.send(result))\n    .catch((err) => {\n        // 서로 다른 예외 상황에서도 동일한 에러 메시지만 출력\n        res.send(err.message);\n    });\n});",
+      "safe": "const express = require('express');\n\nrouter.post(\"/patched\", (req, res) => {\n  const password = req.body.password;\n  const user = {\n     user: \"user\",\n     password: password,\n  };\n  function getUser() {\n     return new Promise((resolve, reject) => {\n         resolve(user);\n     });\n  }\n  function getUserPassword(user) {\n     return new Promise((resolve, reject) => {\n         if (user.password === undefined) {\n            reject(new Error(\"password required\"));\n         }\n         resolve(user);\n     });\n  }\n  function checkPassword(user) {\n     return new Promise((resolve, reject) => {\n         if (user.password == \"abc\") {\n             resolve(user);\n         } else {\n             reject(new Error(\"wrong password\"));\n         }\n     });\n  }\n  return getUser()\n     .then(getUserPassword)\n     .then(checkPassword)\n     .then((result) => res.send(result))\n     .catch((err) => {\n         // 예외 상황에 맞는 처리 결과 메시지를 로그에 기록(내장 함수 log가 있다고 가정)\n         log(err.messsage);\n         // 클라이언트에는 에러 발생 여부만 전달\n         res.send('login failed');\n     });\n});",
+      "note": "다양한 예외가 발생할 수 있음에도 광범위한 예외 처리로 서로 다른 예외 상황에서 동일한 에러 메시지만 출력하여, 예외상황에 따른 적절한 조치가 부적절한 사례. 안전한 코드는 발생 가능한 예외를 세분화('password required', 'wrong password')하고, 상세 메시지는 로그에 기록하되 클라이언트에는 에러 발생 여부만 전달한다."
+    }
+  ]
+}

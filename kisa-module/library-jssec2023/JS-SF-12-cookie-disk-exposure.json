@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-12",
+  "title": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-539",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+    "pages": "본문 94쪽~"
+  },
+  "overview": "대부분의 웹 응용프로그램에서 쿠키는 메모리에 상주하며 브라우저가 종료되면 사라진다. 그러나 개발자가 원하는 경우 브라우저 세션에 관계없이 지속적으로 쿠키 값을 저장하도록 설정할 수 있는데, 이 경우 정보는 디스크에 기록되고 다음 브라우저 세션 시작 시 메모리에 로드된다. 개인정보, 인증 정보 등이 이와 같은 영속적인 쿠키(Persistent Cookie)에 저장된다면 공격자는 쿠키에 접근할 수 있는 보다 많은 기회를 가지게 되며, 이는 시스템을 취약하게 만든다.",
+  "impact": "개인정보·인증 정보 등이 사용자 하드디스크에 영속적인 쿠키로 저장되면 공격자가 쿠키에 접근할 수 있는 기회가 늘어나 쿠키가 도용될 수 있으며, 이는 시스템을 취약하게 만든다.",
+  "countermeasure": "쿠키의 만료시간은 세션 지속 시간을 고려하여 최소한으로 설정하고, 영속적인 쿠키에는 사용자 권한 등급, 세션 ID 등 중요 정보가 포함되지 않도록 한다. 또한 HTTPS를 통해서만 쿠키를 전송하도록 secure 속성값을 True(기본값 False)로 설정하고, 클라이언트 측에서 자바스크립트를 통해 쿠키에 접근하지 못하도록 제한하려면 httpOnly 속성을 True(기본값 False)로 설정한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.get(\"/vuln\", (req, res) => {\n      // 쿠키의 만료 시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다\n      res.cookie('rememberme', '1', {\n            expires: new Date(Date.now() + 365*24*60*60*1000)\n      });\n      return res.send(\"쿠키 발급 완료\");\n});",
+      "safe": "const express = require('express');\n\nrouter.get(\"/patched\", (req, res) => {\n      // 쿠키의 만료 시간을 적절하게 부여하고 secure 옵션을 활성화\n      res.cookie('rememberme', '1', {\n            expires: new Date(Date.now() + 60*60*1000),\n            secure: true,\n            httpOnly: true\n      });\n      return res.send(\"쿠키 발급 완료\");\n});",
+      "note": "안전하지 않은 코드는 쿠키 만료 시간을 1년으로 과도하게 길게 설정해 사용자 하드디스크에 저장된 쿠키가 도용될 수 있다. 안전한 코드는 만료 시간을 1시간으로 최소화하고 secure·httpOnly 속성을 활성화한다."
+    }
+  ]
+}

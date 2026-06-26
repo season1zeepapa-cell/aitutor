@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-12",
+  "title": "서버사이드 요청 위조",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-918",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 서버사이드 요청 위조",
+    "pages": "본문 56쪽~"
+  },
+  "overview": "적절한 검증 절차를 거치지 않은 사용자 입력값을 내부 서버 간의 요청에 사용해 악의적인 행위가 발생할 수 있는 보안약점이다. 외부에 노출된 웹 서버가 취약한 애플리케이션을 포함하는 경우, 공격자는 URL 또는 요청문을 위조해 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크에 있는 데이터를 획득할 수 있다.</overview>\n<parameter name=\"impact\">URL 또는 요청문 위조를 통한 접근통제 우회, 내부망 중요 정보 획득, 외부 접근이 차단된 admin 페이지 접근, 도메인 체크 우회를 통한 중요 정보 획득, 단축 URL을 이용한 필터 우회, 도메인을 사설 IP로 설정한 중요 정보 획득, file:// 스킴을 이용한 서버 내 파일 열람(예: /etc/passwd) 등 비정상적 동작 유도 및 신뢰된 네트워크 데이터 탈취.",
+  "impact": "",
+  "countermeasure": "식별 가능한 범위 내에서 사용자의 입력값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력값을 화이트리스트 방식으로 필터링한다. 부득이하게 사용자가 지정하는 무작위의 URL을 받아들여야 하는 경우라면 내부 URL을 블랙리스트로 지정하여 필터링한다. 또한 동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const request = require('request');\nconst express = require('express');\n\nrouter.get(\"/vuln\", async (req, res) => {\n      const url = req.query.url;\n\n      // 사용자가 입력한 주소를 검증하지 않고 HTTP 요청을 보낸 후\n      // 그 응답을 그대로 사용자에게 전달\n      await request(url, (err, response) => {\n            const resData = response.body;\n            return res.send(resData);\n      });\n});",
+      "safe": "const request = require('request');\nconst express = require('express');\n\nrouter.get(\"/patched\", async (req, res) => {\n      const url = req.query.url;\n      const whiteList = [ 'www.example.com', 'www.safe.com'];\n\n      // 사용자가 입력한 URL을 화이트리스트로 검증한 후 그 결과를 반환하여\n      // 검증되지 않은 주소로 요청을 보내지 않도록 제한\n      if (whiteList.includes(url)) {\n          await request(url, (err, response) => {\n                const resData = response.body;\n                return res.send(resData);\n          });\n      } else {\n          return res.send('잘못된 요청입니다');\n      }\n});",
+      "note": "사용자로부터 입력된 URL 주소를 검증 없이 사용하면 의도하지 않은 다른 서버의 자원에 접근할 수 있게 된다. 삽입 코드 예: 내부망 중요 정보 획득(http://sample_site.com/connect?url=http://192.168.0.45/member/list.json), 외부 접근 차단된 admin 페이지 접근, 도메인 체크 우회(...url=http://sample_site.com:x@192.168.0.45/...), 단축 URL을 이용한 Filter 우회(http://bit.ly/...), 도메인을 사설 IP로 설정한 중요정보 획득, 서버 내 파일 열람(...url=file:///etc/passwd). 안전한 코드는 사전에 정의된 서버 목록(화이트리스트)에서 매칭되는 URL만 사용할 수 있어 URL 값을 임의로 조작할 수 없다."
+    }
+  ]
+}

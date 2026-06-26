@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-SF-16",
+  "title": "반복된 인증시도 제한 기능 부재",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-307",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 반복된 인증시도 제한 기능 부재",
+    "pages": "본문 104쪽~"
+  },
+  "overview": "일정 시간 내에 여러 번의 인증 시도가 있을 때 계정 잠금 또는 추가 인증 방법 등의 충분한 조치가 수행되지 않는 경우 발생하는 보안약점이다. 공격자는 인증에 성공할 가능성이 높은 계정과 패스워드들을 사전(Dictionary)으로 만들고 무차별 대입(brute-force)하여 로그인 성공 및 권한 획득이 가능하다. 악의적인 사용자의 반복된 인증 시도 자체를 클라이언트측에서 단독으로 제한하거나 서버와의 연계를 통해 어느 정도 차단 효과를 기대할 수 있지만, 궁극적으로는 안전한 서버측 코드가 구현되어야만 무작위 대입 공격에 대응할 수 있다.",
+  "impact": "공격자가 가능성 높은 계정/패스워드 사전(Dictionary)을 만들고 무차별 대입(brute-force) 공격을 수행하여 로그인 성공 및 권한 획득이 가능하다.",
+  "countermeasure": "최대 인증시도 횟수를 적절한 횟수로 제한하고, 설정된 인증 실패 횟수를 초과할 경우 계정을 잠금하거나 추가적인 인증 과정을 거쳐서 시스템에 접근이 가능하도록 한다. 코드 상에서 인증 시도 횟수를 제한하는 방법 외에 CAPTCHA나 Two-Factor 인증 방법도 설계 시부터 고려해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst crypto = require('crypto');\n\nrouter.post(\"/vuln\", (req, res) => {\n      const id = req.body.id;\n      const password = req.body.password;\n\n      const hashPassword = crypto.createHash(\"sha512\").update(password).digest(\"base64\");\n      const currentHashPassword = getUserPasswordFromDB(id);\n\n      // 인증 시도에 따른 제한이 없어 반복적인 인증 시도가 가능\n      if (hashPassword === currentHashPassword) {\n          return res.send(\"login success\");\n      } else {\n          return res.send(\"login fail\")\n      }\n});",
+      "safe": "const express = require('express');\nconst crypto = require('crypto');\n\nconst LOGIN_TRY_LIMIT = 5;\n\nrouter.post(\"/patched\", (req, res) => {\n      const id = req.body.id;\n      const password = req.body.password;\n      // 로그인 실패기록 가져오기\n      const loginFailCount = getUserLoginFailCount(id);\n\n      // 로그인 실패횟수 초과로 인해 잠금된 계정에 대한 인증 시도 제한\n      if (loginFailCount >= LOGIN_TRY_LIMIT) {\n          return res.send(\"account lock(too many failed)\")\n      }\n\n      // 해시 생성시 솔트를 사용하는 것이 안전하나, 코드의 복잡성을 피하기 위해 생략\n      const hashPassword = crypto.createHash(\"sha512\").update(password).digest(\"base64\");\n      const currentHashPassword = getUserPasswordFromDB(id);\n\n      if (hashPassword === currentHashPassword) {\n          deleteUserLoginFailCount(id);\n          return res.send(\"login success\");\n      } else {\n          updateUserLoginFailCount(id);\n          return res.send(\"login fail\")\n      }\n});",
+      "note": "사용자 로그인 시도에 대한 횟수를 제한하지 않는 코드. 인증 시도에 따른 제한이 없어 반복적인 인증 시도(무차별 대입)가 가능하다."
+    }
+  ]
+}

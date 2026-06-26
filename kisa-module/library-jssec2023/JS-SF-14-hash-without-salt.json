@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-14",
+  "title": "솔트 없이 일방향 해쉬 함수 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-759",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 솔트 없이 일방향 해쉬 함수 사용",
+    "pages": "본문 99쪽~"
+  },
+  "overview": "패스워드와 같은 중요정보를 저장할 경우 가변 길이 데이터를 고정된 크기의 해쉬값으로 변환해주는 일방향 해쉬 함수를 이용해 저장할 수 있다. 만약 중요정보를 솔트(Salt) 없이 일방향 해쉬 함수를 사용해 저장한다면, 공격자는 미리 계산된 레인보우 테이블을 이용해 해쉬값으로부터 원문을 알아낼 수 있다.</overview>\n<parameter name=\"impact\">솔트 없이 해쉬값을 저장하면 공격자가 미리 계산된 레인보우 테이블을 이용해 해쉬값을 역으로 추적하여 원문(패스워드 등 중요정보)을 알아낼 수 있다. 특히 길이가 짧은 패스워드는 해쉬값으로부터 원문이 쉽게 유추된다.",
+  "impact": "솔트 없이 일방향 해쉬 함수만으로 중요정보를 저장하면 공격자가 미리 계산된 레인보우 테이블을 이용해 해쉬값으로부터 원문을 알아낼 수 있다. 길이가 짧은 패스워드일수록 해쉬값으로부터 원문이 쉽게 유추된다.",
+  "countermeasure": "패스워드와 같은 중요 정보를 저장할 경우 임의의 길이인 데이터를 고정된 크기의 해쉬값으로 변환해주는 일방향 해쉬 함수를 이용하여 저장한다. 또한 솔트값은 사용자별로 유일하게 생성해야 하며, 이를 위해 사용자별 솔트 값을 별도로 저장하는 과정이 필요하다. 자바스크립트 NodeJS에서는 crypto 패키지를 사용해 해쉬값 생성 및 솔트(randomBytes)를 생성할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const crypto = require(\"crypto\");\n\nfunction getHashFromPwd(pw) {\n    // salt가 없이 생성된 해쉬값은 강도가 약해 취약\n    const hash = crypto.createHash('sha256').update(pw).digest('hex');\n    return hash;\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction getHashFromPwd(pw) {\n    // 솔트 값을 사용하면 길이가 짧은 패스워드로도 고강도의 해쉬를 생성할 수 있음\n    // 솔트 값은 사용자별로 유일하게 생성해야 하며, 패스워드와 함께 DB에 저장해야 함\n    const salt = crypto.randomBytes(16).toString('hex');\n    const hash = crypto.createHash('sha256').update(pw + salt).digest('hex');\n\n    return { hash, salt };\n}",
+      "note": "솔트 없이 길이가 짧은 패스워드를 해쉬 함수에 전달해 원문이 공격자에 의해 쉽게 유추되는 예시. salt 없이 생성된 해쉬값은 강도가 약해 취약하다."
+    }
+  ]
+}

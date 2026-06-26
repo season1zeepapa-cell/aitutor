@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-01",
+  "title": "적절한 인증 없는 중요 기능 허용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-306",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 적절한 인증 없는 중요 기능 허용",
+    "pages": "본문 62쪽~"
+  },
+  "overview": "서버측에서는 NodeJS의 기본 기능을 사용해 인증 기능을 구현할 수도 있고, ExpressJS나 nest.js와 같은 대표적인 서버 프레임워크가 제공하는 기능을 사용하는 방법도 있다. 클라이언트측에서도 다양한 라이브러리를 사용해 인증 기능을 구현할 수 있지만, 궁극적으로는 서버측에서 안전한 인증이 지원되지 않으면 보안 문제가 발생할 수 있다.",
+  "impact": "서버측에서 안전한 인증이 지원되지 않을 경우, 클라이언트의 보안 검사가 우회되어 적절한 인증 없이 중요 기능(예: 패스워드 변경 등)이 수행되는 보안 문제가 발생할 수 있다.",
+  "countermeasure": "클라이언트의 보안 검사를 우회하여 서버에 접근하지 못하도록 설계하고, 중요한 정보가 있는 페이지는 재인증을 적용한다. 또한 안전하다고 검증된 라이브러리나 프레임워크를 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst crypto = require(\"crypto\");\n\nrouter.post(\"/vuln\", (req, res) => {\n    const newPassword = req.body.newPassword;\n    const user = req.session.userid;\n    const hs = crypto.createHash(\"sha256\")\n    const newHashPassword = hs.update(newPassword).digest(\"base64\");\n\n    // 현재 패스워드와 일치 여부를 확인하지 않고 업데이트\n    updatePasswordFromDB(user, newHashPassword);\n\n    return res.send({message: \"패스워드가 변경되었습니다.\", userId, password, hashPassword});\n});",
+      "safe": "const express = require('express');\nconst crypto = require(\"crypto\");\n\nrouter.post(\"/patched\", (req, res) => {\n    const newPassword = req.body.newPassword;\n    const user = req.session.userid;\n    const oldPassword = getPasswordFromDB(user);\n    const salt = crypto.randomBytes(16).toString('hex');\n\n    const hs = crypto.createHash(\"sha256\")\n    const currentPassword = req.body.currentPassword;\n    const currentHashPassword = hs.update(currentPassword + salt).digest(\"base64\");\n\n    // 현재 패스워드 확인 후 사용자 정보 업데이트\n    if (currentHashPassword === oldPassword) {\n        const newHashPassword = hs.update(newPassword + salt).digest(\"base64\");\n        updatePasswordFromDB(user, newHashPassword);\n        return res.send({ message: \"패스워드가 변경되었습니다.\" });\n    } else {\n        return res.send({ message: \"패스워드가 일치하지 않습니다.\" });\n    }\n});",
+      "note": "패스워드 수정 시 수정을 요청한 패스워드와 DB에 저장된 사용자 패스워드의 일치 여부를 확인하지 않고 처리하며, 패스워드 재확인 절차도 생략되어 취약하다. 안전한 코드에서는 DB에 저장된 사용자 패스워드와 변경을 요청한 패스워드(현재 패스워드)의 일치 여부를 확인한 후에 DB의 패스워드를 수정한다."
+    }
+  ]
+}

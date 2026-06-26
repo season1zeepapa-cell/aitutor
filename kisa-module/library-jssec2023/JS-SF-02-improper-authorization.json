@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-02",
+  "title": "부적절한 인가",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-285",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 부적절한 인가",
+    "pages": "본문 65쪽~"
+  },
+  "overview": "사용자가 접근 가능한 모든 실행 경로에 대해서 접근 제어를 정확히 처리하지 않거나 불완전하게 검사하는 경우, 공격자는 접근 가능한 실행경로를 통해 정보를 유출할 수 있다.",
+  "impact": "접근 제어가 정확하거나 완전하게 처리되지 않으면, 공격자가 접근 가능한 실행경로를 통해 인가되지 않은 정보를 유출하거나 권한 없는 작업(예: 데이터 삭제)을 수행할 수 있다.",
+  "countermeasure": "응용 프로그램이 제공하는 정보와 기능이 가지는 역할에 맞게 분리 개발함으로써 공격자에게 노출되는 공격 노출면(Attack Surface)을 최소화하고, 사용자의 권한에 따른 ACL(Access Control List)을 관리한다. 공격 노출면은 공격자가 진입할 수 있거나 공격에 영향을 줄 수 있는 시스템 경계선 지점, 시스템 요소 또는 환경을 의미한다. 작업을 수행하기 전에 세션에 저장된 사용자 정보를 통해 해당 사용자가 그 작업에 대한 권한이 있는지 확인하고, 권한이 있는 경우에만 작업을 수행하도록 해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nfunction deleteContentFromDB(contentId) {\n    ...\n}\n\nrouter.delete(\"/vuln\", (req, res) => {\n  const contentId = req.body.contentId;\n  // 작업 요청을 하는 사용자의 권한 확인 없이 삭제 작업 수행\n  deleteContentFromDB(contentId);\n\n  return res.send(\"삭제가 완료되었습니다.\");\n});",
+      "safe": "const express = require('express');\n\nfunction deleteContentFromDB(contentId) { ... }\n\nrouter.delete(\"/patched\", (req, res) => {\n  const contentId = req.body.contentId;\n  const role = req.session.role;\n\n  // 삭제 기능을 수행할 권한이 있는 경우에만 삭제 작업 수행\n  if (role === \"admin\") {\n     deleteContentFromDB(contentId);\n     return res.send(\"삭제가 완료되었습니다.\");\n  } else {\n     return res.send(\"권한이 없습니다.\");\n  }\n});",
+      "note": "사용자의 권한 확인을 위한 별도의 통제 없이 사용자 입력값에 따라 삭제 작업을 수행하는 예시. 안전한 코드는 세션에 저장된 사용자 정보(role)로 권한을 확인한 후 admin인 경우에만 삭제 작업을 수행한다."
+    }
+  ]
+}

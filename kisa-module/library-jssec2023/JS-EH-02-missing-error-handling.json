@@ -1,0 +1,24 @@
+{
+  "chapter_code": "JS-EH-02",
+  "title": "오류상황 대응 부재",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-390",
+  "applies_to": ["VanillaJS", "ReactJS", "ExpressJS"],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제4절 에러처리 / 오류상황 대응 부재",
+    "pages": "본문 113쪽~"
+  },
+  "overview": "오류가 발생할 수 있는 부분을 확인하였으나 이러한 오류에 대해 예외 처리를 하지 않을 경우, 공격자는 오류 상황을 악용해 개발자가 의도하지 않은 방향으로 프로그램이 동작하도록 할 수 있다. 예외처리는 코드를 견고하게 만들고, 프로그램 제어 실패로 인해 의도치 않은 중단으로 이어지는 잠재적인 오류를 방지하는 데 도움이 된다.",
+  "impact": "오류를 포착(catch)하더라도 아무 조치를 하지 않으면 프로그램이 계속 실행되어 개발자가 의도하지 않은 방향으로 동작할 수 있다. 예를 들어 암호화 키 선택 중 오류가 발생했는데 예외 처리가 없으면 기본값(0으로 채워진 키)으로 암호화가 수행되는 등 보안상 위험한 상태로 동작이 이어질 수 있다.",
+  "countermeasure": "오류가 발생할 수 있는 부분에 대하여 제어문(try-catch)을 사용해 적절하게 예외 처리한다. 예외상황 발생 시 프로그램이 개발자의 의도와 다르게 동작하지 않도록 catch 블록에서 안전한 대체 동작(예: 랜덤 키 재생성, 안전한 기본 동작, 처리 중단 등)을 반드시 구현해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst crypto = require(\"crypto\");\n\nconst staticKeys = [\n  { \"key\" : \"a6823ecf34012b1ca5ca7889f4eabb51\", \"iv\" : \"e79ce03b4563647a\" },\n  { \"key\" : \"9e7c30e899f296a1daca7d9a0f92e71c\", \"iv\" : \"ab39941053fb5f6a\" }\n];\n\nrouter.post(\"/vuln\", (req, res) => {\n  let staticKey = { \"key\" : \"00000000000000000000000000000000\", \"iv\" : \"0000000000000000\" };\n  const inputText = req.body.text;\n  const keyId = req.body.id;\n\n  try {\n    staticKey.key = staticKeys[keyId].key;\n    staticKey.iv = staticKeys[keyId].iv;\n  } catch (err) {\n    // key 선택 중 오류 발생 시 기본으로 설정된 암호화 키인\n    // '0000000000000000' 으로 암호화가 수행됨\n    console.log(err);\n  }\n\n  const cipher = crypto.createCipheriv('aes-256-cbc', staticKey.key, staticKey.iv);\n  const encryptedText = cipher.update(inputText, 'utf8', 'base64') + cipher.final('base64');\n  return res.send(encryptedText);\n});",
+      "safe": "const express = require('express');\nconst crypto = require(\"crypto\");\n\nconst staticKeys = [\n  { \"key\" : \"a6823ecf34012b1ca5ca7889f4eabb51\", \"iv\" : \"e79ce03b4563647a\" },\n  { \"key\" : \"9e7c30e899f296a1daca7d9a0f92e71c\", \"iv\" : \"ab39941053fb5f6a\" }\n];\n\nrouter.post(\"/vuln\", (req, res) => {\n  let staticKey = { \"key\" : \"00000000000000000000000000000000\", \"iv\" : \"0000000000000000\" };\n  const inputText = req.body.text;\n  const keyId = req.body.id;\n\n  try {\n    staticKey.key = staticKeys[keyId].key;\n    staticKey.iv = staticKeys[keyId].iv;\n  } catch (err) {\n    // 키 선택 중 오류 발생 시 랜덤으로 암호화 키를 생성하도록 설정\n    staticKey.key = crypto.randomBytes(16).toString('hex');\n    staticKey.iv = crypto.randomBytes(8).toString('hex');\n  }\n\n  const cipher = crypto.createCipheriv('aes-256-cbc', staticKey.key, staticKey.iv);\n  const encryptedText = cipher.update(inputText, 'utf8', 'base64') + cipher.final('base64');\n  return res.send(encryptedText);\n});",
+      "note": "try 블록에서 오류를 catch 했지만 아무 조치 없이 로그만 남기면, 0으로 채워진 기본 키로 암호화가 그대로 수행되어 위험하다. 안전한 코드는 catch에서 랜덤 키를 재생성하여 안전한 상태로 동작을 이어간다."
+    }
+  ]
+}

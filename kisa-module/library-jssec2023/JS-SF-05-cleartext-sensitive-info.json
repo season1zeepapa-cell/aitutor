@@ -1,0 +1,34 @@
+{
+  "chapter_code": "JS-SF-05",
+  "title": "암호화되지 않은 중요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-312, CWE-319",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 암호화되지 않은 중요정보",
+    "pages": "본문 73쪽~"
+  },
+  "overview": "많은 응용 프로그램은 메모리나 디스크 상에서 중요한 정보(개인정보, 인증정보, 금융정보 등)를 처리한다. 이러한 중요 정보가 제대로 보호되지 않을 경우 보안 문제가 발생하거나 데이터의 무결성이 깨질 수 있다. 특히 사용자 또는 시스템의 중요 정보가 포함된 데이터를 평문으로 송·수신 또는 저장 시 인가되지 않은 사용자에게 민감한 정보가 노출될 수 있다.",
+  "impact": "중요 정보가 평문으로 송·수신되거나 저장될 경우 인가되지 않은 사용자에게 민감한 정보가 노출될 수 있고, 데이터의 무결성이 깨질 수 있다. 예를 들어 패스워드를 암호화 없이 네트워크로 전송하면 패킷 스니핑을 통해 패스워드가 노출될 수 있다.",
+  "countermeasure": "개인정보(주민등록번호, 여권번호 등), 금융정보(카드번호, 계좌번호 등), 패스워드 등 중요정보를 저장하거나 통신채널로 전송할 때는 반드시 암호화 과정을 거쳐야 하며, 중요정보를 읽거나 쓸 경우 권한인증 등을 통해 적합한 사용자만 중요정보에 접근하도록 해야 한다. 가능하다면 SSL 또는 HTTPS 등과 같은 보안 채널을 사용해야 한다. 보안 채널을 사용하지 않고 브라우저 쿠키에 중요 데이터를 저장하는 경우 쿠키 객체에 보안속성을 설정해(예: secure = True) 중요 정보의 노출을 방지할 수 있다. 패스워드 저장 시 SHA256과 같이 안정성이 검증된 해쉬 알고리즘으로 단방향 암호화하여 저장한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "function updatePass(dbconn, password, user_id) {\n    // 암호화되지 않은 비밀번호를 DB에 저장하는 경우 위험함\n    const sql = 'UPDATE user SET password=? WHERE user_id=?';\n    const params = [password, user_id];\n\n    dbconn.query(sql, params, function(err, rows, fields){\n         if (err) console.log(err);\n    })\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction updatePass(dbconn, password, user_id, salt) {\n    // 단방향 암호화를 이용하여 비밀번호를 암호화\n    const sql = 'UPDATE user SET password=? WHERE user_id=?';\n    const hashPw = crypto.createHash('sha256').update(password + salt, 'utf-8').digest('hex');\n    const params = [hashPw, user_id];\n    dbconn.query(sql, params, function(err, rows, fields){\n         if (err) console.log(err);\n    })\n}",
+      "note": "중요정보 평문저장 — 사용자로부터 전달받은 패스워드 암호화를 누락한 경우. 안전한 코드는 SHA256과 salt를 이용한 단방향 암호화 후 저장한다."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const { io } = require(\"socket.io-client\");\nconst socket = io(\"http://localhost:3000\");\n\nfunction sendPassword(password) {\n  // 패스워드를 암호화 하지 않고 전송하여 안전하지 않음\n  socket.emit(\"password\", password);\n}\n\nsocket.on(\"password\", function(data) {\n    if (data === 'success') {\n       console.log(\"\\nSuccess to send a message to a server \\n\")\n    }\n});",
+      "safe": "const { io } = require(\"socket.io-client\");\nconst crypto = require(\"crypto\");\nconst socket = io(\"http://localhost:3000\");\nconst PASSWORD = getPassword();\n\nfunction aesEncrypt(plainText) {\n  const key = getCryptKey();\n  const iv = getCryptIV();\n  const cipherAes = crypto.createCipheriv('aes-256-cbc', key, iv);\n\n    const encryptedData = cipherAes.update(plainText, 'utf8', 'base64');\n    const finalEncryptedData = cipherAes.final('base64');\n\n    return encryptedData + finalEncryptedData;\n}\n\nfunction sendPassword(password) {\n  // 패스워드 등 중요정보는 암호화하여 전송하는 것이 안전함\n  const encPassword = aesEncrypt(password);\n  socket.emit(\"password\", encPassword);\n}\n\nsocket.on(\"password\", function(data) {\n    if (data === 'success') {\n       console.log(\"\\nSuccess to send a message to a server \\n\")\n    }\n});",
+      "note": "중요정보 평문전송 — 인자값으로 전달받은 패스워드를 암호화 없이 네트워크로 전송하는 경우. 전달받은 패스워드가 암호화되어 있지 않으면 패킷 스니핑을 통해 패스워드가 노출될 수 있다. 안전한 코드는 AES-256-CBC로 암호화하여 전송한다."
+    }
+  ]
+}

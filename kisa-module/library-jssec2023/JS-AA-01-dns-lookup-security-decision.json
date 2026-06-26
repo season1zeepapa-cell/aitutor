@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-AA-01",
+  "title": "DNS lookup에 의존한 보안결정",
+  "stage": "implementation",
+  "category": "api_abuse",
+  "cwe": "CWE-350",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제7절 API 오용 / DNS lookup에 의존한 보안결정",
+    "pages": "본문 136쪽~"
+  },
+  "overview": "공격자가 DNS 엔트리를 속일 수 있으므로 도메인명에 의존해서 보안결정(인증 및 접근 통제 등)을 하지 않아야 한다. 만약 로컬 DNS 서버의 캐시가 공격자에 의해 오염된 상황이라면 사용자와 특정 서버 간의 네트워크 트래픽이 공격자를 경유하도록 할 수도 있다. 또한 공격자가 마치 동일 도메인에 속한 서버인 것처럼 위장할 수도 있다.",
+  "impact": "로컬 DNS 서버의 캐시가 오염되면 사용자와 특정 서버 간의 네트워크 트래픽이 공격자를 경유하도록 조작될 수 있고, 공격자가 동일 도메인에 속한 서버인 것처럼 위장할 수 있다. 공격자는 DNS 캐시 등을 조작해 도메인명 기반 보안 설정을 쉽게 우회할 수 있다.",
+  "countermeasure": "보안결정에서 도메인명을 이용한 DNS lookup을 하지 않도록 한다. 도메인명을 이용한 비교 대신 IP 주소를 직접 비교하도록 코드를 수정하여 DNS 변조에 대응한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst dns = require(\"dns\");\n\nrouter.get(\"/vuln\", (req, res) => {\n      let trusted = false;\n\n      const trustedHost = \"www.google.com\";\n      const hostName = req.query.host;\n\n      // 공격자에 의해 실행되는 서버의 DNS가 변경될 수 있으므로\n      // 안전하지 않음\n      if (hostName === trustedHost) {\n          trusted = true;\n      }\n      return res.send({trusted});\n});",
+      "safe": "const express = require('express');\nconst dns = require(\"dns\");\n\nrouter.get(\"/patched\", async (req, res) => {\n      let trusted = false;\n\n      const trustedHost = \"142.250.207.100\";\n      // 실제 서버의 IP 주소를 비교하여 DNS 변조에 대응\n\n      async function dnsLookup() {\n          return new Promise((resolve, reject) => {\n               dns.lookup(req.query.host, 4, (err, address, family) => {\n                    if (err) reject(err);\n                    resolve(address);\n               })\n          })\n      }\n\n      const hostName = await dnsLookup();\n\n      if (hostName === trustedHost) {\n          trusted = true;\n      }\n      return res.send({trusted});\n});",
+      "note": "도메인명을 통해 해당 요청을 신뢰할 수 있는지를 검사하는 예시로, 공격자는 DNS 캐시 등을 조작해서 쉽게 이러한 보안 설정을 우회할 수 있다."
+    }
+  ]
+}

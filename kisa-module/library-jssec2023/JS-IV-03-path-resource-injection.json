@@ -1,0 +1,32 @@
+{
+  "chapter_code": "JS-IV-03",
+  "title": "경로 조작 및 자원 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-22, CWE-99",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 경로 조작 및 자원 삽입",
+    "pages": "본문 19쪽~"
+  },
+  "overview": "검증되지 않은 외부 입력값을 통해 파일 및 서버 등 시스템 자원(파일, 소켓의 포트 등)에 대한 접근 혹은 식별을 허용할 경우, 입력값 조작으로 시스템이 보호하는 자원에 임의로 접근할 수 있는 보안약점이다. 기본적으로 클라이언트측 자바스크립트에서는 외부 입력값을 기반으로 하는 호스트 시스템의 프로세스 제어, 파이프 상호작용, 소켓 연결 등을 특별한 경우가 아니면 거의 사용하지 않으며, 사용하더라도 코드 실행 위치가 사용자 시스템이므로 위협이 큰 의미를 가지지 못한다. 그러나 NodeJS 기반 서버 프로그램의 경우 fs 및 socket.io 라이브러리를 통해 프로세스 및 소켓 연결을 제어할 수 있어 이 약점이 의미를 가진다.",
+  "impact": "경로조작 및 자원삽입 약점을 이용해 공격자는 자원 수정·삭제, 시스템 정보누출, 시스템 자원 간 충돌로 인한 서비스 장애 등을 유발시킬 수 있다. 또한 경로 조작 및 자원 삽입을 통해 공격자가 허용되지 않은 권한을 획득해 설정 파일을 변경하거나 실행시킬 수 있다.",
+  "countermeasure": "외부로부터 받은 입력값을 자원(파일, 소켓의 포트 등)의 식별자로 사용하는 경우 적절한 검증을 거치도록 하거나, 사전에 정의된 리스트(화이트리스트)에 포함된 식별자만 사용하도록 해야 한다. 특히 외부의 입력이 파일명인 경우에는 필터를 적용해 경로순회(directory traversal) 공격의 위험이 있는 문자( /, \\, .. 등)를 제거해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst path = require('path');\n\nrouter.get(\"/vuln/file\", (req, res) => {\n      // 외부 입력값으로부터 파일명을 입력 받음\n      const requestFile = req.query.file;\n\n      // 입력값을 검증 없이 파일 처리에 사용\n      fs.readFile(path.resolve(__dirname, requestFile), 'utf8', function(err, data) {\n           if (err) {\n               return res.send('error');\n           }\n           return res.send(data);\n      })\n});",
+      "safe": "const express = require('express');\nconst path = require('path');\n\nrouter.get(\"/patched/file\", (req, res) => {\n      const requestFile = req.query.file;\n      // 정규표현식을 사용해 사용자 입력값을 필터링\n      const filtered = requestFile.replace(/[.\\\\\\/]/gi, '');\n\n      fs.readFile(filtered, 'utf8', function(err, data) {\n           if (err) {\n               return res.send('error');\n           }\n           return res.send(data);\n      })\n});",
+      "note": "경로 조작 예제. 외부 입력값으로 파일 경로 등을 입력받아 파일을 여는 예시. 공격자가 '../../../../etc/passwd' 와 같은 값을 전달하면 사용자 계정 및 패스워드 정보가 담긴 파일의 내용이 클라이언트 측에 표시되어 의도치 않은 시스템 정보노출 문제가 발생한다. 안전한 코드는 정규표현식으로 경로 조작 문자열( /, \\, .. 등)을 제거한 후 파일 경로 설정에 사용한다."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst io = require(\"socket.io\");\n\nrouter.get(\"/vuln/socket\", (req, res) => {\n  try {\n     // 외부로부터 입력받은 검증되지 않은 주소를 이용하여\n     // 소켓을 바인딩 하여 사용하고 있어 안전하지 않음\n     const socket = io(req.query.url);\n     return res.send(socket);\n      } catch (err) {\n        return res.send(\"[error] fail to connect\");\n      }\n});",
+      "safe": "const express = require('express');\nconst io = require(\"socket.io\");\n\nrouter.get(\"/patched/socket\", (req, res) => {\n    // 화이트리스트 내에 속하는 주소만 허용\n    const whitelist = [\"ws://localhost\", \"ws://127.0.0.1\"];\n    if (whitelist.indexOf(req.query.url) < 0) {\n       return res.send(\"wrong url\");\n    }\n    try {\n       const socket = io(req.query.url);\n       return res.send(socket);\n    } catch (err) {\n       return res.send(\"[error] fail to connect\");\n    }\n});",
+      "note": "자원 삽입 예제. 안전하지 않은 코드는 외부 입력을 소켓 연결 주소로 그대로 사용한다. 외부 입력값을 검증 없이 사용할 경우 기존 자원과의 충돌로 의도치 않은 에러가 발생할 수 있다. 안전한 코드는 허용 가능한 목록(화이트리스트)을 설정한 후 목록 내에 포함된 주소만 연결을 허용한다."
+    }
+  ]
+}

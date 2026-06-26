@@ -1,0 +1,30 @@
+{
+  "chapter_code": "JS-IV-01",
+  "title": "SQL 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-89",
+  "applies_to": ["ExpressJS"],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 1. SQL 삽입",
+    "pages": "10-15"
+  },
+  "overview": "데이터베이스 드라이버를 사용할 경우 개발자가 직접 쿼리 문자열을 정의하고 그 결과를 그대로 데이터베이스에 질의하게 되는데, 이때 검증되지 않은 외부 입력값으로 인해 SQL 삽입 공격이 발생할 수 있다. ORM을 사용하더라도 복잡한 조건의 쿼리, 성능 등의 이유로 ORM이 지원하는 원시 쿼리(raw query) 기능을 사용하면 공격에 취약해질 수 있다. SQL 인젝션 공격은 데이터베이스와 직접 상호작용하는 서버 측 코드에서만 발생한다. 자바스크립트는 데이터베이스 드라이버(예: mysql), 쿼리 빌더(예: Knex.js), ORM(예: Sequelize)의 세 가지 방식으로 DB와 상호작용한다.",
+  "impact": "공격자가 정상적인 정수형 id 값 대신 '1 UNION SELECT group_concat(table_name) FROM information_schema.tables WHERE table_schema = database();' 와 같은 공격문을 전달하면 데이터베이스 내 모든 테이블 이름이 조회되고, 이는 곧 공격자가 원하는 모든 쿼리를 실행할 수 있다는 의미로 이어진다. 권한 없는 사용자의 정보 유출·수정·삭제, 인증 우회가 가능하다.",
+  "countermeasure": "사용자 입력값으로 쿼리를 생성할 때는 쿼리 빌더를 사용하여 SQL 인젝션을 방어할 수 있다. 데이터베이스 드라이버나 ORM의 원시 쿼리 기능을 사용할 때는 인자화된 쿼리(parameterized query)로 외부 입력값을 바인딩해서 사용한다. 인자화된 쿼리는 사용자가 전달한 입력값을 그대로 쿼리 문자열로 만들지 않고, 미리 컴파일된 쿼리 템플릿에 값을 삽입하는 방식이라 입력값으로 인한 쿼리 조작이 불가능하다. 입력값 검증을 병행할 경우 화이트리스트 기반 방식으로 구현한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (mysql 드라이버)",
+      "vulnerable": "const mysql = require(\"mysql\");\n\n// 커넥션 초기화 옵션은 생략함\nconst connection = mysql.createConnection(...);\n\nrouter.get(\"/vuln/email\", (req, res) => {\n  const con = connection;\n  const userInput = req.query.id;\n  // 사용자로부터 입력받은 값을 검증 없이 그대로 쿼리에 사용\n  const query = `SELECT email FROM user WHERE user_id = ${userInput}`;\n  con.query(query,\n    (err, result) => {\n      if (err) console.log(err);\n      return res.send(result);\n    }\n  );\n});",
+      "safe": "const mysql = require(\"mysql\");\n...\nrouter.get(\"/patched/email\", (req, res) => {\n  const con = connection;\n  const userInput = req.query.id;\n  const query = 'SELECT email FROM user WHERE user_id = ?';\n  // 쿼리 함수에 사용자 입력값을 매개변수 형태로 전달 → escape 처리한 것과 동일한 효과\n  con.query(query, userInput,\n    (err, result) => {\n      if (err) console.log(err);\n      return res.send(result);\n    }\n  );\n});",
+      "note": "mysql 라이브러리는 인자화된 쿼리를 직접 제공하지 않지만 '?' 플레이스홀더로 동일한 효과를 낼 수 있다. 외부 입력값을 문자열로 직접 연결하지 말고 con.query(query, 값) 형태로 바인딩한다."
+    },
+    {
+      "lang": "JavaScript (Sequelize ORM)",
+      "vulnerable": "// ORM의 인자화 기능을 쓰지 않고 사용자 입력값을 원시 쿼리에 직접 결합\nconst userInput = req.query.id;\nconst result = await sequelize.query(\n  `SELECT email FROM user WHERE user_id = ${userInput}`\n);",
+      "safe": "// replacements(또는 bind)로 외부 입력값을 바인딩 변수로 전달\nconst userInput = req.query.id;\nconst result = await sequelize.query(\n  'SELECT email FROM user WHERE user_id = ?',\n  { replacements: [userInput], type: sequelize.QueryTypes.SELECT }\n);",
+      "note": "Sequelize는 기본적으로 쿼리 인자화를 사용하므로 안전하지만, 원시 SQL/사용자 정의 SQL을 쓸 때는 반드시 외부 입력값을 인자화된 쿼리의 바인딩 변수로 사용해야 한다."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-SF-07",
+  "title": "충분하지 않은 키 길이 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-326",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 충분하지 않은 키 길이 사용",
+    "pages": "본문 80쪽~"
+  },
+  "overview": "짧은 길이의 키를 사용하는 것은 암호화 알고리즘을 취약하게 만들 수 있다. 키는 암호화 및 복호화에 사용되는데, 검증된 암호화 알고리즘을 사용하더라도 키 길이가 충분히 길지 않으면 짧은 시간 안에 키를 찾아낼 수 있고 이를 이용해 공격자가 암호화된 데이터나 패스워드를 복호화 할 수 있게 된다. 암호 알고리즘 및 키 길이 선택 시 암호 알고리즘의 안전성 유지기간과 보안강도별 암호 알고리즘 키 길이 비교표를 기반으로 암호 알고리즘 및 키 길이를 선택해야 한다.",
+  "impact": "키 길이가 충분히 길지 않으면 검증된 암호화 알고리즘을 사용하더라도 공격자가 짧은 시간 안에 키를 찾아낼 수 있으며, 이를 이용해 암호화된 데이터나 패스워드를 복호화할 수 있다.",
+  "countermeasure": "RSA 알고리즘은 적어도 2,048 비트 이상의 길이를 가진 키와 함께 사용해야 하고, 대칭 암호화 알고리즘(Symmetric Encryption Algorithm)의 경우에는 적어도 보안 강도 112비트 이상을 지원하는 알고리즘을 사용해야 한다. 암호 알고리즘 및 키 길이는 안전성 유지기간과 보안강도별 암호 알고리즘 비교표를 기반으로 선택한다. (보안강도별 비교표 예: 112비트 보안강도 - 대칭키 112, 인수분해/이산대수 공개키 2048비트, 타원곡선 224비트, 안전성 유지기간 2011~2030년 / 128비트 - 대칭키 128, 공개키 3072, 타원곡선 256 / 192비트 - 대칭키 192, 공개키 7680, 타원곡선 384, 2030년 이후 / 256비트 - 대칭키 256, 공개키 15360, 타원곡선 512). 실무적으로 RSA, DSA의 경우 키의 길이는 적어도 2048 비트를, ECC의 경우 224 비트 이상으로 설정해야 안전하다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (Node.js crypto)",
+      "vulnerable": "const crypto = require(\"crypto\");\n\nfunction vulnMakeRsaKeyPair() {\n    // RSA키 길이를 1024 비트로 설정하는 경우 안전하지 않음\n    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa',\n    {\n        modulusLength: 1024,\n        publicKeyEncoding: { type: \"spki\", format: 'pem' },\n        privateKeyEncoding: { type: \"pkcs8\", format: 'pem' }\n    });\n    return { PRIVATE: publicKey, PUBLIC: privateKey }\n}\n\nfunction vulnMakeEcc() {\n    // ECC 키 길이가 224비트 이하이면 안전하지 않음\n    const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {\n        namedCurve: 'secp192k1',\n        publicKeyEncoding: { type: 'spki', format: 'der' },\n        privateKeyEncoding: { type: 'pkcs8', format: 'der' }\n    });\n    return { PRIVATE: publicKey.toString('hex'), PUBLIC: privateKey.toString('hex') }\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction vulnMakeRsaKeyPair() {\n    // RSA키 길이를 2048 비트로 설정해 안전함\n    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa',\n    {\n        modulusLength: 2048,\n        publicKeyEncoding: { type: \"spki\", format: 'pem' },\n        privateKeyEncoding: { type: \"pkcs8\", format: 'pem' }\n    });\n    return { PRIVATE: publicKey, PUBLIC: privateKey }\n}\n\nfunction vulnMakeEcc() {\n    // ECC 키 길이를 256 비트로 설정해 안전함\n    const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {\n        namedCurve: 'secp256k1',\n        publicKeyEncoding: { type: 'spki', format: 'der' },\n        privateKeyEncoding: { type: 'pkcs8', format: 'der' }\n    });\n    return { PRIVATE: publicKey.toString('hex'), PUBLIC: privateKey.toString('hex') }\n}",
+      "note": "보안성이 강한 RSA 알고리즘을 사용하는 경우에도 키 크기를 작게 설정하면 보안약점이 된다. 안전하지 않은 예제는 RSA 키를 1024비트, ECC를 secp192k1(224비트 이하)로 설정한다. 안전한 예제는 RSA를 2048비트, ECC를 secp256k1(256비트)로 설정한다. RSA, DSA는 적어도 2048비트, ECC는 224비트 이상으로 설정해야 안전하다."
+    }
+  ]
+}

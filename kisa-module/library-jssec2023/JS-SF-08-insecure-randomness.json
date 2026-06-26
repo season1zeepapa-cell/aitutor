@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-SF-08",
+  "title": "적절하지 않은 난수 값 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-330",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 적절하지 않은 난수 값 사용",
+    "pages": "본문 83쪽~"
+  },
+  "overview": "예측 불가능한 숫자가 필요한 상황에서 예측 가능한 난수를 사용한다면 공격자가 생성되는 다음 숫자를 예상해 시스템을 공격할 수 있다.",
+  "impact": "예측 가능한 난수를 사용하면 공격자가 다음에 생성될 숫자를 예측해 시스템을 공격할 수 있다. 또한 random 데이터 생성 시 유추하기 어려운 seed 값을 사용하더라도 강도가 낮은 난수는 주요 보안 기능에 사용하기에 안전하지 않다.",
+  "countermeasure": "난수 발생기에서 시드(Seed)를 사용하는 경우에는 고정된 값을 사용하지 않고 예측하기 어려운 방법으로 생성된 값을 사용한다. 자바스크립트 NodeJS 엔진에서는 crypto.getRandomBytes를 사용해 암호학적으로 안전한 의사 난수 바이트를 생성할 수 있는데, 이렇게 생성한 바이트를 숫자로 변환하면 안정성이 깨질 수도 있다는 점을 주의해야 한다. 브라우저에서는 RandomSource.getRandomValues를 사용해 암호학적으로 안전한 의사 랜덤 숫자를 생성할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (NodeJS)",
+      "vulnerable": "function getOtpNumber() {\n  let randomStr = '';\n  // Math.random 라이브러리는 보안기능에 사용하면 위험함\n  for (let i = 0; i < 6; i++) {\n     randomStr += String(Math.floor(Math.random() * 10))\n  }\n        return randomStr;\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction getOtpNumber() {\n  // 보안기능에 적합한 난수 생성용 crypto 라이브러리 사용\n  const array = new Uint32Array(1);\n  // 브라우저에서는 crypto 대신에 window.crypto를 사용\n  const randomStr = crypto.getRandomValues(array);\n  let result;\n  for (let i = 0; i < randomStr.length; i++) {\n     result = array[i];\n  }\n  return String(result).substring(0, 6);\n}",
+      "note": "random 데이터 생성 시에는 반드시 유추하기 어려운 seed 값을 이용해 난수를 생성해야 하며, 이렇게 생성된 난수라 하더라도 강도가 낮기 때문에 주요 보안 기능을 위한 난수 이용 시에는 안전하지 않다. 아래는 암호학적으로 안전하지 않은 Math.random 함수를 사용해 난수를 생성하고 있다."
+    }
+  ]
+}

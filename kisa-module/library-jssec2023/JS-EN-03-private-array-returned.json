@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-EN-03",
+  "title": "Public 메소드로부터 반환된 Private 배열",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-495",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제6절 캡슐화 / Public 메소드로부터 반환된 Private 배열",
+    "pages": "본문 132쪽~"
+  },
+  "overview": "자바스크립트는 ES 버전별로 클래스를 정의하는 방법에 차이가 있는데, ES6 이전에는 프로토타입을 클래스처럼 정의해 사용했고 ES6부터 클래스 문법이 정식 도입되었다. 초기 클래스는 private 속성을 지원하지 않아 언더스코어 프리픽스(_) 코드 컨벤션으로 private 속성을 처리했으며, 이후 '#' 기호를 프리픽스로 사용해 private 속성을 정의할 수 있게 되었다. public으로 선언된 메소드에서 배열을 반환하면 해당 배열의 참조 객체가 외부에 공개되어 외부에서 배열 수정과 객체 속성 변경이 가능해진다. 이러한 속성은 배열뿐만 아니라 변경 가능한(mutable) 모든 객체에 해당된다.",
+  "impact": "private로 선언된 배열을 반환하는 public 메소드를 사용하면 외부에서 클래스 내에 숨겨져 있는 private 배열 값에 접근할 수 있고, 반환된 배열의 참조 객체가 외부에 공개되어 외부에서 배열 수정과 객체 속성 변경이 가능해진다.",
+  "countermeasure": "private로 선언된 배열을 public으로 선언된 메소드로 반환하지 않도록 한다. private 배열에 대한 복사본을 반환하도록 하고, 배열의 원소에 대해서는 Object.assign() 메소드를 통해 복사된 원소를 저장하도록 해서 private로 선언된 배열과 객체 속성에 대한 의도치 않은 수정을 방지한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (VanillaJS/ReactJS/ExpressJS)",
+      "vulnerable": "class UserObj {\n    #privArray = [];\n\n    // private 배열을 리턴하는 public 메소드를 사용하는 경우 취약\n    get_private_member = () => {\n        return this.#privArray;\n    }\n}",
+      "safe": "class UserObj {\n    #privArray = [];\n\n    // private 배열을 반환하는 경우 복사본을 사용해 외부와 내부의\n    // 배열이 서로 참조되지 않도록 해야 함\n    get_private_member = () => {\n        const copied = Object.assign([], this.#privArray);\n        return copied;\n    }\n}",
+      "note": "안전하지 않은 코드는 private 변수를 생성하고 이를 그대로 반환하는 public 메소드를 사용하여, 외부에서 클래스 내에 숨겨져 있는 private 배열 값에 접근할 수 있는 문제가 발생한다. 안전한 코드는 내부와 외부의 배열이 서로 참조되는 것을 예방하기 위해 Object.assign()으로 새로운 객체(복사본)를 생성하여 값을 반환한다."
+    }
+  ]
+}

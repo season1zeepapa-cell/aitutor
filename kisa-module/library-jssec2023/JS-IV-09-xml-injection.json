@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-09",
+  "title": "XML 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-643",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / XML 삽입",
+    "pages": "본문 43쪽~"
+  },
+  "overview": "검증되지 않은 외부 입력값이 XQuery 또는 XPath 쿼리문을 생성하는 문자열로 사용되어 공격자가 쿼리문의 구조를 임의로 변경하고 임의의 쿼리를 실행해 허가되지 않은 데이터를 열람하거나 인증절차를 우회할 수 있는 보안약점이다.",
+  "impact": "공격자가 쿼리문의 구조를 임의로 변경하고 임의의 쿼리를 실행하여, 허가되지 않은 데이터를 열람하거나 인증(패스워드 검증) 절차를 우회할 수 있다.",
+  "countermeasure": "XQuery 또는 XPath 쿼리에 사용되는 외부 입력 데이터에 대하여 특수문자 및 쿼리 예약어를 필터링 하고 인자화된 쿼리문을 지원하는 XQuery를 사용해야 한다. xpath 패키지의 경우 parse 및 select 함수를 사용해 인자화된 쿼리를 생성하고 쿼리문에 필요한 변수값을 전달할 수 있으며, xpath가 아닌 다른 패키지를 사용할 경우 반드시 인자화된 쿼리를 지원하는지 확인해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst xpath = require('xpath');\nconst dom = require('xmldom').DOMParser;\n\nconst xml = `<users>\n  <user>\n    <login>john</login>\n    <password>abracadabra</password>\n    <home_dir>/home/john</home_dir>\n </user>\n    <user>\n        <login>cbc</login>\n        <password>1mgr8</password>\n        <home_dir>/home/cbc</home_dir>\n    </user>\n    </users>`;\n\nrouter.get(\"/vuln\", (req, res) => {\n    const userName = req.query.userName;\n    const userPass = req.query.userPass;\n\n    const doc = new dom().parseFromString(xml);\n\n    // 조작된 입력값(/vuln?userName=john' or ''='&userPass=\"' or ''='\")을 통해\n    // 패스워드 검사 로직을 우회할 수 있음\n    const badXPathExpr = \"//users/user[login/text()='\" + userName\n                              + \"' and password/text() = '\" + userPass + \"']/home_dir/text()\";\n    const selected = xpath.select(badXPathExpr, doc);\n\n    try {\n        const userPath = selected[0].toString();\n        return res.send(`userPath = ${userPath}`);\n    } catch {\n        return res.send('not found');\n    }\n});",
+      "safe": "const express = require('express');\nconst xpath = require('xpath');\nconst dom = require('xmldom').DOMParser;\n\nconst xml = `<users>\n    ...\n    </users>`;\n\nrouter.get(\"/patched\", (req, res) => {\n    const userName = req.query.userName;\n    const userPass = req.query.userPass;\n    const doc = new dom().parseFromString(xml);\n\n    // 인자화된 쿼리 생성\n    const goodXPathExpr = xpath.parse(\"//users/user[login/text()=$userName and password/text()\n    =$userPass]/home_dir/text()\");\n    // 쿼리문에 변수값 전달 및 XML 조회\n    const selected = goodXPathExpr.select({\n          node: doc,\n          variables: { userName: userName, userPass: userPass }\n    });\n    try {\n          const userPath = selected[0].toString();\n          return res.send(`userPath = ${userPath}`);\n    } catch {\n          return res.send('not found');\n    }\n});",
+      "note": "자바스크립트 xpath 패키지로 XML 데이터를 처리하는 예시. 사용자 이름과 패스워드가 XML 내의 값과 일치할 경우 사용자 홈 디렉터리를 반환하는데, 인자화된 쿼리문을 사용하지 않고 문자열 결합으로 XPath 쿼리문을 생성하고 있어 공격자가 요청문을 조작해 패스워드 검증 로직을 우회할 수 있다. 공격 예시: /vuln?userName=john' or ''='&userPass='' or ''='"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-SF-13",
+  "title": "주석문 안에 포함된 시스템 주요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-615",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 주석문 안에 포함된 시스템 주요정보",
+    "pages": "본문 97쪽~"
+  },
+  "overview": "소프트웨어 개발자가 편의를 위해 주석문에 패스워드 등 인증 정보를 적어둔 경우, 소프트웨어가 완성된 후에는 그것을 제거하기가 매우 어렵게 된다. 만약 공격자가 소스코드에 접근할 수 있다면 주석에 남은 정보를 이용해 시스템에 손쉽게 침입할 수 있다. 편리성을 위해 아이디, 패스워드 등 중요정보를 주석문 안에 작성한 후 지우지 않으면 정보 노출 보안약점이 발생한다.",
+  "impact": "공격자가 소스코드에 접근할 수 있을 경우 주석문에 남겨진 아이디·패스워드 등 인증 정보를 통해 시스템에 손쉽게 침입(정보 노출)할 수 있다.",
+  "countermeasure": "주석에는 아이디, 패스워드 등 보안과 관련된 내용을 기입하지 않는다. 프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 패스워드 등의 정보는 개발 완료 후 확실하게 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.post(\"/vuln\", (req, res) => {\n      // 주석문에 포함된 중요 시스템의 인증 정보\n      // id = admin\n      // password = 1234\n      const result = login(req.body.id, req.body.password);\n      return res.send(result);\n});",
+      "safe": "const express = require('express');\n\nrouter.post(\"/vuln\", (req, res) => {\n      // 주석문에 포함된 민감한 정보는 삭제\n      const result = login(req.body.id, req.body.password);\n      return res.send(result);\n});",
+      "note": "편리성을 위해 아이디·패스워드 등 중요정보를 주석문 안에 작성한 후 지우지 않아 정보 노출 보안약점이 발생하는 예시. 주석에 id=admin, password=1234 같은 인증 정보가 그대로 남아 있어 소스코드에 접근한 공격자가 시스템에 침입할 수 있다."
+    }
+  ]
+}

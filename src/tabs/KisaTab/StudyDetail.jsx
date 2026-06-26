@@ -49,11 +49,13 @@ export default function StudyDetail() {
       return next;
     });
 
-  // 2026 교재 코드예시 — src/data/kisa-library.json 의 kisec2026 자료원에서 chapter_code 매칭
-  const kisec2026Ex = useMemo(() => {
-    const it = libData.sources.find((s) => s.id === 'kisec2026')?.items.find((i) => i.id === chapterCode);
-    return it?.codeExamples || []; // [{ lang, vulnerable, safe, note }]
-  }, [chapterCode]);
+  // 2026 교재(kisec2026 자료원)에서 현재 챕터 항목 매칭 — 코드예시 + 개요 다이어그램 사용
+  const kisec2026Item = useMemo(
+    () => libData.sources.find((s) => s.id === 'kisec2026')?.items.find((i) => i.id === chapterCode) || null,
+    [chapterCode],
+  );
+  const kisec2026Ex = kisec2026Item?.codeExamples || []; // [{ lang, vulnerable, safe, note }]
+  const overviewImage = kisec2026Item?.image || ''; // 취약점 개요 공격흐름도(진단가이드 그림)
 
   useEffect(() => {
     (async () => {
@@ -137,6 +139,21 @@ export default function StudyDetail() {
       <Section title="📝 정의" emoji="">
         <p className="text-sm leading-relaxed">{chapter.definition}</p>
       </Section>
+
+      {/* 2.5. 취약점 개요도 — 진단가이드 공격흐름도(kisec2026 image) */}
+      {overviewImage && (
+        <Section title="🖼️ 취약점 개요도">
+          <img
+            src={overviewImage}
+            alt={`${chapter.title} 공격 흐름도`}
+            className="w-full rounded-lg border border-border bg-white"
+            loading="lazy"
+          />
+          <p className="mt-1.5 text-[10px] text-text-secondary">
+            출처: 소프트웨어 보안약점 진단가이드(2021)
+          </p>
+        </Section>
+      )}
 
       {/* 3. 원인 + 영향 */}
       {(chapter.cause || chapter.impact) && (

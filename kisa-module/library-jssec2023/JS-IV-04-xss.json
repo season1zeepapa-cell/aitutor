@@ -1,0 +1,51 @@
+{
+  "chapter_code": "JS-IV-04",
+  "title": "크로스사이트 스크립트(XSS)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-79",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "type_images": [
+    { "type": "Reflective XSS", "desc": "공격 코드를 HTTP 요청에 삽입해 서버 응답에 그대로 반사(Non-persistent)", "file": "Reflective XSS.png" },
+    { "type": "Persistent XSS", "desc": "신뢰할 수 없는 입력이 서버에 저장되어 다른 사용자에게 전달(Stored)", "file": "Persistent XSS.png" },
+    { "type": "DOM XSS", "desc": "DOM(문서 개체 모델)을 수정해 브라우저에서 독립적으로 실행(Client-Side)", "file": "DOM XSS.png" }
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 크로스사이트 스크립트(XSS)",
+    "pages": "본문 23쪽~"
+  },
+  "overview": "크로스사이트 스크립트 공격(Cross-site scripting Attacks, XSS)은 웹사이트에 악성코드를 삽입하는 공격 방법으로, 공격자는 대상 웹 응용프로그램의 결함을 이용해 악성코드(일반적으로 클라이언트 측 자바스크립트)를 사용자에게 보낸다. XSS는 공격자가 웹 응용프로그램을 속여 브라우저에서 실행될 수 있는 형식의 데이터(코드)를 다른 사용자에게 전달할 때 발생하며, 사용자가 폼에 입력한 데이터나 서버에서 클라이언트로 전달된 데이터가 적절한 검증 없이 사용자에게 표시되도록 허용될 때 발생한다. XSS 공격에는 크게 세 가지 유형이 있는데, 공격 코드를 HTTP 요청에 삽입해 서버 응답에 그대로 반사시키는 Reflective XSS(Non-persistent), 신뢰할 수 없는 입력이 서버에 저장되어 다른 사용자에게 전달될 때 발생하는 Persistent XSS(Stored), 그리고 DOM(문서 개체 모델)을 수정해 브라우저와 독립적으로 공격을 실행하는 DOM XSS(Client-Side)가 있다. 자바스크립트는 클라이언트측과 서버측 코드 모두 개발이 가능한 언어이므로, XSS 예방을 위해 클라이언트와 서버 양쪽을 모두 고려해야 한다.",
+  "impact": "XSS 공격은 일반적으로 애플리케이션 호스트 자체보다 사용자를 목표로 삼는다. 공격자는 DOM XSS 공격을 통해 세션 및 개인 정보를 포함한 쿠키 데이터를 피해자의 컴퓨터에서 공격자 시스템으로 전송할 수 있으며, 이 정보를 사용해 특정 웹사이트에 악의적인 요청을 보낼 수 있다. 피해자가 해당 사이트의 관리자 권한을 가진 경우 심각한 위협을 초래할 수 있고, 신뢰할 수 있는 웹사이트를 모방해 피해자가 암호를 입력하도록 속이는 피싱(Phishing) 공격으로 이어져 피해자의 계정을 손상시킬 수도 있다.",
+  "countermeasure": "외부 입력값 또는 출력값에 스크립트가 삽입되지 못하도록 문자열 치환 함수를 사용하여 &<>\"'/() 등을 & < > \" ' / ( ) 로 치환하거나, 자바스크립트 라이브러리에서 제공하는 escape 기능을 사용해 문자열을 변환해야 한다. 자바스크립트가 기본 제공하는 escape() 함수는 deprecated되어 권장하지 않으며, 대신 encodeURI() 또는 encodeURIComponent() 함수를 사용한다. HTML 태그를 허용해야 하는 게시판에서는 허용할 HTML 태그를 화이트리스트로 만들어 해당 태그만 지원하도록 한다. XSS 방어 코드는 클라이언트측과 서버측 모두에 적용해야 한다. 클라이언트측 코드는 공격자가 변조할 수 있지만 서버로 데이터가 넘어가기 전 1차 방어선 역할을 하며, 클라이언트측 코드를 조작하더라도 서버에서 사용자 입력값을 검증하면 XSS 공격을 예방할 수 있다. 마지막으로 서버로부터 가져온 데이터를 클라이언트측에서 다시 사용자에게 보여줄 때 코드가 포함된 내용일 경우에도 공격에 사용되는 문자열을 필터링해야 한다. 내장 함수(encodeURIComponent)는 가볍고 쉽지만 모든 XSS 패턴에 대응할 수 없으므로, 별도의 필터링 함수를 구현하거나 xss-filters, dompurify 같이 널리 사용되고 지속적으로 관리되는 라이브러리를 사용하는 것이 권장된다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (VanillaJS, 내장함수)",
+      "vulnerable": "<html>\n<body>\n  <script>\n    const query = \"<script>alert('hello world')<\"+\"/script>\";\n    async function req() {\n         // 사용자가 에디터와 같은 입력 폼에 입력한 데이터를 서버에 저장\n         const response = await fetch(`/vuln/search?q=${query}`, { method: 'GET' })\n         const data = await response.text();\n         // 외부로부터 받은 데이터(HTML 코드)를 아무런 검증 없이 DOM으로 기록\n         document.write(data);\n    }\n    req();\n  </script>\n</body>\n</html>",
+      "safe": "<html>\n<body>\n  <script>\n    const query = \"<script>alert('hello world')<\"+\"/script>\";\n    async function req() {\n         const response = await fetch(`/vuln/search?q=${query}`, { method: 'GET' })\n         const data = await response.text();\n\n         // 외부로부터 받은 데이터를 이스케이프 처리 후 사용\n         document.write(decodeURI(encodeURIComponent(data)));\n    }\n    req();\n  </script>\n</body>\n</html>",
+      "note": "클라이언트측 VanillaJS 예제. 사용자가 폼/에디터로 작성한 내용을 서버에 저장하고, 저장된 내용을 다시 서버로부터 받아와 DOM에 출력하는 예시. 서버로부터 받은 데이터를 검증 없이 그대로 document.write로 사용하면 악성 스크립트(<script>alert('hello world')</script>)가 실행될 수 있다. 안전한 코드는 encodeURIComponent()로 이스케이프 후 decodeURI()를 호출하여 스크립트 실행을 방지하면서 원하는 결과를 DOM에 출력한다."
+    },
+    {
+      "lang": "JavaScript (VanillaJS, 라이브러리)",
+      "vulnerable": "<html>\n<body>\n  <script>\n    const query = \"<script>alert('hello world')<\"+\"/script>\";\n    async function req() {\n         const response = await fetch(`/vuln/search?q=${query}`, { method: 'GET' })\n         const data = await response.text();\n         // 외부로부터 받은 데이터(HTML 코드)를 아무런 검증 없이 DOM으로 기록\n         document.write(data);\n    }\n    req();\n  </script>\n</body>\n</html>",
+      "safe": "<html>\n  <head>\n    <script src=\"https://cdn.rawgit.com/yahoo/xss-filters/master/dist/xss-filters.js\"></script>\n  </head>\n  <body>\n    <script>\n       async function req() {\n       ...\n           // xss-filters 라이브러리를 사용해 문자열을 이스케이프 처리\n           document.write(xssFilters.inHTMLData(data));\n       }\n       req();\n    </script>\n  </body>\n</html>",
+      "note": "안전한 코드 예시 2. encodeURIComponent 내장 함수는 가볍지만 모든 XSS 패턴에 대응할 수 없으므로, 널리 사용되고 안정적인 xss-filters 라이브러리를 활용해 문자열을 이스케이프 처리한다. (vulnerable 코드는 위 VanillaJS 내장함수 예제의 안전하지 않은 코드와 동일)"
+    },
+    {
+      "lang": "JavaScript (ReactJS)",
+      "vulnerable": "function possibleXSS() {\n  return {\n    __html:\n       '<img\n          src=\"https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg\"\n          onload=\"alert(1)\">\n         </img>',\n     };\n  }\n\nconst App = ( ) => (\n   // XSS에 취약한 함수를 사용해 HTML 코드 데이터를 렌더링\n   <div dangerouslySetInnerHTML={possibleXSS()} />\n);\nReactDOM.render(<App />, document.getElementById(\"root\"));",
+      "safe": "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js\"></script>\n...\nfunction possibleXSS() {\n      return {\n       __html:\n        // dompurify 라이브러리를 사용해 입력값을 이스케이프 처리\n        DOMPurify.sanitize('<img src=\"https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg\" onload=\"alert(1)\"></img>'),\n       };\n}\nconst App = ( ) => (\n      <div dangerouslySetInnerHTML={possibleXSS()} />\n);\nReactDOM.render(<App />, document.getElementById(\"root\"));",
+      "note": "클라이언트측 ReactJS 예제. React DOM은 JSX 렌더링 전에 모든 값을 이스케이프 처리하므로 기본적으로 XSS에 안전하지만, HTML 입력값을 그대로 렌더링하는 dangerouslySetInnerHTML을 사용할 경우 XSS 공격에 노출된다(예: onload=\"alert(1)\"). 부득이하게 사용해야 하면 직접 이스케이프 처리하는 컴포넌트를 개발하거나 dompurify 라이브러리(DOMPurify.sanitize)로 문자열을 처리한 후 사용한다."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.get(\"/vuln/search\", (req, res) => {\n      // 사용자로부터 전달 받은 쿼리 데이터로 데이터 조회\n      const results = selectFromDB(req.query.q);\n\n      if (results.length === 0) {\n          // 검색 결과가 발견되지 않을 경우, '요청한 값'을 찾지 못했다는 메시지를 반환하는데,\n          // 이 때 정상적인 질의문이 아닌 악성 스크립트가 포함된 데이터를 입력 받은 경우라면\n          // 클라이언트측에서 악성 스크립트가 실행될 수 있음\n          return res.send('<p>No results found for \"' + req.query.q + '\"</p>');\n      }\n...\n});",
+      "safe": "const express = require('express');\nconst xssFilters = require(\"xss-filters\");\n...\nrouter.get(\"/patched/search\", (req, res) => {\n      const unsafeFirstname = req.query.q;\n      // xss-filters 라이브러리를 사용해 사용자 입력값을 이스케이프 처리\n      const safeFirstname = xssFilters.inHTMLData(unsafeFirstname);\n      const results = selectFromDB(safeFirstname);\n\n      if (results.length === 0) {\n          res.send(util.format(\"<p>Hello %s</p>\", safeFirstname));\n      }\n...\n});",
+      "note": "서버측 ExpressJS 예제. 클라이언트측에서 검증했더라도 반드시 서버측에서도 검증해야 한다. 사용자가 입력한 데이터를 검증 없이 그대로 응답(res.send)에 포함하면 해당 글을 열람하는 모든 사용자의 시스템에서 악성 스크립트가 실행될 수 있다. 안전한 코드는 xss-filters 라이브러리의 inHTMLData()로 사용자 입력값을 이스케이프 처리한 후 DB 조회 및 응답에 사용한다."
+    }
+  ]
+}

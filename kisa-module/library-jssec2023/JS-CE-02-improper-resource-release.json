@@ -1,0 +1,28 @@
+{
+  "chapter_code": "JS-CE-02",
+  "title": "부적절한 자원 해제",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-404",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제5절 코드오류 / 부적절한 자원 해제",
+    "pages": "본문 121쪽~"
+  },
+  "overview": "프로그램의 자원, 예를 들면 열려 있는 파일 식별자(Open File Descriptor), 힙 메모리(Heap Memory), 소켓(Socket) 등은 유한한 자원이다. 이러한 자원을 할당받아 사용을 마치고 더 이상 사용하지 않는 경우에는 적절히 반환해야 하는데, 프로그램 오류 또는 에러로 사용이 끝난 자원을 반환하지 못하는 경우에 문제가 발생할 수 있다.",
+  "impact": "사용이 끝난 자원(파일 식별자, 힙 메모리, 소켓 등)이 시스템에 반환되지 못하여 유한한 자원이 고갈될 수 있다. 특히 try 구문 내 코드 실행 중 오류가 발생하면 close() 메소드가 실행되지 않아 할당된 자원이 시스템에 바로 반환되지 않는 문제가 발생한다.",
+  "countermeasure": "자원을 획득하여 사용한 다음에는 반드시 자원을 해제 후 반환한다. 예외 상황이 발생하여 함수가 종료될 때, 예외의 발생 여부와 상관없이 항상 실행되는 finally 블록에서 할당받은 모든 자원을 반환해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst fs = require('fs');\n\nrouter.get(\"/vuln\", (req, res) => {\n      const configPath = './config.cfg';\n      let fid = null;\n      let fdata = null;\n\n      try {\n          fid = fs.openSync(configPath, 'r');\n          fdata = fs.readFileSync(fid, 'utf8');\n          // 예외 발생 상황 가정: 유효하지 않은 파일 디스크립터로 파일 읽기 시도\n          fdata = fs.readFileSync('100', 'utf8');\n\n          // try 절에서 할당된 자원이 반환(close)되기 전에 예외가 발생하면\n          // 할당된 자원이 시스템에 바로 반환되지 않음\n          fs.close(fid, err => {\n                if (err) {\n                    console.log('error occured while flle closing');\n                } else {\n                    console.log('file closed');\n                }\n          });\n      } catch (e) {\n          console.log('error occured!' , e);\n      }\n      return res.send(fdata);\n});",
+      "safe": "const express = require('express');\nconst fs = require('fs');\n\nrouter.get(\"/patched\", (req, res) => {\n      const configPath = './5_code_error/40_improper_resource_shutdown/config.cfg';\n      let fid = null;\n      let fdata = null;\n\n      try {\n          fid = fs.openSync(configPath, 'r');\n          fdata = fs.readFileSync(fid, 'utf8');\n          fdata = fs.readFileSync(100, 'utf8');\n\n      } catch (e) {\n          console.log('error occured!' , e);\n\n      // try 절에서 할당된 자원은 finally 절에서 시스템에 반환을 해야 함\n      } finally {\n          fs.close(fid, err => {\n                if (err) {\n                    console.log('error occured while flle closing');\n                } else {\n                    console.log('file closed');\n                }\n          });\n      }\n      return res.send(fdata);\n});",
+      "note": "try 구문 내의 코드 실행 중 오류가 발생할 경우 close() 메소드가 실행되지 않아 사용한 자원이 반환되지 않는 경우. try 절에서 할당된 자원이 반환(close)되기 전에 예외가 발생하면 할당된 자원이 시스템에 바로 반환되지 않는다. 안전한 코드에서는 예외 발생 여부와 상관없이 항상 실행되는 finally 블록에서 자원을 반환한다."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-07",
+  "title": "신뢰되지 않은 URL주소로 자동접속 연결",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-601",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 신뢰되지 않은 URL주소로 자동접속 연결",
+    "pages": "본문 38쪽~"
+  },
+  "overview": "사용자가 입력하는 값을 외부 사이트 주소로 사용해 해당 사이트로 자동 접속하는 서버 프로그램은 피싱(Phishing) 공격에 노출되는 취약점을 가진다. 클라이언트에서 전송된 URL 주소로 연결하기 때문에 안전하다고 생각할 수 있으나, 공격자는 정상적인 폼 요청을 변조해 사용자가 위험한 URL로 접속하도록 공격할 수 있다.",
+  "impact": "사용자 입력 URL을 검증 없이 리다이렉트에 사용하면 의도하지 않은 사이트로 접근하게 되거나 피싱(Phishing) 공격에 노출될 수 있다.",
+  "countermeasure": "리다이렉션을 허용하는 모든 URL을 서버 측 화이트리스트로 관리하고, 사용자 입력값이 리다이렉트 할 URL 목록에 존재하는지 검증해야 한다. 만약 사용자 입력값을 화이트리스트로 관리할 수 없고 리다이렉션 URL의 인자 값으로 사용되어야만 하는 경우에는, 모든 리다이렉션에서 프로토콜과 host 정보가 들어가지 않는 상대 URL(relative URL)을 사용 및 검증해야 한다. 또는 절대 URL(absolute URL)을 사용할 경우 리다이렉션을 실행하기 전에 사용자 입력 URL이 https://myhompage.com/ 처럼 정상 서비스 중인 URL로 시작하는지 확인해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\n\nrouter.get(\"/vuln\", (req, res) => {\n    const url = req.query.url;\n    // 사용자가 전달한 URL 주소를 검증 없이 그대로 리다이렉트 처리\n    res.redirect(url);\n});",
+      "safe": "const express = require('express');\n\nrouter.get(\"/patched\", (req, res) => {\n  const whitelist = [\"http://safe-site.com\", \"https://www.example.com\"];\n  const url = req.query.url;\n\n      // 화이트리스트에 포함된 주소가 아니라면 리다이렉트 없이 에러 반환\n      if (whitelist.indexOf(url) < 0) {\n         res.send(\"wrong url\");\n      } else {\n         res.redirect(url);\n      }\n});",
+      "note": "ExpressJS의 redirect() 함수는 사용자 요청을 다른 페이지로 리다이렉트한다. 안전하지 않은 코드는 사용자로부터 입력받은 url 주소를 검증 없이 redirect 함수의 인자로 사용해 의도하지 않은 사이트 접근·피싱 공격에 노출된다. 안전한 코드는 화이트리스트로 사전에 정의된 안전한 웹사이트에 한하여 리다이렉트하도록 제한한다."
+    }
+  ]
+}

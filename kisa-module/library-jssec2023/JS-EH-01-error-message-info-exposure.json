@@ -1,0 +1,33 @@
+{
+  "chapter_code": "JS-EH-01",
+  "title": "오류 메시지 정보노출",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-209",
+  "applies_to": [
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제4절 에러처리 / 오류 메시지 정보노출",
+    "pages": "본문 109쪽~"
+  },
+  "overview": "응용 프로그램이 실행환경, 사용자 등 관련 데이터에 대한 민감한 정보를 포함하는 오류 메시지를 생성해 외부에 제공하는 경우 공격자의 악성 행위로 이어질 수 있다. 예외 발생 시 예외 이름이나 추적 메시지(traceback)를 출력하는 경우 프로그램 내부 구조를 쉽게 파악할 수 있기 때문이다. ExpressJS에서는 HTTP 오류 코드가 있는 요청을 처리하기 위한 errorHandler 미들웨어를 제공한다.",
+  "impact": "예외 이름이나 추적 메시지(traceback) 등 민감한 정보가 노출되면 공격자가 프로그램 내부 구조를 쉽게 파악할 수 있어 추가 악성 행위로 이어질 수 있다.",
+  "countermeasure": "오류 메시지는 정해진 사용자에게 유용한 최소한의 정보만 포함하도록 한다. 코드 내에서 예외 상황은 내부적으로 처리하고, 사용자에게 시스템 내부 정보 등 민감한 정보를 포함하는 오류를 출력하지 않고 미리 정의된 메시지를 제공하도록 설정한다. Express 프레임워크에서는 미들웨어 방식으로 에러 페이지 핸들러를 정의할 수 있으며, errorHandler 미들웨어를 정의해 에러 발생 유형별로 미리 정의된 규칙에 맞게 에러 메시지를 일관되게 전달할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst fs = require(\"fs\");\n\nrouter.get(\"/vuln\", (req, res) => {\n  const filePath = \"./file/secret/password\";\n  fs.readFile(filePath, (err, data) => {\n     if (err) {\n        // 서버 내부에서 발생한 에러 메시지를 그대로 사용자에 전달해 주요 정보 노출 위험\n             return res.status(500).send(err);\n           } else {\n             return res.send(data);\n           }\n      })\n});",
+      "safe": "const express = require('express');\nconst fs = require(\"fs\");\n\nrouter.get(\"/vuln\", (req, res) => {\n  const filePath = \"./file/secret/password\";\n  fs.readFile(filePath, (err, data) => {\n     if (err) {\n        // 에러 내용을 그대로 전달하지 않고 필터링 처리\n        return res.status(500).send({ message: \"잘못된 요청입니다\" });\n           } else {\n             return res.send(data);\n           }\n      })\n});",
+      "note": "사용자 요청을 정상적으로 처리할 수 없는 경우 에러 페이지에 디버그 정보 또는 서버의 정보가 노출될 수 있다. 서버 내부에서 발생한 에러 메시지(err)를 그대로 클라이언트에 전달하면 주요 정보가 노출될 위험이 있다. 안전한 코드에서는 에러 내용을 그대로 전달하지 않고 미리 정의된 메시지로 필터링해 반환한다."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "",
+      "safe": "const express = require(\"express\");\nconst app      = express();\n\n// errorHandler 미들웨어는 다른 app.use() 및 라우터 정의 후 가장 마지막에 정의해야 하며,\n// errorHandler 미들웨어를 커스텀하여 에러별 에러페이지를 반환할 수 있다\n\napp.use(clientErrorHandler);\napp.use(errorHandler);\n\nfunction clientErrorHandler (err, req, res, next) {\n    if (req.xhr) {\n        res.status(500).send({ error: 'Something failed!' });\n    } else {\n        next(err);\n    }\n}\n\nfunction errorHandler (err, req, res, next) {\n    if (err.name = \"ValidError\") {\n          res.status(400)\n          res.render('400error', { error: err })\n    } else if (err.name = \"AuthError\") {\n          res.status(401)\n          res.render('401error', { error: err })\n    } else if (err.name = \"ForbiddenError\") {\n          res.status(403)\n          res.render('403error', { error: err })\n    } else if (err.name = \"DBError\") {\n          res.status(500)\n          res.render('500error', { error: err })\n    }\n}",
+      "note": "Express에서 제공하는 errorHandler 미들웨어를 정의해 에러 발생 유형별로 미리 정의된 규칙에 맞게 에러 메시지를 일관되게 전달할 수 있다. errorHandler 미들웨어는 다른 app.use() 및 라우터 정의 후 가장 마지막에 정의해야 하며, 에러별 에러페이지를 반환하도록 커스텀할 수 있다. (안전하지 않은 코드 대응 예시 없이 안전한 코드 예시만 제시됨)"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-03",
+  "title": "중요한 자원에 대한 잘못된 권한 설정",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-732",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 중요한 자원에 대한 잘못된 권한 설정",
+    "pages": "본문 67쪽~"
+  },
+  "overview": "응용프로그램이 중요한 보안관련 자원에 대해 읽기 또는 수정하기 권한을 의도하지 않게 허가할 경우 권한을 갖지 않은 사용자가 해당 자원을 사용하게 된다. NodeJS에서는 fs.chmodSync 함수를 사용해 파일의 생성, 수정 및 읽기 권한을 설정할 수 있다.",
+  "impact": "중요한 보안관련 자원에 대한 권한이 잘못 설정되면, 권한을 갖지 않은 사용자가 해당 자원을 읽거나 수정하는 등 사용할 수 있게 된다.",
+  "countermeasure": "설정 파일, 실행 파일, 라이브러리 등은 관리자에 의해서만 읽고 쓰기가 가능하도록 설정하고, 설정 파일과 같이 중요한 자원을 사용하는 경우 허가 받지 않은 사용자가 중요한 자원에 접근 가능한지 검사한다. 주요 파일에 대해서는 최소 권한만 할당해야 하며, 파일의 소유자라고 하더라도 기본적으로 읽기 권한만 부여하고, 부득이하게 쓰기 권한이 필요한 경우에만 제한적으로 쓰기 권한을 부여해야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS / NodeJS)",
+      "vulnerable": "const fs = require(\"fs\");\n\nfunction writeFile() {\n  // 모든 사용자가 읽기, 쓰기, 실행 권한을 가지게 됨\n  fs.chmodSync(\"/root/system_config\", 0o777);\n  fs.open(\"/root/system_config\", \"w\", function(err,fd) {\n    if (err) throw err;\n  });\n  fs.writeFile(\"/root/system_config\", \"your config is broken\", function(err) {\n    if (err) throw err;\n    console.log('write end');\n  });\n}",
+      "safe": "const fs = require(\"fs\");\n\nfunction writeFile() {\n  // 소유자 이외에는 권한을 가지지 않음\n  fs.chmodSync(\"/root/system_config\", 0o700);\n  fs.open(\"/root/system_config\", \"w\", function(err,fd) {\n    if (err) throw err;\n  });\n  fs.writeFile(\"/root/system_config\", \"your config is broken\", function(err) {\n    if (err) throw err;\n    console.log('write end');\n  })\n}",
+      "note": "/root/system_config 파일에 대해 모든 사용자가 읽기, 쓰기, 실행 권한(0o777)을 가지게 되어 권한 없는 사용자도 중요 자원에 접근할 수 있다."
+    }
+  ]
+}

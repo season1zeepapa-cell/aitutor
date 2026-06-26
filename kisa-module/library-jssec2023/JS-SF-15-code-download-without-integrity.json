@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-15",
+  "title": "무결성 검사없는 코드 다운로드",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-494",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 무결성 검사없는 코드 다운로드",
+    "pages": "본문 101쪽~"
+  },
+  "overview": "원격지에 위치한 소스코드 또는 실행 파일을 무결성 검사 없이 다운로드한 후 이를 실행하는 프로그램을 종종 발견할 수 있다. 이러한 프로그램은 호스트 서버의 변조, DNS 스푸핑(Spoofing) 또는 전송 시의 코드 변조 등의 방법을 이용해 공격자가 악의적인 코드를 실행하는 위협에 노출될 수 있다. 파일(및 해당 소프트웨어)의 무결성을 확인하는 두 가지 주요 방법으로는 암호화 해쉬 및 디지털 서명이 있으며, 무결성을 보장하기 위해 해쉬를 사용하고 가능하면 적절한 코드 서명 인증서를 사용하고 확인하는 것이 더 안전하다.",
+  "impact": "호스트 서버의 변조, DNS 스푸핑(Spoofing), 전송 시의 코드 변조 등을 통해 공격자가 악의적인 코드를 실행할 수 있다.",
+  "countermeasure": "DNS 스푸핑(Spoofing)을 방어할 수 있는 DNS lookup을 수행하고, 코드 전송 시 신뢰할 수 있는 암호 기법을 이용해 코드를 암호화한다. 또한 다운로드한 코드는 작업 수행을 위해 필요한 최소한의 권한으로 실행하도록 한다. 소스코드는 신뢰할 수 있는 사이트에서만 다운로드해야 하고, 파일의 인증서 또는 해쉬값을 검사해 변조되지 않은 파일인지 확인하여야 한다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst fs = require(\"fs\");\nconst http = require(\"http\");\n\nrouter.get(\"/vuln\", (req, res) => {\n      // 신뢰할 수 없는 사이트에서 코드를 다운로드\n      const url = \"https://www.somewhere.com/storage/code.js\";\n\n      // 원격 코드 다운로드\n      http.get(url, (res) => {\n            const path = \"./temp/sample1.js\"\n            const writeStream = fs.createWriteStream(path);\n\n            res.pipe(writeStream);\n            writeStream.on(\"finish\", () => {\n                  writeStream.close();\n            });\n      });\n\n      // 무결성 검증 없이 파일 사용\n      fs.readFile(\"./temp/sample1.js\", \"utf8\", function (err, buf) {\n            res.end(buf);\n      })\n});",
+      "safe": "const express = require('express');\nconst fs = require(\"fs\");\nconst http = require(\"http\");\nconst crypto = require(\"crypto\");\n\nrouter.get(\"/patched\", async (req, res) => {\n      const url = \"https://www.somewhere.com/storage/code.js\";\n      const codeHash = req.body.codeHash;\n\n      http.get(url, (res) => {\n            const path = \"./temp/sample1.js\"\n            const writeStream = fs.createWriteStream(path);\n            res.pipe(writeStream);\n            writeStream.on(\"finish\", () => {\n                  writeStream.close();\n            });\n      });\n\n      const hash = crypto.createHash('sha256');\n      const input = fs.createReadStream(\"./temp/sample1.js\");\n\n      let promise = new Promise ((resolve, reject) => {\n            input.on(\"readable\", () => {\n                  const data = input.read();\n                    if (data) { hash.update(data); }\n                    else { resolve(); }\n             })\n      });\n\n      await promise;\n      const fileHash = hash.digest('hex');\n\n      # 무결성 검증에 통과할 경우에만 파일 사용\n      if (fileHash === codeHash) {\n            fs.readFile(\"./temp/sample1.js\", \"utf8\", function (err, buf) {\n                  res.end(buf);\n            })\n      } else {\n            return res.send(\"파일이 손상되었습니다.\")\n      }\n});",
+      "note": "http.get을 통해 원격에서 파일을 다운로드한 뒤 파일에 대한 무결성 검사를 수행하지 않아 파일 변조 등으로 인한 피해가 발생하는 사례. 공격자가 악의적인 코드를 실행할 수 있다. 안전한 코드는 다운로드한 파일로 계산한 sha256 해쉬값과 함께 전송된(또는 저장된) 해쉬값을 비교하는 무결성 검사를 거친 후에만 코드를 사용한다."
+    }
+  ]
+}

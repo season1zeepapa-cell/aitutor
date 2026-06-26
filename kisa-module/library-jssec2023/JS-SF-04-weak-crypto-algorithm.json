@@ -1,0 +1,34 @@
+{
+  "chapter_code": "JS-SF-04",
+  "title": "취약한 암호화 알고리즘 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-327",
+  "applies_to": [
+    "VanillaJS",
+    "ReactJS",
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 취약한 암호화 알고리즘 사용",
+    "pages": "본문 69쪽~"
+  },
+  "overview": "개발자들은 환경설정 파일에 저장된 패스워드를 보호하기 위해 base64와 같은 간단한 인코딩 함수로 패스워드를 감추기도 하지만, 지나치게 간단한 인코딩으로는 패스워드를 제대로 보호할 수 없다. 정보보호 측면에서 취약하거나 위험한 암호화 알고리즘을 사용해서는 안 되며, 표준화되지 않은 암호화 알고리즘은 공격자가 알고리즘을 분석해 무력화시킬 가능성을 높인다. 몇몇 오래된 암호화 알고리즘은 컴퓨터 성능 향상에 따라 취약해져, 예전에는 해독에 몇 십 억년이 걸릴 것으로 예상되던 것이 며칠이나 몇 시간 내에 해독되기도 한다. RC2, RC4, RC5, RC6, MD4, MD5, SHA1, DES 알고리즘이 여기에 해당된다.",
+  "impact": "표준화되지 않은 취약한 암호화 알고리즘을 사용하면 공격자가 알고리즘을 분석해 무력화시킬 수 있고, 컴퓨터 성능 향상으로 며칠이나 몇 시간 내에 암호가 해독될 수 있다. 또한 MD5와 같이 수학적으로 취약한 해쉬 함수는 역계산은 불가하나 레인보우테이블 등을 이용해 평문을 알아낼 수 있다.",
+  "countermeasure": "자신만의 암호화 알고리즘을 개발하는 것은 위험하므로 학계 및 업계에서 이미 검증된 표준화된 알고리즘을 사용해야 한다. 기존에 취약하다고 알려진 DES, RC5 등의 암호알고리즘을 대신하여 3TDEA, AES, SEED 등의 안전한 암호알고리즘으로 대체하여 사용한다. 업무관련 내용, 개인정보 등에 암호 알고리즘 적용 시 안전한 암호화 알고리즘을 사용해야 한다. 블록 암호화에서 ECB 모드는 한 개의 블록만 해독되면 나머지 블록도 해독되는 단점이 있으므로, 평문의 각 블록이 이전 암호문과 XOR 연산되어 같은 평문이라도 암호문이 서로 달라 보안성이 높은 CBC 모드를 사용하는 것이 좋다. 해쉬 함수도 MD5 대신 수학적으로 안전한 SHA-256 등을 적용하고 salt를 함께 사용해야 한다. (참고: 암호알고리즘 검증기준 ver3.0 — 최소 안전성 수준 112비트, 블록암호 ARIA/SEED/LEA/HIGHT, 해쉬함수 SHA-2/LSH/SHA-3 등)",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const crypto = require(\"crypto\");\n\nfunction getEncText(plainText, key) {\n    // 취약한 알고리즘인 DES를 사용하여 안전하지 않음\n    const cipherDes = crypto.createCipheriv('des-ecb', key, '');\n\n    const encryptedData = cipherDes.update(plainText, 'utf8', 'base64');\n    const finalEnctypedData = cipherDes.final('base64');\n\n    return encryptedData + finalEnctypedData;\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction getEncText(plainText, key, iv) {\n        // 권장 알고리즘인 AES를 사용하여 안전함\n        const cipherAes = crypto.createCipheriv('aes-256-cbc', key, iv);\n\n        const encryptedData = cipherAes.update(plainText, 'utf8', 'base64');\n        const finalEnctypedData = cipherAes.final('base64');\n\n        return encryptedData + finalEnctypedData;\n}",
+      "note": "취약한 DES 알고리즘으로 암호화하는 예시. DES 이외에 2TDEA, Blowfish 등의 취약한 알고리즘을 사용해선 안 된다. 안전한 코드는 취약한 DES 대신 AES(aes-256-cbc) 알고리즘을 사용한다. ECB 모드는 한 블록만 해독되면 나머지도 해독되는 단점이 있어, 보안성이 높은 CBC 모드를 사용한다."
+    },
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const crypto = require(\"crypto\");\n\nfunction makeMd5(plainText) {\n  // 취약한 md5 해쉬함수 사용\n  const hashText = crypto.createHash('md5').update(plainText).digest(\"hex\");\n\n  return hashText;\n}",
+      "safe": "const crypto = require(\"crypto\");\n\nfunction makeSha256(plainText) {\n  const salt = crypto.randomBytes(16).toString('hex');\n\n  // 안전한 sha-256 해쉬함수 사용\n  const hashText = crypto.createHash('sha256').update(plainText + salt).digest(\"hex\");\n\n  return hashText;\n}",
+      "note": "취약한 MD5 해쉬 함수를 사용하는 예시. MD5와 같이 수학적으로 취약한 해쉬 함수는 역계산은 불가하나 레인보우테이블 등을 이용해 평문을 알아낼 수 있다. 안전한 코드는 수학적으로 안전한 SHA-256 해쉬 함수를 적용하고 salt를 함께 사용한다."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-IV-05",
+  "title": "운영체제 명령어 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-78",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 운영체제 명령어 삽입",
+    "pages": "본문 32쪽~"
+  },
+  "overview": "적절한 검증 절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행되는 경우, 의도하지 않은 시스템 명령어가 실행되어 부적절하게 권한이 변경되거나 시스템 동작 및 운영에 악영향을 미칠 수 있다. 명령어 라인의 파라미터나 스트림 입력 등 외부 입력을 사용해 시스템 명령어를 생성하는 프로그램이 많은데, 프로그램 외부로부터 받은 입력 문자열은 기본적으로 신뢰할 수 없기 때문에 적절히 처리하지 않으면 공격으로 이어질 수 있다. NodeJS에서는 child_process 라이브러리를 사용해 코드 내부에서 시스템 명령어를 실행할 수 있는데, 시스템 명령어 실행 함수에 사용자가 입력한 값을 전달할 수 있고 그 값이 적절히 검증되지 않을 경우 의도하지 않은 악의적인 명령어 실행으로 이어질 수 있다.",
+  "impact": "의도하지 않은 시스템 명령어가 실행되어 권한이 부적절하게 변경되거나 시스템 동작·운영에 악영향을 미친다. 패스워드 파일(/etc/passwd) 조회, 시스템 프로세스 강제 종료 등이 가능하다.",
+  "countermeasure": "외부 입력값 내에 시스템 명령어를 포함하는 경우 |, ;, &, :, >, <, `(backtick), \\, ! 과 같이 멀티라인 및 리다이렉트 문자 등을 필터링하고, 명령을 수행할 파일명과 옵션을 제한해 인자로만 사용될 수 있도록 해야 한다. 외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 사용해야 한다. 또한 사용자 입력값의 패턴을 검사해 허가되지 않은 패턴이 포함될 경우 기능을 실행하지 않거나, 사용자 입력값 전체를 실행하고자 하는 명령어(예: /bin/ls)의 인자로 간주해 사용하는 방법이 있다(예: child_process.execFile 사용).",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const express = require('express');\nconst child_process = require(\"child_process\");\n\nrouter.get(\"/vuln\", (req, res) => {\n    // 사용자가 입력한 명령어 인자값을 검증 없이 사용해 의도치 않은 추가 명령어 실행 가능\n    child_process.exec(\"ls -l \" + req.query.path, function (err, data) {\n        return res.send(data);\n    });\n});",
+      "safe": "const express = require('express');\nconst child_process = require(\"child_process\");\n\nrouter.get(\"/patched\", (req, res) => {\n  const inputPath = req.query.path;\n      const regPath = /^(\\/[\\w^]+)+\\/?$/;\n\n      // 첫 번째 방법, 사용자 입력값 필터링 – 리눅스 경로 지정에 필요한 문자만 허용\n      if (!inputPath.match(regPath)) {\n         return res.send('not valid path');\n      }\n\n      // 두 번째 방법, 사용자 입력값이 명령어의 인자로만 사용되도록 하는 함수 사용\n      child_process.execFile(\n        \"/bin/ls\", [\"-l\", inputPath],\n        function (err, data) {\n           if (err) {\n                 return res.send('not valid path');\n               } else {\n                 return res.send(data);\n               }\n           }\n      );\n});",
+      "note": "사용자에게 특정 경로의 파일 목록을 제공하는 프로그램 예시. 사용자가 입력한 명령어 인자값을 검증 없이 child_process.exec에 사용하므로, 경로값 안에 파이프라인 명령어가 포함될 경우 악의적인 명령어가 실행될 수 있다 (공격 예: /vuln?path=/usr/app | cat /etc/passwd)."
+    }
+  ]
+}

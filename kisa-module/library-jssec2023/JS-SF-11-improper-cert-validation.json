@@ -1,0 +1,26 @@
+{
+  "chapter_code": "JS-SF-11",
+  "title": "부적절한 인증서 유효성 검증",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "",
+  "applies_to": [
+    "ExpressJS"
+  ],
+  "source": {
+    "doc": "Javascript 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 부적절한 인증서 유효성 검증",
+    "pages": "본문 91쪽~"
+  },
+  "overview": "인증서가 유효하지 않거나 악성인 경우 공격자가 호스트와 클라이언트 사이의 통신 구간을 가로채 신뢰하는 엔티티인 것처럼 속일 수 있다. 이로 인해 대상 호스트가 신뢰 가능한 것으로 믿고 악성 호스트에 연결하거나, 신뢰된 호스트로부터 전달받은 것처럼 보이는 스푸핑된(또는 변조된) 데이터를 아무런 의심 없이 수신하는 상황이 발생할 수 있다.</overview>\n<parameter name=\"impact\">공격자가 호스트와 클라이언트 사이의 통신 구간을 가로채 신뢰하는 엔티티로 위장(중간자 공격)할 수 있으며, 클라이언트가 악성 호스트에 연결하거나 스푸핑·변조된 데이터를 의심 없이 수신하게 된다.",
+  "impact": "",
+  "countermeasure": "데이터 통신에 인증서를 사용하는 경우 송신측에서 전달한 인증서가 유효한지 검증한 후 데이터를 송수신해야 한다. 언어에서 기본으로 제공되는 검증 함수가 존재하지 않거나 일반적이지 않은 방식으로 인증서를 생성한 경우, 암호화 패키지를 사용해 별도의 검증 코드를 작성해야 한다. Node.js의 경우 rejectUnauthorized 옵션을 true로 설정하면 정상적이지 않은 인증서를 가진 서버 연결 시 예외가 발생하고 연결이 수립되지 않아 악성 서버로부터 클라이언트를 안전하게 보호할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "JavaScript (ExpressJS)",
+      "vulnerable": "const https = require('https');\n\nconst getServer = () => {\n\n      const options = {\n         hostname: \"dangerous.website\",\n         port: 443,\n         method: \"GET\",\n         path: \"/\",\n         // 유효하지 않은 인증서를 가지고 있어도 무시하는 옵션으로 안전하지 않음\n         rejectUnauthorized: false\n      };\n      https.request(\n         options, (response) => {\n         console.log('response - ', response.statusCode);\n         }\n      );\n});",
+      "safe": "const express = require('express');\nconst https = require('https');\n\nconst getServer = () => {\n\n      const options = {\n          hostname: \"dangerous.website\",\n          port: 443,\n          method: \"GET\",\n          path: \"/\",\n          // 유효하지 않은 인증서 발견 시 예외 발생\n          rejectUnauthorized: true\n      };\n      const hreq = https.request(\n          options, (response) => {\n          console.log('response - ', response.statusCode);\n          }\n      );\n      hreq.on('error', (e) => {\n          console.error('에러발생 - ', e);\n      });\n});",
+      "note": "SSL 기반 웹 서버 연결 예시. 클라이언트 측에서 통신 대상 서버를 인증하지 않고 접속하는 상황으로, rejectUnauthorized: false로 설정해 유효하지 않은 인증서를 무시한다. 서버를 신뢰할 수 없으며 클라이언트 시스템에 영향을 주는 악성 데이터를 수신할 수 있다. 안전한 코드에서는 rejectUnauthorized: true로 설정해 정상적이지 않은 인증서를 가진 서버 연결 시 예외가 발생하도록 하고, error 이벤트 핸들러로 예외를 처리한다."
+    }
+  ]
+}
