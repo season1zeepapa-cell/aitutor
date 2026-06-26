@@ -3,7 +3,7 @@
 //   - 구현(implementation): 원인/영향/대응/진단방법 4박스 (theory + diagnosisImage)
 //   - 설계(design): 요구사항 설명 / 요구사항 내용 / 관련 보안약점(IMP 링크) (design)
 //   - DB/API 무변경 — 번들(kisa-library.json) 직참조.
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import libData from '../../data/kisa-library.json';
 import { useImageModal } from '../../App'; // 이미지 탭하여 전체화면 확대(기출문제와 동일)
@@ -49,6 +49,13 @@ export default function TheoryDetail() {
   const { code } = useParams();
   const navigate = useNavigate();
   const openImage = useImageModal();
+  const [openCons, setOpenCons] = useState(() => new Set()); // 설계 고려사항 아코디언 펼침
+  const toggleCons = (i) =>
+    setOpenCons((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
 
   const item = useMemo(
     () => libData.sources.find((s) => s.id === 'kisec2026')?.items.find((i) => i.id === code) || null,
@@ -139,6 +146,38 @@ export default function TheoryDetail() {
                 })}
               </ul>
             </LabelBox>
+          )}
+
+          {/* 설계 시 고려사항 — 아코디언(교재 상세) */}
+          {(item.design.considerations || []).length > 0 && (
+            <div className="rounded-xl bg-card-bg border border-border p-3">
+              <h3 className="text-sm font-bold mb-2 flex items-center gap-1">
+                📐 <span>설계 시 고려사항</span>
+                <span className="text-[10px] text-text-secondary font-normal">({item.design.considerations.length})</span>
+              </h3>
+              <div className="space-y-2">
+                {item.design.considerations.map((c, i) => {
+                  const open = openCons.has(i);
+                  return (
+                    <div key={i} className="rounded-lg border border-border overflow-hidden">
+                      <button
+                        onClick={() => toggleCons(i)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <span className="text-primary/60 text-xs">{open ? '▾' : '▸'}</span>
+                        <span className="flex-1 text-xs font-semibold">{c.point}</span>
+                        <span className="text-[10px] text-text-secondary">{open ? '접기' : '펼치기'}</span>
+                      </button>
+                      {open && (
+                        <div className="p-3">
+                          <p className="text-sm leading-relaxed text-text-secondary">{c.detail}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </>
       ) : (

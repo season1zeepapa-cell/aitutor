@@ -30,7 +30,7 @@ DSG JSON(`library-kisec2026/DSG-*.json`)에 교재 양식 필드가 이미 존�
 ## §3. 화면
 
 - **목록**(`TheoryList`): 🔧 구현단계(theory 보유 IMP 49) / 📐 설계단계(design 보유 DSG 20) **탭**. 분류(입력검증/보안기능/에러처리/세션통제…)별 정렬. `?stage=design` 으로 탭 복원.
-- **상세**(`TheoryDetail`): `item.design` 이면 설계 양식(Image #5) — 요구사항 설명(회색)·요구사항 내용(보라)·관련 보안약점(빨강). 아니면 기존 구현 4박스.
+- **상세**(`TheoryDetail`): `item.design` 이면 설계 양식(Image #5) — 요구사항 설명(회색)·요구사항 내용(보라)·관련 보안약점(빨강) + **설계 시 고려사항 아코디언**(`design.considerations[{point,detail}]`, 교재 상세). 아니면 기존 구현 4박스.
 - **관련 보안약점 링크**: `related.code`(IMP) 우선, 없으면 **약점명으로 IMP theory 항목 매칭 보강**(`norm`=NFC·괄호·공백 제거) → `/kisa/theory/{IMP code}` 이동. (전체 41건 중 27건 code 보유, 14건 약점명 보강)
 
 ## §4. 검증
@@ -42,4 +42,4 @@ DSG JSON(`library-kisec2026/DSG-*.json`)에 교재 양식 필드가 이미 존�
 ## §5. 남은 작업
 
 - 관련약점 14건(code 없는 항목) 약점명 보강 매칭 정확도 점검(대부분 IMP 매칭).
-- 설계 `design_considerations`(설계 시 고려사항 상세)는 현재 상세에 미노출 — 필요 시 아코디언 추가.
+- ~~설계 `design_considerations` 아코디언~~ → 추가 완료(20/20 보유).

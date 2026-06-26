@@ -143,6 +143,7 @@ function mapLibrary(d, src = 'library') {
             description: d.description || '',
             measures: d.security_measures || [],
             related: (d.related_weaknesses || []).map((r) => ({ category: r.category || '', weakness: r.weakness || '', code: r.code || '' })),
+            considerations: (d.design_considerations || []).map((c) => ({ point: c.point || '', detail: c.detail || '' })),
           }
         : null,
     detail: [
