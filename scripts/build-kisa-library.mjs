@@ -13,7 +13,7 @@
 //
 // 실행: node scripts/build-kisa-library.mjs  (또는 npm run build:lib)
 
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -38,51 +38,63 @@ const normalizeName = (s) =>
     .replace(/[\s()[\]_\-.]/g, '')              // 공백·구분자 제거
     .trim();
 
+// ⚠️ 한글 파일명은 macOS NFD(자모분리)로 저장돼 운영 리눅스(서버)에서 브라우저 NFC 요청과 매칭 실패한다.
+//    → 매칭된 이미지를 chapter_code 기반 ASCII 파일명으로 사본 복사하고, 그 ASCII 경로를 서빙한다(한글 회피).
+const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function asciiCopy(folder, origFile, base) {
+  if (!origFile) return '';
+  const ext = (origFile.match(/\.(png|jpe?g|gif|webp)$/i) || ['.png'])[0].toLowerCase();
+  const name = slug(base) + ext;
+  const dir = join(root, 'public/q-images', folder);
+  if (name && name !== origFile) {
+    try { copyFileSync(join(dir, origFile), join(dir, name)); } catch { /* 원본 없으면 무시 */ }
+  }
+  return `/q-images/${folder}/${name || origFile}`;
+}
+
+// 약점명(정규화) → 원본 파일명 맵 (library 다이어그램 이미지)
 const imageMap = (() => {
   const map = {};
   if (!existsSync(imageDir)) return map;
   for (const f of readdirSync(imageDir)) {
     if (!/\.(png|jpg|jpeg|gif|webp)$/i.test(f)) continue;
-    map[normalizeName(f)] = `/q-images/library/${f}`; // 절대경로(server.js 정적 서빙 대상)
+    map[normalizeName(f)] = f;
   }
   return map;
 })();
 
-// title(약점명)로 이미지 자동 탐색. JSON 에 image 가 명시돼 있으면 그것을 우선한다.
+// title(약점명)로 이미지 탐색 → ASCII 사본 경로. JSON image 명시 시 우선.
 const resolveImage = (d) => {
-  if (d.image) return `/q-images/library/${d.image}`;
-  return imageMap[normalizeName(d.title)] || '';
+  const orig = d.image || imageMap[normalizeName(d.title)];
+  if (!orig) return '';
+  return asciiCopy('library', orig, d.chapter_code || normalizeName(d.title));
 };
 
-// 진단방법 플로우차트 이미지 (public/q-images/diagnosis/, 약점명 자동매칭) — 이론교육 4박스의 '진단방법'
+// 진단방법 플로우차트 이미지 (public/q-images/diagnosis/) — 이론교육 4박스의 '진단방법'
 const diagnosisDir = join(root, 'public/q-images/diagnosis');
-// 교재 절 번호 → chapter_code 분류 약어 (구현단계 IMP)
-const SEC_TO_CAT = { 1: 'IV', 2: 'SF', 3: 'TS', 4: 'EH', 5: 'CE', 6: 'EN', 7: 'AA' };
-// 두 가지 매칭 키 동시 구축:
-//   ① diagnosisByCode: 파일명 "절-번호 ..." → IMP-{분류}-{번호} chapter_code (가장 정확)
-//   ② diagnosisMap: 약점명(번호 접두사 제거) 정규화 (fallback)
+const SEC_TO_CAT = { 1: 'IV', 2: 'SF', 3: 'TS', 4: 'EH', 5: 'CE', 6: 'EN', 7: 'AA' }; // 교재 절 번호 → IMP 분류
+// ① byCode: 파일명 "절-번호 ..." → IMP-{분류}-{번호} (정확)  ② byName: 약점명(번호 접두사 제거) fallback. 값은 원본 파일명.
 const { diagnosisByCode, diagnosisMap } = (() => {
   const byCode = {}, byName = {};
   if (!existsSync(diagnosisDir)) return { diagnosisByCode: byCode, diagnosisMap: byName };
   for (const f of readdirSync(diagnosisDir)) {
     if (!/\.(png|jpg|jpeg|gif|webp)$/i.test(f)) continue;
-    const path = `/q-images/diagnosis/${f}`;
     const m = f.match(/^(\d+)-(\d+)\s/); // "1-1 SQL 삽입.png"
-    if (m && SEC_TO_CAT[+m[1]]) {
-      byCode[`IMP-${SEC_TO_CAT[+m[1]]}-${String(+m[2]).padStart(2, '0')}`] = path;
-    }
-    byName[normalizeName(f.replace(/^\d+-\d+\s*/, ''))] = path; // 번호 접두사 제거 후 약점명
+    if (m && SEC_TO_CAT[+m[1]]) byCode[`IMP-${SEC_TO_CAT[+m[1]]}-${String(+m[2]).padStart(2, '0')}`] = f;
+    byName[normalizeName(f.replace(/^\d+-\d+\s*/, ''))] = f;
   }
   return { diagnosisByCode: byCode, diagnosisMap: byName };
 })();
-// 제목에서 괄호 영문 병기 제거 ("SQL 삽입 (SQL Injection)" → "SQL 삽입")
 const stripParen = (s) => String(s || '').replace(/\s*\(.*?\)\s*/g, ' ').trim();
-// 진단방법 이미지: chapter_code(절-번호) 직접 매칭 우선, 안 되면 약점명으로 fallback
-const resolveDiagnosisImage = (d) =>
-  diagnosisByCode[d.chapter_code] ||
-  diagnosisMap[normalizeName(stripParen(d.title))] ||
-  diagnosisMap[normalizeName(d.title)] ||
-  '';
+// chapter_code 매칭 우선, 약점명 fallback → ASCII 사본 경로
+const resolveDiagnosisImage = (d) => {
+  const orig =
+    diagnosisByCode[d.chapter_code] ||
+    diagnosisMap[normalizeName(stripParen(d.title))] ||
+    diagnosisMap[normalizeName(d.title)];
+  if (!orig) return '';
+  return asciiCopy('diagnosis', orig, d.chapter_code || normalizeName(d.title));
+};
 
 const CAT_LABEL = {
   input_validation: '입력데이터 검증 및 표현',
@@ -130,7 +142,10 @@ function mapLibrary(d, src = 'library') {
     // 상세 타입별 다이어그램(예: XSS 의 Reflective/Persistent/DOM). "유형 맞히기" 문제에 사용.
     typeImages: Array.isArray(d.type_images)
       ? d.type_images
-          .map((t) => ({ type: t.type || '', desc: t.desc || '', image: imageMap[normalizeName(t.file || t.type)] || '' }))
+          .map((t) => {
+            const orig = imageMap[normalizeName(t.file || t.type)];
+            return { type: t.type || '', desc: t.desc || '', image: orig ? asciiCopy('library', orig, `${d.chapter_code}-${t.type}`) : '' };
+          })
           .filter((t) => t.image)
       : [],
     // 이론교육 4박스 — 교재 원인/영향/대응(배열, 문구 그대로) + 진단방법 플로우차트 이미지
