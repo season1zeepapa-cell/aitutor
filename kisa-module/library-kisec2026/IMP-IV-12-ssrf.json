@@ -100,10 +100,45 @@
     "CWE-918: Server-Side Request Forgery (SSRF), MITRE — https://cwe.mitre.org/data/definitions/918.html",
     "Server Side Request Forgery, OWASP — https://owasp.org/www-community/attacks/Server_Side_Request_Forgery"
   ],
-  "tags": ["ssrf", "url", "internal-network", "input_validation", "whitelist", "kisec2026"],
+  "tags": [
+    "ssrf",
+    "url",
+    "internal-network",
+    "input_validation",
+    "whitelist",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["URL 화이트리스트", "내부 URL 블랙리스트", "메타데이터 서비스(169.254.169.254)", "사설IP(isPrivateIP)", "도메인 체크 우회", "URL Map 키 참조", "블랙리스트 우회", "인코딩 우회(10진수/16진수/8진수 IP)", "IDNA2003 변환", "Broken Parser(#, @)", "SSRF-to-LFI(file://)", "기기 인증", "내부 IP 접근권한"],
+    "keywords": [
+      "URL 화이트리스트",
+      "내부 URL 블랙리스트",
+      "메타데이터 서비스(169.254.169.254)",
+      "사설IP(isPrivateIP)",
+      "도메인 체크 우회",
+      "URL Map 키 참조",
+      "블랙리스트 우회",
+      "인코딩 우회(10진수/16진수/8진수 IP)",
+      "IDNA2003 변환",
+      "Broken Parser(#, @)",
+      "SSRF-to-LFI(file://)",
+      "기기 인증",
+      "내부 IP 접근권한"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍, diagnosis 의 정탐/오탐 코드, 또는 attack_vectors 의 우회 기법을 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "적절한 검증절차를 거치지 않은 사용자 입력 값을 서버간의 요청에 사용",
+      "외부에 노출된 웹 서버에 취약한 애플리케이션이 존재하는 경우 공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도할 수 있다."
+    ],
+    "impact": [
+      "외부에서 내부의 신뢰된 네트워크에 있는 데이터를 획득"
+    ],
+    "countermeasure": [
+      "식별할 수 있는 범위 내에서 사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력 값을 화이트리스트 방식으로 필터링한다.",
+      "사용자가 지정하는 무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링 한다.",
+      "또한 동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다."
+    ]
   }
 }

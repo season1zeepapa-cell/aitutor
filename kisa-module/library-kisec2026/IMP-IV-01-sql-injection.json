@@ -69,10 +69,43 @@
     "Prevent SQL Injection (IDS00-J), CERT",
     "SQL Injection Prevention Cheat Sheet, OWASP"
   ],
-  "tags": ["sql", "injection", "dbms", "input_validation", "prepared-statement", "kisec2026"],
+  "tags": [
+    "sql",
+    "injection",
+    "dbms",
+    "input_validation",
+    "prepared-statement",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["PreparedStatement", "파라미터 바인딩", "setString", "동적쿼리(Dynamic Query)", "정적 쿼리", "MyBatis # 기호", "특수문자/예약어 필터링", "화이트리스트 검증", "DB 권한 최소화"],
+    "keywords": [
+      "PreparedStatement",
+      "파라미터 바인딩",
+      "setString",
+      "동적쿼리(Dynamic Query)",
+      "정적 쿼리",
+      "MyBatis # 기호",
+      "특수문자/예약어 필터링",
+      "화이트리스트 검증",
+      "DB 권한 최소화"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "데이터베이스(DB)와 연동하는 웹 애플리케이션에서 입력된 데이터에 대한 유효성 검증을 하지 않고 입력값을 DB 쿼리 일부로 사용하는 경우"
+    ],
+    "impact": [
+      "인증을 우회해서 시스템에 로그인할 수 있다.",
+      "조작된 쿼리를 이용해 권한 없는 사용자가 DB 데이터를 유출하거나 수정, 삭제할 수 있다.",
+      "저장 프로시저(stored procedure)를 호출하여 원격으로 시스템 명령어를 수행할 수 있다."
+    ],
+    "countermeasure": [
+      "정적 쿼리를 사용하여 쿼리문의 구조가 바뀌지 않도록 한다.",
+      "동적 쿼리를 사용해야 하는 경우, 입력값에 쿼리문의 구조를 변경할 수 있는 문자열을 검사한 후 쿼리문 생성에 사용한다.",
+      "웹 애플리케이션에서 사용하는 데이터베이스 사용자 권한을 최소화한다.",
+      "Internal Error (500) 오류 정보가 노출되지 않도록 한다."
+    ]
   }
 }

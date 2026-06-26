@@ -79,10 +79,40 @@
     "CWE-611 Improper Restriction of XML External Entity Reference, MITRE — https://cwe.mitre.org/data/definitions/611.html",
     "XML External Entity Prevention Cheat Sheet, OWASP — https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html"
   ],
-  "tags": ["xxe", "xml", "dtd", "external-entity", "input_validation", "dos", "kisec2026"],
+  "tags": [
+    "xxe",
+    "xml",
+    "dtd",
+    "external-entity",
+    "input_validation",
+    "dos",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["외부 엔티티 비활성화", "disallow-doctype-decl", "external-general-entities", "ACCESS_EXTERNAL_DTD", "setExpandEntityReferences", "libxml_disable_entity_loader", "로컬 정적 DTD", "SYSTEM file:///etc/passwd", "SUPPORT_DTD"],
+    "keywords": [
+      "외부 엔티티 비활성화",
+      "disallow-doctype-decl",
+      "external-general-entities",
+      "ACCESS_EXTERNAL_DTD",
+      "setExpandEntityReferences",
+      "libxml_disable_entity_loader",
+      "로컬 정적 DTD",
+      "SYSTEM file:///etc/passwd",
+      "SUPPORT_DTD"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "XML 문서에는 DTD(Document Type Definition)를 포함할 수 있으며, DTD는 XML 엔티티(entitiy)를 정의한다. 부적절한 XML 외부개체 참조 보안약점은 서버에서 XML 외부 엔티티를 처리할 수 있도록 설정된 경우에 발생할 수 있다."
+    ],
+    "impact": [
+      "취약한 XML parser가 외부 값을 참조하는 XML 값을 처리할 때, 공격자가 삽입한 공격 구문이 동작되어 서버 파일 접근, 불필요한 자원 사용, 인증 우회, 정보 노출 등이 발생할 수 있다."
+    ],
+    "countermeasure": [
+      "로컬 정적 DTD를 사용하도록 설정하고, 외부에서 전송된 XML문서에 포함된 DTD를 완전하게 비활성화한다.",
+      "비활성화를 할 수 없는 경우에는 외부 엔티티 및 외부 문서 유형 선언을 각 파서(parser)에 맞는 고유한 방식으로 비활성화한다."
+    ]
   }
 }

@@ -12,6 +12,8 @@ const Study = lazy(() => import('./Study'));
 const StudyDetail = lazy(() => import('./StudyDetail'));
 const PracticeDetail = lazy(() => import('./PracticeDetail'));
 const DiagramQuiz = lazy(() => import('./DiagramQuiz'));
+const TheoryList = lazy(() => import('./TheoryList'));
+const TheoryDetail = lazy(() => import('./TheoryDetail'));
 const WrongNotes = lazy(() => import('./WrongNotes'));
 // 진단보고서는 v2로 이연 (kisa_reports 테이블은 유지)
 // const ReportBuilder = lazy(() => import('./ReportBuilder'));
@@ -37,6 +39,8 @@ export default function KisaTab() {
         <Route path="study/:chapterCode" element={<StudyDetail />} />
         <Route path="practice/:id" element={<PracticeDetail />} />
         <Route path="diagram-quiz" element={<DiagramQuiz />} />
+        <Route path="theory" element={<TheoryList />} />
+        <Route path="theory/:code" element={<TheoryDetail />} />
         <Route path="wrong-notes" element={<WrongNotes />} />
         {/* 진단보고서는 v2로 이연 */}
         {/* <Route path="report/new" element={<ReportBuilder />} /> */}

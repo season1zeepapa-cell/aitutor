@@ -57,10 +57,36 @@
     "CWE-113 HTTP Response Splitting, MITRE — http://cwe.mitre.org/data/definitions/113.html",
     "HTTP Response Splitting, OWASP — https://www.owasp.org/index.php/HTTP_Response_Splitting"
   ],
-  "tags": ["http-response-splitting", "crlf", "header-injection", "input_validation", "cache-poisoning", "kisec2026"],
+  "tags": [
+    "http-response-splitting",
+    "crlf",
+    "header-injection",
+    "input_validation",
+    "cache-poisoning",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["개행문자(CR/LF) 제거", "응답헤더 분할", "Set-Cookie", "replaceAll(\"[\\r\\n]\",\"\")", "캐시 훼손(Cache Poisoning)", "getContextPath() 내장함수", "Numeric 값 안전"],
+    "keywords": [
+      "개행문자(CR/LF) 제거",
+      "응답헤더 분할",
+      "Set-Cookie",
+      "replaceAll(\"[\\r\\n]\",\"\")",
+      "캐시 훼손(Cache Poisoning)",
+      "getContextPath() 내장함수",
+      "Numeric 값 안전"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "CR(carriage return), LF(line feed)와 같은 개행문자를 포함한 사용자 입력값을 응답헤더(response header)에 쓰여지는 경우 발생"
+    ],
+    "impact": [
+      "공격자가 개행문자를 이용하여 첫 번째 응답을 종료시키고, 두 번째 응답에 악의적인 코드를 주입하여 XSS 공격, 캐시 훼손(cache poisoning) 공격을 수행한다."
+    ],
+    "countermeasure": [
+      "외부입력값을 HTTP 응답 헤더에 포함시킬 경우 CR(carriage return), LF(line feed)와 같은 개행문자의 포함여부를 확인하고 제거한다."
+    ]
   }
 }

@@ -69,10 +69,38 @@
     "Do not call system(), CERT",
     "Reviewing Code for OS Injection, OWASP — https://www.owasp.org/index.php/Reviewing_Code_for_OS_Injection"
   ],
-  "tags": ["os-command-injection", "command-injection", "exec", "system", "input_validation", "whitelist", "kisec2026"],
+  "tags": [
+    "os-command-injection",
+    "command-injection",
+    "exec",
+    "system",
+    "input_validation",
+    "whitelist",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["Runtime.getRuntime().exec / system / exec", "화이트리스트(allowedCommands)", "허용 명령어 배열 인덱스 선택", "멀티라인 특수문자(| ; & :)", "파일 리다이렉트 특수문자(> >>)", "정규식 검증", "시스템 프로퍼티 vs 개별 프로퍼티"],
+    "keywords": [
+      "Runtime.getRuntime().exec / system / exec",
+      "화이트리스트(allowedCommands)",
+      "허용 명령어 배열 인덱스 선택",
+      "멀티라인 특수문자(| ; & :)",
+      "파일 리다이렉트 특수문자(> >>)",
+      "정규식 검증",
+      "시스템 프로퍼티 vs 개별 프로퍼티"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "외부입력값을 검증, 제한하지 않고 운영체제 명령문 생성 및 실행에 사용하는 경우"
+    ],
+    "impact": [
+      "공격자가 삽입한 운영체제 명령어가 웹 애플리케이션 서버의 실행 권한으로 실행되어 시스템 내부의 중요 파일이 삭제되거나 백도어가 실행되는 심각한 문제가 발생한다."
+    ],
+    "countermeasure": [
+      "애플리케이션 내부에서 운영체제 명령어가 실행되지 않도록 프로그램을 설계한다.",
+      "외부에서 전달되는 값을 내부 명령에 직접적으로 사용하지 않고, 프로그램 내부에 미리 정의되어 있는 허용 목록을 검색하여 사용하도록 프로그램을 설계한다."
+    ]
   }
 }

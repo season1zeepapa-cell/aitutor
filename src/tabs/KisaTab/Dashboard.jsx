@@ -57,6 +57,13 @@ export default function Dashboard() {
           highlight
         />
         <StartButton
+          title="📚 이론교육"
+          desc="원인·영향·대응·진단 49"
+          emoji="📚"
+          onClick={() => navigate('/kisa/theory')}
+          highlight
+        />
+        <StartButton
           title="이론 드릴 (MCQ)"
           desc="객관식 4지선다"
           emoji="🎯"

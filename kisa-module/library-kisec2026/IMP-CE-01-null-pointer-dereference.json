@@ -128,5 +128,16 @@
     ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '널 포인터 역참조 발생 여부' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 또는 false_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "널(Null)로 설정된 참조 변수의 주소값을 참조하는 경우"
+    ],
+    "impact": [
+      "공격자가 의도적으로 널 포인터 역참조를 유발하는 경우, 그 결과로 발생하는 예외 사항을 이용하여 추후의 공격을 계획하는데 사용될 수 있다."
+    ],
+    "countermeasure": [
+      "널(Null)이 될 수 있는 레퍼런스(reference)는 참조하기 전에 널인지를 검사하여 안전한 경우에만 사용해야 한다."
+    ]
   }
 }

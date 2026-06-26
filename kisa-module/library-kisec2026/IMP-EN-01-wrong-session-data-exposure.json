@@ -90,5 +90,17 @@
     ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "다중 스레드 환경에서 싱글톤(singleton) 객체의 멤버변수를 사용하는 경우"
+    ],
+    "impact": [
+      "Servlet, JSP, Controller 등 싱글톤으로 존재하는 객체들의 멤버변수가 여러 스레드에 의해 공유되면서 다른 스레드에게 정보를 노출시킬 수 있다."
+    ],
+    "countermeasure": [
+      "싱글톤 패턴을 사용하는 경우, 변수 범위(scope)에 주의하여 사용한다.",
+      "Java에서 HttpServlet 클래스의 하위 클래스나 JSP, Controller에서 멤버 필드를 선언하지 않도록 하고, 필요한 경우 지역변수를 선언하여 사용한다."
+    ]
   }
 }

@@ -54,6 +54,19 @@ const resolveImage = (d) => {
   return imageMap[normalizeName(d.title)] || '';
 };
 
+// 진단방법 플로우차트 이미지 (public/q-images/diagnosis/, 약점명 자동매칭) — 이론교육 4박스의 '진단방법'
+const diagnosisDir = join(root, 'public/q-images/diagnosis');
+const diagnosisMap = (() => {
+  const map = {};
+  if (!existsSync(diagnosisDir)) return map;
+  for (const f of readdirSync(diagnosisDir)) {
+    if (!/\.(png|jpg|jpeg|gif|webp)$/i.test(f)) continue;
+    map[normalizeName(f)] = `/q-images/diagnosis/${f}`;
+  }
+  return map;
+})();
+const resolveDiagnosisImage = (d) => diagnosisMap[normalizeName(d.title)] || '';
+
 const CAT_LABEL = {
   input_validation: '입력데이터 검증 및 표현',
   security_feature: '보안기능',
@@ -103,6 +116,9 @@ function mapLibrary(d, src = 'library') {
           .map((t) => ({ type: t.type || '', desc: t.desc || '', image: imageMap[normalizeName(t.file || t.type)] || '' }))
           .filter((t) => t.image)
       : [],
+    // 이론교육 4박스 — 교재 원인/영향/대응(배열, 문구 그대로) + 진단방법 플로우차트 이미지
+    theory: d.theory && (d.theory.cause || d.theory.impact || d.theory.countermeasure) ? d.theory : null,
+    diagnosisImage: resolveDiagnosisImage(d),
     detail: [
       d.countermeasure ? { label: '보안대책', text: d.countermeasure } : null,
       Array.isArray(d.security_measures) && d.security_measures.length ? { label: '보안대책', text: d.security_measures.join('\n') } : null,

@@ -71,10 +71,42 @@
     "Prevent XPath Injection, CERT — IDS53-J",
     "XPATH Injection, OWASP — https://www.owasp.org/index.php/XPATH_Injection"
   ],
-  "tags": ["xml", "injection", "xquery", "xpath", "input_validation", "authentication-bypass", "kisec2026"],
+  "tags": [
+    "xml",
+    "injection",
+    "xquery",
+    "xpath",
+    "input_validation",
+    "authentication-bypass",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["XQuery 파라미터화", "bindString", "XPath compile", "특수문자/예약어 필터링", "파라미터화된 쿼리(login.xq)", "DynamicContext.AddVariable", "인증 우회", "replaceAll 문자 제거", "XPathFilter"],
+    "keywords": [
+      "XQuery 파라미터화",
+      "bindString",
+      "XPath compile",
+      "특수문자/예약어 필터링",
+      "파라미터화된 쿼리(login.xq)",
+      "DynamicContext.AddVariable",
+      "인증 우회",
+      "replaceAll 문자 제거",
+      "XPathFilter"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "외부입력값을 검증하지 않고 XQuery 또는 XPath 구문 생성 및 실행에 사용하는 경우"
+    ],
+    "impact": [
+      "입력값을 조작하여 쿼리문을 조작할 수 있으며, 조작된 쿼리문은 데이터 무단 조회 및 인증 절차 우회와 같은 취약점을 유발할 수 있다."
+    ],
+    "countermeasure": [
+      "XQuery에 사용되는 외부입력값에 대하여 특수문자 및 쿼리 예약어를 필터링한다.",
+      "XQuery를 사용한 쿼리문은 문자열을 연결하는 형태로 구성하지 않고 파라미터화된 쿼리문을 사용한다.",
+      "XPath 쿼리에 사용되는 외부입력값에 대하여 특수문자( \" [ ] / = @ 등 ) 및 쿼리 예약어를 필터링한다.",
+      "파라미터화된 쿼리문을 지원하는 XQuery 표현식을 사용한다."
+    ]
   }
 }

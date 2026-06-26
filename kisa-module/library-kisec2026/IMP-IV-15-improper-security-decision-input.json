@@ -52,10 +52,38 @@
     "ENV02-J. Do not trust the values of environment variables, CERT",
     "Session Management Cheat Sheet, OWASP"
   ],
-  "tags": ["security-decision", "cookie", "hidden-field", "environment-variable", "input_validation", "session", "kisec2026"],
+  "tags": [
+    "security-decision",
+    "cookie",
+    "hidden-field",
+    "environment-variable",
+    "input_validation",
+    "session",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["쿠키 조작", "히든필드", "환경변수", "서버 세션 저장", "보안결정 입력값", "무결성 체크", "암호화"],
+    "keywords": [
+      "쿠키 조작",
+      "히든필드",
+      "환경변수",
+      "서버 세션 저장",
+      "보안결정 입력값",
+      "무결성 체크",
+      "암호화"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "응용프로그램이 쿠키, 환경변수, 히든필드와 같은 입력값에 대한 신뢰를 전제로 보호 메커니즘을 구현하는 경우"
+    ],
+    "impact": [
+      "공격자가 입력값을 조작하여 보호 메커니즘을 우회하거나 권한상승을 시도하여 허가되지 않은 시스템의 기능을 사용할 수 있다."
+    ],
+    "countermeasure": [
+      "상태 정보, 민감한 데이터, 사용자 세션 정보와 같은 중요한 정보는 서버에 저장하고 보안 절차도 서버에서 실행한다.",
+      "사용자 권한, 인증 여부 등 보안 결정에 사용하는 값은 사용자 입력값을 사용하지 않고 내부 세션값을 활용한다."
+    ]
   }
 }

@@ -66,10 +66,39 @@
     "CWE-22 Path Traversal, MITRE — http://cwe.mitre.org/data/definitions/22.html",
     "Path Traversal, OWASP — https://www.owasp.org/index.php/Path_Traversal"
   ],
-  "tags": ["path-traversal", "directory-traversal", "resource-injection", "input_validation", "file-access", "kisec2026"],
+  "tags": [
+    "path-traversal",
+    "directory-traversal",
+    "resource-injection",
+    "input_validation",
+    "file-access",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["경로순회(directory traversal)", "경로조작 문자열(/ \\ .. )", "화이트리스트/매핑표", "getRealPath/getContextPath", "시스템 함수", "필터링", "자원 식별자 검증"],
+    "keywords": [
+      "경로순회(directory traversal)",
+      "경로조작 문자열(/ \\ .. )",
+      "화이트리스트/매핑표",
+      "getRealPath/getContextPath",
+      "시스템 함수",
+      "필터링",
+      "자원 식별자 검증"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "검증되지 않은 외부입력값을 파일 및 서버의 시스템 자원에 접근하거나 식별에 이용하는 경우 발생"
+    ],
+    "impact": [
+      "공격자는 입력값을 조작하여 시스템이 보호하는 자원에 임의로 접근할 수 있다.",
+      "공격자는 허용되지 않는 권한을 획득하거나, 인증이나 인가를 우회하여 설정에 관계된 파일을 열람, 변경, 실행할 수 있다."
+    ],
+    "countermeasure": [
+      "외부입력값을 자원의 식별자로 사용하는 경우, 철저히 검증을 수행한 후 사용한다.",
+      "사용자별 사용 가능한 자원을 사전에 리스트로 정의하여 사용 범위를 제한한다.",
+      "파일을 사용하는 경우, 파일명에 경로순회공격 위험이 있는 문자( .. / \\ \" )를 제거하는 필터를 이용한다."
+    ]
   }
 }

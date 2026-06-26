@@ -52,10 +52,37 @@
     "LDAP injection, OWASP — https://www.owasp.org/index.php/LDAP_Injection_Prevention_Cheat_Sheet",
     "LDAP Resources — http://ldapman.org/"
   ],
-  "tags": ["ldap", "injection", "directory", "input_validation", "special-char-filter", "kisec2026"],
+  "tags": [
+    "ldap",
+    "injection",
+    "directory",
+    "input_validation",
+    "special-char-filter",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["LDAP 필터 조작", "특수문자 제거( ( ) ; , * ! & | = )", "DN(Distinguished Name)", "와일드카드(*) 항상 참", "익명 바인딩", "화이트리스트 검증", "고정 쿼리문"],
+    "keywords": [
+      "LDAP 필터 조작",
+      "특수문자 제거( ( ) ; , * ! & | = )",
+      "DN(Distinguished Name)",
+      "와일드카드(*) 항상 참",
+      "익명 바인딩",
+      "화이트리스트 검증",
+      "고정 쿼리문"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "응용 프로그램이 사용자의 입력을 검증하지 않고 LDAP 필터문 생성에 사용되는 경우"
+    ],
+    "impact": [
+      "공격자가 LDAP 필터문을 조작하여 정보를 유출하거나 조작할 수 있다."
+    ],
+    "countermeasure": [
+      "DN(Distinguished Name)과 필터에 사용되는 사용자 입력값에는 LDAP 필터에 사용되는 특수문자( ( ) ; , * ! & | = )가 포함되지 않도록 한다.",
+      "특수문자를 사용해야 하는 경우에는 특수문자가 실행명령이 아닌 일반문자로 인식되도록 처리한다."
+    ]
   }
 }

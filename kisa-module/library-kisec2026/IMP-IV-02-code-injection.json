@@ -74,10 +74,38 @@
     "CWE-95 Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection'), MITRE — http://cwe.mitre.org/data/definitions/95.html",
     "Code Injection Software Attack, OWASP — https://owasp.org/www-community/attacks/Code_Injection"
   ],
-  "tags": ["code-injection", "eval", "dynamic-code", "input_validation", "whitelist", "kisec2026"],
+  "tags": [
+    "code-injection",
+    "eval",
+    "dynamic-code",
+    "input_validation",
+    "whitelist",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["동적실행 함수", "eval", "ScriptEngine", "new Function", "화이트리스트", "특수문자 필터링", "정규식 검증"],
+    "keywords": [
+      "동적실행 함수",
+      "eval",
+      "ScriptEngine",
+      "new Function",
+      "화이트리스트",
+      "특수문자 필터링",
+      "정규식 검증"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입하여 소프트웨어가 비정상적으로 동작"
+    ],
+    "impact": [
+      "의도하지 않은 코드를 실행하여 권한을 탈취하거나, 인증 우회, 시스템 명령어 실행"
+    ],
+    "countermeasure": [
+      "동적코드를 실행할 수 있는 함수를 사용하지 않음",
+      "동적 코드 필요 시, 실행 가능한 동적인 코드를 입력 값으로 받지 않도록, 외부 입력 값에 대하여 화이트리스트 방식으로 구현.",
+      "유효한 문자만 포함하도록 동적 코드에 사용되는 사용자 입력 값을 필터링"
+    ]
   }
 }

@@ -45,10 +45,38 @@
     "CWE-601 URL Redirection to Untrusted Site, MITRE — http://cwe.mitre.org/data/definitions/601.html",
     "Unvalidated Redirects and Forwards Cheat Sheet, OWASP — https://www.owasp.org/index.php/Unvalidated_Redirects_and_Forwards_Cheat_Sheet"
   ],
-  "tags": ["open-redirect", "phishing", "input_validation", "whitelist", "sendRedirect", "kisec2026"],
+  "tags": [
+    "open-redirect",
+    "phishing",
+    "input_validation",
+    "whitelist",
+    "sendRedirect",
+    "kisec2026"
+  ],
   "question_hooks": {
-    "keywords": ["sendRedirect", "화이트 리스트 URL", "피싱(Phishing)", "크로스사이트 스크립트(XSS) 노출", "로컬 URL 검증(isLocalUrl)", "도메인 비교", "getContextPath", "유효값 검사"],
+    "keywords": [
+      "sendRedirect",
+      "화이트 리스트 URL",
+      "피싱(Phishing)",
+      "크로스사이트 스크립트(XSS) 노출",
+      "로컬 URL 검증(isLocalUrl)",
+      "도메인 비교",
+      "getContextPath",
+      "유효값 검사"
+    ],
     "mcq_seed": "code_examples 의 vulnerable/safe 쌍 또는 diagnosis 의 정탐/오탐 코드를 제시하고 '보안약점 설명으로 잘못된 것' 또는 '취약/안전 판정'을 묻는 객관형",
     "diagnosis_seed": "true_positive 코드를 제시하고 취약 여부(Y/N)+근거를 서술하게 하는 단순서술형. 채점은 keywords 포함 여부로 정·오탐 판정"
+  },
+  "theory": {
+    "cause": [
+      "사용자로부터 입력받은 값을 검증하지 않고 외부 사이트로 자동 연결(redirect)할 사이트의 주소로 사용하는 경우"
+    ],
+    "impact": [
+      "공격자는 외부입력값을 조작하여 사용자를 피싱(phishing), 크로스사이트 스크립트(XSS)와 같은 공격에 노출시킬 수 있다."
+    ],
+    "countermeasure": [
+      "자동 연결에 사용할 외부 사이트의 URL과 도메인을 화이트 리스트(white list)로 관리한다.",
+      "사용자 입력값을 자동 연결할 사이트의 주소로 사용하는 경우 화이트 리스트 내의 값인지 확인하고 사용한다."
+    ]
   }
 }
