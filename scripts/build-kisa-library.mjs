@@ -56,16 +56,33 @@ const resolveImage = (d) => {
 
 // 진단방법 플로우차트 이미지 (public/q-images/diagnosis/, 약점명 자동매칭) — 이론교육 4박스의 '진단방법'
 const diagnosisDir = join(root, 'public/q-images/diagnosis');
-const diagnosisMap = (() => {
-  const map = {};
-  if (!existsSync(diagnosisDir)) return map;
+// 교재 절 번호 → chapter_code 분류 약어 (구현단계 IMP)
+const SEC_TO_CAT = { 1: 'IV', 2: 'SF', 3: 'TS', 4: 'EH', 5: 'CE', 6: 'EN', 7: 'AA' };
+// 두 가지 매칭 키 동시 구축:
+//   ① diagnosisByCode: 파일명 "절-번호 ..." → IMP-{분류}-{번호} chapter_code (가장 정확)
+//   ② diagnosisMap: 약점명(번호 접두사 제거) 정규화 (fallback)
+const { diagnosisByCode, diagnosisMap } = (() => {
+  const byCode = {}, byName = {};
+  if (!existsSync(diagnosisDir)) return { diagnosisByCode: byCode, diagnosisMap: byName };
   for (const f of readdirSync(diagnosisDir)) {
     if (!/\.(png|jpg|jpeg|gif|webp)$/i.test(f)) continue;
-    map[normalizeName(f)] = `/q-images/diagnosis/${f}`;
+    const path = `/q-images/diagnosis/${f}`;
+    const m = f.match(/^(\d+)-(\d+)\s/); // "1-1 SQL 삽입.png"
+    if (m && SEC_TO_CAT[+m[1]]) {
+      byCode[`IMP-${SEC_TO_CAT[+m[1]]}-${String(+m[2]).padStart(2, '0')}`] = path;
+    }
+    byName[normalizeName(f.replace(/^\d+-\d+\s*/, ''))] = path; // 번호 접두사 제거 후 약점명
   }
-  return map;
+  return { diagnosisByCode: byCode, diagnosisMap: byName };
 })();
-const resolveDiagnosisImage = (d) => diagnosisMap[normalizeName(d.title)] || '';
+// 제목에서 괄호 영문 병기 제거 ("SQL 삽입 (SQL Injection)" → "SQL 삽입")
+const stripParen = (s) => String(s || '').replace(/\s*\(.*?\)\s*/g, ' ').trim();
+// 진단방법 이미지: chapter_code(절-번호) 직접 매칭 우선, 안 되면 약점명으로 fallback
+const resolveDiagnosisImage = (d) =>
+  diagnosisByCode[d.chapter_code] ||
+  diagnosisMap[normalizeName(stripParen(d.title))] ||
+  diagnosisMap[normalizeName(d.title)] ||
+  '';
 
 const CAT_LABEL = {
   input_validation: '입력데이터 검증 및 표현',

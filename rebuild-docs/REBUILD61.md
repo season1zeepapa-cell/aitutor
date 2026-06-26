@@ -28,10 +28,13 @@
 - 결과를 각 약점 JSON 의 `theory: { cause[], impact[], countermeasure[] }` 로 저장(교재 원문 그대로, 의역·요약 금지).
 - 검증: SQL삽입 원인 1·영향 3·대응 4 항목이 교재(Image #4)와 일치.
 
-## §3. 진단방법 이미지 자동매칭
+## §3. 진단방법 이미지 자동매칭 (49/49 완료)
 
-- 폴더 `public/q-images/diagnosis/` — 사용자가 **약점명.png**(예: `SQL 삽입.png`)로 제공.
-- `build-kisa-library.mjs` 가 폴더 스캔 + `normalizeName`(NFC) 으로 `title` 매칭 → `diagnosisImage` 자동 연결. jssec 공격흐름도(`q-images/library/`)와 **다른 폴더**라 파일명 충돌 무관.
+- 폴더 `public/q-images/diagnosis/` — 사용자가 교재 번호 형식 **`절-번호 약점명.png`**(예: `1-1 SQL 삽입.png`)로 49개 제공.
+- `build-kisa-library.mjs` 가 폴더 스캔. 매칭 우선순위:
+  1. **파일명 `절-번호` → chapter_code** 직접 매핑(`SEC_TO_CAT`: 1→IV·2→SF·3→TS·4→EH·5→CE·6→EN·7→AA, `1-1`→`IMP-IV-01`). 약점명 표기 차이(예: `3-1 검사시점과 사용시점` vs 교재 `경쟁조건: 검사 시점과 사용 시점`)와 무관하게 정확.
+  2. fallback: 번호 접두사 제거 후 약점명 `normalizeName`(NFC).
+- 결과 `diagnosisImage` 49/49 연결. jssec 공격흐름도(`q-images/library/`)와 **다른 폴더**라 충돌 무관.
 
 ## §4. 이론교육 화면
 
@@ -49,6 +52,6 @@
 
 ## §6. 남은 작업
 
-- **진단방법 이미지 49개** 수령 → `public/q-images/diagnosis/` 투입 시 자동 연결(재빌드).
+- ~~진단방법 이미지 49개~~ → **49/49 연결·배포 완료**.
 - 설계단계(DSG 20)도 동일 양식 확장(원하면).
 - 원인/영향/대응 자동추출 일부 약점 육안 검수(SQL삽입 등 확인, 전수는 권장).
