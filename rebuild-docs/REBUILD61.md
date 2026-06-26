@@ -41,8 +41,9 @@
 - **목록** `/kisa/theory`(`TheoryList`) — 구현단계 약점을 분류(입력검증~API오용)별로 나열. `theory` 보유 항목만.
 - **상세** `/kisa/theory/:code`(`TheoryDetail`) — Image #4 양식 4박스:
   - 원인(회색)·영향(빨강)·대응(초록): `theory.*` 불릿 리스트(교재 문구).
-  - 진단방법(회색): `diagnosisImage` 우선, 없으면 `diagnosis.method` 텍스트 fallback.
+  - 진단방법(회색): `diagnosisImage` 우선, 없으면 `diagnosis.method` 텍스트 fallback. 이미지 **탭하면 전체화면 확대**(`useImageModal`).
 - 진입: `Dashboard` 에 "📚 이론교육" 카드 추가. 라우트 `index.jsx`.
+- **이미지 확대 개선**(`components/ui/ImageModal.jsx`): 기존 화면맞춤(contain)에 더해, 이미지 탭 시 **원본 크기 확대 ↔ 화면맞춤 토글** + 확대 상태 스크롤(팬). 가로로 긴 진단방법 플로우차트를 모바일 좁은 폭에서도 크게 확인. 공통 모달이라 기출문제 이미지에도 동일 적용.
 
 ## §5. 검증
 

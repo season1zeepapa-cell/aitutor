@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import libData from '../../data/kisa-library.json';
+import { useImageModal } from '../../App'; // 이미지 탭하여 전체화면 확대(기출문제와 동일)
 
 // 4박스 레이블별 색상(Image #4 양식)
 const BOX_STYLE = {
@@ -17,6 +18,7 @@ const BOX_STYLE = {
 export default function TheoryDetail() {
   const { code } = useParams();
   const navigate = useNavigate();
+  const openImage = useImageModal(); // 진단방법 이미지 확대용
 
   const item = useMemo(
     () => libData.sources.find((s) => s.id === 'kisec2026')?.items.find((i) => i.id === code) || null,
@@ -91,7 +93,17 @@ export default function TheoryDetail() {
           </div>
           <div className="flex-1 p-3">
             {item.diagnosisImage ? (
-              <img src={item.diagnosisImage} alt={`${item.title} 진단방법`} className="w-full rounded-lg border border-border bg-white" loading="lazy" />
+              <div
+                className="relative cursor-pointer group"
+                onClick={() => openImage(item.diagnosisImage)}
+                title="탭하여 크게 보기"
+              >
+                <img src={item.diagnosisImage} alt={`${item.title} 진단방법`} className="w-full rounded-lg border border-border bg-white" loading="lazy" />
+                {/* 확대 안내 배지 */}
+                <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-medium pointer-events-none">
+                  🔍 탭하여 크게
+                </span>
+              </div>
             ) : diagMethod ? (
               <p className="text-sm leading-relaxed text-text-secondary">{diagMethod}</p>
             ) : (
