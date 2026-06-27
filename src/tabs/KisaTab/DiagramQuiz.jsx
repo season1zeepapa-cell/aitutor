@@ -7,6 +7,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import libData from '../../data/kisa-library.json';
+import { useImageModal } from '../../App'; // 이미지 탭하여 전체화면 확대(원본 줌)
 
 // 배열을 무작위로 섞는다(Fisher–Yates).
 function shuffle(arr) {
@@ -29,6 +30,7 @@ function makeOptions(answer, pool) {
 
 export default function DiagramQuiz() {
   const navigate = useNavigate();
+  const openImage = useImageModal(); // 문제 다이어그램 확대용
 
   // 1) 문제 풀 준비 — 약점 맞히기 + 유형 맞히기
   const questions = useMemo(() => {
@@ -141,14 +143,19 @@ export default function DiagramQuiz() {
         <p className="text-xs text-text-secondary">{q.prompt}</p>
       </div>
 
-      {/* 문제: 다이어그램 이미지 */}
+      {/* 문제: 다이어그램 이미지 (탭하면 전체화면 확대 — 모바일 좁은 폭 대응) */}
       <div className="rounded-xl bg-card-bg border border-border p-3">
-        <img
-          src={q.image}
-          alt="보안약점 공격 흐름도"
-          className="w-full rounded-lg border border-border bg-white"
-          loading="lazy"
-        />
+        <div className="relative cursor-pointer" onClick={() => openImage(q.image)} title="탭하여 크게 보기">
+          <img
+            src={q.image}
+            alt="보안약점 공격 흐름도"
+            className="w-full rounded-lg border border-border bg-white"
+            loading="lazy"
+          />
+          <span className="absolute bottom-1.5 right-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-medium pointer-events-none">
+            🔍 탭하여 크게
+          </span>
+        </div>
       </div>
 
       {/* 보기 4지선다 */}
