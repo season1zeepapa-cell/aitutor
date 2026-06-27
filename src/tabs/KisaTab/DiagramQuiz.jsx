@@ -21,6 +21,8 @@ function shuffle(arr) {
 
 // 제목에서 영문 괄호 부분을 떼어 간결화 ("크로스사이트 스크립트(XSS)" → "크로스사이트 스크립트")
 const shortTitle = (t) => String(t || '').replace(/\s*\(.*\)\s*$/, '').trim();
+// 약점명 정규화(이론학습 IMP 코드 매칭용): NFC + 괄호·공백 제거 + 소문자
+const norm = (s) => String(s || '').normalize('NFC').toLowerCase().replace(/\s*\(.*?\)\s*/g, '').replace(/\s+/g, '');
 
 // 보기(4지선다) 구성: 정답 + 무작위 오답 3
 function makeOptions(answer, pool) {
@@ -37,6 +39,19 @@ export default function DiagramQuiz() {
     const items = libData.sources.find((s) => s.id === 'jssec2023')?.items || [];
     const titlePool = [...new Set(items.map((it) => shortTitle(it.title)))];
 
+    // 약점명 → 2026 교재 이론학습(kisec2026 IMP) 코드 매핑 (해설에서 이론 페이지로 이동)
+    const theoryByName = {};
+    (libData.sources.find((s) => s.id === 'kisec2026')?.items || [])
+      .filter((x) => x.id && x.id.startsWith('IMP-') && x.theory)
+      .forEach((x) => { theoryByName[norm(x.title)] = x.id; });
+    // 교재 간 표기 차이로 자동매칭 안 되는 약점 별칭 보강(JS 가이드 ↔ 2026 교재)
+    const ALIAS = {
+      [norm('신뢰되지 않은 URL주소로 자동접속 연결')]: 'IMP-IV-07', // ↔ 신뢰되지 않는 URL 주소…
+      [norm('취약한 패스워드 허용')]: 'IMP-SF-09', // ↔ 취약한 비밀번호 허용
+      [norm('Public 메소드로부터 반환된 Private 배열')]: 'IMP-EN-03', // ↔ 메소드부터…
+    };
+    const theoryOf = (title) => theoryByName[norm(title)] || ALIAS[norm(title)] || '';
+
     // (A) 약점 맞히기: image 가 있는 항목
     const measureOf = (it) => (it.detail || []).find((d) => d.label === '보안대책')?.text || '';
     const weaknessQs = items
@@ -52,6 +67,7 @@ export default function DiagramQuiz() {
           cwe: it.cwe || '',
           summary: it.summary || '',     // 개요(번들 직참조)
           measure: measureOf(it),         // 안전한 코딩기법
+          theoryCode: theoryOf(it.title), // 2026 교재 이론 페이지
           prompt: '아래 공격 흐름도는 어떤 보안약점일까요?',
         };
       });
@@ -67,6 +83,7 @@ export default function DiagramQuiz() {
         options: makeOptions(t.type, [...new Set(typePool)]),
         desc: t.desc || '',
         parent: shortTitle(it.title),
+        theoryCode: theoryOf(it.title), // 유형의 상위 약점(예: XSS) 이론 페이지
         prompt: `아래 그림은 ${shortTitle(it.title)}의 어떤 유형일까요?`,
       })),
     );
@@ -208,6 +225,15 @@ export default function DiagramQuiz() {
                   </p>
                 )}
               </div>
+            )}
+            {/* 2026 교재 이론학습 해당 페이지로 이동 */}
+            {q.theoryCode && (
+              <button
+                onClick={() => navigate(`/kisa/theory/${q.theoryCode}`)}
+                className="mt-2 w-full py-2 rounded-lg border border-primary/40 text-primary bg-card-bg hover:bg-primary/10 text-xs font-bold transition-colors"
+              >
+                📖 이 약점 이론 학습하기 (2026 교재) →
+              </button>
             )}
           </div>
           <button
