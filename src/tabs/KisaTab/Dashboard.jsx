@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useKisaStats } from '../../hooks/useKisaSrs';
 import { useTutorial } from '../../App';
 import kisaTrack from '../../tracks/kisa';
+import practiceData from '../../data/kisa-practice.json'; // 설계기준 실습 개수 표시용
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -86,6 +87,18 @@ export default function Dashboard() {
           desc="산출물 검토→진단보고서"
           emoji="📋"
           onClick={() => navigate('/kisa/drill?type=composite')}
+        />
+        <StartButton
+          title="그림 약점퀴즈"
+          desc="그림 보고 약점 식별"
+          emoji="🖼️"
+          onClick={() => navigate('/kisa/diagram-quiz')}
+        />
+        <StartButton
+          title="설계기준 실습"
+          desc={`화면·산출물 진단 ${practiceData.count}`}
+          emoji="📝"
+          onClick={() => navigate('/kisa/study?tab=practice')}
         />
         <StartButton
           title="실전 모의"
