@@ -148,7 +148,8 @@ export default function TheoryDetail() {
             </LabelBox>
           )}
           {item.design.related.length > 0 && (
-            <LabelBox label={<>관련<br />보안약점</>} chip="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" border="border-red-200 dark:border-red-900/50">
+            <LabelBox label={<>관련<br />구현약점</>} chip="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" border="border-red-200 dark:border-red-900/50">
+              <p className="text-[11px] text-text-secondary mb-2 leading-relaxed">이 설계 기준이 미흡하면 발생하는 <span className="font-semibold text-red-600 dark:text-red-400">구현단계 보안약점</span>입니다.</p>
               <ul className="space-y-1.5">
                 {item.design.related.map((r, i) => {
                   const to = linkCode(r);
@@ -240,6 +241,7 @@ export default function TheoryDetail() {
           {/* 관련 설계 항목 — 이 구현약점을 가리키는 설계(DSG) 항목 역링크(설계영역 '관련 보안약점' UI와 동일 양식) */}
           {(designByImp[item.id] || []).length > 0 && (
             <LabelBox label={<>관련<br />설계항목</>} chip="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300" border="border-violet-200 dark:border-violet-900/50">
+              <p className="text-[11px] text-text-secondary mb-2 leading-relaxed">이 약점의 근원이 되는 <span className="font-semibold text-violet-600 dark:text-violet-400">설계단계 기준</span>입니다.</p>
               <ul className="space-y-1.5">
                 {designByImp[item.id].map((d, i) => (
                   <li key={i} className="flex gap-2 text-sm leading-relaxed items-start">
