@@ -80,6 +80,26 @@ export default function TheoryDetail() {
   }, []);
   const linkCode = (r) => r.code || impByName[norm(r.weakness)] || '';
 
+  // 구현(IMP) → 관련 설계(DSG) 역참조: 설계 항목의 related[]가 이 구현약점을 가리키면 링크(설계영역과 반대방향)
+  const designByImp = useMemo(() => {
+    const m = {};
+    (libData.sources.find((s) => s.id === 'kisec2026')?.items || [])
+      .filter((x) => x.id && x.id.startsWith('DSG-') && x.design)
+      .forEach((dsg) => {
+        (dsg.design.related || []).forEach((r) => {
+          const impId = r.code || impByName[norm(r.weakness)];
+          if (!impId) return;
+          (m[impId] ||= []).push({ id: dsg.id, title: dsg.title, category: dsg.category });
+        });
+      });
+    // id 중복 제거
+    Object.keys(m).forEach((k) => {
+      const seen = new Set();
+      m[k] = m[k].filter((d) => (seen.has(d.id) ? false : seen.add(d.id)));
+    });
+    return m;
+  }, [impByName]);
+
   if (!item) {
     return (
       <div className="space-y-3">
@@ -216,6 +236,26 @@ export default function TheoryDetail() {
               <p className="text-xs text-text-secondary py-2">진단방법 도식 이미지 준비 중입니다.</p>
             )}
           </LabelBox>
+
+          {/* 관련 설계 항목 — 이 구현약점을 가리키는 설계(DSG) 항목 역링크(설계영역 '관련 보안약점' UI와 동일 양식) */}
+          {(designByImp[item.id] || []).length > 0 && (
+            <LabelBox label={<>관련<br />설계항목</>} chip="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300" border="border-violet-200 dark:border-violet-900/50">
+              <ul className="space-y-1.5">
+                {designByImp[item.id].map((d, i) => (
+                  <li key={i} className="flex gap-2 text-sm leading-relaxed items-start">
+                    <span className="text-text-secondary shrink-0">•</span>
+                    <button
+                      onClick={() => navigate(`/kisa/theory/${d.id}`)}
+                      className="flex-1 text-left text-primary hover:underline font-medium"
+                    >
+                      {d.category && <span className="text-text-secondary font-normal">{d.category} &gt; </span>}
+                      {d.title} <span className="text-[10px]">↗</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </LabelBox>
+          )}
 
           {/* 2026 교재 코드예시 — kisec2026 항목의 codeExamples 직참조(StudyDetail과 동일 양식) */}
           {(item.codeExamples || []).length > 0 && (
