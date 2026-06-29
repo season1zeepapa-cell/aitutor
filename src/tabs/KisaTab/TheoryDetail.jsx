@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import libData from '../../data/kisa-library.json';
+import CodeBlock from '../../components/CodeBlock'; // 코드 하이라이트(StudyDetail과 동일)
 import { useImageModal } from '../../App'; // 이미지 탭하여 전체화면 확대(기출문제와 동일)
 
 // 구현 4박스 레이블 색상(Image #4)
@@ -52,6 +53,13 @@ export default function TheoryDetail() {
   const [openCons, setOpenCons] = useState(() => new Set()); // 설계 고려사항 아코디언 펼침
   const toggleCons = (i) =>
     setOpenCons((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  const [open2026, setOpen2026] = useState(() => new Set([0])); // 2026 교재 코드예시 아코디언(첫 예제 펼침)
+  const toggle2026 = (i) =>
+    setOpen2026((prev) => {
       const next = new Set(prev);
       next.has(i) ? next.delete(i) : next.add(i);
       return next;
@@ -208,6 +216,55 @@ export default function TheoryDetail() {
               <p className="text-xs text-text-secondary py-2">진단방법 도식 이미지 준비 중입니다.</p>
             )}
           </LabelBox>
+
+          {/* 2026 교재 코드예시 — kisec2026 항목의 codeExamples 직참조(StudyDetail과 동일 양식) */}
+          {(item.codeExamples || []).length > 0 && (
+            <div className="rounded-xl bg-card-bg border border-border p-3">
+              <h3 className="text-sm font-bold mb-1">
+                📘 2026 교재 코드예시 <span className="text-[10px] text-text-secondary font-normal">({item.codeExamples.length})</span>
+              </h3>
+              <p className="text-[11px] text-text-secondary mb-2 leading-relaxed">KISEC 2026 기본과정 교재의 언어·기법별 취약/안전 코드.</p>
+              <div className="space-y-2">
+                {item.codeExamples.map((ex, exIdx) => {
+                  const open = open2026.has(exIdx);
+                  const lang = (ex.lang || '').toLowerCase().split(/[ (]/)[0] || 'java';
+                  return (
+                    <div key={exIdx} className="rounded-lg border border-border overflow-hidden">
+                      <button
+                        onClick={() => toggle2026(exIdx)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <span className="text-primary/60 text-xs">{open ? '▾' : '▸'}</span>
+                        <span className="flex-1 text-xs font-semibold">{ex.lang || '코드'}</span>
+                        <span className="text-[10px] text-text-secondary">{open ? '접기' : '펼치기'}</span>
+                      </button>
+                      {open && (
+                        <div className="p-3 space-y-3">
+                          {ex.vulnerable && (
+                            <div>
+                              <div className="text-xs font-bold text-red-600 dark:text-red-400 mb-1">❌ 취약한 코드</div>
+                              <CodeBlock code={ex.vulnerable} language={lang} />
+                            </div>
+                          )}
+                          {ex.safe && (
+                            <div>
+                              <div className="text-xs font-bold text-green-600 dark:text-green-400 mb-1">✅ 안전한 코드</div>
+                              <CodeBlock code={ex.safe} language={lang} />
+                            </div>
+                          )}
+                          {ex.note && (
+                            <p className="text-xs text-text-secondary leading-relaxed pt-1 border-t border-border">
+                              <span className="font-bold text-text">설명: </span>{ex.note}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </>
       )}
 
