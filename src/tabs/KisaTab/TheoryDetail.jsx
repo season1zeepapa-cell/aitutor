@@ -57,7 +57,7 @@ export default function TheoryDetail() {
       next.has(i) ? next.delete(i) : next.add(i);
       return next;
     });
-  const [open2026, setOpen2026] = useState(() => new Set([0])); // 2026 교재 코드예시 아코디언(첫 예제 펼침)
+  const [open2026, setOpen2026] = useState(() => new Set()); // 2026 교재 코드예시 아코디언(초기 모두 접힘)
   const toggle2026 = (i) =>
     setOpen2026((prev) => {
       const next = new Set(prev);
