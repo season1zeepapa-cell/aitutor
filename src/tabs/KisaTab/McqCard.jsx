@@ -1,5 +1,6 @@
-// MCQ 카드 — 이론 문항 객관식
+// MCQ 카드 — 이론 문항 객관식 (objective 유형: 코드 지문 포함)
 import { useState } from 'react';
+import CodeBlock from '../../components/CodeBlock';
 
 export default function McqCard({ question, onSubmit, disabled }) {
   const [selected, setSelected] = useState(null);
@@ -12,6 +13,11 @@ export default function McqCard({ question, onSubmit, disabled }) {
   return (
     <div className="rounded-xl bg-card-bg border border-border p-4 space-y-4">
       <div className="text-sm leading-relaxed whitespace-pre-wrap">{question.body}</div>
+
+      {/* 코드 지문 (objective 이론 객관식 등) — 있을 때만 */}
+      {question.vulnerable_code && (
+        <CodeBlock code={question.vulnerable_code} language={question.code_language || question.language || 'java'} />
+      )}
 
       {question.choices && (
         <div className="space-y-2">

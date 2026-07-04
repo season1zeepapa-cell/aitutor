@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-IV-06",
+  "title": "위험한 형식 파일 업로드",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-434",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 6. 위험한 형식 파일 업로드",
+    "pages": "33-35"
+  },
+  "overview": "서버 측에서 실행 가능한 스크립트 파일(asp, jsp, php, sh 파일 등)이 업로드 가능하고 이 파일을 공격자가 웹을 통해 직접 실행시킬 수 있는 경우 시스템 내부 명령어를 실행하거나 외부와 연결해 시스템을 제어할 수 있는 보안약점이다. 공격자가 실행 가능한 파일을 서버에 업로드 하면 파이썬에서 String 형식으로 표현된 표현식을 인수로 받아 반환하는 eval() 함수와 인수로 받은 문자열을 실행하는 exec()를 같이 사용해 여러 변수들을 동적으로 값을 할당받아 실행될 수 있어 웹쉘(Web Shell) 공격에 취약하다.",
+  "impact": "공격자가 업로드한 실행 가능한 파일을 웹을 통해 직접 실행시켜 시스템 내부 명령어를 실행하거나 외부와 연결해 시스템을 제어할 수 있다(웹쉘 공격). 또한 파일 크기·개수를 제한하지 않으면 시스템 자원 고갈 등으로 서비스 거부 공격이 발생할 수 있다.",
+  "countermeasure": "파일 업로드 공격을 방지하기 위해서 특정 파일 유형만 허용하도록 화이트리스트 방식으로 파일 유형을 제한해야 한다. 이때 파일의 확장자 및 업로드 된 파일의 Content-Type도 함께 확인해야 한다. 또한 파일 크기 및 파일 개수를 제한하여 시스템 자원 고갈 등으로 서비스 거부 공격이 발생하지 않도록 제한해야 한다. 업로드 된 파일을 웹 루트 폴더 외부에 저장해 공격자가 URL을 통해 파일을 실행할 수 없도록 해야 하며, 가능하면 업로드 된 파일의 이름은 공격자가 추측할 수 없는 무작위한 이름으로 변경 후 저장하는 것이 안전하다. 또한 업로드 된 파일을 저장할 경우에는 최소 권한만 부여하는 것이 안전하고 실행 여부를 확인하여 실행 권한을 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\nfrom django.core.files.storage import FileSystemStorage\n\ndef file_upload(request):\n    if request.FILES['upload_file']:\n          # 사용자가 업로드하는 파일을 검증 없이 저장하고 있어\n          # 안전하지 않다\n          upload_file = request.FILES['upload_file']\n          fs = FileSystemStorage(location='media/screenshot', base_url='media/screenshot')\n          # 업로드 하는 파일에 대한 크기, 개수, 확장자 등을 검증하지 않음\n          filename = fs.save(upload_file.name, upload_file)\n          return render(request, '/success.html', {'filename':filename})\n    return render(request, '/error.html', {'error':'파일 업로드 실패'})",
+      "safe": "import os\nfrom django.shortcuts import render\nfrom django.core.files.storage import FileSystemStorage\n\n# 업로드 하는 파일 개수, 크기, 확장자 제한\nFILE_COUNT_LIMIT = 5\n# 업로드 하는 파일의 최대 사이즈 제한 예 ) 5MB - 5*1024*1024\nFILE_SIZE_LIMIT = 5242880\n# 허용하는 확장자는 화이트리스트로 관리한다.\nWHITE_LIST_EXT = [\n    '.jpg',\n    '.jpeg'\n]\n\ndef file_upload(request):\n  # 파일 개수 제한\n  if len(request.FILES) == 0 or len(request.FILES) > FILE_COUNT_LIMIT:\n    return render(request, '/error.html', {'error': '파일 개수 초과'})\n\n  for filename, upload_file in request.FILES.items():\n    # 파일 타입 체크\n    if upload_file.content_type != 'image/jpeg':\n      return render(request, '/error.html', {'error': '파일 타입 오류'})\n    # 파일 크기 제한\n    if upload_file.size > FILE_SIZE_LIMIT:\n      return render(request, '/error.html', {'error': '파일사이즈 오류'})\n      # 파일 확장자 검사\n      file_name, file_ext = os.path.splitext(upload_file.name)\n    if file_ext.lower() not in WHITE_LIST_EXT:\n      return render(request, '/error.html', {'error': '파일 타입 오류'})\n\n    fs = FileSystemStorage(location='media/screenshot', base_url = 'media/screenshot')\n    for upload_file in request.FILES.values():\n      filename = fs.save(upload_file.name, upload_file)\n      filename_list.append(filename)\n\n  return render(request, \"/success.html\", {\"filename_list\": filename_list})",
+      "note": "안전하지 않은 코드는 업로드 대상 파일 개수, 크기, 확장자 등의 유효성 검사를 하지 않고 파일 시스템에 그대로 저장하고 있어 공격자에 의해 악성코드, 쉘코드 등 위험한 형식의 파일이 시스템에 업로드 될 수 있다. 안전한 코드는 업로드 하는 파일의 개수(FILE_COUNT_LIMIT), 크기(FILE_SIZE_LIMIT), 파일 확장자(화이트리스트 WHITE_LIST_EXT) 등을 검사해 업로드를 제한한다. 파일 타입 확인은 MIME 타입(content_type)을 확인하는 과정으로, 파일 이름에서 확장자만 검사할 경우 변조된 확장자를 통해 업로드 제한을 회피할 수 있어 파일 자체의 시그니처를 확인해야 한다."
+    }
+  ]
+}

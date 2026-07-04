@@ -1,0 +1,30 @@
+{
+  "chapter_code": "DEV-IV-13",
+  "title": "HTTP 응답분할",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-113",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 13. HTTP 응답분할",
+    "pages": "193-195"
+  },
+  "overview": "HTTP 요청에 들어 있는 파라미터(Parameter)가 HTTP 응답헤더에 포함되어 사용자에게 다시 전달될 때, 입력값에 CR(Carriage Return)이나 LF(Line Feed)와 같은 개행문자가 존재하면 HTTP 응답이 2개 이상으로 분리될 수 있다.",
+  "impact": "공격자는 개행문자를 이용하여 첫 번째 응답을 종료시키고, 두 번째 응답에 악의적인 코드를 주입하여 XSS 및 캐시 훼손(Cache Poisoning) 공격 등을 수행할 수 있다.",
+  "countermeasure": "요청 파라미터의 값을 HTTP 응답헤더(예를 들어, Set-Cookie 등)에 포함시킬 경우 CR, LF와 같은 개행문자를 제거한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "// 외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n    return;\n}\n// 쿠키는 Set-Cookie 응답헤더로 전달되므로 개행문자열 포함 여부 검증이 필요\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\nresponse.setContentType(\"text/html\");",
+      "safe": "String lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n    return;\n}\n// 외부 입력값에서 개행문자(\\r\\n)를 제거한 후 쿠키의 값으로 설정\nlastLogin = lastLogin.replaceAll(\"[\\\\r\\\\n]\", \"\");\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);",
+      "note": "외부 입력값을 검증 없이 반환 쿠키의 값으로 설정하고 있어, 공격자가 lastLogin의 값으로 'Wiley Hacker\\r\\nHTTP/1.1 200 OK\\r\\n'를 설정하면 응답이 분리되어 전달되며 분리된 응답 본문의 내용을 공격자가 마음대로 수정할 수 있다. 안전한 코드는 외부 입력값의 null 여부를 체크하고, 응답이 여러 개로 나눠지는 것을 방지하기 위해 개행문자를 제거한 뒤 응답헤더의 값으로 사용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 외부 입력값을 검증없이 사용하는 것은 안전하지 않다.\nstring usrInput = Request.QueryString[\"ID\"];\nResponse.AddHeader(\"foo\", \"bar\" + usrInput);",
+      "safe": "string usrInput = Request.QueryString[\"ID\"];\n// 개행문자를 제거 한 이후에 사용해야 한다.\nstring validatedInput = usrInput.Replace(\"\\n\", \"\").Replace(\"\\r\",\"\");\nResponse.AddHeader(\"foo\", \"bar\" + validatedInput);",
+      "note": "외부 입력값으로 반환되는 응답헤더 값을 설정하는 C# 코드로, 응답이 분리되어 전달될 수 있으며 분리된 응답 본문의 내용을 공격자가 마음대로 수정할 수 있다. 안전한 코드는 개행문자(\\n, \\r)를 모두 제거한 이후에 헤더 값으로 사용한다."
+    }
+  ]
+}

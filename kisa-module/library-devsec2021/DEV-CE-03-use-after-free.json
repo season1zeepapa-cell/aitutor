@@ -1,0 +1,32 @@
+{
+  "chapter_code": "DEV-CE-03",
+  "title": "해제된 자원 사용",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-416",
+  "applies_to": [
+    "C/C++"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제5절 코드오류 / 3. 해제된 자원 사용",
+    "pages": "305-307"
+  },
+  "overview": "C언어에서 동적 메모리 관리는 보안 취약점을 유발하는 대표적인 프로그램 결함의 원인이다.",
+  "impact": "해제한 메모리를 참조하게 되면 예상치 못한 값 또는 코드를 실행하게 되어 의도하지 않은 결과가 발생하게 된다.",
+  "countermeasure": "동적으로 할당된 메모리를 해제한 후 그 메모리를 참조하고 있던 포인터를 참조 추적이나 형 변환, 수식에서의 피연산자 등으로 사용하여 해제된 메모리에 접근하도록 해서는 안된다. 또한, 메모리 해제 후 포인터에 널(Null)값을 저장하거나 다른 적절한 값을 저장하면 의도하지 않은 코드의 실행을 막을 수 있다.",
+  "code_examples": [
+    {
+      "lang": "C",
+      "vulnerable": "int main(int argc, const char *argv[]) {\n    char *temp;\n    temp = (char *)malloc(BUFFER_SIZE);\n    ……\n    free(temp);\n    // 해제한 자원을 사용하고 있어 의도하지 않은 결과가 발생하게 된다.\n    stmcpy(temp, argv[1], BUFFER_SIZE-1);\n}",
+      "safe": "int main(int argc,const char *argv[]) {\n    char *temp;\n    temp = (char *)malloc(BUFFER_SIZE);\n    ……\n    // 할당된 자원을 최종적으로 사용하고 해제하여야 한다.\n    stmcpy(temp,argv[1], BUFFER_SIZE-1);\n    free(temp);\n}",
+      "note": "동적 변수 temp에 할당된 동적 메모리를 해제한 후 다시 사용하고 있어 예상치 못한 임의의 프로그램이 수행되는 취약점을 유발할 수 있다. 안전한 코드는 메모리를 해제하기 전에 할당한 메모리를 사용하는 작업을 수행하고 최종적으로 메모리를 해제한다. (원문 코드의 stmcpy 철자는 원문 그대로임)"
+    },
+    {
+      "lang": "C",
+      "vulnerable": "char *data;\nint data_type\nif (data_type==val_1) { free(data); }\n    ……\n// 이미 해제된 자원을 이중 해제하여 문제가 발생한다.\nif (data_type==val_2) { free(data); }",
+      "safe": "char *data;\nint data_type\nif (data_type==val_1) {\n    free(data);\n    // 메모리를 해제한 후 항상 포인터에 NULL을 할당하여 이중 해제하더라도 무시되게 한다.\n    data = NULL;\n}\n    ……\nif (data_type==val_2) {\n    free(data);\n    // 메모리를 해제한 후 항상 포인터에 NULL을 할당하여 이중 해제하더라도 무시되게 한다.\n    data = NULL;\n}",
+      "note": "문자형으로 동적 할당된 메모리를 참조하는 포인터와 정수형 변수 data_type을 사용할 때, data_type 값이 val_1과 동일하면서 동시에 val_2와도 동일한 값이 되면 두 번째 조건문에서 이중 해제(Double Free) 문제가 발생한다. 동적 할당된 포인터를 해제한 후 NULL값으로 설정함으로써 동일한 메모리 할당에 대해서는 한번만 해제하도록 하여 이중 해제 문제를 방지한다."
+    }
+  ]
+}

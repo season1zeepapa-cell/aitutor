@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-SF-13",
+  "title": "주석문 안에 포함된 시스템 주요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-615",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 13. 주석문 안에 포함된 시스템 주요정보",
+    "pages": "262-263"
+  },
+  "overview": "패스워드를 주석문에 넣어두면 시스템 보안이 훼손될 수 있다. 소프트웨어 개발자가 편의를 위해서 주석문에 패스워드를 적어둔 경우, 소프트웨어가 완성된 후에는 그것을 제거하는 것이 매우 어렵게 된다.",
+  "impact": "공격자가 소스코드에 접근할 수 있다면, 주석문에 남아 있는 ID·패스워드 등 주요정보를 이용해 아주 쉽게 시스템에 침입할 수 있다.",
+  "countermeasure": "주석에는 ID, 패스워드 등 보안과 관련된 내용을 기입하지 않는다. 프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 패스워드 등의 정보는 개발 완료 시에 확실하게 삭제하여야 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "// 주석문으로 DB연결 ID, 패스워드의 중요한 정보를 노출시켜 안전하지 않다.\n// DB연결 root / a1q2w3r3f2!@\ncon = DriverManager.getConnection(URL, USER, PASS);",
+      "safe": "// ID, 패스워드등의 중요 정보는 주석에 포함해서는 안된다.\ncon = DriverManager.getConnection(URL, USER, PASS);",
+      "note": "개발자의 이해를 돕기 위한 편리성 목적으로 DB연결 계정과 비밀번호를 주석문 안에 서술하고 제대로 지우지 않아 보안약점이 발생한 경우. 안전한 코드는 주석에서 계정 정보를 제거했다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 주석문으로 DB연결 ID, 패스워드의 중요한 정보를 노출시켜 안전하지 않다.\n// DB연결 root / a1q2w3r3f2!@\nconn = customGetConnection(USER, PASS);",
+      "safe": "// ID, 패스워드등의 중요 정보는 주석에 포함해서는 안된다.\nconn = customGetConnection(USER, PASS);",
+      "note": "주석에 DB연결 패스워드를 포함하고 있는 C# 코드. 개발 완료 시 주석에 남겨놓은 계정·패스워드 정보를 확실하게 삭제해야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "/* password is \"admin\" */\n/* passwd is \"admin\" */\nint verfiyAuth(char *ipasswd, char *orgpasswd) {\n  char *admin = \"admin\";\n  if(strncmp(ipasswd, oprgpasswd, sizeof(ipasswd)) != 0) {\n      printf(\"Authentication Fail! \\n\");\n  }\n  return admin;",
+      "safe": "int verfiyAuth(char *ipasswd, char *orgpasswd) {\n    char *admin = \"admin\";\n    if(strncmp(ipasswd, oprgpasswd, sizeof(ipasswd)) != 0) {\n        printf(\"Authentication Fail! \\n\");\n    }\n    return admin;\n}",
+      "note": "주석에 패스워드(admin)를 포함하고 있는 C 예제 코드. 불필요한 주석은 삭제해야 한다. (취약 코드 블록은 원문에서 닫는 중괄호 없이 끝난다.)"
+    }
+  ]
+}

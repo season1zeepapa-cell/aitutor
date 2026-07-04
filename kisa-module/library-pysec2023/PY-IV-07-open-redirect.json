@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-IV-07",
+  "title": "신뢰되지 않은 URL주소로 자동접속 연결",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-601",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 7. 신뢰되지 않은 URL주소로 자동접속 연결",
+    "pages": "36-38"
+  },
+  "overview": "사용자가 입력하는 값을 외부 사이트 주소로 사용해 해당 사이트로 자동 접속하는 서버 프로그램은 피싱(Phishing) 공격에 노출되는 취약점을 가진다. 클라이언트에서 전송된 URL 주소로 연결하기 때문에 안전하다고 생각할 수 있으나, 공격자는 정상적인 폼 요청을 변조해 사용자가 위험한 URL로 접속할 수 있도록 공격할 수 있다. 파이썬 프레임워크의 redirect 함수를 사용할 때에도 해당 프레임워크 버전에서 알려진 취약점이 있는지 확인해야 한다. Flask 프레임워크의 Flask-Security-Too 라이브러리의 경우 get_post_logout_redirect 함수와 get_post_login_redirect 함수가 4.1.0 이전 버전에서 URL 유효성 검사를 우회하고 사용자를 임의의 URL로 리다이렉션 할 수 있는 취약점이 존재한다.",
+  "impact": "공격자가 폼 요청을 변조해 사용자를 의도하지 않은 위험한 사이트로 접속시킬 수 있으며, 사용자가 피싱(Phishing) 공격에 노출될 수 있다.",
+  "countermeasure": "리다이렉션을 허용하는 모든 URL을 서버 측 화이트리스트로 관리하고 사용자 입력값을 리다이렉션 할 URL이 존재하는지 검증해야 한다. 만약 사용자 입력값이 화이트리스트로 관리가 불가능하고 리다이렉션 URL의 인자 값으로 사용되어야만 하는 경우는 모든 리다이렉션에서 프로토콜과 host 정보가 들어가지 않는 상대 URL(relative)을 사용 및 검증해야 한다. 또는 절대 URL(absolute URL)을 사용할 경우 리다이렉션을 실행하기 전에 사용자 입력 URL이 https://myhompage.com/ 처럼 서비스하고 있는 URL로 시작하는지를 확인해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import redirect\n\ndef redirect_url(request):\n    url_string = request.POST.get('url', '')\n    # 사용자 입력에 포함된 URL 주소로 리다이렉트 하는 경우\n    # 피싱 사이트로 접속되는 등 사용자가 피싱 공격에 노출될 수 있다\n    return redirect(url_string)",
+      "safe": "from django.shortcuts import render, redirect\n\nALLOW_URL_LIST = [\n      '127.0.0.1',\n      '192.168.0.1',\n      '192.168.0.100',\n      'https://login.myservice.com',\n      '/notice',\n]\n\ndef redirect_url(request):\n    url_string = request.POST.get('url', '')\n\n    # 이동할 수 있는 URL 범위를 제한하여\n    # 위험한 사이트의 접근을 차단하고 있다\n    if url_string not in ALLOW_URL_LIST:\n      return render(request, '/error.html', {'error':'허용되지 않는 주소입니다.'})\n\n    return redirect(url_string)",
+      "note": "안전하지 않은 코드는 사용자로부터 입력받은 URL 주소를 검증 없이 redirect 함수의 인자로 사용하고 있어 사용자가 의도하지 않은 사이트로 접근하도록 하거나 피싱(Phishing) 공격에 노출될 수 있다. 안전한 코드는 사용자로부터 주소를 입력받아 리다이렉트할 때 위험한 도메인이 포함될 수 있기 때문에 화이트리스트(ALLOW_URL_LIST)로 사전에 정의된 안전한 웹사이트에 한하여 리다이렉트 할 수 있도록 한다."
+    }
+  ]
+}

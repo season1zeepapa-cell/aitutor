@@ -1,0 +1,27 @@
+{
+  "chapter_code": "OBJ-IMP-IV-08",
+  "choices": [
+    {
+      "num": 1,
+      "text": "서버에서 XML 외부 엔티티를 처리할 수 있도록 설정된 경우, 취약한 XML 파서가 외부 값을 참조하는 XML을 처리하면서 서버 파일 접근·정보 노출 등이 발생할 수 있다."
+    },
+    {
+      "num": 2,
+      "text": "외부 엔티티 참조는 XML의 표준 기능이므로 비활성화해서는 안 되며, 신뢰할 수 없는 외부 XML도 제한 설정 없이 그대로 파싱해야 한다."
+    },
+    {
+      "num": 3,
+      "text": "<!ENTITY xxe SYSTEM \"file:///etc/passwd\"> 와 같은 DTD가 포함된 XML을 파싱하면 서버의 /etc/passwd 파일 내용이 참조·노출될 수 있다."
+    },
+    {
+      "num": 4,
+      "text": "disallow-doctype-decl를 true로 설정하거나 external-general-entities를 false로 설정하는 등 파서별 방식으로 외부 엔티티를 비활성화한다."
+    },
+    {
+      "num": 5,
+      "text": "로컬 정적 DTD를 사용하도록 설정하고, 외부에서 전송된 XML 문서에 포함된 DTD를 완전하게 비활성화하는 것이 근본 대책이다."
+    }
+  ],
+  "answer_index": 1,
+  "explanation": "정답(②)은 옳지 않다. 신뢰할 수 없는 외부 XML을 제한 설정 없이 그대로 파싱하는 것이 바로 XXE 취약점의 원인이므로, 외부 엔티티 및 외부 DTD는 비활성화해야 한다. ① 서버가 XML 외부 엔티티를 처리하도록 설정된 경우 취약한 파서가 외부 값을 참조하며 서버 파일 접근·정보 노출이 발생할 수 있다는 정의로 옳다. ③ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> 가 포함된 XML 파싱으로 /etc/passwd가 노출될 수 있다는 공격 예로 옳다. ④ disallow-doctype-decl를 true로, external-general-entities를 false로 설정하는 파서별 비활성화 방식으로 옳다. ⑤ 로컬 정적 DTD 사용 및 외부 DTD 완전 비활성화라는 근본 대책으로 옳다."
+}

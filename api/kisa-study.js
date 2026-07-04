@@ -94,11 +94,11 @@ module.exports = withAuth(async (req, res) => {
       ORDER BY difficulty, language
     `, [code]);
 
-    // MCQ 문항 카운트 (드릴 시작 버튼 표시용)
-    const mcqCountRes = await query(`
+    // 이론 객관식(objective) 문항 카운트 (드릴 시작 버튼 표시용) — chapter_code 는 'OBJ-<챕터>-N' 형태
+    const objectiveCountRes = await query(`
       SELECT count(*)::int AS cnt
       FROM kisa_questions
-      WHERE chapter_code = $1 AND question_type = 'mcq' AND is_active = TRUE
+      WHERE chapter_code LIKE 'OBJ-' || $1 || '%' AND question_type = 'objective' AND is_active = TRUE
     `, [code]);
 
     // 단답형(blank) 문항 카운트
@@ -136,7 +136,7 @@ module.exports = withAuth(async (req, res) => {
       // 연관 챕터 (설계↔구현 매핑)
       related_forward: relatedForwardRes.rows,   // 이 챕터가 직접 가리키는 챕터 (설계→구현)
       related_reverse: relatedReverseRes.rows,   // 이 챕터를 가리키는 챕터 (구현→설계)
-      mcq_count: mcqCountRes.rows[0]?.cnt || 0,
+      objective_count: objectiveCountRes.rows[0]?.cnt || 0,
       blank_count: blankCountRes.rows[0]?.cnt || 0,
       diagnosis_count: examplesRes.rows.length,
     });

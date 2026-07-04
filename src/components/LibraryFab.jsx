@@ -4,15 +4,17 @@
 // - 검색: 제목·키워드·분류·요약 전체 필터
 // - 새 자료원은 src/data/kisa-library.json 의 sources 에 추가만 하면 자동 노출
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import libData from '../data/kisa-library.json';
 import SharedCodeBlock from './CodeBlock';
 import { useCurrentChapter } from '../lib/currentChapter';
 
 const SOURCE_BADGE = {
   library: { label: '진단가이드', cls: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
-  course: { label: '교재', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
   kisec2026: { label: '2026교재', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+  jssec2023: { label: 'JS가이드', cls: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' },
+  devsec2021: { label: '개발보안', cls: 'bg-rose-500/15 text-rose-600 dark:text-rose-400' },
+  pysec2023: { label: 'Python가이드', cls: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
 };
 
 // 코드 lang 라벨 → Prism 언어 키 추정 (QuestionLibraryModal 등에서 재사용)
@@ -38,44 +40,120 @@ export function CodeBlock({ label, code, variant, language }) {
 
 // 예시코드 + 정탐/오탐 코드 섹션 (library 항목에만 존재)
 // 문제 풀이 중 지식 모달(QuestionLibraryModal)에서도 동일하게 재사용 — 중복 구현 금지
-export function CodeSection({ item }) {
+// accordion=true 면 언어/프레임워크 그룹별 접이식으로 렌더 (예시코드 라이브러리 조회 모드, REBUILD92)
+export function CodeSection({ item, accordion = false }) {
   const ce = item.codeExamples || [];
   const dc = item.diagnosisCode || { truePositive: [], falsePositive: [] };
-  const hasDiag = (dc.truePositive || []).length > 0 || (dc.falsePositive || []).length > 0;
+  const tp = dc.truePositive || [];
+  const fp = dc.falsePositive || [];
+  const hasDiag = tp.length > 0 || fp.length > 0;
+  // 아코디언 그룹: 코드예시 1건(언어별) = 그룹 1개 + 진단코드 전체 = 그룹 1개
+  const groupKeys = [...ce.map((_, i) => 'ce' + i), ...(hasDiag ? ['diag'] : [])];
+  // 그룹이 1개뿐이면 처음부터 펼침 (접을 이유가 없음)
+  const [openKeys, setOpenKeys] = useState(() => new Set(groupKeys.length === 1 ? groupKeys : []));
   if (!ce.length && !hasDiag) return null;
-  return (
+
+  const exampleBody = (c) => (
     <>
-      {ce.length > 0 && (
-        <div className="space-y-2 pt-1">
-          <div className="font-semibold text-primary/80">예시 코드 (취약 vs 안전)</div>
-          {ce.map((c, i) => (
-            <div key={i} className="rounded-lg border border-border/60 p-2">
-              <div className="text-[11px] font-semibold mb-0.5">{c.lang}</div>
-              {c.vulnerable && <CodeBlock label="❌ 취약한 코드" code={c.vulnerable} variant="bad" language={guessLang(c.lang)} />}
-              {c.safe && <CodeBlock label="✅ 안전한 코드" code={c.safe} variant="good" language={guessLang(c.lang)} />}
-              {c.note && <p className="text-[11px] mt-1 text-current/70 leading-relaxed">💡 {c.note}</p>}
-            </div>
-          ))}
-        </div>
-      )}
-      {hasDiag && (
-        <div className="space-y-2 pt-1">
-          <div className="font-semibold text-primary/80">정탐(취약) / 오탐(안전) 코드</div>
-          {(dc.truePositive || []).map((t, i) => (
-            <div key={'tp' + i}>
-              {t.desc && <p className="text-[11px] text-red-600 dark:text-red-400 leading-relaxed">🔴 정탐: {t.desc}</p>}
-              {t.code && <CodeBlock label="" code={t.code} variant="bad" />}
-            </div>
-          ))}
-          {(dc.falsePositive || []).map((t, i) => (
-            <div key={'fp' + i}>
-              {t.desc && <p className="text-[11px] text-green-600 dark:text-green-400 leading-relaxed">🟢 오탐: {t.desc}</p>}
-              {t.code && <CodeBlock label="" code={t.code} variant="good" />}
-            </div>
-          ))}
-        </div>
-      )}
+      {c.vulnerable && <CodeBlock label="❌ 취약한 코드" code={c.vulnerable} variant="bad" language={guessLang(c.lang)} />}
+      {c.safe && <CodeBlock label="✅ 안전한 코드" code={c.safe} variant="good" language={guessLang(c.lang)} />}
+      {c.note && <p className="text-[11px] mt-1 text-current/70 leading-relaxed">💡 {c.note}</p>}
     </>
+  );
+  const diagBody = (
+    <>
+      {tp.map((t, i) => (
+        <div key={'tp' + i}>
+          {t.desc && <p className="text-[11px] text-red-600 dark:text-red-400 leading-relaxed">🔴 정탐: {t.desc}</p>}
+          {t.code && <CodeBlock label="" code={t.code} variant="bad" />}
+        </div>
+      ))}
+      {fp.map((t, i) => (
+        <div key={'fp' + i}>
+          {t.desc && <p className="text-[11px] text-green-600 dark:text-green-400 leading-relaxed">🟢 오탐: {t.desc}</p>}
+          {t.code && <CodeBlock label="" code={t.code} variant="good" />}
+        </div>
+      ))}
+    </>
+  );
+
+  if (!accordion) {
+    return (
+      <>
+        {ce.length > 0 && (
+          <div className="space-y-2 pt-1">
+            <div className="font-semibold text-primary/80">예시 코드 (취약 vs 안전)</div>
+            {ce.map((c, i) => (
+              <div key={i} className="rounded-lg border border-border/60 p-2">
+                <div className="text-[11px] font-semibold mb-0.5">{c.lang}</div>
+                {exampleBody(c)}
+              </div>
+            ))}
+          </div>
+        )}
+        {hasDiag && (
+          <div className="space-y-2 pt-1">
+            <div className="font-semibold text-primary/80">정탐(취약) / 오탐(안전) 코드</div>
+            {diagBody}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // ── 아코디언 렌더 — 그룹 헤더(언어 라벨 + 블록 배지) 클릭으로 개별 접기/펼치기 ──
+  const toggle = (k) => setOpenKeys((prev) => {
+    const next = new Set(prev);
+    next.has(k) ? next.delete(k) : next.add(k);
+    return next;
+  });
+  const allOpen = groupKeys.every((k) => openKeys.has(k));
+  return (
+    <div className="space-y-1.5 pt-1">
+      <div className="flex items-center">
+        <div className="font-semibold text-primary/80 flex-1">예시 코드 (취약 vs 안전)</div>
+        {groupKeys.length > 1 && (
+          <button
+            onClick={() => setOpenKeys(allOpen ? new Set() : new Set(groupKeys))}
+            className="text-[10px] px-2 py-0.5 rounded-full border border-border text-text-secondary hover:bg-primary/5"
+          >
+            {allOpen ? '모두 접기' : '모두 펼치기'}
+          </button>
+        )}
+      </div>
+      {ce.map((c, i) => {
+        const k = 'ce' + i;
+        const open = openKeys.has(k);
+        return (
+          <div key={k} className="rounded-lg border border-border/60 overflow-hidden">
+            <button
+              onClick={() => toggle(k)}
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-primary/5"
+            >
+              <span className="text-primary/50 text-[10px]">{open ? '▾' : '▸'}</span>
+              <span className="flex-1 text-[11px] font-semibold">{c.lang || '예시 코드'}</span>
+              <span className="shrink-0 text-[10px] text-text-secondary">
+                {c.vulnerable ? '❌' : ''}{c.safe ? ' ✅' : ''}
+              </span>
+            </button>
+            {open && <div className="px-2 pb-2">{exampleBody(c)}</div>}
+          </div>
+        );
+      })}
+      {hasDiag && (
+        <div className="rounded-lg border border-border/60 overflow-hidden">
+          <button
+            onClick={() => toggle('diag')}
+            className="w-full flex items-center gap-2 px-2 py-1.5 text-left hover:bg-primary/5"
+          >
+            <span className="text-primary/50 text-[10px]">{openKeys.has('diag') ? '▾' : '▸'}</span>
+            <span className="flex-1 text-[11px] font-semibold">정탐(취약) / 오탐(안전) 진단코드</span>
+            <span className="shrink-0 text-[10px] text-text-secondary">🔴{tp.length} 🟢{fp.length}</span>
+          </button>
+          {openKeys.has('diag') && <div className="px-2 pb-2 space-y-2">{diagBody}</div>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -120,22 +198,6 @@ function ItemRow({ item, expanded, onToggle, onGo }) {
               📖 학습에서 자세히 보기 →
             </button>
           )}
-          {onGo && item.source === 'course' && (item.relatedLibrary || []).length > 0 && (
-            <button
-              onClick={() => onGo(`/kisa/study/${item.relatedLibrary[0]}`)}
-              className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
-            >
-              🔗 연관 보안약점 학습 ({item.relatedLibrary[0]}) →
-            </button>
-          )}
-          {onGo && item.source === 'course' && !(item.relatedLibrary || []).length && (
-            <button
-              onClick={() => onGo(item.unit === 'Ⅵ' ? '/kisa/drill' : '/kisa/study')}
-              className="w-full mt-1 py-1.5 rounded-lg border border-primary/30 text-primary text-[11px] font-semibold hover:bg-primary/5 active:scale-[0.99] transition-all"
-            >
-              {item.unit === 'Ⅵ' ? '🎯 문제 풀이(드릴) 시작 →' : '📖 학습 자료 보기 →'}
-            </button>
-          )}
         </div>
       )}
     </div>
@@ -144,6 +206,7 @@ function ItemRow({ item, expanded, onToggle, onGo }) {
 
 export default function LibraryFab() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -208,6 +271,9 @@ export default function LibraryFab() {
   const toggleItem = (id) => setExpandedId((p) => (p === id ? null : id));
   // 패널 닫고 지정 경로로 이동 (학습 상세/목록/드릴)
   const handleGo = (path) => { setOpen(false); navigate(path); };
+
+  // KISA 진단원 교육(/kisa/*)에서만 노출 — 다른 탭(학습/관리/연동/설정)에서는 숨김 (사용자 요청)
+  if (!location.pathname.startsWith('/kisa')) return null;
 
   return (
     <>

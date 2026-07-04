@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-02",
+  "title": "부적절한 인가",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-285",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 2. 부적절한 인가",
+    "pages": "72-74"
+  },
+  "overview": "프로그램이 모든 가능한 실행 경로에 대해서 접근 제어를 검사하지 않거나 불완전하게 검사하는 경우 발생하는 보안약점이다.",
+  "impact": "공격자는 접근 제어가 적용되지 않은 실행경로를 통해 정보를 유출할 수 있으며, 권한이 없는 사용자가 삭제 등 중요한 작업을 수행할 수 있다.",
+  "countermeasure": "응용 프로그램이 제공하는 정보와 기능이 가지는 역할에 맞게 분리 개발함으로써 공격자에게 노출되는 공격 노출면(Attack Surface, 공격자가 진입 또는 영향을 줄 수 있는 시스템 경계선 지점·시스템 요소·환경)을 최소화하고 사용자의 권한에 따른 ACL(Access Control List)을 관리한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\nfrom .model import Content\n\ndef delete_content(request):\n  action = request.POST.get('action', '')\n  content_id = request.POST.get('content_id', '')\n  # 작업 요청을 하는 사용자의 권한 확인 없이 delete를 수행\n  if action is not None and action == \"delete\":\n    Content.objects.filter(id=content_id).delete()\n    return render(request, '/success.html')\n  else:\n    return render(request, '/error.html', {'error':'접근 권한이 없습니다.'})",
+      "safe": "from django.contrib.auth.decorators import login_required, permission_required\nfrom django.shortcuts import render\nfrom .model import Content\n\n@login_required\n # 해당 기능을 수행할 권한이 있는지 확인\n@permission_required('content.delete', raise_exception=True)\ndef delete_content(request):\n  action = request.POST.get('action', '')\n  content_id = request.POST.get('content_id', '')\n\n  if action is not None and action == \"delete\":\n    Content.objects.filter(id=content_id).delete()\n    return render(request, '/success.html')\n  else:\n    return render(request, '/error.html', {'error':'삭제 실패'})",
+      "note": "취약 코드는 사용자 입력값에 따라 삭제 작업을 수행하면서 사용자의 권한 확인을 위한 별도의 통제를 적용하지 않았다. 안전한 코드는 세션에 저장된 사용자 정보를 통해 @login_required와 @permission_required('content.delete') 데코레이터로 해당 사용자가 수행할 작업에 대한 권한이 있는지 확인한 후 권한이 있는 경우에만 작업을 수행한다."
+    }
+  ]
+}

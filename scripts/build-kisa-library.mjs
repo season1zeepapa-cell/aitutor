@@ -1,5 +1,5 @@
 // KISA 라이브러리 합본 생성 (REBUILD45 / 정렬·계층 개선 REBUILD46)
-// kisa-module/library(진단가이드) + course(양성과정 교재) json → src/data/kisa-library.json
+// kisa-module/library(진단가이드) + 교재/가이드 자료원 json → src/data/kisa-library.json
 //
 // 왜 필요한가: Dockerfile frontend-builder 는 src/·public/ 만 COPY 한다.
 // kisa-module/ 은 빌드 컨텍스트에 없으므로, 앱이 쓰려면 빌드 전 src/ 안에 합본을 만들어 두어야 한다.
@@ -19,9 +19,10 @@ import { fileURLToPath } from 'url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const libDir = join(root, 'kisa-module/library');
-const courseDir = join(root, 'kisa-module/course');
 const kisec2026Dir = join(root, 'kisa-module/library-kisec2026'); // 2026 기본과정 교재(별도 자료원)
 const jssec2023Dir = join(root, 'kisa-module/library-jssec2023'); // JS 시큐어코딩 가이드(별도 자료원)
+const devsec2021Dir = join(root, 'kisa-module/library-devsec2021'); // 소프트웨어 개발보안 가이드 2021(별도 자료원)
+const pysec2023Dir = join(root, 'kisa-module/library-pysec2023'); // Python 시큐어코딩 가이드(별도 자료원)
 const imageDir = join(root, 'public/q-images/library'); // 약점별 개요 다이어그램 이미지
 const outDir = join(root, 'src/data');
 const outFile = join(outDir, 'kisa-library.json');
@@ -162,9 +163,11 @@ function mapLibrary(d, src = 'library') {
           }
         : null,
     detail: [
+      d.impact ? { label: '공격 영향', text: d.impact } : null,
       d.countermeasure ? { label: '보안대책', text: d.countermeasure } : null,
       Array.isArray(d.security_measures) && d.security_measures.length ? { label: '보안대책', text: d.security_measures.join('\n') } : null,
       d.diagnosis?.method ? { label: '진단방법', text: d.diagnosis.method } : null,
+      (d.incident_cases || []).length ? { label: '사고사례', text: d.incident_cases.map((c) => `• ${c}`).join('\n') } : null,
       (d.question_hooks?.keywords || []).length ? { label: '핵심 키워드', text: d.question_hooks.keywords.join(', ') } : null,
     ].filter(Boolean),
     codeExamples: (d.code_examples || []).map((c) => ({ lang: c.lang || '', vulnerable: c.vulnerable || '', safe: c.safe || '', note: c.note || '' })),
@@ -175,9 +178,9 @@ function mapLibrary(d, src = 'library') {
   };
 }
 
-// 양성과정 교재(course) → 카드. g1=단원, g2=분류(Ⅳ·Ⅴ 항목카드만)
-function mapCourse(d, src = 'course') {
-  const isItem = /-(DSG|IMP)-/.test(d.unit_code); // COURSE-/K26- 등 prefix 무관하게 약점 항목카드 판별
+// 교재 이론카드 → 카드. g1=단원, g2=분류(Ⅳ·Ⅴ 항목카드만) — kisec2026 이론카드에서 사용
+function mapCourse(d, src) {
+  const isItem = /-(DSG|IMP)-/.test(d.unit_code); // K26- 등 prefix 무관하게 약점 항목카드 판별
   const cat = isItem ? ABBR_CAT[catAbbr(d.unit_code)] : '';
   const catLabel = CAT_LABEL[cat] || (CAT_LABEL[d.category] || (isItem ? d.category : ''));
   return {
@@ -204,7 +207,6 @@ function mapCourse(d, src = 'course') {
 }
 
 const libItems = readJsons(libDir).map((d) => mapLibrary(d)).sort((a, b) => a.order - b.order);
-const courseItems = readJsons(courseDir).map((d) => mapCourse(d)).sort((a, b) => a.order - b.order);
 
 // 2026 기본과정 교재(별도 자료원). 약점카드(chapter_code)·이론카드(unit_code) 혼재 → 필드로 분기.
 // _extract/ 등 하위 폴더는 readdirSync 가 .json 만 필터하므로 자동 제외.
@@ -231,18 +233,30 @@ const jssec2023Items = (existsSync(jssec2023Dir) ? readJsons(jssec2023Dir) : [])
   .map((raw) => mapLibrary(raw, 'jssec2023'))
   .sort((a, b) => a.order - b.order);
 
+// 소프트웨어 개발보안 가이드 2021(별도 자료원). 설계(DEV-DSG-*) 20 + 구현(DEV-*) 49 약점카드.
+// stage 필드(design/implementation)로 mapLibrary 가 그룹·정렬을 처리한다.
+const devsec2021Items = (existsSync(devsec2021Dir) ? readJsons(devsec2021Dir) : [])
+  .map((raw) => mapLibrary(raw, 'devsec2021'))
+  .sort((a, b) => a.order - b.order);
+
+// Python 시큐어코딩 가이드(별도 자료원). 전부 구현단계(implementation) 약점카드.
+const pysec2023Items = (existsSync(pysec2023Dir) ? readJsons(pysec2023Dir) : [])
+  .map((raw) => mapLibrary(raw, 'pysec2023'))
+  .sort((a, b) => a.order - b.order);
+
 const data = {
   version: 2,
   sources: [
     { id: 'library', label: '진단가이드 (보안약점)', count: libItems.length, items: libItems },
-    { id: 'course', label: '양성과정 교재', count: courseItems.length, items: courseItems },
     { id: 'kisec2026', label: '2026 기본과정 교재', count: kisec2026Items.length, items: kisec2026Items },
     { id: 'jssec2023', label: 'JS 시큐어코딩 가이드', count: jssec2023Items.length, items: jssec2023Items },
+    { id: 'devsec2021', label: '개발보안 가이드(2021)', count: devsec2021Items.length, items: devsec2021Items },
+    { id: 'pysec2023', label: 'Python 시큐어코딩 가이드', count: pysec2023Items.length, items: pysec2023Items },
   ],
 };
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, JSON.stringify(data));
-const total = libItems.length + courseItems.length + kisec2026Items.length + jssec2023Items.length;
-console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + course ${courseItems.length} + kisec2026 ${kisec2026Items.length} + jssec2023 ${jssec2023Items.length} = ${total}개`);
+const total = libItems.length + kisec2026Items.length + jssec2023Items.length + devsec2021Items.length + pysec2023Items.length;
+console.log(`✓ src/data/kisa-library.json 생성: library ${libItems.length} + kisec2026 ${kisec2026Items.length} + jssec2023 ${jssec2023Items.length} + devsec2021 ${devsec2021Items.length} + pysec2023 ${pysec2023Items.length} = ${total}개`);
 console.log(`  이미지 자동매칭: public/q-images/library/ 에서 ${Object.keys(imageMap).length}개 파일 인식`);

@@ -1,0 +1,30 @@
+{
+  "chapter_code": "PY-IV-05",
+  "title": "운영체제 명령어 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-78",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 5. 운영체제 명령어 삽입",
+    "pages": "29-32"
+  },
+  "overview": "적절한 검증 절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행되는 경우 의도하지 않은 시스템 명령어가 실행될 수 있는 보안약점이다. 명령어 라인의 파라미터나 스트림 입력 등 외부 입력을 사용해 시스템 명령어를 생성하는 프로그램을 많이 찾아볼 수 있는데, 프로그램 외부로부터 받은 입력 문자열은 기본적으로 신뢰할 수 없기 때문에 적절한 처리를 해주지 않으면 공격으로 이어질 수 있다. 파이썬에서 eval() 함수와 exec() 함수는 내부에서 문자열을 실행하기에 편리하지만, String 형식의 표현된 식을 인수로 받아 반환하는 eval() 함수와 인수로 받은 문자열을 실행하는 exec()를 같이 사용하면 여러 변수들에 동적으로 값을 할당해 사용할 수 있어 명령어 삽입(Command Injection) 공격에 취약하다.",
+  "impact": "의도하지 않은 시스템 명령어가 실행돼 부적절하게 권한이 변경되거나 시스템 동작 및 운영에 악영향을 미칠 수 있다. 실행할 프로그램을 제한하지 않으면 외부의 공격자가 원하는 모든 프로그램을 실행할 수 있다.",
+  "countermeasure": "외부 입력값 내에 시스템 명령어를 포함하는 경우 |, ;, &, :, >, <, `(backtick), \\, ! 과 같이 멀티라인 및 리다이렉트 문자 등을 필터링 하고 명령을 수행할 파일명과 옵션을 제한해 인자로만 사용될 수 있도록 해야 한다. 외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, os.system)",
+      "vulnerable": "import os\nfrom django.shortcuts import render\n\ndef execute_command(request):\n  app_name_string = request.POST.get('app_name','')\n    # 입력 파라미터를 제한하지 않아 외부 입력값으로 전달된\n  # 모든 프로그램이 실행될 수 있음\n    os.system(app_name_string)\n    return render(request, '/success.html')",
+      "safe": "import os\nfrom django.shortcuts import render\n\nALLOW_PROGRAM = ['notepad', 'calc']\n\ndef execute_command(request):\n    app_name_string = request.POST.get('app_name','')\n\n    # 입력받은 파라미터가 허용된 시스템 명령어 목록에 포함되는지 검사\n    if app_name_string not in ALLOW_PROGRAM:\n        return render(request, '/error.html', {'error':'허용되지 않은 프로그램입니다.'})\n\n    os.system(app_name_string)\n    return render(request, '/success.html')",
+      "note": "os.system 사용 예제. 취약 코드는 외부에서 전달된 인자값으로 실행할 프로그램을 제한하지 않아 공격자가 원하는 모든 프로그램을 실행할 수 있다. 외부 입력값이 명령어의 인자가 아닌 명령어 그 자체로 사용될 경우에는 안전 코드처럼 사전에 화이트리스트 파라미터 배열(ALLOW_PROGRAM)을 정의한 후 외부 입력에 따라 적절한 파라미터를 선택하도록 하여 부적절한 입력이 명령어로 사용되는 것을 금지해야 한다."
+    },
+    {
+      "lang": "Python (Django, subprocess)",
+      "vulnerable": "import subprocess\nfrom django.shortcuts import render\n\ndef execute_command(request):\n    date = request.POST.get('date','')\n    # 입력받은 파라미터를 제한하지 않아 전달된 모든 프로그램이 실행될 수 있음\n    cmd_str = \"cmd /c backuplog.bat \" + date\n    subprocess.run(cmd_str, shell=True)\n    return render(request, '/success.html')",
+      "safe": "import subprocess\nfrom django.shortcuts import render\n\ndef execute_command(request):\n    date = request.POST.get('date','')\n\n    # 명령어를 추가로 실행 또는 또 다른 명령이 실행될 수 있는 키워드에\n    # 대한 예외처리\n    for word in ['|', ';', '&', ':', '>', '<', '`', '\\\\', '!']:\n        date = date.replace(word, \"\")\n        # re.sub 함수를 사용해 특수문자를 제거하는 방법도 있다\n        # date = re.sub('[|;&:><`\\\\\\!]', '', date)\n\n    # shell=True 옵션은 제거 하고 명령과 인자를 배열로 입력\n    subprocess.run([\"cmd\", \"/c\", \"backuplog.bat\", date])\n    return render(request, '/success.html')",
+      "note": "subprocess 사용 예제. 취약 코드는 외부 입력값을 검증 없이 문자열 결합으로 명령어를 만들고 shell=True로 실행한다. 운영체제 명령어 실행 시에는 멀티라인을 지원하는 특수문자(|, ;, &, :, `, \\, !)나 파일 리다이렉트 특수문자(>, >>)를 제거해 원하지 않는 명령어가 실행될 수 없도록 필터링하며, 명령어 라인을 구문 분석하고 escape 하는 shlex 모듈로 필터링을 수행할 수도 있다. subprocess의 shell 옵션을 True로 설정하면 중간 프로세스에 의해 명령이 실행되고 파일 이름, 와일드카드(*), 환경변수 확장 등의 쉘 기능을 검증 없이 실행하게 되므로 shell 옵션은 삭제해야 한다(기본값은 False). 안전 코드는 특수문자를 제거한 뒤 명령과 인자를 배열로 전달한다."
+    }
+  ]
+}

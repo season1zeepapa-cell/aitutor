@@ -1,0 +1,26 @@
+{
+  "chapter_code": "DEV-SF-10",
+  "title": "부적절한 전자서명 확인",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-347",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 10. 부적절한 전자서명 확인",
+    "pages": "254-255"
+  },
+  "overview": "전자서명이란 서명자의 신원을 확인하고 서명된 파일의 무결성을 보장할 수 있는 디지털 정보이다. 전자서명이 사용된 경우, 전자서명을 검증하지 않거나 검증절차가 부적절하면 발생하는 보안약점이다.",
+  "impact": "전자서명을 검증하지 않거나 검증절차가 부적절하면 위변조된 파일으로 악성코드에 감염될 수 있다.",
+  "countermeasure": "전자서명을 포함하는 파일을 사용할 때는 항상 전자서명을 확인하여 위변조 여부를 판별하고 사용해야 한다. 이 경우, 전자서명 파일의 출처 등을 확인하여 신뢰할 수 없는 곳에서 생성된 파일을 사용하지 않도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "File f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f);",
+      "safe": "File f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f, true);\nEnumeration<JarEntry> ens = jf.entries();\nwhile (ens.hasMoreElements()) {\n          JarEntry en = ens.nextElement();\n          if (!en.isDirectory()) {\n                    if (en.toString().equals(path)) {\n                    byte[] data = readAll(jar.getInputStream(en), en.getSize());\n                    CodeSigner[] signers = en.getCodeSigners();\n                    ...\n                    }\n          }\n}\njf.close();",
+      "note": "신뢰할 수 없는 곳에서 다운로드 한 JAR 파일의 서명을 확인하지 않고 사용하면 악성코드가 삽입되어 실행될 수 있다. 안전한 코드는 JarFile 생성자에 boolean형 파라미터를 사용하여 전자서명을 확인하고, 전자서명 여부를 확인한 후 JarEntry.getCodeSigners() 메소드를 사용하여 JAR 객체에 대한 전자서명 주체를 신뢰할 수 있는지 확인한다."
+    }
+  ]
+}

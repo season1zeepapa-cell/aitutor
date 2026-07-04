@@ -1,0 +1,3325 @@
+{
+  "questions": [
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-02",
+      "weakness_code": "IMP-IV-02-C1",
+      "weakness_name_ko": "코드 삽입",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '코드 삽입 (Code Injection)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 검증 없이 스크립트 실행 함수(eval)에 전달되는가, ② 실행 가능한 문자·명령을 제한하는 입력값 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-02 코드 삽입 (Code Injection) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 코드 삽입 (Code Injection)(REQ-IV02)",
+          "content": "REQ-IV02-01 외부입력값을 동적 코드 실행 함수(eval 등)에 직접 사용하지 않는다.\nREQ-IV02-02 동적 실행이 불가피하면 실행 가능 문자를 화이트리스트로 제한한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 코드 삽입 (Code Injection)",
+          "content": "ScriptEngine.eval() 등 동적 실행 API에 사용자 입력을 전달하기 전, 허용된 문자·패턴(화이트리스트)만 통과시키는 검증 로직을 공통모듈로 적용한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (ScriptEngine eval))",
+          "content": "public class CodeInjectionController {\n@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\n    public String execute(@RequestParam(\"src\") String src)\n    throws ScriptException {\n            ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n            ScriptEngine scriptEngine= scriptEngineManager.getEngineByName(\"javascript\");\n            // 외부 입력값인 src를 javascript eval 함수로 실행하고 있어 안전하지 않다.\n            String retValue = (String)scriptEngine.eval(src);\n            return retValue;\n    }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 검증 없이 스크립트 실행 함수(eval)에 전달되는가",
+          "method": "개발산출물 코드에서 REQ-IV02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV02-01",
+          "required_keywords": [
+            "eval",
+            "검증 없이",
+            "외부입력"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "코드 삽입",
+            "실행"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV02-02",
+          "required_keywords": [
+            "화이트리스트",
+            "입력값 검증",
+            "제한"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 검증 없이 스크립트 실행 함수(eval)에 전달되는가. → 판정: 결함.\n\n[원문 해설] javax.script.ScriptEngineManager의 eval로 사용자 입력을 실행하면 공격자가 조작된 인수로 새 파일을 만들거나 덮어쓸 수 있다. 정규식 필터링은 입력 값의 형태에 따라 변형하여 적용해야 한다.\n\n[개선방안] ScriptEngine.eval() 등 동적 실행 API에 사용자 입력을 전달하기 전, 허용된 문자·패턴(화이트리스트)만 통과시키는 검증 로직을 공통모듈로 적용한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-07",
+      "weakness_code": "IMP-IV-07-C1",
+      "weakness_name_ko": "신뢰되지 않는 URL 주소로 자동접속 연결",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '신뢰되지 않는 URL 주소로 자동접속 연결 (Open Redirect)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 검증 없이 리다이렉트 URL로 사용되는가, ② 이동 허용 URL 목록(화이트리스트) 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-07 신뢰되지 않는 URL 주소로 자동접속 연결 (Open Redirect) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 신뢰되지 않는 URL 주소로 자동접속 연결 (Open Redirect)(REQ-IV07)",
+          "content": "REQ-IV07-01 리다이렉트 대상 URL은 외부입력값을 직접 사용하지 않는다.\nREQ-IV07-02 이동 가능한 URL 은 사전 정의된 허용 목록으로 제한한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 신뢰되지 않는 URL 주소로 자동접속 연결 (Open Redirect)",
+          "content": "sendRedirect 등 자동접속 연결 시 외부에서 받은 url 파라미터는 서버에 보관된 허용 URL 목록과 대조한 뒤 일치할 때만 이동시킨다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "String id = (String)session.getValue(\"id\");\nString bn = request.getParameter(\"gubun\");\n//외부로부터 입력받은 URL이 검증 없이 다른 사이트로 이동이 가능하여 안전하지 않다.\nString rd = request.getParameter(\"redirect\");\nif (id.length() > 0) {\n  String sql = \"select level from customer where customer_id = ? \";\n  conn = db.getConnection();\n  pstmt = conn.prepareStatement(sql);\n  pstmt.setString(1, id);\n  rs = pstmt.executeQuery();\n  rs.next();\n  if (\"0\".equals(rs.getString(1)) && \"01AD\".equals(bn)) {\n    response.sendRedirect(rd);\n    return;\n  }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 검증 없이 리다이렉트 URL로 사용되는가",
+          "method": "개발산출물 코드에서 REQ-IV07-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV07-01",
+          "required_keywords": [
+            "sendRedirect",
+            "검증 없이",
+            "url"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "오픈 리다이렉트",
+            "피싱"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV07-02",
+          "required_keywords": [
+            "화이트리스트",
+            "허용 목록",
+            "검증"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-07 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV07-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 검증 없이 리다이렉트 URL로 사용되는가. → 판정: 결함.\n\n[원문 해설] 공격 예: <a href=\"http://bank.example.com/redirect?url=http://attacker.example.net\">Click</a> 와 같은 링크로 희생자를 피싱 사이트로 접근하게 할 수 있다. 외부로 연결할 URL과 도메인은 화이트 리스트를 작성한 후 그 중에서 선택하도록 한다.\n\n[개선방안] sendRedirect 등 자동접속 연결 시 외부에서 받은 url 파라미터는 서버에 보관된 허용 URL 목록과 대조한 뒤 일치할 때만 이동시킨다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-08",
+      "weakness_code": "IMP-IV-08-C1",
+      "weakness_name_ko": "부적절한 XML 외부개체 참조",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 XML 외부개체 참조 (XXE)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① XML 파서에 외부개체(DTD) 참조 기능이 활성화된 채 외부 XML을 파싱하는가, ② disallow-doctype-decl 등 외부개체 차단 설정이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-08 부적절한 XML 외부개체 참조 (XXE) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 부적절한 XML 외부개체 참조 (XXE)(REQ-IV08)",
+          "content": "REQ-IV08-01 외부에서 수신한 XML 파싱 시 외부개체(External Entity) 참조를 금지한다.\nREQ-IV08-02 XML 파서의 DOCTYPE 선언을 비활성화한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 부적절한 XML 외부개체 참조 (XXE)",
+          "content": "DocumentBuilderFactory 등 파서 생성 시 setFeature(\"http://apache.org/xml/features/disallow-doctype-decl\", true) 로 DTD 를 차단한 후 파싱한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (JAXB/DocumentBuilder))",
+          "content": "public void unmarshal(File receivedXml)\nthrows JAXBException, ParserConfigurationException, SAXException, IOException {\n  JAXBContext jaxbContext = JAXBContext.newInstance( Student.class );\n  Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();\n  // 입력받은 receivedXml 을 이용하여 Document를 생성한다.\n  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();\n  dbf.setNamespaceAware(true);\n  DocumentBuilder db = dbf.newDocumentBuilder();\n  Document document = db.parse(receivedXml);\n  // 외부 엔티티로 만들어진 document를 이용하여 마샬링을 수행하여 안전하지 않다.\n  Student employee = (Student) jaxbUnmarshaller.unmarshal( document );\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — XML 파서에 외부개체(DTD) 참조 기능이 활성화된 채 외부 XML을 파싱하는가",
+          "method": "개발산출물 코드에서 REQ-IV08-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV08-01",
+          "required_keywords": [
+            "외부개체",
+            "DOCTYPE",
+            "파싱"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "XXE",
+            "내부 파일"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV08-02",
+          "required_keywords": [
+            "disallow-doctype-decl",
+            "setFeature",
+            "비활성화"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-08 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV08-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: XML 파서에 외부개체(DTD) 참조 기능이 활성화된 채 외부 XML을 파싱하는가. → 판정: 결함.\n\n[원문 해설] 공격 예: 다음과 같은 receivedXML 을 전송하면 파싱 시 /etc/passwd 파일을 참조할 수 있다. <?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM \"file:///etc/passwd\" >]><foo>&xxe;</foo>\n\n[개선방안] DocumentBuilderFactory 등 파서 생성 시 setFeature(\"http://apache.org/xml/features/disallow-doctype-decl\", true) 로 DTD 를 차단한 후 파싱한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-09",
+      "weakness_code": "IMP-IV-09-C1",
+      "weakness_name_ko": "XML 삽입",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'XML 삽입 (XML Injection)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 검증 없이 XQuery/XPath 질의문에 문자열 결합되는가, ② 파라미터 바인딩 또는 특수문자 필터링이 적용되는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-09 XML 삽입 (XML Injection) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — XML 삽입 (XML Injection)(REQ-IV09)",
+          "content": "REQ-IV09-01 XML 질의문(XQuery/XPath)에 외부입력값을 문자열 결합으로 삽입하지 않는다.\nREQ-IV09-02 질의문은 파라미터 바인딩 방식으로 구성한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — XML 삽입 (XML Injection)",
+          "content": "XQuery 는 declare variable 외부 변수 바인딩($var)을 사용하고, 외부입력의 특수문자(따옴표 등)는 검증·필터링한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (XQuery))",
+          "content": "// 외부 입력 값을 검증하지 않고 XQuery 표현식에 사용한다.\nString name = props.getProperty(\"name\");\n.......\n// 외부 입력 값에 의해 쿼리 구조가 변경 되어 안전하지 않다.\nString es = \"doc('users.xml')/userlist/user[uname='\"+name+\"']\";\nXQPreparedExpression expr = conn.prepareExpression(es);\nXQResultSequence result = expr.executeQuery();"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 검증 없이 XQuery/XPath 질의문에 문자열 결합되는가",
+          "method": "개발산출물 코드에서 REQ-IV09-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV09-01",
+          "required_keywords": [
+            "문자열 결합",
+            "검증 없이",
+            "질의문"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "XML 삽입",
+            "조작"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV09-02",
+          "required_keywords": [
+            "바인딩",
+            "외부 변수",
+            "필터링"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-09 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV09-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 검증 없이 XQuery/XPath 질의문에 문자열 결합되는가. → 판정: 결함.\n\n[원문 해설] 공격 예: name의 값으로 something' or '1'='1 을 전달하면 doc('users.xml')/userlist/user[uname='something' or '1'='1'] 쿼리가 수행되어 파일 내 모든 값을 출력할 수 있다. bindString 함수를 이용하여 외부 입력값으로 쿼리 구조가 변경될 수 없도록 한다.\n\n[개선방안] XQuery 는 declare variable 외부 변수 바인딩($var)을 사용하고, 외부입력의 특수문자(따옴표 등)는 검증·필터링한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-10",
+      "weakness_code": "IMP-IV-10-C1",
+      "weakness_name_ko": "LDAP 삽입",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'LDAP 삽입 (LDAP Injection)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 검증 없이 LDAP 검색 필터에 사용되는가, ② 필터 특수문자(*, (, ) 등) 이스케이프 처리가 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-10 LDAP 삽입 (LDAP Injection) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — LDAP 삽입 (LDAP Injection)(REQ-IV10)",
+          "content": "REQ-IV10-01 LDAP 검색 필터에 외부입력값을 직접 사용하지 않는다.\nREQ-IV10-02 필터 메타문자는 이스케이프 처리 후 사용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — LDAP 삽입 (LDAP Injection)",
+          "content": "LDAP 필터 구성 시 외부입력의 *, (, ), \\, NUL 등 메타문자를 이스케이프하는 공통 함수를 거친 값만 사용한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "private void searchRecord(String userSN, String userPassword) throws NamingException {\n  Hashtable<String, String> env = new Hashtable<String, String>();\n  env.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\n  try {\n    DirContext dctx = new InitialDirContext(env);\n    SearchControls sc = new SearchControls();\n    String[] attributeFilter = { \"cn\", \"mail\" };\n    sc.setReturningAttributes(attributeFilter);\n    sc.setSearchScope(SearchControls.SUBTREE_SCOPE);\n    String base = \"dc=example,dc=com\";\n    // userSN과 userPassword 값에 LDAP필터를 조작할 수 있는 공격 문자열에 대한 검증이 없어 안전하지 않다.\n    String filter = \"(&(sn=\" + userSN + \")(userPassword=\" + userPassword + \"))\";\n    NamingEnumeration<?> results = dctx.search(base, filter, sc);\n    while (results.hasMore()) {\n      SearchResult sr = (SearchResult) results.next();\n      Attributes attrs = sr.getAttributes();\n      Attribute attr = attrs.get(\"cn\");\n      ......\n    }\n    dctx.close();\n  } catch (NamingException e) { … }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 검증 없이 LDAP 검색 필터에 사용되는가",
+          "method": "개발산출물 코드에서 REQ-IV10-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV10-01",
+          "required_keywords": [
+            "필터",
+            "검증 없이",
+            "외부입력"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "LDAP 삽입",
+            "인증 우회"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV10-02",
+          "required_keywords": [
+            "이스케이프",
+            "특수문자",
+            "검증"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-10 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV10-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 검증 없이 LDAP 검색 필터에 사용되는가. → 판정: 결함.\n\n[원문 해설] userSN과 userPassword 변수의 값으로 *을 전달할 경우 필터 문자열은 \"(&(sn=S*)(userPassword=*))\"가 되어 항상 참이 되며 의도하지 않은 동작을 유발한다. 검색 필터 문자열로 사용되는 외부 입력에서 위험한 문자열을 제거하여 위험성을 부분적으로 감소시킬 수 있다.\n\n[개선방안] LDAP 필터 구성 시 외부입력의 *, (, ), \\, NUL 등 메타문자를 이스케이프하는 공통 함수를 거친 값만 사용한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-11",
+      "weakness_code": "IMP-IV-11-C1",
+      "weakness_name_ko": "크로스사이트 요청 위조",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '크로스사이트 요청 위조 (CSRF)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 상태변경 요청에 재전송 방지 토큰(CSRF 토큰) 검증이 있는가, ② 토큰이 세션별 임의값으로 생성·비교되는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-11 크로스사이트 요청 위조 (CSRF) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 크로스사이트 요청 위조 (CSRF)(REQ-IV11)",
+          "content": "REQ-IV11-01 중요기능(등록·수정·삭제) 요청은 CSRF 토큰으로 정상 요청 여부를 검증한다.\nREQ-IV11-02 토큰은 세션마다 예측 불가능한 임의값으로 생성한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 크로스사이트 요청 위조 (CSRF)",
+          "content": "입력 폼 생성 시 세션에 임의 토큰을 저장하고 hidden 필드로 내려보낸 뒤, 처리 요청에서 세션 토큰과 일치할 때만 수행한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "// 어떤 형태의 요청이던지 기본적으로 CSRF 취약점을 가질 수 있다.\n// 클라이언트로부터의 요청(request)에 대해 정상 요청 여부를 검증하지 않고 처리"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 상태변경 요청에 재전송 방지 토큰(CSRF 토큰) 검증이 있는가",
+          "method": "개발산출물 코드에서 REQ-IV11-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV11-01",
+          "required_keywords": [
+            "토큰",
+            "검증 없이",
+            "요청"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "CSRF",
+            "위조"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV11-02",
+          "required_keywords": [
+            "CSRF 토큰",
+            "세션",
+            "일치"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-11 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV11-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 상태변경 요청에 재전송 방지 토큰(CSRF 토큰) 검증이 있는가. → 판정: 결함.\n\n[원문 해설] 정상 요청 여부를 판단하기 위해 토큰을 이용한다. 입력(신청) 페이지 요청 시 임의의 토큰을 생성·세션에 저장하고 HIDDEN 필드 값으로 설정한 뒤, 처리 페이지에서 요청 파라미터의 토큰과 세션의 토큰을 비교하여 일치하는 경우에만 정상 요청으로 판단한다.\n\n[개선방안] 입력 폼 생성 시 세션에 임의 토큰을 저장하고 hidden 필드로 내려보낸 뒤, 처리 요청에서 세션 토큰과 일치할 때만 수행한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-12",
+      "weakness_code": "IMP-IV-12-C1",
+      "weakness_name_ko": "서버사이드 요청 위조",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '서버사이드 요청 위조 (SSRF)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력 URL로 서버가 직접 요청을 보내는가(내부망 접근 가능), ② 허용 호스트 목록·내부 IP 차단 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-12 서버사이드 요청 위조 (SSRF) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 서버사이드 요청 위조 (SSRF)(REQ-IV12)",
+          "content": "REQ-IV12-01 서버가 요청하는 URL 은 외부입력값을 직접 사용하지 않는다.\nREQ-IV12-02 요청 가능한 호스트는 화이트리스트로 제한하고 내부 IP 대역을 차단한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 서버사이드 요청 위조 (SSRF)",
+          "content": "서버측 요청(open/connect) 전 대상 호스트를 허용 목록과 대조하고, 사설 IP·루프백 주소는 요청을 거부한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n  // 사용자 입력값(url)을 검증없이 사용하여 안전하지 않다.\n  URL url = new URL(req.getParameter(\"url\"));\n  HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력 URL로 서버가 직접 요청을 보내는가(내부망 접근 가능)",
+          "method": "개발산출물 코드에서 REQ-IV12-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV12-01",
+          "required_keywords": [
+            "url",
+            "검증 없이",
+            "서버"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "SSRF",
+            "내부"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV12-02",
+          "required_keywords": [
+            "화이트리스트",
+            "허용 목록",
+            "차단"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-12 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV12-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력 URL로 서버가 직접 요청을 보내는가(내부망 접근 가능). → 판정: 결함.\n\n[원문 해설] 공격자는 URL을 조작하여 내부 서버에 질의하게 하여 데이터를 획득할 수 있다(예: ?url=http://192.168.0.45/member/list.json, 외부 차단된 admin 페이지 접근, user:x@사설IP 도메인체크 우회, 단축 URL 필터 우회 등). 사전에 정의된 URL 목록을 Map 객체에 정의하고 키 값으로 입력받아 키에 매칭되는 URL만 사용하면 URL값을 임의로 조작할 수 없다.\n\n[개선방안] 서버측 요청(open/connect) 전 대상 호스트를 허용 목록과 대조하고, 사설 IP·루프백 주소는 요청을 거부한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-13",
+      "weakness_code": "IMP-IV-13-C1",
+      "weakness_name_ko": "HTTP 응답분할",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'HTTP 응답분할 (HTTP Response Splitting)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 개행(CR/LF) 제거 없이 HTTP 헤더에 설정되는가, ② 헤더 설정 전 \\r\\n 필터링이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-13 HTTP 응답분할 (HTTP Response Splitting) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — HTTP 응답분할 (HTTP Response Splitting)(REQ-IV13)",
+          "content": "REQ-IV13-01 HTTP 응답헤더에 외부입력값을 직접 설정하지 않는다.\nREQ-IV13-02 헤더 값의 개행문자(CR/LF)는 제거 후 사용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — HTTP 응답분할 (HTTP Response Splitting)",
+          "content": "addHeader/setHeader 등에 전달되는 외부입력은 replaceAll(\"[\\r\\n]\", \"\") 등으로 개행을 제거한 뒤 설정한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "//외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString lastLogin = request.getParameter(\"last_login\");\nif (lastLogin == null || \"\".equals(lastLogin)) {\n  return;\n}\n// 쿠키는 Set-Cookie 응답헤더로 전달되므로 개행문자열 포함 여부 검증이 필요\nCookie c = new Cookie(\"LASTLOGIN\", lastLogin);\nc.setMaxAge(1000);\nc.setSecure(true);\nresponse.addCookie(c);\nresponse.setContentType(\"text/html\");"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 개행(CR/LF) 제거 없이 HTTP 헤더에 설정되는가",
+          "method": "개발산출물 코드에서 REQ-IV13-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV13-01",
+          "required_keywords": [
+            "개행",
+            "헤더",
+            "검증 없이"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "응답분할",
+            "CRLF"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV13-02",
+          "required_keywords": [
+            "개행 제거",
+            "필터링",
+            "replace"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-13 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV13-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 개행(CR/LF) 제거 없이 HTTP 헤더에 설정되는가. → 판정: 결함.\n\n[원문 해설] 공격자가 'Wiley Hacker\\r\\nHTTP/1.1 200 OK\\r\\n'를 lastLogin 값으로 설정하면 응답이 분리되어 전달되며 분리된 응답 본문 내용을 마음대로 수정할 수 있다. 외부 입력값의 null 여부를 체크하고 개행문자를 제거한 후 응답헤더 값으로 사용한다.\n\n[개선방안] addHeader/setHeader 등에 전달되는 외부입력은 replaceAll(\"[\\r\\n]\", \"\") 등으로 개행을 제거한 뒤 설정한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-14",
+      "weakness_code": "IMP-IV-14-C1",
+      "weakness_name_ko": "정수형 오버플로우",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '정수형 오버플로우 (Integer Overflow)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력 기반 연산 결과가 범위 검증 없이 크기·인덱스로 사용되는가, ② 연산 결과의 음수·상한 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-14 정수형 오버플로우 (Integer Overflow) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 정수형 오버플로우 (Integer Overflow)(REQ-IV14)",
+          "content": "REQ-IV14-01 외부입력으로 계산되는 정수 연산은 오버플로우 여부를 검증한다.\nREQ-IV14-02 배열 크기·인덱스로 쓰는 값은 0 이상, 상한 이하인지 확인한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 정수형 오버플로우 (Integer Overflow)",
+          "content": "곱셈 등 연산 결과를 사용하기 전 결과값이 음수이거나 허용 범위를 벗어나면 예외 처리하도록 경계값 검증을 추가한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "String msg_str = \"\";\nString tmp = request.getParameter(\"slf_msg_param_num\");\ntmp = StringUtil.isNullTrim(tmp);\nif (tmp.equals(\"0\")) {\n    msg_str = PropertyUtil.getValue(msg_id);\n} else {\n    // 외부 입력값을 정수형으로 사용할 때 입력값의 크기를 검증하지 않고 사용\n    int param_ct = Integer.parseInt(tmp);\n    String[] strArr = new String[param_ct];"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력 기반 연산 결과가 범위 검증 없이 크기·인덱스로 사용되는가",
+          "method": "개발산출물 코드에서 REQ-IV14-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV14-01",
+          "required_keywords": [
+            "오버플로우",
+            "검증 없이",
+            "음수"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "정수형",
+            "배열"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV14-02",
+          "required_keywords": [
+            "범위 검증",
+            "경계값",
+            "예외 처리"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-14 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV14-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력 기반 연산 결과가 범위 검증 없이 크기·인덱스로 사용되는가. → 판정: 결함.\n\n[원문 해설] 외부 입력으로부터 계산된 값(param_ct)이 오버플로우에 의해 음수값이 되면, 배열의 크기가 음수가 되어 시스템에 문제가 발생할 수 있다. 동적 메모리 할당을 위해 외부 입력값을 배열의 크기로 사용하는 경우 그 값이 음수가 아닌지 검사해야 한다.\n\n[개선방안] 곱셈 등 연산 결과를 사용하기 전 결과값이 음수이거나 허용 범위를 벗어나면 예외 처리하도록 경계값 검증을 추가한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-15",
+      "weakness_code": "IMP-IV-15-C1",
+      "weakness_name_ko": "보안기능 결정에 사용되는 부적절한 입력값",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '보안기능 결정에 사용되는 부적절한 입력값' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 가격·권한 등 보안결정 값이 클라이언트(브라우저)에서 전달되는가, ② 서버측 재검증(원본 대조)이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-15 보안기능 결정에 사용되는 부적절한 입력값 (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 보안기능 결정에 사용되는 부적절한 입력값(REQ-IV15)",
+          "content": "REQ-IV15-01 보안결정(가격·권한·수량 한도)에 사용되는 값은 서버에서 관리한다.\nREQ-IV15-02 클라이언트에서 전달된 중요 값은 서버 원본과 재검증한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 보안기능 결정에 사용되는 부적절한 입력값",
+          "content": "단가·권한 등은 hidden 필드로 전달받지 말고 서버 DB 원본을 조회해 사용하며, 전달값은 서버측에서 무결성을 재확인한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    // 서버가 보유하고 있는 가격(단가) 정보를 사용자 화면에서 받아서 처리\n    price = request.getParameter(\"price\");\n    quantity = request.getParameter(\"quantity\");\n    total = Integer.parseInt(quantity) * Float.parseFloat(price);\n} catch (Exception e) {\n......"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 가격·권한 등 보안결정 값이 클라이언트(브라우저)에서 전달되는가",
+          "method": "개발산출물 코드에서 REQ-IV15-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV15-01",
+          "required_keywords": [
+            "클라이언트",
+            "hidden",
+            "검증 없이"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "변조",
+            "가격"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV15-02",
+          "required_keywords": [
+            "서버",
+            "재검증",
+            "원본"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-15 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV15-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 가격·권한 등 보안결정 값이 클라이언트(브라우저)에서 전달되는가. → 판정: 결함.\n\n[원문 해설] 구입품목의 가격을 사용자 웹브라우저에서 처리하면 사용자가 단가 정보를 임의 값으로 변경할 수 있다. 보안결정에 사용하는 값은 사용자 입력이 아닌 서버 내부의 값을 활용한다.\n\n[개선방안] 단가·권한 등은 hidden 필드로 전달받지 말고 서버 DB 원본을 조회해 사용하며, 전달값은 서버측에서 무결성을 재확인한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-16",
+      "weakness_code": "IMP-IV-16-C1",
+      "weakness_name_ko": "메모리 버퍼 오버플로우",
+      "weakness_category": "input_validation",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '메모리 버퍼 오버플로우 (Memory Buffer Overflow)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 버퍼 크기 계산이 잘못되어 할당 범위를 초과해 쓰는가, ② 복사·쓰기 전 크기 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-16 메모리 버퍼 오버플로우 (Memory Buffer Overflow) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 메모리 버퍼 오버플로우 (Memory Buffer Overflow)(REQ-IV16)",
+          "content": "REQ-IV16-01 메모리 복사·쓰기 시 대상 버퍼 크기를 초과하지 않도록 검증한다.\nREQ-IV16-02 크기 계산은 대상 자료형 기준으로 정확히 산정한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 메모리 버퍼 오버플로우 (Memory Buffer Overflow)",
+          "content": "할당 크기는 사용 목적 구조체·배열 기준(sizeof 대상)을 정확히 지정하고, 인덱스 접근 전 경계값을 검증한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "typedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid\nvoid badCode() {\n    charvoid cv_struct\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n\n    /* sizeof(cv_struct)의 사용으로 포인터 y에 덮어쓰기 발생 */\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct));\n    printLine((char *) cv_struct.x);\n    printLine((char *) cv_struct.y);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 버퍼 크기 계산이 잘못되어 할당 범위를 초과해 쓰는가",
+          "method": "개발산출물 코드에서 REQ-IV16-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV16-01",
+          "required_keywords": [
+            "버퍼",
+            "sizeof",
+            "초과"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "오버플로우",
+            "메모리"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV16-02",
+          "required_keywords": [
+            "크기 검증",
+            "경계",
+            "할당"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-16 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV16-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 버퍼 크기 계산이 잘못되어 할당 범위를 초과해 쓰는가. → 판정: 결함.\n\n[원문 해설] 잘못 계산된 데이터 크기 sizeof(cv_struct)로 인해 연속된 메모리 공간인 포인터 y를 덮어쓰는 버퍼 오버플로우가 발생한다. 안전한 코드는 (1) 문자열 복사 범위를 sizeof(cv_struct.x)로 한정하고, (2) 마지막 인덱스에 널(Null) 문자를 패딩한다.\n\n[개선방안] 할당 크기는 사용 목적 구조체·배열 기준(sizeof 대상)을 정확히 지정하고, 인덱스 접근 전 경계값을 검증한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-IV-17",
+      "weakness_code": "IMP-IV-17-C1",
+      "weakness_name_ko": "포맷 스트링 삽입",
+      "weakness_category": "input_validation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '포맷 스트링 삽입 (Format String Injection)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 외부입력값이 포맷 문자열 인자로 직접 전달되는가, ② 고정 포맷 문자열 사용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-IV-17 포맷 스트링 삽입 (Format String Injection) (overview·countermeasure·code_examples)",
+      "tags": [
+        "input_validation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 포맷 스트링 삽입 (Format String Injection)(REQ-IV17)",
+          "content": "REQ-IV17-01 format/printf 계열 함수의 포맷 문자열에 외부입력값을 사용하지 않는다.\nREQ-IV17-02 포맷 문자열은 상수로 고정한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 포맷 스트링 삽입 (Format String Injection)",
+          "content": "String.format(외부입력) 형태를 금지하고, 외부입력은 포맷의 인자(%s 값)로만 전달한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "// 외부 입력값에 포맷 문자열 포함 여부를 확인하지 않고 포맷 문자열 출력에 값으로 사용\n// args[0]의 값으로 \"%1$tY-%1$tm-%1$te\"를 전달하면 시스템에서 가지고 있는 날짜(2014-10-14) 정보가 노출\nimport java.util.Calendar\n......\npublic static void main(String[] args) {\n    Calendar validDate = Calendar.getInstance();\n    validDate.set(2014, Calendar.OCTOBER, 14);\n    System.out.printf( args[0] + \" did not match! HINT: It was issued on %1$terd of some month\", validate);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 외부입력값이 포맷 문자열 인자로 직접 전달되는가",
+          "method": "개발산출물 코드에서 REQ-IV17-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-IV17-01",
+          "required_keywords": [
+            "포맷",
+            "format",
+            "외부입력"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "포맷 스트링",
+            "노출"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-IV17-02",
+          "required_keywords": [
+            "상수",
+            "고정",
+            "인자"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-IV-17 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-IV17-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 외부입력값이 포맷 문자열 인자로 직접 전달되는가. → 판정: 결함.\n\n[원문 해설] 공격자가 %1$tm, %1$te, %1$tY 같은 문자열을 입력하면 실제 유효기간 validDate가 출력될 수 있다. 사용자 입력을 포맷 문자열에 직접 포함시키지 않고 %s 포맷 문자열로 지정하여 정보유출을 방지한다.\n\n[개선방안] String.format(외부입력) 형태를 금지하고, 외부입력은 포맷의 인자(%s 값)로만 전달한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-01",
+      "weakness_code": "IMP-SF-01-C1",
+      "weakness_name_ko": "적절한 인증 없는 중요기능 허용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '적절한 인증 없는 중요기능 허용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 중요기능(회원정보 수정 등) 수행 전 요청자 본인 확인이 있는가, ② 로그인 사용자와 대상 리소스 소유자 일치 검증이 있는가를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-01 적절한 인증 없는 중요기능 허용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 적절한 인증 없는 중요기능 허용(REQ-SF01)",
+          "content": "REQ-SF01-01 중요기능은 인증된 사용자만 수행할 수 있어야 한다.\nREQ-SF01-02 요청 대상 데이터의 소유자와 로그인 사용자의 일치 여부를 검증한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 적절한 인증 없는 중요기능 허용",
+          "content": "수정·조회 처리 전 세션의 사용자 식별자와 요청 파라미터의 대상 식별자를 비교해 불일치 시 거부한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (Spring MVC))",
+          "content": "@RequestMapping(value = \"/modify.do\", method = RequestMethod.POST)\npublic ModelAndView memberModifyProcess(@ModelAttribute(\"MemberModel\")\n    MemberModel memberModel, BindingResult result, HttpServletRequest request,\n    HttpSession session) {\n  ModelAndView mav = new ModelAndView();\n  //1. 로그인한 사용자를 불러온다.\n  String userId = (String) session.getAttribute(\"userId\");\n  String passwd = request.getParameter(\"oldUserPw\");\n  ...\n  //2. 실제 수정하는 사용자와 일치 여부를 확인하지 않고, 회원정보를 수정하여 안전하지 않다.\n  if (service.modifyMember(memberModel)) {\n    mav.setViewName(\"redirect:/board/list.do\");\n    session.setAttribute(\"userName\", memberModel.getUserName());\n    return mav;\n  } else {\n    mav.addObject(\"errCode\", 2);\n    mav.setViewName(\"/board/member_modify\");\n    return mav;\n  }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 중요기능(회원정보 수정 등) 수행 전 요청자 본인 확인이 있는가",
+          "method": "개발산출물 코드에서 REQ-SF01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF01-01",
+          "required_keywords": [
+            "인증",
+            "확인 없이",
+            "세션"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "중요기능",
+            "타인"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF01-02",
+          "required_keywords": [
+            "일치 여부",
+            "본인 확인",
+            "검증"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 중요기능(회원정보 수정 등) 수행 전 요청자 본인 확인이 있는가. → 판정: 결함.\n\n[원문 해설] 회원정보 수정 시 수정을 요청한 사용자와 로그인한 사용자의 일치 여부를 확인한 후 처리해야 한다.\n\n[개선방안] 수정·조회 처리 전 세션의 사용자 식별자와 요청 파라미터의 대상 식별자를 비교해 불일치 시 거부한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-03",
+      "weakness_code": "IMP-SF-03-C1",
+      "weakness_name_ko": "중요한 자원에 대한 잘못된 권한 설정",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '중요한 자원에 대한 잘못된 권한 설정' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 파일 권한 설정 API 의 ownerOnly 인자가 false 로 전체 허용되는가, ② 중요 자원의 최소권한 설정 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-03 중요한 자원에 대한 잘못된 권한 설정 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 중요한 자원에 대한 잘못된 권한 설정(REQ-SF03)",
+          "content": "REQ-SF03-01 중요 파일·자원은 소유자에게만 필요한 최소 권한을 부여한다.\nREQ-SF03-02 실행·읽기·쓰기 권한을 모든 사용자에게 개방하지 않는다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 중요한 자원에 대한 잘못된 권한 설정",
+          "content": "setExecutable/setReadable/setWritable 의 두 번째 인자(ownerOnly)는 true 로 설정해 소유자 외 접근을 차단한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "File file = new File(\"/home/setup/system.ini\");\n//모든 사용자에게 실행 권한을 허용하여 안전하지 않다.\nfile.setExecutable(true, false);\n//모든 사용자에게 읽기 권한을 허용하여 안전하지 않다.\nfile.setReadable(true, false);\n//모든 사용자에게 쓰기 권한을 허용하여 안전하지 않다.\nfile.setWritable(true, false);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 파일 권한 설정 API 의 ownerOnly 인자가 false 로 전체 허용되는가",
+          "method": "개발산출물 코드에서 REQ-SF03-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF03-01",
+          "required_keywords": [
+            "권한",
+            "false",
+            "모든 사용자"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "잘못된 권한",
+            "자원"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF03-02",
+          "required_keywords": [
+            "ownerOnly",
+            "true",
+            "최소 권한"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-03 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF03-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 파일 권한 설정 API 의 ownerOnly 인자가 false 로 전체 허용되는가. → 판정: 결함.\n\n[원문 해설] setExecutable/setReadable/setWritable(p1, p2)에서 두 번째 파라미터가 false이면 모든 사용자에게 권한이 부여된다. 파일에 대해서는 최소권한을 할당하고 소유자에게만 권한을 부여(2개 인자 → 1개 인자 메소드)해야 한다.\n\n[개선방안] setExecutable/setReadable/setWritable 의 두 번째 인자(ownerOnly)는 true 로 설정해 소유자 외 접근을 차단한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-04",
+      "weakness_code": "IMP-SF-04-C1",
+      "weakness_name_ko": "취약한 암호화 알고리즘 사용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '취약한 암호화 알고리즘 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① DES 등 취약 알고리즘으로 암호화하는가, ② 검증된 안전 알고리즘(AES 등) 사용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-04 취약한 암호화 알고리즘 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 취약한 암호화 알고리즘 사용(REQ-SF04)",
+          "content": "REQ-SF04-01 암호화에는 검증된 안전한 알고리즘을 사용한다.\nREQ-SF04-02 DES·RC4 등 취약 알고리즘 사용을 금지한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 취약한 암호화 알고리즘 사용",
+          "content": "Cipher.getInstance 에 DES 대신 AES(권장 운용모드·패딩 포함)를 지정하고, 알고리즘 목록은 보안정책으로 관리한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "import java.security.*;\nimport javax.crypto.Cipher;\nimport javax.crypto.NoSuchPaddingException;\n\npublic class CryptoUtils {\n  public byte[] encrypt(byte[] msg, Key k) {\n    byte[] rslt = null;\n    try {\n      //키 길이가 짧아 취약한 암호화 알고리즘인 DES를 사용하여 안전하지 않다.\n      Cipher c = Cipher.getInstance(\"DES\");\n      c.init(Cipher.ENCRYPT_MODE, k);\n      rslt = c.update(msg);\n    }"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — DES 등 취약 알고리즘으로 암호화하는가",
+          "method": "개발산출물 코드에서 REQ-SF04-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF04-01",
+          "required_keywords": [
+            "DES",
+            "취약",
+            "알고리즘"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "암호화",
+            "복호화"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF04-02",
+          "required_keywords": [
+            "AES",
+            "안전한 알고리즘",
+            "교체"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-04 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF04-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: DES 등 취약 알고리즘으로 암호화하는가. → 판정: 결함.\n\n[원문 해설] 취약한 DES 대신 안전하다고 알려진 AES 알고리즘 등을 적용해야 한다.\n\n[개선방안] Cipher.getInstance 에 DES 대신 AES(권장 운용모드·패딩 포함)를 지정하고, 알고리즘 목록은 보안정책으로 관리한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-07",
+      "weakness_code": "IMP-SF-07-C1",
+      "weakness_name_ko": "충분하지 않은 키 길이 사용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '충분하지 않은 키 길이 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① RSA 등 공개키 키 길이가 권장 기준(2048비트) 미만인가, ② 키 길이 정책 준수 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-07 충분하지 않은 키 길이 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 충분하지 않은 키 길이 사용(REQ-SF07)",
+          "content": "REQ-SF07-01 공개키 암호 RSA 는 2048비트 이상 키 길이를 사용한다.\nREQ-SF07-02 대칭키·해시도 보안강도 112비트 이상 기준을 준수한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 충분하지 않은 키 길이 사용",
+          "content": "KeyPairGenerator.initialize(1024) 같은 짧은 키 설정을 금지하고 2048 이상으로 초기화한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (RSA 키 길이))",
+          "content": "public static final String ALGORITHM = \"RSA\";\npublic static final String PRIVATE_KEY_FILE = \"C:/keys/private.key\";\npublic static final String PUBLIC_KEY_FILE = \"C:/keys/public.key\";\npublic static void generateKey() {\n   try {\n     final KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);\n      //RSA 키 길이를 1024 비트로 짧게 설정하는 경우 안전하지 않다.\n     keyGen.initialize(1024);\n     final KeyPair key = keyGen.generateKeyPair();\n     File privateKeyFile = new File(PRIVATE_KEY_FILE);\n     File publicKeyFile = new File(PUBLIC_KEY_FILE);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — RSA 등 공개키 키 길이가 권장 기준(2048비트) 미만인가",
+          "method": "개발산출물 코드에서 REQ-SF07-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF07-01",
+          "required_keywords": [
+            "1024",
+            "키 길이",
+            "짧"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "RSA",
+            "보안강도"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF07-02",
+          "required_keywords": [
+            "2048",
+            "이상",
+            "initialize"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-07 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF07-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: RSA 등 공개키 키 길이가 권장 기준(2048비트) 미만인가. → 판정: 결함.\n\n[원문 해설] 보안성이 강한 RSA 알고리즘을 사용하더라도 키 사이즈를 작게(1024비트) 설정하면 보안약점이 된다. 공개키 암호화 키 길이는 적어도 2048비트 이상으로 설정한다.\n\n[개선방안] KeyPairGenerator.initialize(1024) 같은 짧은 키 설정을 금지하고 2048 이상으로 초기화한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-08",
+      "weakness_code": "IMP-SF-08-C1",
+      "weakness_name_ko": "적절하지 않은 난수 값 사용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '적절하지 않은 난수 값 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 고정 seed 로 난수를 생성하는가, ② 예측 불가능한 난수원(SecureRandom) 사용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-08 적절하지 않은 난수 값 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 적절하지 않은 난수 값 사용(REQ-SF08)",
+          "content": "REQ-SF08-01 보안 목적 난수는 예측 불가능해야 한다.\nREQ-SF08-02 고정 시드(seed) 사용을 금지한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 적절하지 않은 난수 값 사용",
+          "content": "new Random(고정값) 대신 SecureRandom 을 사용하고, seed 가 필요하면 매번 변경되는 값으로 설정한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "import java.util.Random;\n...\npublic Static int getRandomValue(int maxValue) {\n//고정된 시드값을 사용하여 동일한 난수값이 생성되어 안전하지 않다.\n      Random random = new Random(100);\n      return random.nextInt(maxValue);\n}\npublic Static String getAuthKey() {\n//매번 변경되는 시드값을 사용하여 다른 난수값이 생성되나 보안결정을 위한 난수로는 안전하지 않다.\n       Random random = new Random();\n      String authKey = Integer.toString(random.nextInt());"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 고정 seed 로 난수를 생성하는가",
+          "method": "개발산출물 코드에서 REQ-SF08-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF08-01",
+          "required_keywords": [
+            "고정",
+            "seed",
+            "Random"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "난수",
+            "예측"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF08-02",
+          "required_keywords": [
+            "SecureRandom",
+            "예측 불가",
+            "변경"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-08 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF08-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 고정 seed 로 난수를 생성하는가. → 판정: 결함.\n\n[원문 해설] 고정된 seed를 설정하면 동일한 난수값이 생성되어 안전하지 않고, 매번 변경되는 seed를 설정하더라도 보안결정을 위한 난수에는 안전하지 않다. 보안결정에는 java.security.SecureRandom을 사용한다.\n\n[개선방안] new Random(고정값) 대신 SecureRandom 을 사용하고, seed 가 필요하면 매번 변경되는 값으로 설정한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-09",
+      "weakness_code": "IMP-SF-09-C1",
+      "weakness_name_ko": "취약한 비밀번호 허용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '취약한 비밀번호 허용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 가입·변경 시 비밀번호 복잡도 검증이 있는가, ② 자릿수·문자조합 규칙 적용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-09 취약한 비밀번호 허용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 취약한 비밀번호 허용(REQ-SF09)",
+          "content": "REQ-SF09-01 비밀번호는 길이·영문·숫자·특수문자 조합 규칙을 강제한다.\nREQ-SF09-02 규칙 미달 비밀번호는 가입·변경을 거부한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 취약한 비밀번호 허용",
+          "content": "회원가입 처리 전 비밀번호 복잡도(최소 자릿수, 문자종 혼합)를 검증하는 공통 함수를 호출하고 실패 시 승인하지 않는다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "String id = request.getParameter(\"id\");\nString pass = request.getParameter(\"pass\");\nUserVo userVO = new UserVo(id, pass);\n……\n// 비밀번호의 자릿수, 특수문자 포함 여부 등 복잡도를 체크하지 않고 등록\nString result = registerDAO.register(userVO);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 가입·변경 시 비밀번호 복잡도 검증이 있는가",
+          "method": "개발산출물 코드에서 REQ-SF09-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF09-01",
+          "required_keywords": [
+            "복잡도",
+            "검증 없이",
+            "비밀번호"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "취약한 비밀번호",
+            "무차별"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF09-02",
+          "required_keywords": [
+            "자릿수",
+            "특수문자",
+            "조합"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-09 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF09-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 가입·변경 시 비밀번호 복잡도 검증이 있는가. → 판정: 결함.\n\n[원문 해설] 가입 시 비밀번호 복잡도(자릿수·영문자·숫자·특수문자 혼합) 검증 후 가입 승인처리를 수행한다.\n\n[개선방안] 회원가입 처리 전 비밀번호 복잡도(최소 자릿수, 문자종 혼합)를 검증하는 공통 함수를 호출하고 실패 시 승인하지 않는다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-10",
+      "weakness_code": "IMP-SF-10-C1",
+      "weakness_name_ko": "부적절한 전자서명 확인",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 전자서명 확인' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 다운로드한 코드(JAR)의 전자서명을 확인 없이 실행하는가, ② 서명 검증 로직 존재 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-10 부적절한 전자서명 확인 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 부적절한 전자서명 확인(REQ-SF10)",
+          "content": "REQ-SF10-01 외부에서 받은 실행코드는 전자서명을 검증한 후 사용한다.\nREQ-SF10-02 서명 검증 실패 시 로드·실행을 중단한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 부적절한 전자서명 확인",
+          "content": "JarFile(file, true) 로 서명 검증을 활성화하고 인증서 체인을 확인한 뒤에만 클래스를 로드한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "File f = new File(downloadedFilePath);\nJarFile jf = new JarFile(f);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 다운로드한 코드(JAR)의 전자서명을 확인 없이 실행하는가",
+          "method": "개발산출물 코드에서 REQ-SF10-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF10-01",
+          "required_keywords": [
+            "서명",
+            "확인 없이",
+            "다운로드"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "전자서명",
+            "악성코드"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF10-02",
+          "required_keywords": [
+            "서명 검증",
+            "인증서",
+            "확인"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-10 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF10-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 다운로드한 코드(JAR)의 전자서명을 확인 없이 실행하는가. → 판정: 결함.\n\n[원문 해설] 신뢰할 수 없는 곳에서 다운로드한 JAR 파일의 서명을 확인하지 않으면 악성코드가 삽입되어 실행될 수 있다. JarFile 생성자에 boolean형 파라미터(true)를 사용해 전자서명 여부를 확인하고, JarEntry.getCodeSigners() 메소드로 전자서명 주체를 신뢰할 수 있는지 확인해야 한다.\n\n[개선방안] JarFile(file, true) 로 서명 검증을 활성화하고 인증서 체인을 확인한 뒤에만 클래스를 로드한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-11",
+      "weakness_code": "IMP-SF-11-C1",
+      "weakness_name_ko": "부적절한 인증서 유효성 검증",
+      "weakness_category": "security_feature",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 인증서 유효성 검증' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 서버 인증서 검증 결과(자체서명 등 오류)를 무시하고 통신을 계속하는가, ② 검증 실패 시 연결 중단 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-11 부적절한 인증서 유효성 검증 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 부적절한 인증서 유효성 검증(REQ-SF11)",
+          "content": "REQ-SF11-01 SSL/TLS 통신 시 상대 인증서의 유효성을 검증한다.\nREQ-SF11-02 검증 실패(자체서명·만료 등) 시 연결을 중단한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 부적절한 인증서 유효성 검증",
+          "content": "SSL_get_verify_result 결과가 X509_V_OK 가 아니면(자체서명 오류 포함) 세션을 종료하도록 분기한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "if ((cert = SSL_get_peer_certificate(ssl)) && host)\nfoo=SSL_get_verify_result(ssl);\nif ((X509_V_OK==foo) ||X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN==foo))\n// 자체 서명된 인증서일 수 있다."
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 서버 인증서 검증 결과(자체서명 등 오류)를 무시하고 통신을 계속하는가",
+          "method": "개발산출물 코드에서 REQ-SF11-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF11-01",
+          "required_keywords": [
+            "인증서",
+            "무시",
+            "검증"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "자체서명",
+            "중간자"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF11-02",
+          "required_keywords": [
+            "유효성 검증",
+            "연결 중단",
+            "X509"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-11 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF11-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 서버 인증서 검증 결과(자체서명 등 오류)를 무시하고 통신을 계속하는가. → 판정: 결함.\n\n[원문 해설] SSL_get_verify_result의 결과값이 X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN인 경우 자체 서명된 인증서이며, 해당 어플리케이션이 악의적인 행위를 할 수 있다.\n\n[개선방안] SSL_get_verify_result 결과가 X509_V_OK 가 아니면(자체서명 오류 포함) 세션을 종료하도록 분기한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-12",
+      "weakness_code": "IMP-SF-12-C1",
+      "weakness_name_ko": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 민감정보가 영속 쿠키(긴 만료시간)로 저장되는가, ② 세션 쿠키 사용·만료 최소화 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-12 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출(REQ-SF12)",
+          "content": "REQ-SF12-01 개인정보·인증정보를 영속 쿠키에 저장하지 않는다.\nREQ-SF12-02 쿠키 만료시간은 필요 최소한으로 설정한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+          "content": "setMaxAge 로 장기간(예: 1년) 유효한 쿠키에 개인정보를 담지 말고, 세션 쿠키 또는 짧은 만료로 설정한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다.\nloginCookie.setMaxAge(60*60*24*365);\nresponse.addCookie(loginCookie);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 민감정보가 영속 쿠키(긴 만료시간)로 저장되는가",
+          "method": "개발산출물 코드에서 REQ-SF12-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF12-01",
+          "required_keywords": [
+            "쿠키",
+            "setMaxAge",
+            "유효기간"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "하드디스크",
+            "도용"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF12-02",
+          "required_keywords": [
+            "세션 쿠키",
+            "만료",
+            "최소"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-12 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF12-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 민감정보가 영속 쿠키(긴 만료시간)로 저장되는가. → 판정: 결함.\n\n[원문 해설] 쿠키의 유효기간이 긴 경우 사용자 하드디스크에 쿠키가 저장되며 저장된 쿠키는 쉽게 도용될 수 있으므로 취약하다.\n\n[개선방안] setMaxAge 로 장기간(예: 1년) 유효한 쿠키에 개인정보를 담지 말고, 세션 쿠키 또는 짧은 만료로 설정한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-13",
+      "weakness_code": "IMP-SF-13-C1",
+      "weakness_name_ko": "주석문 안에 포함된 시스템 주요정보",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '주석문 안에 포함된 시스템 주요정보' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 주석에 계정·비밀번호 등 시스템 주요정보가 남아 있는가, ② 배포 전 주석 정보 제거 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-13 주석문 안에 포함된 시스템 주요정보 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 주석문 안에 포함된 시스템 주요정보(REQ-SF13)",
+          "content": "REQ-SF13-01 소스코드 주석에 계정·비밀번호·내부 IP 등 중요정보를 남기지 않는다.\nREQ-SF13-02 배포 전 주석의 민감정보를 제거한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 주석문 안에 포함된 시스템 주요정보",
+          "content": "개발 중 임시로 기록한 계정/비밀번호 주석은 코드리뷰·배포 단계에서 확인하여 삭제한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (java)",
+          "content": "//주석문으로 DB연결 ID, 비밀번호의 중요한 정보를 노출시켜 안전하지 않다.\n// DB연결 root / a1q2w3r3f2!@\ncon = DriverManager.getConnection(URL, USER, PASS);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 주석에 계정·비밀번호 등 시스템 주요정보가 남아 있는가",
+          "method": "개발산출물 코드에서 REQ-SF13-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF13-01",
+          "required_keywords": [
+            "주석",
+            "비밀번호",
+            "계정"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "주요정보",
+            "노출"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF13-02",
+          "required_keywords": [
+            "제거",
+            "삭제",
+            "배포 전"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-13 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF13-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 주석에 계정·비밀번호 등 시스템 주요정보가 남아 있는가. → 판정: 결함.\n\n[원문 해설] 프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 비밀번호 등의 정보는 개발 완료 시에 확실하게 삭제하여야 한다.\n\n[개선방안] 개발 중 임시로 기록한 계정/비밀번호 주석은 코드리뷰·배포 단계에서 확인하여 삭제한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-14",
+      "weakness_code": "IMP-SF-14-C1",
+      "weakness_name_ko": "솔트 없이 일방향 해쉬 함수 사용",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '솔트 없이 일방향 해쉬 함수 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 비밀번호를 솔트 없이 해시하는가, ② 사용자별 랜덤 솔트 적용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-14 솔트 없이 일방향 해쉬 함수 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 솔트 없이 일방향 해쉬 함수 사용(REQ-SF14)",
+          "content": "REQ-SF14-01 비밀번호 해시에는 사용자별 랜덤 솔트를 적용한다.\nREQ-SF14-02 솔트는 예측 불가능한 난수로 생성해 안전하게 보관한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 솔트 없이 일방향 해쉬 함수 사용",
+          "content": "digest(password) 단독 해시를 금지하고, SecureRandom 솔트를 결합(password+salt)해 해시한 뒤 솔트를 함께 저장한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (java)",
+          "content": "public String getPasswordHash(String password) throws Exception {\n  MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n  //해시에 솔트를 적용하지 않아 안전하지 않다.\n  md.update(password.getBytes());\n  byte byteData[] = md.digest();\n  StringBuffer hexString = new StringBuffer();\n  for (int i=0; i<byteData.length i++) {\n    String hex=Integer.toHexString(0xff & byteData[i]);\n    if (hex.length() == 1) {\n      hexString.append('0');\n    }\n    hexString.append(hex);\n  }\n  return hexString.toString();\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 비밀번호를 솔트 없이 해시하는가",
+          "method": "개발산출물 코드에서 REQ-SF14-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF14-01",
+          "required_keywords": [
+            "솔트 없이",
+            "해시",
+            "비밀번호"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "레인보우",
+            "사전 공격"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF14-02",
+          "required_keywords": [
+            "솔트",
+            "랜덤",
+            "결합"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-14 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF14-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 비밀번호를 솔트 없이 해시하는가. → 판정: 결함.\n\n[원문 해설] 비밀번호만을 해시함수의 입력으로 사용하기에 레인보우 테이블을 이용한 사전 공격이 가능하며, 이를 방지하기 위해 비밀번호와 솔트를 함께 해시함수에 적용하여 사용한다.\n\n[개선방안] digest(password) 단독 해시를 금지하고, SecureRandom 솔트를 결합(password+salt)해 해시한 뒤 솔트를 함께 저장한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-15",
+      "weakness_code": "IMP-SF-15-C1",
+      "weakness_name_ko": "무결성 검사 없는 코드 다운로드",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '무결성 검사 없는 코드 다운로드' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 원격에서 받은 코드를 무결성 검사 없이 로드·실행하는가, ② 해시/서명 대조 로직 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-15 무결성 검사 없는 코드 다운로드 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 무결성 검사 없는 코드 다운로드(REQ-SF15)",
+          "content": "REQ-SF15-01 원격 다운로드 코드는 무결성(해시·서명) 검증 후 실행한다.\nREQ-SF15-02 검증 실패 시 로드를 중단한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 무결성 검사 없는 코드 다운로드",
+          "content": "URLClassLoader 로 원격 클래스를 로드하기 전, 사전 배포된 해시값과 다운로드 파일의 해시를 대조한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (java)",
+          "content": "URL[] classURLs = new URL[] { new URL(\"file:subdir/\") };\nURLClassLoader loader = new URLClassLoader(classURLs);\nClass loadedClass = Class.forName(\"LoadMe\", true, loader);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 원격에서 받은 코드를 무결성 검사 없이 로드·실행하는가",
+          "method": "개발산출물 코드에서 REQ-SF15-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF15-01",
+          "required_keywords": [
+            "무결성",
+            "검사 없이",
+            "다운로드"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "원격",
+            "변조"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF15-02",
+          "required_keywords": [
+            "해시",
+            "대조",
+            "검증"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-15 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF15-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 원격에서 받은 코드를 무결성 검사 없이 로드·실행하는가. → 판정: 결함.\n\n[원문 해설] URLClassLoader()로 원격에서 파일을 다운로드한 뒤 로드하면서 무결성 검사를 수행하지 않으면 공격자가 악의적인 실행코드로 클래스의 내용을 수정할 수 있다. 클래스를 로드하기 전 클래스의 체크섬(Checksum)을 실행하여 로드하는 코드가 변조되지 않았음을 확인한다.\n\n[개선방안] URLClassLoader 로 원격 클래스를 로드하기 전, 사전 배포된 해시값과 다운로드 파일의 해시를 대조한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-SF-16",
+      "weakness_code": "IMP-SF-16-C1",
+      "weakness_name_ko": "반복된 인증시도 제한 기능 부재",
+      "weakness_category": "security_feature",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '반복된 인증시도 제한 기능 부재' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 로그인 실패 횟수 제한이 없는가, ② 임계 초과 시 계정 잠금·지연 처리 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-SF-16 반복된 인증시도 제한 기능 부재 (overview·countermeasure·code_examples)",
+      "tags": [
+        "security_feature",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 반복된 인증시도 제한 기능 부재(REQ-SF16)",
+          "content": "REQ-SF16-01 인증 시도 횟수를 기록하고 임계값 초과 시 차단한다.\nREQ-SF16-02 차단 해제는 안전한 절차(시간 경과·본인확인)로만 허용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 반복된 인증시도 제한 기능 부재",
+          "content": "로그인 처리에 실패 카운터(MAX_ATTEMPTS)를 두고 초과 시 인증 시도를 거부하도록 구현한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (java)",
+          "content": "private static final String SERVER_IP = \"127.0.0.1\";\nprivate static final int SERVER_PORT = 8080;\nprivate static final int FAIL = -1;\npublic void login() {\n  String username = null;\n  String password = null;\n  Socket socket = null;\n  int result = FAIL;\n  try {\n    socket = new Socket(SERVER_IP, SERVER_PORT);\n    //인증 실패에 대해 제한을 두지 않아 안전하지 않다.\n    while (result == FAIL) {\n      ...\n      result = verifyUser(username, password);\n    }\n  }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 로그인 실패 횟수 제한이 없는가",
+          "method": "개발산출물 코드에서 REQ-SF16-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-SF16-01",
+          "required_keywords": [
+            "횟수",
+            "제한 없이",
+            "인증"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "무차별",
+            "자동화"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-SF16-02",
+          "required_keywords": [
+            "MAX_ATTEMPTS",
+            "잠금",
+            "제한"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-SF-16 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-SF16-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 로그인 실패 횟수 제한이 없는가. → 판정: 결함.\n\n[원문 해설] 사용자 인증시도 횟수를 기록하는 MAX_ATTEMPTS 변수를 정의하고, 이를 인증시도 횟수를 제한하는 카운터로 사용함으로써 무차별 공격에 대응한다.\n\n[개선방안] 로그인 처리에 실패 카운터(MAX_ATTEMPTS)를 두고 초과 시 인증 시도를 거부하도록 구현한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-TS-01",
+      "weakness_code": "IMP-TS-01-C1",
+      "weakness_name_ko": "경쟁조건: 검사 시점과 사용 시점",
+      "weakness_category": "time_state",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '경쟁조건: 검사 시점과 사용 시점 (TOCTOU)' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 검사(exists)와 사용(read/delete) 사이에 자원 상태가 바뀔 수 있는가, ② 동기화(synchronized 등)로 원자성 보장 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-TS-01 경쟁조건: 검사 시점과 사용 시점 (TOCTOU) (overview·countermeasure·code_examples)",
+      "tags": [
+        "time_state",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 경쟁조건: 검사 시점과 사용 시점 (TOCTOU)(REQ-TS01)",
+          "content": "REQ-TS01-01 공유자원의 검사와 사용은 원자적으로 수행한다.\nREQ-TS01-02 다중 스레드 접근 구간은 동기화한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 경쟁조건: 검사 시점과 사용 시점 (TOCTOU)",
+          "content": "파일 존재 검사 후 사용하는 구간을 synchronized 블록(또는 락)으로 묶어 검사~사용 사이 상태 변경을 차단한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "// 멀티쓰레드 환경에서 공유자원에 여러 프로세스가 동시에 접근할 가능성이 있어 안전하지 않다.\nclass FileMgmtThread extends Thread {\n  private String manageType = \"\";\n  public FileMgmtThread (String type) {\n    manageType = type;\n  }\n  public void run() {\n    try {\n      if (manageType.equals(\"READ\")) {\n        File f = new File(\"Test_367.txt\");\n        if (f.exists()) {\n          BufferedReader br = new BufferedReader(new FileReader(f));\n          br.close();\n        }\n      } else if (manageType.equals(\"DELETE\")) {\n        File f = new File(\"Test_367.txt\");\n        if (f.exists()) {\n          f.delete();\n        } else { … }\n      }\n    } catch (IOException e) { … }\n  }\n}\n\npublic class CWE367 {\n  public static void main (String[] args) {\n    FileMgmtThread fileAccessThread = new FileMgmtThread(\"READ\");\n    FileMgmtThread fileDeleteThread = new FileMgmtThread(\"DELETE\");\n    // 파일의 읽기와 삭제가 동시에 수행되어 안전하지 않다.\n    fileAccessThread.start();\n    fileDeleteThread.start();\n  }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 검사(exists)와 사용(read/delete) 사이에 자원 상태가 바뀔 수 있는가",
+          "method": "개발산출물 코드에서 REQ-TS01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-TS01-01",
+          "required_keywords": [
+            "검사 시점",
+            "사용 시점",
+            "스레드"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "경쟁조건",
+            "TOCTOU"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-TS01-02",
+          "required_keywords": [
+            "동기화",
+            "synchronized",
+            "원자"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-TS-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-TS01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 검사(exists)와 사용(read/delete) 사이에 자원 상태가 바뀔 수 있는가. → 판정: 결함.\n\n[원문 해설] 파일에 대한 읽기와 삭제가 두 개의 스레드에서 동작하므로 이미 삭제된 파일을 읽으려고 하는 레이스컨디션이 발생할 수 있다. synchronized 동기화 구문으로 공유자원(Test_367.txt)에 대한 안전한 읽기/쓰기를 보장한다.\n\n[개선방안] 파일 존재 검사 후 사용하는 구간을 synchronized 블록(또는 락)으로 묶어 검사~사용 사이 상태 변경을 차단한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-TS-02",
+      "weakness_code": "IMP-TS-02-C1",
+      "weakness_name_ko": "종료되지 않는 반복문 또는 재귀 함수",
+      "weakness_category": "time_state",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '종료되지 않는 반복문 또는 재귀 함수' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 재귀·반복문에 종료(귀납)조건이 없는가, ② 한계값 도달 시 탈출 로직 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-TS-02 종료되지 않는 반복문 또는 재귀 함수 (overview·countermeasure·code_examples)",
+      "tags": [
+        "time_state",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 종료되지 않는 반복문 또는 재귀 함수(REQ-TS02)",
+          "content": "REQ-TS02-01 반복문·재귀는 명확한 종료조건을 가진다.\nREQ-TS02-02 외부입력이 반복 횟수에 영향을 주면 상한을 검증한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 종료되지 않는 반복문 또는 재귀 함수",
+          "content": "재귀 함수에 base case(예: n<=1 반환)를 두고, 반복 상한을 검증해 무한 수행을 차단한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "#include <stdio.h>\n\nint factorial(int i)\n{\n  // 재귀함수 탈출 조건을 설정하지 않아 무한루프가 된다.\n  return i * factorial(i - 1);\n}\n\nint main()\n{\n  int num = 5;\n  int result = factorial(num);\n  printf(\"%d! : %d\\n\", num, result);\n  return 0;\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 재귀·반복문에 종료(귀납)조건이 없는가",
+          "method": "개발산출물 코드에서 REQ-TS02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-TS02-01",
+          "required_keywords": [
+            "종료",
+            "조건 없이",
+            "재귀"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "무한",
+            "자원 고갈"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-TS02-02",
+          "required_keywords": [
+            "귀납조건",
+            "base case",
+            "상한"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-TS-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-TS02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 재귀·반복문에 종료(귀납)조건이 없는가. → 판정: 결함.\n\n[원문 해설] factorial 함수는 자신을 호출하는 재귀함수로, 재귀문을 빠져나오는 귀납조건(Base Case)을 정의하지 않으면 무한 재귀에 빠져 시스템 장애를 유발한다.\n\n[개선방안] 재귀 함수에 base case(예: n<=1 반환)를 두고, 반복 상한을 검증해 무한 수행을 차단한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EH-01",
+      "weakness_code": "IMP-EH-01-C1",
+      "weakness_name_ko": "오류 메시지 정보노출",
+      "weakness_category": "error_handling",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '오류 메시지 정보노출' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 예외 처리 시 스택 트레이스 등 내부정보를 사용자에게 출력하는가, ② 일반화된 메시지 처리 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EH-01 오류 메시지 정보노출 (overview·countermeasure·code_examples)",
+      "tags": [
+        "error_handling",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 오류 메시지 정보노출(REQ-EH01)",
+          "content": "REQ-EH01-01 오류 발생 시 내부 정보(스택 트레이스·쿼리)를 사용자에게 노출하지 않는다.\nREQ-EH01-02 상세 오류는 서버 로그에만 기록한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 오류 메시지 정보노출",
+          "content": "printStackTrace()·getMessage() 를 화면 응답에 사용하지 말고, 일반화된 안내 후 상세는 로거로 기록한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "try {\n  rd = new BufferedReader(new FileReader(new File(filename)));\n} catch(IOException e) {\n  // 에러 메시지로 스택 정보가 노출됨\n  e.printStackTrace();\n}\n\n// 또는: 오류발생시 화면에 출력된 시스템 정보로 다른 공격의 빌미를 제공한다.\n} catch(IOException e) {\n  System.err.print(e.getMessage());\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 예외 처리 시 스택 트레이스 등 내부정보를 사용자에게 출력하는가",
+          "method": "개발산출물 코드에서 REQ-EH01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EH01-01",
+          "required_keywords": [
+            "printStackTrace",
+            "스택",
+            "노출"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "오류 메시지",
+            "정보"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EH01-02",
+          "required_keywords": [
+            "일반화",
+            "로그",
+            "기록"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EH-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EH01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 예외 처리 시 스택 트레이스 등 내부정보를 사용자에게 출력하는가. → 판정: 결함.\n\n[원문 해설] 예외 이름이나 오류추적(스택 트레이스) 정보를 출력하지 않도록 한다.\n\n[개선방안] printStackTrace()·getMessage() 를 화면 응답에 사용하지 말고, 일반화된 안내 후 상세는 로거로 기록한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EH-02",
+      "weakness_code": "IMP-EH-02-C1",
+      "weakness_name_ko": "오류상황 대응 부재",
+      "weakness_category": "error_handling",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '오류상황 대응 부재' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① catch 블록이 비어 있어 오류가 무시되는가, ② 오류 상황별 처리(중단·보정) 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EH-02 오류상황 대응 부재 (overview·countermeasure·code_examples)",
+      "tags": [
+        "error_handling",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 오류상황 대응 부재(REQ-EH02)",
+          "content": "REQ-EH02-01 오류 발생 시 적절한 처리(중단·복구·기록)를 수행한다.\nREQ-EH02-02 빈 catch 블록을 금지한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 오류상황 대응 부재",
+          "content": "catch 에서 최소한 로그 기록과 흐름 제어(반환·예외 재던짐)를 수행해 오류가 정상 흐름으로 이어지지 않게 한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "protected Element createContent(WebSession s) {\n  ……\n  try {\n    username = s.getParser().getRawParameter(USERNAME);\n    password = s.getParser().getRawParameter(PASSWORD);\n    if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n      s.setMessage(\"Invalid username and password entered.\");\n      return (makeLogin(s));\n    }\n  } catch (NullPointerException e) {\n    // 요청 파라미터에 PASSWORD가 존재하지 않을 경우 Null Pointer Exception이 발생하고\n    // 해당 오류에 대한 대응이 존재하지 않아 인증이 된 것으로 처리\n  }"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — catch 블록이 비어 있어 오류가 무시되는가",
+          "method": "개발산출물 코드에서 REQ-EH02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EH02-01",
+          "required_keywords": [
+            "catch",
+            "비어",
+            "무시"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "대응 부재",
+            "계속 실행"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EH02-02",
+          "required_keywords": [
+            "오류 처리",
+            "로그",
+            "중단"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EH-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EH02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: catch 블록이 비어 있어 오류가 무시되는가. → 판정: 결함.\n\n[원문 해설] catch 블록이 비어 있으면 오류 발생 시에도 프로그램이 계속 실행되어 인증이 된 것으로 처리되는 등 의도하지 않은 동작이 발생한다. 예외 포착 후 각 예외 사항에 대해 적절히 처리해야 한다.\n\n[개선방안] catch 에서 최소한 로그 기록과 흐름 제어(반환·예외 재던짐)를 수행해 오류가 정상 흐름으로 이어지지 않게 한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EH-03",
+      "weakness_code": "IMP-EH-03-C1",
+      "weakness_name_ko": "부적절한 예외 처리",
+      "weakness_category": "error_handling",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 예외 처리' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 광범위한 Exception 하나로 상이한 예외를 뭉뚱그려 처리하는가, ② 예외 유형별 구체 처리 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EH-03 부적절한 예외 처리 (overview·countermeasure·code_examples)",
+      "tags": [
+        "error_handling",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 부적절한 예외 처리(REQ-EH03)",
+          "content": "REQ-EH03-01 예외는 유형별로 구분해 처리한다.\nREQ-EH03-02 광범위한 예외 클래스 남용을 금지한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 부적절한 예외 처리",
+          "content": "IOException·SQLException 등 구체 예외를 각각 catch 하여 상황별 복구·메시지를 달리 처리한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "try {\n    ...\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n    //예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생 할 수 있다.\n} catch (Exception e) {\n    System.err.println(\"Exception : \" + e.getMessage());\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 광범위한 Exception 하나로 상이한 예외를 뭉뚱그려 처리하는가",
+          "method": "개발산출물 코드에서 REQ-EH03-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EH03-01",
+          "required_keywords": [
+            "Exception",
+            "광범위",
+            "한꺼번"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "부적절한 예외",
+            "구분"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EH03-02",
+          "required_keywords": [
+            "유형별",
+            "구체",
+            "개별 처리"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EH-03 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EH03-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 광범위한 Exception 하나로 상이한 예외를 뭉뚱그려 처리하는가. → 판정: 결함.\n\n[원문 해설] try 블록에서 다양한 예외가 발생할 수 있음에도 광범위한 예외 클래스인 Exception 으로 처리하면 안 된다. 발생 가능한 예외를 세분화하고 발생 가능한 순서에 따라 예외를 처리해야 한다.\n\n[개선방안] IOException·SQLException 등 구체 예외를 각각 catch 하여 상황별 복구·메시지를 달리 처리한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-01",
+      "weakness_code": "IMP-CE-01-C1",
+      "weakness_name_ko": "Null Pointer 역참조",
+      "weakness_category": "code_error",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'Null Pointer 역참조' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① null 가능 객체를 검사 없이 역참조하는가, ② null 검사·안전 비교 순서 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-CE-01 Null Pointer 역참조 (overview·countermeasure·code_examples)",
+      "tags": [
+        "code_error",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — Null Pointer 역참조(REQ-CE01)",
+          "content": "REQ-CE01-01 null 이 될 수 있는 참조는 사용 전 null 검사를 한다.\nREQ-CE01-02 상수.equals(변수) 등 안전한 비교 순서를 사용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — Null Pointer 역참조",
+          "content": "obj.equals(elt) 처럼 null 가능 객체를 좌변에 두지 말고, null 검사 후 사용하거나 상수를 좌변에 둔다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "public static int cardinality (Object obj, final Collection col) {\n  int count = 0;\n  if (col == null) {\n    return count;\n  }\n  Iterator it = col.iterator();\n  while (it.hasNext()) {\n    Object elt = it.next();\n    //obj가 null이고 elt가 null이 아닐 경우, Null.equals 가 되어 널(Null) 포인터 역참조가 발생한다.\n    if ((null == obj && null == elt) || obj.equals(elt)) {\n      count++;\n    }\n  }\n  return count;\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — null 가능 객체를 검사 없이 역참조하는가",
+          "method": "개발산출물 코드에서 REQ-CE01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-CE01-01",
+          "required_keywords": [
+            "null",
+            "검사 없이",
+            "역참조"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "NullPointer",
+            "중단"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-CE01-02",
+          "required_keywords": [
+            "null 검사",
+            "순서",
+            "확인"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-CE-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-CE01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: null 가능 객체를 검사 없이 역참조하는가. → 판정: 결함.\n\n[원문 해설] obj가 null이고 elt가 null이 아닌 경우 null.equals 가 되어 널 포인터 역참조가 발생한다. obj가 null인지 검사 후 참조해야 한다.\n\n[개선방안] obj.equals(elt) 처럼 null 가능 객체를 좌변에 두지 말고, null 검사 후 사용하거나 상수를 좌변에 둔다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-02",
+      "weakness_code": "IMP-CE-02-C1",
+      "weakness_name_ko": "부적절한 자원 해제",
+      "weakness_category": "code_error",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '부적절한 자원 해제' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 예외 발생 시 close() 미실행으로 자원이 누수되는가, ② finally/try-with-resources 반환 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-CE-02 부적절한 자원 해제 (overview·countermeasure·code_examples)",
+      "tags": [
+        "code_error",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 부적절한 자원 해제(REQ-CE02)",
+          "content": "REQ-CE02-01 획득한 자원(스트림·커넥션)은 오류 여부와 무관하게 해제한다.\nREQ-CE02-02 자원 해제는 finally 또는 try-with-resources 로 보장한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 부적절한 자원 해제",
+          "content": "close() 를 try 본문에만 두지 말고 finally 블록(또는 try-with-resources)에서 호출해 예외 시에도 반환되게 한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "InputStream in = null;\nOutputStream out = null;\ntry {\n  in = new FileInputStream(inputFile);\n  out = new FileOutputStream(outputFile);\n  ...\n  FileCopyUtils.copy(fis, os);\n  //자원반환 실행 전에 오류가 발생할 경우 자원이 반환되지 않으며, 할당된 모든 자원을 반환해야 한다.\n  in.close();\n  out.close();\n} catch (IOException e) {\n  logger.error(e);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 예외 발생 시 close() 미실행으로 자원이 누수되는가",
+          "method": "개발산출물 코드에서 REQ-CE02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-CE02-01",
+          "required_keywords": [
+            "close",
+            "해제",
+            "누수"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "자원",
+            "반환"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-CE02-02",
+          "required_keywords": [
+            "finally",
+            "try-with-resources",
+            "보장"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-CE-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-CE02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 예외 발생 시 close() 미실행으로 자원이 누수되는가. → 판정: 결함.\n\n[원문 해설] try 구문 내 처리 중 오류가 발생하면 close()가 실행되지 않아 자원이 반환되지 않는다. 항상 실행되는 finally 블록에서 모든 자원을 반환해야 한다.\n\n[개선방안] close() 를 try 본문에만 두지 말고 finally 블록(또는 try-with-resources)에서 호출해 예외 시에도 반환되게 한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-03",
+      "weakness_code": "IMP-CE-03-C1",
+      "weakness_name_ko": "해제된 자원 사용",
+      "weakness_category": "code_error",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '해제된 자원 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① free() 후 해제된 메모리를 다시 사용하는가, ② 해제 후 포인터 초기화 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-CE-03 해제된 자원 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "code_error",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 해제된 자원 사용(REQ-CE03)",
+          "content": "REQ-CE03-01 해제한 메모리는 재사용하지 않는다.\nREQ-CE03-02 해제 직후 포인터를 NULL 로 초기화한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 해제된 자원 사용",
+          "content": "free(temp) 이후 temp 사용을 금지하고 temp = NULL 로 초기화하여 재사용을 차단한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "int main(int argc, const char *argv[]) {\n  char *temp;\n  temp = (char *)malloc(BUFFER_SIZE);\n  ……\n  free(temp);\n  //해제한 자원을 사용하고 있어 의도하지 않은 결과가 발생하게 된다.\n  stmcpy(temp, argv[1], BUFFER_SIZE-1);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — free() 후 해제된 메모리를 다시 사용하는가",
+          "method": "개발산출물 코드에서 REQ-CE03-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-CE03-01",
+          "required_keywords": [
+            "free",
+            "해제된",
+            "사용"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "use after free",
+            "임의"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-CE03-02",
+          "required_keywords": [
+            "NULL",
+            "초기화",
+            "재사용 금지"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-CE-03 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-CE03-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: free() 후 해제된 메모리를 다시 사용하는가. → 판정: 결함.\n\n[원문 해설] 동적 변수 temp에 할당된 메모리를 free() 후 다시 사용(stmcpy)하면 예상치 못한 임의의 프로그램이 수행되는 취약점을 유발할 수 있다. 메모리를 해제하기 전에 사용 작업을 수행하고 최종적으로 해제해야 한다.\n\n[개선방안] free(temp) 이후 temp 사용을 금지하고 temp = NULL 로 초기화하여 재사용을 차단한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-04",
+      "weakness_code": "IMP-CE-04-C1",
+      "weakness_name_ko": "초기화되지 않은 변수 사용",
+      "weakness_category": "code_error",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '초기화되지 않은 변수 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 분기(switch/if)에 따라 초기화되지 않는 변수가 사용되는가, ② 선언 시 초기값 부여 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-CE-04 초기화되지 않은 변수 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "code_error",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 초기화되지 않은 변수 사용(REQ-CE04)",
+          "content": "REQ-CE04-01 모든 변수는 사용 전에 초기화한다.\nREQ-CE04-02 모든 분기 경로에서 초기화를 보장한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 초기화되지 않은 변수 사용",
+          "content": "변수 선언 시 기본값을 부여하고, default 등 모든 분기에서 값이 설정되는지 확인한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "//변수의 초기값을 지정하지 않을 경우 공격에 사용 될 수 있어 안전하지 않다.\nint x, y;\nswitch(position) {\n    case 0: x = base_position y = base_position beak;\n    case 1: x = base_position + i y = base_position - i break;\n    default: x=1; break;\n}\nsetCursorPosition(x,y);"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 분기(switch/if)에 따라 초기화되지 않는 변수가 사용되는가",
+          "method": "개발산출물 코드에서 REQ-CE04-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-CE04-01",
+          "required_keywords": [
+            "초기화",
+            "않은",
+            "변수"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "쓰레기 값",
+            "예측"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-CE04-02",
+          "required_keywords": [
+            "초기값",
+            "선언 시",
+            "모든 분기"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-CE-04 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-CE04-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 분기(switch/if)에 따라 초기화되지 않는 변수가 사용되는가. → 판정: 결함.\n\n[원문 해설] 커서의 위치를 정하는 프로그램이다. switch문 default 부분에서 변수 x만 초기화하고 변수 y는 초기화되지 않으므로, 이 함수가 수행되기 전에 공격자가 변수에 원하는 값을 저장해 놓으면 서비스 거부 공격도 가능하다. case 항목에 있던 초기화 구문을 switch문 밖으로 꺼내어 변수를 올바르게 초기화하면 안전하다.\n\n[개선방안] 변수 선언 시 기본값을 부여하고, default 등 모든 분기에서 값이 설정되는지 확인한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-CE-05",
+      "weakness_code": "IMP-CE-05-C1",
+      "weakness_name_ko": "신뢰할 수 없는 데이터의 역직렬화",
+      "weakness_category": "code_error",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '신뢰할 수 없는 데이터의 역직렬화' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 신뢰할 수 없는 바이트 스트림을 검증 없이 역직렬화하는가, ② 허용 클래스 제한(필터) 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-CE-05 신뢰할 수 없는 데이터의 역직렬화 (overview·countermeasure·code_examples)",
+      "tags": [
+        "code_error",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 신뢰할 수 없는 데이터의 역직렬화(REQ-CE05)",
+          "content": "REQ-CE05-01 신뢰할 수 없는 데이터의 역직렬화를 금지한다.\nREQ-CE05-02 불가피하면 역직렬화 허용 클래스를 화이트리스트로 제한한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 신뢰할 수 없는 데이터의 역직렬화",
+          "content": "ObjectInputStream 사용 시 ObjectInputFilter 로 허용 클래스·깊이·크기를 제한하고, 가능하면 JSON 등 안전한 포맷으로 대체한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "public static void main(String[] args) throws\nIOException, GeneralSecurityException, ClassNotFoundException {\n    ....\n    // map을 역직렬화 한다.\n    ObjectInputStream in = new ObjectInputStream(new FileInputStream(\"data\"));\n    sealedMap = (SealedObject) in.readObject();\n    in.close();\n\n    // 객체를 추출한다.\n    cipher = Cipher.getInstance(\"AES\");\n    cipher.init(Cipher.DECRYPT_MODE, key);\n    signedMap = (SignedObject) sealedMap.getObject(cipher);\n\n    // 서명값 검증 과정에서 불일치 시 예외를 리턴하고, 일치 시 map 값을 읽는다.\n    if (!signedMap.verify(kp.getPublic(), sig)) {\n            throw new GeneralSecurityException(\"Map failed verification\");\n    }\n    map = (SerializableMap<String, Integer>) signedMap.getObject();\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 신뢰할 수 없는 바이트 스트림을 검증 없이 역직렬화하는가",
+          "method": "개발산출물 코드에서 REQ-CE05-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-CE05-01",
+          "required_keywords": [
+            "역직렬화",
+            "검증 없이",
+            "ObjectInputStream"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "조작",
+            "원격"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-CE05-02",
+          "required_keywords": [
+            "필터",
+            "허용 클래스",
+            "제한"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-CE-05 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-CE05-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 신뢰할 수 없는 바이트 스트림을 검증 없이 역직렬화하는가. → 판정: 결함.\n\n[원문 해설] 맵(map)을 직렬화하고 역직렬화 하는 코드. 데이터를 전송할 경우 공격자가 바이트 스트림을 조작하여 역직렬화 공격이 가능한 객체를 생성할 수 있다. 안전한 코드는 서명 값을 검증하여 메시지 위변조를 방지한다.\n\n[개선방안] ObjectInputStream 사용 시 ObjectInputFilter 로 허용 클래스·깊이·크기를 제한하고, 가능하면 JSON 등 안전한 포맷으로 대체한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-01",
+      "weakness_code": "IMP-EN-01-C1",
+      "weakness_name_ko": "잘못된 세션에 의한 데이터 정보 노출",
+      "weakness_category": "encapsulation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '잘못된 세션에 의한 데이터 정보 노출' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① JSP 선언부(<%! %>) 등 공유 멤버변수에 사용자별 데이터를 저장하는가, ② 요청 단위 지역변수 사용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EN-01 잘못된 세션에 의한 데이터 정보 노출 (overview·countermeasure·code_examples)",
+      "tags": [
+        "encapsulation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 잘못된 세션에 의한 데이터 정보 노출(REQ-EN01)",
+          "content": "REQ-EN01-01 사용자별 데이터는 세션·요청 범위에 저장한다.\nREQ-EN01-02 멀티스레드 공유 멤버변수에 사용자 데이터를 두지 않는다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 잘못된 세션에 의한 데이터 정보 노출",
+          "content": "JSP 선언부 변수는 모든 사용자에게 공유되므로, 사용자 데이터는 스크립틀릿 지역변수 또는 세션에 저장한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (JSP))",
+          "content": "<%@page import=\"javax.xml.namespace.*\"%>\n<%@page import=\"gov.mogaha.ntis.web.frs.gis.cmm.util.*\" %>\n<%\n  // JSP에서 String 필드들이 멤버 변수로 선언됨\n  String username = \"/\";\n  String imagePath = commonPath + \"img/\";\n  String imagePath_gis = imagePath + \"gis/cmm/btn/\";\n  ……\n%>"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — JSP 선언부(<%! %>) 등 공유 멤버변수에 사용자별 데이터를 저장하는가",
+          "method": "개발산출물 코드에서 REQ-EN01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EN01-01",
+          "required_keywords": [
+            "선언부",
+            "공유",
+            "멤버변수"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "세션",
+            "다른 사용자"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EN01-02",
+          "required_keywords": [
+            "지역변수",
+            "요청 단위",
+            "분리"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EN-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EN01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: JSP 선언부(<%! %>) 등 공유 멤버변수에 사용자별 데이터를 저장하는가. → 판정: 결함.\n\n[원문 해설] JSP 선언부(<%! %>)에 선언한 변수는 해당 JSP에 접근하는 모든 사용자에게 공유된다. 먼저 호출한 사용자가 값을 설정하고 사용하기 전에 다른 사용자의 호출이 발생하면, 뒤에 호출한 사용자가 설정한 값이 모든 사용자에게 적용된다. JSP 서블릿(<% %>)에 정의한 변수는 _jspService 메소드의 지역변수로 선언되므로 공유가 발생하지 않아 안전하다.\n\n[개선방안] JSP 선언부 변수는 모든 사용자에게 공유되므로, 사용자 데이터는 스크립틀릿 지역변수 또는 세션에 저장한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-02",
+      "weakness_code": "IMP-EN-02-C1",
+      "weakness_name_ko": "제거되지 않고 남은 디버그 코드",
+      "weakness_category": "encapsulation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '제거되지 않고 남은 디버그 코드' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 배포 코드에 디버그 코드(main·출력문)가 남아 있는가, ② 배포 전 제거 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EN-02 제거되지 않고 남은 디버그 코드 (overview·countermeasure·code_examples)",
+      "tags": [
+        "encapsulation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 제거되지 않고 남은 디버그 코드(REQ-EN02)",
+          "content": "REQ-EN02-01 배포 소스에는 디버깅 목적 코드를 남기지 않는다.\nREQ-EN02-02 디버그 정보 출력(시스템 정보 등)을 금지한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 제거되지 않고 남은 디버그 코드",
+          "content": "J2EE 컴포넌트의 main() 등 테스트용 진입점과 콘솔 출력 디버그 코드는 배포 전 제거한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "class Base64 {\n    public static void main(String[] args) {\n        if (debug) {\n            byte[] a = { (byte) 0xfc, (byte) 0x0f, (byte) 0xc0 };\n            byte[] b = { (byte) 0x03, (byte) 0xf0, (byte) 0x3f };\n                 ……\n        }\n    }\n    public void otherMethod() { … }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 배포 코드에 디버그 코드(main·출력문)가 남아 있는가",
+          "method": "개발산출물 코드에서 REQ-EN02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EN02-01",
+          "required_keywords": [
+            "디버그",
+            "남",
+            "main"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "제거되지 않",
+            "정보"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EN02-02",
+          "required_keywords": [
+            "제거",
+            "배포 전",
+            "삭제"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EN-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EN02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 배포 코드에 디버그 코드(main·출력문)가 남아 있는가. → 판정: 결함.\n\n[원문 해설] main() 메서드 내에 화면에 출력하는 디버깅 코드를 포함하고 있다. J2EE의 경우 main() 메서드 사용이 필요 없으며, 개발자들이 콘솔 응용프로그램으로 화면에 디버깅코드를 사용하는 경우가 일반적이다. J2EE와 같은 응용프로그램에서 main() 메소드는 삭제한다.\n\n[개선방안] J2EE 컴포넌트의 main() 등 테스트용 진입점과 콘솔 출력 디버그 코드는 배포 전 제거한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-03",
+      "weakness_code": "IMP-EN-03-C1",
+      "weakness_name_ko": "Public 메소드부터 반환된 Private 배열",
+      "weakness_category": "encapsulation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'Public 메소드부터 반환된 Private 배열' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① private 배열을 public 메소드가 그대로 반환하는가, ② 복제본 반환 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EN-03 Public 메소드부터 반환된 Private 배열 (overview·countermeasure·code_examples)",
+      "tags": [
+        "encapsulation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — Public 메소드부터 반환된 Private 배열(REQ-EN03)",
+          "content": "REQ-EN03-01 private 배열은 외부에 직접 반환하지 않는다.\nREQ-EN03-02 반환이 필요하면 복제본(clone)을 반환한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — Public 메소드부터 반환된 Private 배열",
+          "content": "getter 에서 배열 참조를 그대로 반환하지 말고 clone() 으로 복사해 반환하며, 원소가 객체면 원소도 복사한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (배열 원소가 일반객체))",
+          "content": "// private 인 배열을 public인 메소드가 return한다.\nprivate Color[] colors;\npublic Color[] getUserColors(Color[] userColors) { return colors; }"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — private 배열을 public 메소드가 그대로 반환하는가",
+          "method": "개발산출물 코드에서 REQ-EN03-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EN03-01",
+          "required_keywords": [
+            "private 배열",
+            "그대로",
+            "반환"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "참조",
+            "외부 수정"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EN03-02",
+          "required_keywords": [
+            "clone",
+            "복사",
+            "복제본"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EN-03 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EN03-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: private 배열을 public 메소드가 그대로 반환하는가. → 판정: 결함.\n\n[원문 해설] 원소가 일반 객체이면 배열뿐 아니라 원소도 clone() 으로 복사해야 한다.\n\n[개선방안] getter 에서 배열 참조를 그대로 반환하지 말고 clone() 으로 복사해 반환하며, 원소가 객체면 원소도 복사한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-EN-04",
+      "weakness_code": "IMP-EN-04-C1",
+      "weakness_name_ko": "Private 배열에 Public 데이터 할당",
+      "weakness_category": "encapsulation",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'Private 배열에 Public 데이터 할당' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① public 으로 받은 배열을 private 배열에 그대로 할당하는가, ② 방어적 복사 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-EN-04 Private 배열에 Public 데이터 할당 (overview·countermeasure·code_examples)",
+      "tags": [
+        "encapsulation",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — Private 배열에 Public 데이터 할당(REQ-EN04)",
+          "content": "REQ-EN04-01 외부에서 받은 배열은 복사하여 private 멤버에 저장한다.\nREQ-EN04-02 외부 참조로 내부 상태가 변경되지 않게 한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — Private 배열에 Public 데이터 할당",
+          "content": "setter 에서 전달받은 배열을 참조 할당하지 말고 clone()·복사로 저장한다(원소가 객체면 원소도 복사)."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java (배열 원소가 일반객체))",
+          "content": "//userRoles 필드는 private이지만, public인 setUserRoles()로 외부의 배열이 할당되면, 사실상 public 필드가 된다.\nprivate UserRole[] userRoles;\npublic void setUserRoles(UserRole[] userRoles) {\n  this.userRoles = userRoles;\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — public 으로 받은 배열을 private 배열에 그대로 할당하는가",
+          "method": "개발산출물 코드에서 REQ-EN04-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-EN04-01",
+          "required_keywords": [
+            "할당",
+            "그대로",
+            "public"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "private",
+            "변경"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-EN04-02",
+          "required_keywords": [
+            "방어적 복사",
+            "clone",
+            "복사"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-EN-04 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-EN04-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: public 으로 받은 배열을 private 배열에 그대로 할당하는가. → 판정: 결함.\n\n[원문 해설] 원소가 일반 객체이면 배열 복사뿐 아니라 원소도 clone() 으로 복사해야 한다.\n\n[개선방안] setter 에서 전달받은 배열을 참조 할당하지 말고 clone()·복사로 저장한다(원소가 객체면 원소도 복사)."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-AA-01",
+      "weakness_code": "IMP-AA-01-C1",
+      "weakness_name_ko": "DNS lookup에 의존한 보안결정",
+      "weakness_category": "api_abuse",
+      "language": "java",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. 'DNS lookup에 의존한 보안결정' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① 호스트명(DNS 조회 결과)으로 신뢰 여부를 판단하는가, ② IP 직접 비교·상호 인증 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-AA-01 DNS lookup에 의존한 보안결정 (overview·countermeasure·code_examples)",
+      "tags": [
+        "api_abuse",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — DNS lookup에 의존한 보안결정(REQ-AA01)",
+          "content": "REQ-AA01-01 보안결정에 DNS 조회 결과(호스트명)를 사용하지 않는다.\nREQ-AA01-02 신뢰 판단은 IP 직접 비교 또는 인증서 기반으로 한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — DNS lookup에 의존한 보안결정",
+          "content": "getCanonicalHostName() 비교 대신 신뢰 IP 주소를 직접 비교하거나 TLS 상호 인증을 적용한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (Java)",
+          "content": "public void doGet(HttpServletRequest req, HttpServletResponse res)\n    throws ServletException, IOException {\n  boolean trusted = false;\n  String ip = req.getRemoteAddr();\n  InetAddress addr = InetAddress.getByName(ip);\n  //도메인은 공격자에 의해 실행되는 서버의 DNS가 변경될 수 있으므로 안전하지 않다.\n  if (addr.getCanonicalHostName().endsWith(\"trustme.com\")) {\n    do_something_for_Trust_System();\n  }\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — 호스트명(DNS 조회 결과)으로 신뢰 여부를 판단하는가",
+          "method": "개발산출물 코드에서 REQ-AA01-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-AA01-01",
+          "required_keywords": [
+            "DNS",
+            "호스트",
+            "판단"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "스푸핑",
+            "위장"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-AA01-02",
+          "required_keywords": [
+            "IP 주소",
+            "직접 비교",
+            "인증"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-AA-01 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-AA01-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: 호스트명(DNS 조회 결과)으로 신뢰 여부를 판단하는가. → 판정: 결함.\n\n[원문 해설] getCanonicalHostName() 으로 얻은 호스트 이름 대신 IP 주소를 직접 비교한다.\n\n[개선방안] getCanonicalHostName() 비교 대신 신뢰 IP 주소를 직접 비교하거나 TLS 상호 인증을 적용한다."
+    },
+    {
+      "question_type": "composite",
+      "stage": "implementation",
+      "chapter_code": "IMP-AA-02",
+      "weakness_code": "IMP-AA-02-C1",
+      "weakness_name_ko": "취약한 API 사용",
+      "weakness_category": "api_abuse",
+      "language": "etc",
+      "difficulty": "상",
+      "body": "다음은 어느 웹 서비스 프로젝트의 구현 단계 산출물(보안요구사항명세서·개발가이드·개발산출물 소스코드)이다. '취약한 API 사용' 항목의 적용 여부를 진단하고 결함을 식별하여 진단보고서를 작성하시오. (8점)\n\n진단 시 ① gets() 등 경계 검사 없는 취약 API 를 사용하는가, ② 안전 대체 API 사용 여부를 확인하고, 결함이 있다면 현황·문제점과 개선방안을 제시한다.",
+      "reference": "소프트웨어 보안약점 진단가이드(2021) — IMP-AA-02 취약한 API 사용 (overview·countermeasure·code_examples)",
+      "tags": [
+        "api_abuse",
+        "implementation",
+        "복합서술형",
+        "진단보고서",
+        "산출물"
+      ],
+      "is_active": true,
+      "artifacts": [
+        {
+          "type": "보안요구사항명세서",
+          "title": "보안요구사항명세서 — 취약한 API 사용(REQ-AA02)",
+          "content": "REQ-AA02-01 버퍼 경계를 검사하지 않는 취약 API 사용을 금지한다.\nREQ-AA02-02 안전한 대체 함수(gets_s, fgets 등)를 사용한다."
+        },
+        {
+          "type": "개발가이드",
+          "title": "시큐어코딩 개발가이드 — 취약한 API 사용",
+          "content": "금지 API 목록(gets, strcpy 등)을 개발가이드에 두고, 크기 인자를 받는 안전 함수로 대체한다."
+        },
+        {
+          "type": "개발산출물",
+          "title": "개발산출물 소스코드 (C)",
+          "content": "#include <stdio.h>\n\nvoid requestString()\n{\n  char str[100];\n  //gets() 함수는 문자열 길이를 제한 할 수 없어 안전하지 않다.\n  gets(str);\n}"
+        }
+      ],
+      "rubric": [
+        {
+          "item": "결함 진단 — gets() 등 경계 검사 없는 취약 API 를 사용하는가",
+          "method": "개발산출물 코드에서 REQ-AA02-01 위반 지점을 특정하고 위반임을 서술.",
+          "points": 3,
+          "artifact_ref": "개발산출물 ↔ REQ-AA02-01",
+          "required_keywords": [
+            "gets",
+            "취약",
+            "API"
+          ]
+        },
+        {
+          "item": "판정 및 현황·문제점 서술",
+          "method": "진단항목에 대해 결함 판정을 내리고, 방치 시 영향(공격 시나리오)을 현황·문제점으로 서술.",
+          "points": 3,
+          "artifact_ref": "진단보고서(판정·현황 및 문제점)",
+          "required_keywords": [
+            "결함",
+            "버퍼",
+            "오버플로우"
+          ]
+        },
+        {
+          "item": "개선방안 제시",
+          "method": "개발가이드 기준의 안전한 구현 방법으로 개선방안을 제시.",
+          "points": 2,
+          "artifact_ref": "개발가이드 ↔ REQ-AA02-02",
+          "required_keywords": [
+            "gets_s",
+            "대체",
+            "안전한 함수"
+          ]
+        }
+      ],
+      "report_template": {
+        "sections": [
+          "진단항목",
+          "판정",
+          "현황 및 문제점",
+          "개선방안"
+        ]
+      },
+      "explanation": "복합서술형(8점). IMP-AA-02 진단가이드 code_examples(취약/안전)와 대응방안을 채점 근거로 사용한다.\n\n[진단 흐름] (1) 보안요구사항명세서 REQ-AA02-01/02 수립 확인 → (2) 개발가이드 규칙 확인 → (3) 개발산출물 코드에서 위반 지점 식별: gets() 등 경계 검사 없는 취약 API 를 사용하는가. → 판정: 결함.\n\n[원문 해설] gets() 는 크기와 상관없이 입력값을 버퍼에 저장해 버퍼 오버플로우를 유발한다. gets_s() 또는 fgets()로 크기를 제한한다.\n\n[개선방안] 금지 API 목록(gets, strcpy 등)을 개발가이드에 두고, 크기 인자를 받는 안전 함수로 대체한다."
+    }
+  ]
+}

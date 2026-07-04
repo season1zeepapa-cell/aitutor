@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-IV-10",
+  "title": "LDAP 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-90",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 10. LDAP 삽입",
+    "pages": "44-47"
+  },
+  "overview": "외부 입력값을 적절한 처리 없이 LDAP 쿼리문이나 결과의 일부로 사용하는 경우 LDAP 쿼리문이 실행될 때 공격자는 LDAP 쿼리문의 내용을 마음대로 변경할 수 있는 보안약점이다. 파이썬에는 python-ldap 및 ldap3라는 두 개의 라이브러리가 있으며, ldap3가 python-ldap 보다 더 현대적인 라이브러리다. ldap3 모듈은 파이썬 2.6부터 모든 파이썬 3 버전에 호환되고 좀 더 파이썬적인 방식으로 LDAP 서버와 상호 작용할 수 있는 완전한 기능의 추상화 계층이 포함되어 있다. python-ldap은 OpenLDAP에서 만든 파이썬2의 패키지로 파이썬3에서는 ldap3 라이브러리를 사용하는 것이 권장된다.",
+  "impact": "공격자가 LDAP 쿼리문의 내용을 마음대로 변경할 수 있으며, 이로 인해 프로세스가 명령을 실행한 컴포넌트와 동일한 권한(Permission)을 가지고 동작하게 되어 권한 상승 등의 공격에 노출될 수 있다.",
+  "countermeasure": "다른 삽입 공격들과 마찬가지로 LDAP 삽입에 대한 기본적인 방어 방법은 적절한 유효성 검사이다. 올바른 인코딩(Encoding) 함수를 사용해 모든 변수를 이스케이프(Escape) 처리하고, 화이트리스트 방식의 입력값 유효성 검사를 수행하며, 사용자 패스워드와 같은 민감한 정보가 포함된 필드는 인덱싱하고, LDAP 바인딩 계정에 할당된 권한을 최소화한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, ldap3)",
+      "vulnerable": "from ldap3 import Connection, Server, ALL\nfrom django.shortcuts import render\n\nconfig = {\n    \"bind_dn\": \"cn=read-only-admin,dc=example,dc=com\",\n    \"password\": \"password\",\n}\n\ndef ldap_query(request):\n    search_keyword = request.POST.get('search_keyword','')\n\n    dn = config['bind_dn']\n    password = config['password']\n    address = 'ldap.badSoruce.com'\n    server = Server(address, get_info=ALL)\n    conn = Connection(server, user=dn, password, auto_bind=True )\n\n    # 사용자 입력을 필터링 하지 않는 경우 공격자의 권한 상승으로\n    # 이어질 수 있다\n    search_str = '(&(objectclass=%s))' % search_keyword\n\n    conn.search(\n        'dc=company,dc=com',\n        search_str,\n        attributes=['sn', 'cn', 'address', 'mail', 'mobile', 'uid'],\n    )\n\n    return render(request, '/ldap_query_response.html', {'ldap':conn.entries})",
+      "safe": "from ldap3 import Connection, Server, ALL\nfrom ldap3.utils.conv import escape_filter_chars\nfrom django.shortcuts import render\n\nconfig = {\n    \"bind_dn\": \"cn=read-only-admin,dc=example,dc=com\",\n    \"password\": \"password\",\n}\n\ndef ldap_query(request):\n    search_keyword = request.POST.get('search_keyword','')\n\n    dn = config['bind_dn']\n    password = config['password']\n    address = 'ldap.goodsource.com'\n    server = Server(address, get_info=ALL)\n    conn = Connection(server, dn, password, auto_bind=True )\n\n    # 사용자의 입력에 필터링을 적용하여 공격에 사용될 수 있는 문자를\n    # 이스케이프하고 있다\n    escpae_keyword = escape_filter_chars(search_keyword)\n    search_str = '(&(objectclass=%s))' % escpae_keyword\n\n    conn.search(\n        'dc=company,dc=com',\n        search_str,\n        attributes=['sn', 'cn', 'address', 'mail', 'mobile', 'uid'],\n    )\n\n    return render(request, '/ldap_query_response.html', {'ldap':conn.entries})",
+      "note": "안전하지 않은 코드는 사용자의 입력(search_keyword)을 그대로 LDAP 질의문에 사용하고 있으며 이 경우 권한 상승 등의 공격에 노출될 수 있다. 안전한 코드는 사용자의 입력 중 LDAP 질의문에 사용될 변수를 ldap3.utils.conv의 escape_filter_chars 함수로 이스케이프하여 질의문 실행 시 공격에 노출되는 것을 예방한다."
+    }
+  ]
+}

@@ -33,6 +33,7 @@ const { withAuth } = require('./middleware');
 const { scoreAttempt } = require('./_kisa/scorer');
 const { applySrs } = require('./_kisa/srs');
 const { gradeWithLlm } = require('./_kisa/llmGrader');
+const keys = require('./_llm/apikeys');   // REBUILD67 — DB 기반 API 키 해석
 
 // LLM 보조채점 일일 호출 제한 (사용자당, FEATURE_SPEC §14)
 const LLM_DAILY_LIMIT = parseInt(process.env.KISA_LLM_DAILY_LIMIT || '50', 10);
@@ -110,7 +111,7 @@ async function handleLlmGrade(req, res) {
       rationale_text: row.rationale_text,
       fix_text: row.fix_text,
       fix_code: row.fix_code,
-    });
+    }, req.user);   // REBUILD67 — DB 기반 키 해석용 사용자 컨텍스트
   } catch (err) {
     console.error('[KisaLLM] 채점 실패:', err.message);
     return res.status(503).json({
@@ -156,6 +157,9 @@ module.exports = withAuth(async (req, res) => {
   // 액션 기반 분기 (GET/POST 모두 허용되는 액션들)
   if (action === 'list-explanations' && req.method === 'GET') {
     return await handleListExplanations(req, res);
+  }
+  if (action === 'explain-prompt' && req.method === 'GET') {
+    return await handleExplainPrompt(req, res);
   }
 
   // 이하 액션들은 POST만 허용
@@ -306,18 +310,24 @@ module.exports = withAuth(async (req, res) => {
     model_answer: question.model_answer,
     vulnerable_lines: question.vulnerable_lines,
     safe_code: question.safe_code,
-    answer_index: question.question_type === 'mcq' ? question.answer_index : null,
-    user_selected: question.question_type === 'mcq'
+    answer_index: (question.question_type === 'codeid' || question.question_type === 'objective') ? question.answer_index : null,
+    user_selected: (question.question_type === 'codeid' || question.question_type === 'objective')
       ? (typeof mcq_selected === 'number' ? mcq_selected : null)
       : null,
+    // codeid 전용: 정답 안전여부(model_answer.is_safe) + 사용자의 안전/취약 선택
+    is_safe_answer: question.question_type === 'codeid'
+      ? !!(question.model_answer && question.model_answer.is_safe) : null,
+    user_verdict_yn: question.question_type === 'codeid'
+      ? (typeof verdict_yn === 'boolean' ? verdict_yn : null) : null,
+    choices: (question.question_type === 'codeid' || question.question_type === 'objective') ? question.choices : null,
     // blank 전용: 빈칸별 채점 디테일 + 모범답안 공개
     blank_detail: scored.blankDetail || null,
     blank_answers: question.question_type === 'blank' ? question.blank_answers : null,
     blank_template: question.question_type === 'blank' ? question.blank_template : null,
-    // composite 전용: 루브릭 항목별 채점 결과 + 채점 후 루브릭/산출물 공개
-    rubric_hits: question.question_type === 'composite' ? (scored.rubricHits || []) : null,
-    rubric: question.question_type === 'composite' ? question.rubric : null,
-    report_template: question.question_type === 'composite' ? question.report_template : null,
+    // composite/shortessay 전용: 루브릭 항목별 채점 결과 + 채점 후 루브릭/산출물 공개
+    rubric_hits: (question.question_type === 'composite' || question.question_type === 'shortessay') ? (scored.rubricHits || []) : null,
+    rubric: (question.question_type === 'composite' || question.question_type === 'shortessay') ? question.rubric : null,
+    report_template: (question.question_type === 'composite' || question.question_type === 'shortessay') ? question.report_template : null,
     // 기본 해설 (Claude Code 사전 작성) — 모든 문항 풀이 후 핵심 정보
     explanation: question.explanation || null,
     question: {
@@ -392,54 +402,44 @@ async function handleLlmExplain(req, res) {
   if (qRes.rows.length === 0) return res.status(404).json({ error: '문항을 찾을 수 없습니다.' });
   const q = qRes.rows[0];
 
-  // 프롬프트 조립 (영상정보관리사 스타일 + KISA 맥락)
-  const systemPrompt = `당신은 KISA 소프트웨어 보안약점 진단원 이수시험 전문 강사입니다.
-아래 문제에 대해 다음 형식으로 한국어로 상세 해설을 제공하세요.
-
-**정답**: [정답 번호 및 내용]
-**핵심 개념**: [이 문항이 묻는 보안약점/설계 원칙]
-**각 선택지 해설**: [선택지별로 왜 맞고 왜 틀린지]
-**실무 사례**: [실제 개발/운영에서 주의할 점]
-**관련 용어**: [관련된 KISA 가이드 용어/법령]`;
-
-  let userPrompt = `[문제]\n${q.body}\n\n`;
-  if (q.question_type === 'mcq' && Array.isArray(q.choices)) {
-    const CIRCLE = ['①', '②', '③', '④', '⑤', '⑥'];
-    userPrompt += '[선택지]\n';
-    q.choices.forEach((c, i) => {
-      userPrompt += `${CIRCLE[i] || (i + 1)} ${c.text || c}\n`;
-    });
-    userPrompt += `\n[정답] ${CIRCLE[q.answer_index] || (q.answer_index + 1)}번\n`;
-  } else if (q.question_type === 'diagnosis4') {
-    userPrompt += `\n[취약 코드]\n${q.vulnerable_code}\n\n`;
-    userPrompt += `[취약 라인] ${q.vulnerable_lines?.join(', ') || '없음'}\n`;
-    if (q.model_answer) {
-      userPrompt += `[모범답안 근거] ${q.model_answer.rationale || ''}\n`;
-      userPrompt += `[모범답안 수정] ${q.model_answer.fix_description || ''}\n`;
-    }
-  }
-  userPrompt += `\n[약점 분류] ${q.weakness_name_ko} (${q.chapter_code || q.weakness_code})`;
+  // 프롬프트 조립 — 기본값은 buildExplainPrompt, 클라이언트가 항목별 수정값(overrides)을 보내면 그 값 우선
+  const base = buildExplainPrompt(q);
+  const ov = sanitizeOverrides(req.body?.overrides);
+  const systemPrompt = ov.system_prompt ?? base.systemPrompt;
+  const userPrompt = ov.user_prompt ?? base.userPrompt;
+  const genOpts = {
+    model: ov.model || PROVIDER_MODELS[provider],
+    temperature: ov.temperature ?? 0.5,
+    maxTokens: ov.max_output_tokens ?? 2048,
+  };
 
   // SSE 헤더는 이미 위에서 설정됨
   let accumulated = '';
   const writeSse = writeSseLocal;
 
   try {
+    // DB 기반 키 해석 (REBUILD67) — 없으면 SSE 에러로 안내 후 종료
+    const apiKey = await keys.resolveApiKey(provider, req.user);
+    if (!apiKey) {
+      writeSse('error', { message: keys.missingKeyError(provider).error });
+      res.end();
+      return;
+    }
     if (provider === 'gemini') {
       await streamGemini(systemPrompt, userPrompt, (chunk) => {
         accumulated += chunk;
         writeSse('chunk', { content: chunk });
-      });
+      }, apiKey, genOpts);
     } else if (provider === 'openai') {
       await streamOpenAI(systemPrompt, userPrompt, (chunk) => {
         accumulated += chunk;
         writeSse('chunk', { content: chunk });
-      });
+      }, apiKey, genOpts);
     } else if (provider === 'claude') {
       await streamClaude(systemPrompt, userPrompt, (chunk) => {
         accumulated += chunk;
         writeSse('chunk', { content: chunk });
-      });
+      }, apiKey, genOpts);
     }
 
     // DB 저장
@@ -448,7 +448,7 @@ async function handleLlmExplain(req, res) {
         INSERT INTO kisa_question_llm_explanations
           (question_id, user_id, provider, model, content)
         VALUES ($1, $2, $3, $4, $5)
-      `, [question_id, userId, provider, PROVIDER_MODELS[provider], accumulated]);
+      `, [question_id, userId, provider, genOpts.model, accumulated]);
     }
 
     writeSse('done', { total_length: accumulated.length });
@@ -467,18 +467,156 @@ const PROVIDER_MODELS = {
   claude: 'claude-haiku-4-5-20251001',
 };
 
-// Gemini 스트리밍 (기존 api/gemini.js와 동일한 단일 contents 구조)
-async function streamGemini(systemPrompt, userPrompt, onChunk) {
-  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
-  if (!apiKey) throw new Error('GEMINI_API_KEY 미설정');
+// AI 해설 프롬프트 조립 — llm-explain(생성)과 explain-prompt(조회) 가 같은 로직을 공유한다
+function buildExplainPrompt(q) {
+  const CIRCLE = ['①', '②', '③', '④', '⑤', '⑥'];
 
-  const model = 'gemini-2.5-flash';
+  // codeid(코드식별)는 "코드 판독" 문항이라 시스템 프롬프트 형식도 코드 중심으로 분기
+  const systemPrompt = q.question_type === 'codeid'
+    ? `당신은 KISA 소프트웨어 보안약점 진단원 이수시험 전문 강사입니다.
+아래 예시 코드 문제에 대해 다음 형식으로 한국어로 상세 해설을 제공하세요.
+
+**정답**: [① 보안약점 ② 안전/취약 판정]
+**판정 근거**: [코드의 어느 부분(라인·API·패턴) 때문에 그렇게 판정하는지 구체적으로]
+**약점 원리**: [해당 보안약점이 발생하는 원리]
+**공격 시나리오 / 안전한 이유**: [취약 코드면 실제 공격 예, 안전 코드면 어떤 방어가 적용됐는지]
+**안전한 구현**: [취약 코드를 고치는 방법 또는 안전 코드의 핵심 기법]
+**관련 용어**: [관련된 KISA 가이드 용어/CWE]`
+    : `당신은 KISA 소프트웨어 보안약점 진단원 이수시험 전문 강사입니다.
+아래 문제에 대해 다음 형식으로 한국어로 상세 해설을 제공하세요.
+
+**정답**: [정답 번호 및 내용]
+**핵심 개념**: [이 문항이 묻는 보안약점/설계 원칙]
+**각 선택지 해설**: [선택지별로 왜 맞고 왜 틀린지]
+**실무 사례**: [실제 개발/운영에서 주의할 점]
+**관련 용어**: [관련된 KISA 가이드 용어/법령]`;
+
+  let userPrompt = `[문제]\n${q.body}\n\n`;
+  if (q.question_type === 'objective' && Array.isArray(q.choices)) {
+    userPrompt += '[선택지]\n';
+    q.choices.forEach((c, i) => {
+      userPrompt += `${CIRCLE[i] || (i + 1)} ${c.text || c}\n`;
+    });
+    userPrompt += `\n[정답] ${CIRCLE[q.answer_index] || (q.answer_index + 1)}번\n`;
+  } else if (q.question_type === 'diagnosis4') {
+    userPrompt += `\n[취약 코드]\n${q.vulnerable_code}\n\n`;
+    userPrompt += `[취약 라인] ${q.vulnerable_lines?.join(', ') || '없음'}\n`;
+    if (q.model_answer) {
+      userPrompt += `[모범답안 근거] ${q.model_answer.rationale || ''}\n`;
+      userPrompt += `[모범답안 수정] ${q.model_answer.fix_description || ''}\n`;
+    }
+  } else if (q.question_type === 'codeid') {
+    // 코드식별: 예시 코드 + 4지선다 약점 보기 + 정답(약점·안전/취약) — 코드가 빠지면 AI 가 문제를 모른 채 일반론만 생성한다
+    userPrompt += `[예시 코드]${q.code_language ? ` (${q.code_language})` : ''}\n${q.vulnerable_code || ''}\n\n`;
+    if (Array.isArray(q.choices) && q.choices.length > 0) {
+      userPrompt += '[보기 — 보안약점]\n';
+      q.choices.forEach((c, i) => {
+        userPrompt += `${CIRCLE[i] || (i + 1)} ${c.text || c}\n`;
+      });
+    }
+    const isSafe = q.model_answer?.is_safe === true;
+    userPrompt += `\n[정답] ① 보안약점: ${CIRCLE[q.answer_index] || (q.answer_index + 1)}번 ${q.weakness_name_ko || ''} ② 판정: ${isSafe ? '안전한 코드' : '취약한 코드'}\n`;
+    if (q.explanation) {
+      userPrompt += `\n[기본 해설(참고)]\n${String(q.explanation).slice(0, 1500)}\n`;
+    }
+  }
+  // codeid 의 chapter_code 는 시드키(CQ-XXXX)라 의미가 없으므로 약점 코드(IMP-XX)를 우선 표기
+  const refCode = q.question_type === 'codeid'
+    ? (q.weakness_code || q.chapter_code)
+    : (q.chapter_code || q.weakness_code);
+  userPrompt += `\n[약점 분류] ${q.weakness_name_ko} (${refCode})`;
+
+  return { systemPrompt, userPrompt };
+}
+
+// 클라이언트 overrides 검증·클램프 — 문자열 길이/숫자 범위 제한으로 악용 방지
+function sanitizeOverrides(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const out = {};
+  if (typeof raw.system_prompt === 'string' && raw.system_prompt.trim()) {
+    out.system_prompt = raw.system_prompt.slice(0, 8000);
+  }
+  if (typeof raw.user_prompt === 'string' && raw.user_prompt.trim()) {
+    out.user_prompt = raw.user_prompt.slice(0, 16000);
+  }
+  if (typeof raw.model === 'string' && /^[\w.\-]{3,64}$/.test(raw.model.trim())) {
+    out.model = raw.model.trim();
+  }
+  const t = Number(raw.temperature);
+  if (Number.isFinite(t)) out.temperature = Math.min(2, Math.max(0, t));
+  const m = Number(raw.max_output_tokens);
+  if (Number.isFinite(m)) out.max_output_tokens = Math.min(8192, Math.max(256, Math.round(m)));
+  return out;
+}
+
+/**
+ * GET /api/kisa-attempt?action=explain-prompt&question_id=<uuid>&provider=<gemini|openai|claude>
+ * → AI 해설 생성 시 API 로 전송되는 프롬프트·파라미터 원문을 그대로 반환 (프롬프트 인스펙터용)
+ */
+async function handleExplainPrompt(req, res) {
+  const questionId = req.query?.question_id;
+  const provider = req.query?.provider || 'gemini';
+  if (!questionId) return res.status(400).json({ error: 'question_id가 필요합니다.' });
+  if (!['gemini', 'openai', 'claude'].includes(provider)) {
+    return res.status(400).json({ error: `지원하지 않는 provider: ${provider}` });
+  }
+
+  const qRes = await query(
+    `SELECT * FROM kisa_questions WHERE id = $1 AND is_active = TRUE`,
+    [questionId]
+  );
+  if (qRes.rows.length === 0) return res.status(404).json({ error: '문항을 찾을 수 없습니다.' });
+
+  const { systemPrompt, userPrompt } = buildExplainPrompt(qRes.rows[0]);
+  return res.json({
+    provider,
+    model: PROVIDER_MODELS[provider],
+    temperature: 0.5,
+    max_output_tokens: 2048,
+    system_prompt: systemPrompt,
+    user_prompt: userPrompt,
+    // 프로바이더별 전송 구조 안내 (gemini 는 system+user 를 하나의 text 로 합쳐 전송)
+    transport: provider === 'gemini'
+      ? 'contents[0].parts[0].text = system_prompt + "\\n\\n" + user_prompt'
+      : provider === 'openai'
+        ? 'messages = [{role:"system"}, {role:"user"}]'
+        : 'system + messages[{role:"user"}]',
+  });
+}
+
+// LLM HTTP 에러 → 사용자 친화 한국어 안내 (429 크레딧 소진/쿼터, 401/403 키 문제)
+function friendlyLlmError(provider, status, detail) {
+  const name = { gemini: 'Gemini', openai: 'OpenAI', claude: 'Claude' }[provider] || provider;
+  const d = String(detail || '');
+  if (status === 429) {
+    if (/prepayment|credit|billing|quota|exceeded/i.test(d)) {
+      return `${name} API 크레딧/할당량이 소진되었습니다. [AI 설정]에서 새 API 키로 교체하거나 결제를 충전하세요. 지금은 다른 AI(Claude·OpenAI 등) 버튼으로 해설을 생성할 수 있습니다. (원문: ${d.slice(0, 140)})`;
+    }
+    return `${name} 요청이 너무 잦습니다(429). 잠시 후 다시 시도하거나 다른 AI 를 사용하세요. (원문: ${d.slice(0, 140)})`;
+  }
+  if (status === 401 || status === 403) {
+    return `${name} API 키가 유효하지 않거나 권한이 없습니다(${status}). [AI 설정]에서 키를 확인하세요. (원문: ${d.slice(0, 140)})`;
+  }
+  return `${name} ${status}: ${d.slice(0, 200)}`;
+}
+
+// Gemini 스트리밍 (기존 api/gemini.js와 동일한 단일 contents 구조)
+async function streamGemini(systemPrompt, userPrompt, onChunk, apiKey, opts = {}) {
+  if (!apiKey) throw new Error(keys.missingKeyError('gemini').error);
+
+  const model = opts.model || PROVIDER_MODELS.gemini;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
   // 기존 api/gemini.js와 동일한 단순 구조 (systemInstruction 미사용)
+  // ⚠️ Gemini 2.5 계열은 thinking 모델이라 사고 토큰이 maxOutputTokens 를 소비 → 해설이 중간에 잘린다.
+  //    thinkingBudget:0 으로 사고를 끄고, 출력 토큰을 넉넉히(기본 4096) 확보한다.
   const body = {
     contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-    generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
+    generationConfig: {
+      temperature: opts.temperature ?? 0.5,
+      maxOutputTokens: opts.maxTokens ?? 4096,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   };
 
   const res = await fetch(url, {
@@ -491,7 +629,7 @@ async function streamGemini(systemPrompt, userPrompt, onChunk) {
     const errData = await res.json().catch(() => null);
     const detail = errData?.error?.message || errData?.error || `HTTP ${res.status}`;
     console.error('[Gemini] 요청 실패:', res.status, detail);
-    throw new Error(`Gemini ${res.status}: ${String(detail).slice(0, 200)}`);
+    throw new Error(friendlyLlmError('gemini', res.status, detail));
   }
 
   const reader = res.body.getReader();
@@ -507,29 +645,33 @@ async function streamGemini(systemPrompt, userPrompt, onChunk) {
       if (!line.startsWith('data: ')) continue;
       try {
         const data = JSON.parse(line.slice(6));
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) onChunk(text);
+        // parts 가 여러 개(사고+답변 등)일 수 있어 전부 순회해 text 를 이어붙인다
+        for (const part of data.candidates?.[0]?.content?.parts || []) {
+          if (part.text) onChunk(part.text);
+        }
+        // 토큰 상한 등으로 조기 종료되면 로그 (잘림 원인 추적)
+        const fin = data.candidates?.[0]?.finishReason;
+        if (fin && fin !== 'STOP') console.warn('[Gemini] finishReason:', fin);
       } catch {}
     }
   }
 }
 
 // OpenAI 스트리밍
-async function streamOpenAI(systemPrompt, userPrompt, onChunk) {
-  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
-  if (!apiKey) throw new Error('OPENAI_API_KEY 미설정');
+async function streamOpenAI(systemPrompt, userPrompt, onChunk, apiKey, opts = {}) {
+  if (!apiKey) throw new Error(keys.missingKeyError('openai').error);
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: opts.model || PROVIDER_MODELS.openai,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.5,
-      max_tokens: 2048,
+      temperature: opts.temperature ?? 0.5,
+      max_tokens: opts.maxTokens ?? 2048,
       stream: true,
     }),
   });
@@ -537,7 +679,7 @@ async function streamOpenAI(systemPrompt, userPrompt, onChunk) {
     const errData = await res.json().catch(() => null);
     const detail = errData?.error?.message || `HTTP ${res.status}`;
     console.error('[OpenAI] 요청 실패:', res.status, detail);
-    throw new Error(`OpenAI ${res.status}: ${String(detail).slice(0, 200)}`);
+    throw new Error(friendlyLlmError('openai', res.status, detail));
   }
 
   const reader = res.body.getReader();
@@ -562,9 +704,8 @@ async function streamOpenAI(systemPrompt, userPrompt, onChunk) {
 }
 
 // Claude 스트리밍
-async function streamClaude(systemPrompt, userPrompt, onChunk) {
-  const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim();
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY 미설정');
+async function streamClaude(systemPrompt, userPrompt, onChunk, apiKey, opts = {}) {
+  if (!apiKey) throw new Error(keys.missingKeyError('claude').error);
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -574,9 +715,9 @@ async function streamClaude(systemPrompt, userPrompt, onChunk) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: PROVIDER_MODELS.claude,
-      max_tokens: 2048,
-      temperature: 0.5,
+      model: opts.model || PROVIDER_MODELS.claude,
+      max_tokens: opts.maxTokens ?? 2048,
+      temperature: opts.temperature ?? 0.5,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
       stream: true,
@@ -586,7 +727,7 @@ async function streamClaude(systemPrompt, userPrompt, onChunk) {
     const errData = await res.json().catch(() => null);
     const detail = errData?.error?.message || errData?.message || `HTTP ${res.status}`;
     console.error('[Claude] 요청 실패:', res.status, detail);
-    throw new Error(`Claude ${res.status}: ${String(detail).slice(0, 200)}`);
+    throw new Error(friendlyLlmError('claude', res.status, detail));
   }
 
   const reader = res.body.getReader();

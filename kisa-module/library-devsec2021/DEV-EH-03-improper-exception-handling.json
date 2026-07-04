@@ -1,0 +1,32 @@
+{
+  "chapter_code": "DEV-EH-03",
+  "title": "부적절한 예외 처리",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-754",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제4절 에러처리 / 3. 부적절한 예외 처리",
+    "pages": "291-293"
+  },
+  "overview": "프로그램 수행 중에 함수의 결과값에 대한 적절한 처리 또는 예외 상황에 대한 조건을 적절하게 검사하지 않을 경우 발생하는 보안약점이다.",
+  "impact": "함수 결과값이나 예외 상황을 적절하게 검사·처리하지 않으면 예기치 않은 문제를 야기할 수 있다.",
+  "countermeasure": "값을 반환하는 모든 함수의 결과값을 검사하여, 그 값이 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에 광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "try {\n    ...\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n// 예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생 할 수 있다.\n} catch (Exception e) {\n    System.err.println(\"Exception : \" + e.getMessage());\n}",
+      "safe": "try {\n    ...\n    reader = new BufferedReader(new InputStreamReader(url.openStream()));\n    String line = reader.readLine();\n    SimpleDateFormat format = new SimpleDateFormat(\"MM/DD/YY\");\n    Date date = format.parse(line);\n    // 발생할 수 있는 오류의 종류와 순서에 맞춰서 예외처리 한다.\n} catch (MalformedURLException e) {\n    System.err.println(\"MalformedURLException : \" + e.getMessage());\n} catch (IOException e) {\n    System.err.println(\"IOException : \" + e.getMessage());\n} catch (ParseException e) {\n    System.err.println(\"ParseException : \" + e.getMessage());\n}",
+      "note": "안전하지 않은 코드는 try 블록에서 다양한 예외가 발생할 수 있음에도 불구하고 예외를 세분화하지 않고 광범위한 예외 클래스인 Exception을 사용하여 예외를 처리한다. 안전한 코드는 발생 가능한 예외(MalformedURLException, IOException, ParseException)를 세분화하고 발생 가능한 순서에 따라 예외를 처리한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "try {\n    InvokeMtd();\n// 예외처리를 세분화할 수 있음에도 광범위하게 사용하여 예기치 않은 문제가 발생할 수 있다.\n} catch (Exception e) {\n}",
+      "safe": "try {\n    InvokeMtd();\n// 발생할 수 있는 오류의 종류와 순서에 맞춰서 예외처리 한다.\n} catch (IOException e) {\n    logger.Debug(\"IOException log here\");\n} catch (SQLException e){\n    logger.Debug(\"SQLException log here\");\n}",
+      "note": "광범위한 예외 클래스 Exception 하나로 예외를 처리하는 C# 코드다. 안전한 코드는 발생할 수 있는 오류의 종류와 순서에 맞춰 IOException, SQLException으로 세분화하여 예외처리 한다."
+    }
+  ]
+}

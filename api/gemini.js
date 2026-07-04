@@ -2,6 +2,7 @@
 // REBUILD16 §8 — _llm/gemini.js 공통 fetch 헬퍼 사용으로 단순화.
 const { withAuth } = require('./middleware');
 const gemini = require('./_llm/gemini');
+const keys = require('./_llm/apikeys');
 
 const SYSTEM_PROMPT =
   '당신은 영상정보관리사 자격증 시험 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n' +
@@ -67,6 +68,10 @@ module.exports = withAuth(async (req, res) => {
     const messages = buildMessages({ text, imageBase64, mimeType });
     const generationConfigExtra = buildThinkingExtra(selectedModel, { thinkingBudget, thinkingLevel });
 
+    // DB 기반 키 해석 (모드/사용자에 따라 공용키 또는 개인키). 없으면 안내 메시지.
+    const apiKey = await keys.resolveApiKey('gemini', req.user);
+    if (!apiKey) return res.status(400).json(keys.missingKeyError('gemini'));
+
     if (useStream) {
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
@@ -79,6 +84,7 @@ module.exports = withAuth(async (req, res) => {
         maxTokens: parseInt(maxTokens) || 2048,
         temperature,
         generationConfigExtra,
+        apiKey,
         userId: req.user?.uid,
         action: 'card_explain',
         onText: (t) => res.write(`data: ${JSON.stringify({ t })}\n\n`),
@@ -99,6 +105,7 @@ module.exports = withAuth(async (req, res) => {
       maxTokens: parseInt(maxTokens) || 2048,
       temperature,
       generationConfigExtra,
+      apiKey,
       userId: req.user?.uid,
       action: 'card_explain',
     });

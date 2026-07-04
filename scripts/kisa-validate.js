@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 const STAGES = ['design', 'implementation'];
-const TYPES = ['mcq', 'diagnosis4', 'blank', 'composite'];
+const TYPES = ['diagnosis4', 'blank', 'composite'];
 const LANGUAGES = ['java', 'python', 'javascript', 'kotlin', 'swift', 'etc'];
 const DIFFICULTIES = ['하', '중', '상'];
 const CATEGORIES = [
@@ -85,28 +85,6 @@ function validateQuestion(file, idx, q) {
   }
 
   // 4-5. 타입별 필수 필드
-  if (q.question_type === 'mcq') {
-    if (!Array.isArray(q.choices) || q.choices.length < 2)
-      err(file, idx, `MCQ choices 2개 이상 필요`);
-    if (typeof q.answer_index !== 'number' || q.answer_index < 0 || q.answer_index >= (q.choices?.length || 0))
-      err(file, idx, `MCQ answer_index 범위 오류`);
-    if (q.choices?.length > 5)
-      warn(file, idx, `MCQ 선택지 5개 초과 (권장 4~5개)`);
-    // 선지별 해설 (신규): correct=true 가 정확히 1개 + answer_index 일치
-    if (Array.isArray(q.choice_explanations)) {
-      const correctNums = q.choice_explanations.filter((c) => c.correct).map((c) => c.num);
-      if (correctNums.length !== 1)
-        err(file, idx, `choice_explanations correct=true 가 정확히 1개여야 함 (현재 ${correctNums.length})`);
-      else if (correctNums[0] !== q.answer_index + 1)
-        err(file, idx, `choice_explanations correct num(${correctNums[0]}) != answer_index+1(${q.answer_index + 1})`);
-      if (q.choice_explanations.length !== (q.choices?.length || 0))
-        warn(file, idx, `choice_explanations 개수(${q.choice_explanations.length}) != choices(${q.choices?.length})`);
-      if (q.choice_explanations.some((c) => !c.why))
-        warn(file, idx, `choice_explanations 에 why(선지별 근거) 누락 선지 있음`);
-    } else {
-      warn(file, idx, `mcq choice_explanations 누락 — 선지별 해설 권장`);
-    }
-  }
   if (q.question_type === 'blank') {
     if (!q.blank_template) err(file, idx, `blank blank_template 필수`);
     if (!Array.isArray(q.blank_answers) || q.blank_answers.length === 0)

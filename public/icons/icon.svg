@@ -1,23 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- 배경: primary color rounded square (iOS 호환) -->
-  <rect width="512" height="512" rx="96" fill="#4255ff"/>
-  <!-- 방패 외곽선 (BottomNav KISA 아이콘 재사용) -->
-  <path d="M256 80
-           L448 144
-           L448 272
-           Q448 368 256 432
-           Q64 368 64 272
-           L64 144 Z"
-        fill="none"
-        stroke="#ffffff"
-        stroke-width="28"
-        stroke-linecap="round"
-        stroke-linejoin="round"/>
-  <!-- 체크 마크 -->
-  <path d="M176 256 L232 312 L344 200"
-        fill="none"
-        stroke="#ffffff"
-        stroke-width="34"
-        stroke-linecap="round"
-        stroke-linejoin="round"/>
+  <!-- AI TutorTwo — KISA 소프트웨어 보안약점 진단원 학습 앱 아이콘
+       컨셉: 졸업모자(학습) 단독. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5a6bff"/>
+      <stop offset="1" stop-color="#2f3ed6"/>
+    </linearGradient>
+  </defs>
+  <!-- 배경: 브랜드 그라데이션 rounded square (iOS 호환) -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- 졸업모자 (mortarboard) — 중앙 배치 -->
+  <g stroke-linejoin="round" stroke-linecap="round">
+    <!-- 모자 상판 (마름모) -->
+    <path d="M256 132 L452 208 L256 284 L60 208 Z" fill="#ffffff"/>
+    <!-- 모자 본체(머리에 쓰는 밴드) -->
+    <path d="M138 250 L138 332 Q138 366 256 366 Q374 366 374 332 L374 250"
+          fill="none" stroke="#ffffff" stroke-width="30"/>
+    <!-- 태슬(술) -->
+    <path d="M452 208 L452 322" fill="none" stroke="#ffffff" stroke-width="16"/>
+    <circle cx="452" cy="338" r="20" fill="#7dffb0"/>
+  </g>
 </svg>

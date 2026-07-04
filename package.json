@@ -9,6 +9,8 @@
     "build:fe": "vite build",
     "build:lib": "node scripts/build-kisa-library.mjs",
     "build:practice": "node scripts/build-kisa-practice.mjs",
+    "build:codebank": "node scripts/build-kisa-codebank.mjs",
+    "build:code-quiz": "node scripts/build-kisa-codebank.mjs && node scripts/build-kisa-code-quiz.mjs",
     "start": "node server.js",
     "test": "npx playwright test",
     "test:ui": "npx playwright test --ui",

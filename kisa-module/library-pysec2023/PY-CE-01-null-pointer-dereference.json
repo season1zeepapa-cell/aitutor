@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-CE-01",
+  "title": "Null Pointer 역참조",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-476",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제5절 코드오류 / 1. Null Pointer 역참조",
+    "pages": "134-136"
+  },
+  "overview": "널 포인터(Null Pointer) 역참조는 '일반적으로 그 객체가 널(Null)이 될 수 없다'라고 하는 가정을 위반했을 때 발생한다. 파이썬에서는 Null pointer dereference가 발생하지 않는다. 파이썬에서는 Null 객체가 사용되지 않으며 대신 None 키워드를 사용해 null 개체와 변수를 정의한다. None은 다른 언어의 null과 동일한 기능을 수행하지 않으며 None이 0 또는 다른 값을 정의하진 않는다.",
+  "impact": "공격자가 의도적으로 널 포인터 역참조를 발생시키는 경우 공격자는 그 결과로 발생하는 예외 상황을 이용해 추후 공격 계획에 활용할 수 있다. 파이썬에서도 데이터에 대한 적절한 검사를 수행하지 않을 경우 Null pointer와 유사한 None 값 참조 오류로 시스템 오류가 발생할 수 있다.",
+  "countermeasure": "None을 반환하는 함수를 사용하면 None과 다른 값(예: 0이나 빈 문자열)이 조건문에서 False로 평가될 수 있기 때문에 실수하기 쉽다. None이 될 수 있는 데이터를 참조하기 전에 해당 데이터의 값이 None인지 검사하여 시스템 오류를 줄일 수 있다. 참조하고자 하는 자원을 호출 시에는 반드시 개체가 None이 아닌지 검증해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "import os\nfrom django.shortcuts import render\nfrom xml.sax import make_parser\nfrom xml.sax.handler import feature_namespaces\n\ndef parse_xml(request):\n  filename = request.POST.get('filename')\n  # filename의 None 체크를 하지 않아 에러 발생 가능\n  if (filename.count('.') > 0):\n    name, ext = os.path.splitext(filename)\n  else:\n    ext = ''\n\n  if ext == \".xml\":\n    parser = make_parser()\n    parser.setFeature(feature_namespaces, True)\n    handler = Handler()\n    parser.setContentHandler(handler)\n    parser.parse(filename)\n    result = handler.root\n\n    return render(request, \"/success.html\", {\"result\": result})",
+      "safe": "import os\nfrom django.shortcuts import render\nfrom xml.sax import make_parser\nfrom xml.sax.handler import feature_namespaces\n\ndef parse_xml(request):\n  filename = request.POST.get('filename')\n  # filename이 None 인지 체크\n  if filename is None or filename.strip() == \"\":\n    return render(request, \"/error.html\", {\"error\": \"파일 이름이 없습니다.\"})\n\n  if (filename.count('.') > 0):\n    name, ext = os.path.splitext(filename)\n  else:\n    ext = ''\n\n  if ext == \".xml\":\n    parser = make_parser()\n    parser.setFeature(feature_namespaces, True)\n    handler = Handler()\n    parser.setContentHandler(handler)\n    parser.parse(filename)\n    result = handler.root\n\n    return render(request, \"/success.html\", {\"result\": result})",
+      "note": "취약 코드는 request.POST.get('filename')으로 받은 filename의 None 체크 없이 바로 filename.count('.')를 호출해, 값이 전달되지 않은 경우(None) 에러가 발생할 수 있다. 안전 코드는 참조 전에 filename is None 또는 빈 문자열 여부를 먼저 검사하고 에러 페이지를 반환하도록 수정했다."
+    }
+  ]
+}

@@ -1159,70 +1159,6 @@
     },
     {
       "question_type": "blank",
-      "weakness_category": "error_handling",
-      "weakness_code": "DSG-EH-01-BLANK-A",
-      "chapter_code": "DSG-EH-01",
-      "weakness_name_ko": "예외처리 설계",
-      "language": "java",
-      "difficulty": "하",
-      "body": "[설계 · 예외처리 설계]\n아래 빈칸을 채우시오.",
-      "blank_template": "예외 메시지에 {{1}}(스택트레이스)를 그대로 노출하면 시스템 구조와 취약점 정보가 유출된다.",
-      "blank_answers": [
-        {
-          "idx": 1,
-          "answers": [
-            "stack trace",
-            "스택트레이스"
-          ],
-          "synonyms": [
-            "stacktrace",
-            "호출스택"
-          ]
-        }
-      ],
-      "explanation": "정답:\n  #1 = stack trace / 스택트레이스\n\n해설:\n예외 메시지에 스택트레이스, SQL 문, 파일 경로 같은 정보가 노출되면 공격자에게 시스템 구조를 알려주게 됩니다.\n사용자에게는 일반화된 메시지를 보여주고 상세 내용은 서버 로그에만 기록해야 합니다.",
-      "reference": "진단가이드 §예외처리 설계",
-      "tags": [
-        "blank",
-        "design",
-        "auto-seed"
-      ],
-      "is_active": true
-    },
-    {
-      "question_type": "blank",
-      "weakness_category": "error_handling",
-      "weakness_code": "DSG-EH-01-BLANK-B",
-      "chapter_code": "DSG-EH-01",
-      "weakness_name_ko": "예외처리 설계",
-      "language": "java",
-      "difficulty": "하",
-      "body": "[설계 · 예외처리 설계]\n아래 빈칸을 채우시오.",
-      "blank_template": "사용자에게는 일반화된 오류 메시지를 보여주고 상세 오류는 {{1}}에만 기록해야 한다.",
-      "blank_answers": [
-        {
-          "idx": 1,
-          "answers": [
-            "log",
-            "로그"
-          ],
-          "synonyms": [
-            "logfile",
-            "서버 로그"
-          ]
-        }
-      ],
-      "explanation": "정답:\n  #1 = log / 로그\n\n해설:\n예외 메시지에 스택트레이스, SQL 문, 파일 경로 같은 정보가 노출되면 공격자에게 시스템 구조를 알려주게 됩니다.\n사용자에게는 일반화된 메시지를 보여주고 상세 내용은 서버 로그에만 기록해야 합니다.",
-      "reference": "진단가이드 §예외처리 설계",
-      "tags": [
-        "blank",
-        "design",
-        "auto-seed"
-      ],
-      "is_active": true
-    },
-    {
-      "question_type": "blank",
       "weakness_category": "session_control",
       "weakness_code": "DSG-SC-01-BLANK-A",
       "chapter_code": "DSG-SC-01",
@@ -4401,6 +4337,121 @@
         "auto-seed"
       ],
       "is_active": true
+    },
+    {
+      "question_type": "blank",
+      "chapter_code": "DSG-EH-01",
+      "weakness_code": "DSG-EH-01-B1",
+      "weakness_name_ko": "예외처리 설계",
+      "weakness_category": "error_handling",
+      "language": "etc",
+      "difficulty": "중",
+      "body": "예외처리 설계의 오류 메시지 노출 방지와 안전 실패 원칙에 대한 빈칸을 채우시오.",
+      "reference": "KISA 소프트웨어 개발보안 — DSG-EH-01 예외처리 설계 (오류메시지 일반화 · 상세정보 서버 기록 · 안전 실패)",
+      "tags": [
+        "error_handling",
+        "design",
+        "오류메시지",
+        "로그",
+        "fail-secure",
+        "빈칸"
+      ],
+      "is_active": true,
+      "blank_template": "오류 발생 시 사용자 화면에는 {{1}}된 오류 메시지만 표시하고, 스택 트레이스·SQL 쿼리·서버 경로 등 상세 내부 정보는 {{2}}에만 기록하도록 설계한다. 복구가 불가능한 예외 상황에서는 기능 수행을 차단하고 안전하게 종료하는 {{3}} 원칙을 적용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "일반화",
+            "일반"
+          ],
+          "synonyms": [
+            "범용",
+            "추상화",
+            "generalized",
+            "일반화된"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "서버 로그",
+            "로그"
+          ],
+          "synonyms": [
+            "로그 파일",
+            "서버로그",
+            "log",
+            "로그파일"
+          ]
+        },
+        {
+          "idx": 3,
+          "answers": [
+            "fail-secure",
+            "안전 실패"
+          ],
+          "synonyms": [
+            "fail secure",
+            "페일시큐어",
+            "안전실패",
+            "안전 종료",
+            "fail-safe"
+          ]
+        }
+      ],
+      "explanation": "정답: {{1}} 일반화, {{2}} 서버 로그, {{3}} fail-secure(안전 실패).\n\n오류 메시지에 스택 트레이스·DB 쿼리·서버 경로가 그대로 노출되면 공격자에게 시스템 내부 구조를 알려주는 지도가 된다. 그래서 사용자에게는 \"요청을 처리할 수 없습니다\"처럼 일반화된 메시지만 보여주고, 문제 해결에 필요한 상세 정보는 서버 로그에만 기록하는 것이 예외처리 설계의 1원칙이다. 또한 복구할 수 없는 예외가 발생했을 때 기능이 어중간하게 계속 수행되면(fail-open) 인증 우회·데이터 오염으로 이어질 수 있으므로, 기능을 차단하고 안전한 상태로 종료하는 fail-secure(안전 실패)로 설계해야 한다."
+    },
+    {
+      "question_type": "blank",
+      "chapter_code": "DSG-EH-01",
+      "weakness_code": "DSG-EH-01-B2",
+      "weakness_name_ko": "예외처리 설계",
+      "weakness_category": "error_handling",
+      "language": "etc",
+      "difficulty": "하",
+      "body": "예외의 명시적 처리 구문과 인증·권한 검증 실패 시의 기본 정책에 대한 빈칸을 채우시오.",
+      "reference": "KISA 소프트웨어 개발보안 — DSG-EH-01 예외처리 설계 (명시적 예외처리 · 기본 거부 정책)",
+      "tags": [
+        "error_handling",
+        "design",
+        "try-catch",
+        "기본거부",
+        "fail-closed",
+        "빈칸"
+      ],
+      "is_active": true,
+      "blank_template": "예외는 방치하지 않고 {{1}} 구문으로 명시적으로 처리하도록 설계하며, 인증·권한 검증에 실패하거나 판단할 수 없는 경우에는 접근을 기본적으로 거부하는 {{2}}(기본 거부) 정책을 적용한다.",
+      "blank_answers": [
+        {
+          "idx": 1,
+          "answers": [
+            "try-catch"
+          ],
+          "synonyms": [
+            "try catch",
+            "try/catch",
+            "트라이캐치",
+            "예외처리 구문",
+            "try-catch-finally"
+          ]
+        },
+        {
+          "idx": 2,
+          "answers": [
+            "fail-closed",
+            "기본 거부"
+          ],
+          "synonyms": [
+            "fail closed",
+            "deny by default",
+            "기본거부",
+            "페일클로즈드",
+            "fail-close"
+          ]
+        }
+      ],
+      "explanation": "정답: {{1}} try-catch, {{2}} fail-closed(기본 거부).\n\n예외를 처리하지 않고 방치하면 프로그램이 예측 불가능한 상태로 흘러가고, 상위로 전파된 예외가 프레임워크의 기본 오류 페이지(스택 트레이스 포함)로 노출된다. 그래서 예외가 발생할 수 있는 구간은 try-catch로 명시적으로 감싸 처리 방침을 설계 단계에서 정해 둔다. 또한 인증·권한 검증 중 오류가 나서 판단이 불가능해졌을 때 \"일단 허용\"(fail-open)하면 권한 우회가 되므로, 판단 불가 시 기본값을 거부로 두는 fail-closed(기본 거부) 정책이 안전한 설계다."
     }
   ]
 }

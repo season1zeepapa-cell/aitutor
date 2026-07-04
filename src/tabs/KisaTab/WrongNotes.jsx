@@ -48,7 +48,7 @@ export default function WrongNotes() {
 
   const renderUserAnswer = (item) => {
     const meta = getQuestionType(item.question_type);
-    if (item.question_type === 'mcq') {
+    if (item.question_type === 'objective') {
       return typeof item.mcq_selected === 'number'
         ? `선택: ${item.mcq_selected + 1}번`
         : '미응답';
@@ -65,11 +65,22 @@ export default function WrongNotes() {
       if (item.rationale_text) parts.push(`근거 ${item.rationale_text.slice(0, 30)}…`);
       return parts.join(' · ') || '미응답';
     }
+    if (item.question_type === 'codeid') {
+      const parts = [];
+      if (typeof item.mcq_selected === 'number' && Array.isArray(item.choices)) {
+        parts.push(`약점 ${item.choices[item.mcq_selected]?.text || `${item.mcq_selected + 1}번`}`);
+      }
+      if (typeof item.verdict_yn === 'boolean') parts.push(item.verdict_yn ? '취약' : '안전');
+      return parts.join(' · ') || '미응답';
+    }
+    if (item.question_type === 'shortessay' || item.question_type === 'composite') {
+      return item.report_text ? item.report_text.slice(0, 120) : '미응답';
+    }
     return meta?.label || item.question_type;
   };
 
   const correctAnswerText = (item) => {
-    if (item.question_type === 'mcq') {
+    if (item.question_type === 'objective') {
       return typeof item.answer_index === 'number' ? `${item.answer_index + 1}번` : '-';
     }
     if (item.question_type === 'blank') {
@@ -80,6 +91,16 @@ export default function WrongNotes() {
       return Array.isArray(item.vulnerable_lines)
         ? `취약 라인 ${item.vulnerable_lines.join(', ')}`
         : '서술형 — 모범답안 참고';
+    }
+    if (item.question_type === 'codeid') {
+      const w = (typeof item.answer_index === 'number' && Array.isArray(item.choices))
+        ? (item.choices[item.answer_index]?.text || `${item.answer_index + 1}번`) : '-';
+      const s = item.model_answer ? (item.model_answer.is_safe ? '안전' : '취약') : '';
+      return s ? `${w} · ${s}` : w;
+    }
+    if (item.question_type === 'shortessay' || item.question_type === 'composite') {
+      const t = item.model_answer?.text;
+      return t ? t.slice(0, 120) : '모범답안 — 해설 참고';
     }
     return '-';
   };
@@ -212,14 +233,24 @@ export default function WrongNotes() {
                   </>
                 )}
 
-                {/* 액션 — 다시 풀기 */}
+                {/* 액션 — 다시 풀기
+                    chapter_code 가 OBJ-/ESSAY-<챕터>-N·CQ-XXXX 형태인 유형은 약점 코드(IMP-XX-NN)로
+                    정규화해 전달해야 드릴 API 챕터 필터가 동작한다 (codeid 는 weakness_code 에서 추출) */}
                 <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={() => navigate(`/kisa/drill?type=${item.question_type}&chapter_code=${item.chapter_code || ''}`)}
-                    className="flex-1 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98]"
-                  >
-                    🔄 이 챕터 다시 풀기
-                  </button>
+                  {(() => {
+                    const drillChapter = (
+                      (item.chapter_code || '').match(/(DSG|IMP)-[A-Z]{2}-\d{2}/) ||
+                      (item.weakness_code || '').match(/(DSG|IMP)-[A-Z]{2}-\d{2}/) || []
+                    )[0] || '';
+                    return (
+                      <button
+                        onClick={() => navigate(`/kisa/drill?type=${item.question_type}${drillChapter ? `&chapter_code=${drillChapter}` : ''}`)}
+                        className="flex-1 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98]"
+                      >
+                        🔄 이 챕터 다시 풀기
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             );

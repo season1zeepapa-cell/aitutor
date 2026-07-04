@@ -45,10 +45,14 @@ const apiFiles = [
   'config',
   // 사용자별 lab 설정 (REBUILD28 §11 — Ollama bridge URL/모델 등)
   'user-settings',
+  // AI API 키 설정 (REBUILD67 — DB 기반 BYOK, 관리자 전체/개인 토글)
+  'ai-keys',
   // KISA 진단원 이수시험 드릴 모듈 (REBUILD13 이식)
   'kisa-admin', 'kisa-drill', 'kisa-attempt', 'kisa-review', 'kisa-exam',
   // KISA 학습 자료 (REBUILD14 확장 — 이론 학습 모드)
   'kisa-study',
+  // 예시코드 라이브러리 학습 (REBUILD86 — 읽기 진도·블라인드 판별 SRS 연동)
+  'kisa-library',
 ];
 
 apiFiles.forEach(name => {

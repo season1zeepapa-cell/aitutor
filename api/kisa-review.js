@@ -47,6 +47,28 @@ module.exports = withAuth(async (req, res) => {
   }
 
   // ------------------------------------------------------------------------
+  // GET ?action=breakdown — 복습 예정(도래) 문항을 문제유형별·약점그룹별로 집계
+  //   복습 랜딩(ReviewHome)에서 유형/그룹 선택적 복습에 사용.
+  // ------------------------------------------------------------------------
+  if (req.method === 'GET' && action === 'breakdown') {
+    const base = `
+      FROM kisa_review_queue r
+      INNER JOIN kisa_questions q ON q.id = r.question_id
+      WHERE r.user_id = $1 AND r.suspended = FALSE
+        AND r.next_review_at <= NOW() AND q.is_active = TRUE`;
+    const [byType, byCategory, tot] = await Promise.all([
+      query(`SELECT q.question_type AS type, count(*)::int AS n ${base} GROUP BY q.question_type ORDER BY q.question_type`, [userId]),
+      query(`SELECT q.weakness_category AS category, count(*)::int AS n ${base} GROUP BY q.weakness_category ORDER BY q.weakness_category`, [userId]),
+      query(`SELECT count(*)::int AS n ${base}`, [userId]),
+    ]);
+    return res.json({
+      total: tot.rows[0]?.n || 0,
+      byType: byType.rows,
+      byCategory: byCategory.rows,
+    });
+  }
+
+  // ------------------------------------------------------------------------
   // GET ?action=stats — 대시보드용 통계
   // ------------------------------------------------------------------------
   if (req.method === 'GET' && action === 'stats') {
@@ -126,7 +148,7 @@ module.exports = withAuth(async (req, res) => {
         SELECT DISTINCT ON (a.question_id)
           a.id, a.question_id, a.mode, a.auto_score, a.submitted_at,
           a.mcq_selected, a.verdict_yn, a.cited_lines,
-          a.rationale_text, a.fix_text, a.blank_answers_user
+          a.rationale_text, a.fix_text, a.blank_answers_user, a.report_text
         FROM kisa_diagnosis_attempts a
         WHERE a.user_id = $1
           AND a.submitted_at > NOW() - ($2 || ' days')::INTERVAL
@@ -138,13 +160,14 @@ module.exports = withAuth(async (req, res) => {
         lw.id AS attempt_id,
         lw.auto_score, lw.submitted_at, lw.mode,
         lw.mcq_selected, lw.verdict_yn, lw.cited_lines,
-        lw.rationale_text, lw.fix_text, lw.blank_answers_user,
+        lw.rationale_text, lw.fix_text, lw.blank_answers_user, lw.report_text,
         q.id AS question_id,
         q.question_type, q.weakness_category, q.weakness_code, q.weakness_name_ko,
         q.chapter_code, q.language, q.difficulty,
         q.body, q.choices, q.answer_index,
         q.blank_template, q.blank_answers,
-        q.vulnerable_lines, q.explanation
+        q.vulnerable_lines, q.explanation,
+        q.model_answer, q.vulnerable_code, q.code_language
       FROM latest_wrong lw
       JOIN kisa_questions q ON q.id = lw.question_id
       ORDER BY lw.submitted_at DESC

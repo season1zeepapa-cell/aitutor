@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-07",
+  "title": "충분하지 않은 키 길이 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-326",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 7. 충분하지 않은 키 길이 사용",
+    "pages": "88-90"
+  },
+  "overview": "짧은 길이의 키를 사용하는 것은 암호화 알고리즘을 취약하게 만들 수 있다. 키는 암호화 및 복호화에 사용되는데, 검증된 암호화 알고리즘을 사용하더라도 키 길이가 충분히 길지 않으면 짧은 시간 안에 키를 찾아낼 수 있다. 암호 알고리즘 및 키 길이 선택 시 암호 알고리즘의 안전성 유지기간과 보안강도별 암호 알고리즘 키 길이 비교표를 기반으로 암호 알고리즘 및 키 길이를 선택해야 한다. 보안강도별 암호 알고리즘 비교표에 따르면 보안강도 112비트(안전성 유지기간 2011년~2030년)는 대칭키 112비트·해시 112비트·인수분해(RSA) 공개키/개인키 2048비트·이산대수 공개키 2048비트/개인키 224비트·타원곡선암호 224비트, 128비트는 대칭키/해시 128비트·인수분해 3072비트·타원곡선 256비트, 192비트(2030년 이후)는 대칭키/해시 192비트·인수분해 7680비트·타원곡선 384비트, 256비트는 대칭키/해시 256비트·인수분해 15360비트·타원곡선 512비트에 해당한다.",
+  "impact": "키 길이가 충분히 길지 않으면 공격자가 짧은 시간 안에 키를 찾아낼 수 있고, 이를 이용해 암호화된 데이터나 패스워드를 복호화할 수 있게 된다.",
+  "countermeasure": "RSA 알고리즘은 적어도 2,048 비트 이상의 길이를 가진 키와 함께 사용해야 하고, 대칭 암호화 알고리즘(Symmetric Encryption Algorithm)의 경우에는 적어도 128비트 이상의 키를 사용해야 한다(암호 강도 112비트 이상).",
+  "code_examples": [
+    {
+      "lang": "Python (PyCryptodome/tinyec)",
+      "vulnerable": "from Crypto.PublicKey import RSA, DSA, ECC\nfrom tinyec import registry\nimport secrets\n\ndef make_rsa_key_pair():\n  # RSA키 길이를 2048 비트 이하로 설정하는 경우 안전하지 않음\n  private_key = RSA.generate(1024)\n  public_key = private_key.publickey()\n\ndef make_ecc():\n  # ECC의 키 길이를 224비트 이하로 설정하는 경우 안전하지 않음\n  ecc_curve = registry.get_curve('secp192r1')\n  private_key = secrets.randbelow(ecc_curve.field.n)\n  public_key = private_key * ecc_curve.g",
+      "safe": "from Crypto.PublicKey import RSA, DSA, ECC\nfrom tinyec import registry\nimport secrets\n\ndef make_rsa_key_pair():\n    # RSA 키 길이를 2048 비트 이상으로 길게 설정\n    private_key = RSA.generate(2048)\n    public_key = private_key.publickey()\n\ndef make_ecc():\n  # ECC 키 길이를 224 비트 이상으로 설정\n  ecc_curve = registry.get_curve('secp224r1')\n  private_key = secrets.randbelow(ecc_curve.field.n)\n  public_key = private_key * ecc_curve.g",
+      "note": "보안성이 강한 RSA 알고리즘을 사용하는 경우에도 키 사이즈를 작게 설정하면(RSA 1024비트, ECC secp192r1) 보안약점이 된다. RSA, DSA의 경우 키의 길이는 적어도 2048비트를, ECC의 경우 224비트 이상(secp224r1)으로 설정해야 안전하다. 안전한 예시는 tinyec 모듈을 사용해 ECC 키를 생성한 예제다."
+    }
+  ]
+}

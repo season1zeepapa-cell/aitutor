@@ -1,0 +1,32 @@
+{
+  "chapter_code": "PY-SF-12",
+  "title": "사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-539",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보 노출",
+    "pages": "106-108"
+  },
+  "overview": "대부분의 웹 응용프로그램에서 쿠키는 메모리에 상주하며, 브라우저가 종료되면 사라진다. 개발자가 원하는 경우, 브라우저 세션에 관계없이 지속적으로 쿠키 값을 저장하도록 설정할 수 있다. 이 경우 정보는 디스크에 기록되고 다음 브라우저 세션 시작 시 메모리에 로드된다.",
+  "impact": "개인정보, 인증 정보 등이 이와 같은 영속적인 쿠키(Persistent Cookie)에 저장된다면, 공격자는 쿠키에 접근할 수 있는 보다 많은 기회를 가지게 되며, 이는 시스템을 취약하게 만든다.",
+  "countermeasure": "쿠키의 만료시간은 세션 지속 시간을 고려하여 최소한으로 설정하고 영속적인 쿠키에는 사용자 권한 등급, 세션 ID 등 중요 정보가 포함되지 않도록 한다. 쿠키를 HTTPS를 통해서만 전송하도록 secure 속성값을 True(기본값은 False)로 사용할 수 있고, 클라이언트 측에서 JavaScript를 통해 쿠키를 접근하지 못하도록 제한하고자 할 경우엔 httpOnly 속성을 True(기본값은 False)로 설정한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.http import HttpResponse\n\ndef remind_user_state(request):\n  res = HttpResponse()\n  # 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다\n  res.set_cookie('rememberme', 1, max_age=60*60*24*365)\n  return res",
+      "safe": "from django.http import HttpResponse\n\ndef remind_user_state(request):\n  res = HttpResponse()\n  # 쿠키의 만료시간을 적절하게 부여하고 secure 및 httpOnly 옵션을 활성화 한다.\n  res.set_cookie('rememberme', 1, max_age=60*60, secure=True, httponly=True)\n  return res",
+      "note": "안전하지 않은 코드는 쿠키의 만료시간을 1년으로 과도하게 길게 설정해 사용자 하드디스크에 저장된 쿠키가 도용될 수 있다. 안전한 코드는 만료 시간을 해당 기능에 맞춰 1시간으로 최소 설정하고 secure·httpOnly 속성을 활성화했다."
+    },
+    {
+      "lang": "Python (Django settings.py 전역 설정)",
+      "vulnerable": "",
+      "safe": "from django.http import HttpResponse\nfrom django.conf.global_settings import (\n    SESSION_COOKIE_AGE,\n    SESSION_COOKIE_HTTPONLY,\n    SESSION_COOKIE_HTTPONLY,\n)\n\n\"\"\"\n# settings.py\nSESSION_COOKIE_AGE = 60 * 60 * 24 * 14\nSESSION_COOKIE_HTTPONLY = True\nSESSION_COOKIE_SECURE = True\n\"\"\"\n\ndef remind_user_state(request):\n    res = HttpResponse()\n    # 서버 세팅(setting.py)에서 default로 쿠키 옵션을 설정한 상태\n    res.set_cookie(\n         \"rememerme\",\n        1,\n        max_age=SESSION_COOKIE_AGE,\n        secure=SESSION_COOKIE_HTTPONLY,\n        httponly=SESSION_COOKIE_HTTPONLY,\n    )\n    return res",
+      "note": "Django에서는 settings.py에 SESSION_COOKIE_AGE, SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SECURE 값을 추가해 쿠키 옵션을 전역(default)으로 설정할 수 있다. (원문 코드의 'rememerme' 표기와 SESSION_COOKIE_HTTPONLY 중복 임포트는 가이드 원문 그대로다.)"
+    }
+  ]
+}

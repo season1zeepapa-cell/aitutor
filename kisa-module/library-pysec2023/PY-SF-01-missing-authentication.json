@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-01",
+  "title": "적절한 인증 없는 중요 기능 허용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-306",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 1. 적절한 인증 없는 중요 기능 허용",
+    "pages": "69-71"
+  },
+  "overview": "보안기능(인증, 접근제어, 기밀성, 암호화, 권한관리 등)을 부적절하게 구현 시 발생할 수 있는 보안약점으로 적절한 인증 없는 중요기능 허용, 부적절한 인가 등이 포함된다. 파이썬의 Django 프레임워크에서 django.contrib.auth 앱을 통해 기본적인 인증 로그인 및 로그아웃 기능을 제공하고 있으며 DRF(Django REST Framework)에서는 토큰 및 세션 인증을 제공하고 있다.",
+  "impact": "패스워드 변경과 같은 중요 기능을 적절한 인증(재인증) 없이 허용하면 인증되지 않은 사용자나 공격자가 클라이언트의 보안 검사를 우회해 다른 사용자의 중요 정보와 기능에 접근하거나 이를 변조할 수 있다.",
+  "countermeasure": "클라이언트의 보안 검사를 우회하여 서버에 접근하지 못하도록 설계하고 중요한 정보가 있는 페이지는 재인증을 적용한다. 또한 안전하다고 검증된 라이브러리나 프레임워크(Django authentication system, Flask-Login 등)를 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\nfrom re import escape\nimport hashlib\n\ndef change_password(request):\n  new_pwd = request.POST.get('new_password','')\n\n  # 로그인한 사용자 정보\n  user = '%s' % escape(request.session['userid'])\n\n  # 현재 password와 일치 여부를 확인하지 않고 수정함\n  sha = hashlib.sha256(new_pwd.encode())\n  update_password_from_db(user, sha.hexdigest())\n\n  return render(request, '/success.html')",
+      "safe": "from django.contrib.auth.decorators import login_required\nfrom django.shortcuts import render\nfrom re import escape\nimport hashlib\n\n# login_required decorator를 사용해 login된 사용자만 접근하도록 처리\n@login_required\ndef change_password(request):\n  new_pwd = request.POST.get('new_password','')\n  crnt_pwd = request.POST.get('current_password','')\n\n  # 로그인한 사용자 정보를 세션에서 가져온다.\n  user = '%s' % escape(request.session['userid'])\n\n  crnt_h = hashlib.sha256(crnt_pwd.encode())\n  h_pwd = crnt_h.hexdigest()\n\n  # DB에서 기존 사용자의 Hash된 패스워드 가져오기\n  old_pwd = get_password_from_db(user)\n\n  # 패스워드를 변경하기 전 사용자에 대한 재인증을 수행한다.\n  if old_pwd == h_pwd:\n    new_h = hashlib.sha256(new_pwd.encode())\n    update_password_from_db(user, new_h.hexdigest())\n    return render(request, '/success.html')\n  else:\n    return render(request, 'failed.html', {'error': '패스워드가 일치하지 않습니다'})",
+      "note": "취약 코드는 패스워드 수정 시 수정을 요청한 패스워드와 DB에 저장된 사용자 패스워드의 일치 여부를 확인하지 않고 처리하며 패스워드 재확인 절차도 생략되어 있다. 안전한 코드는 @login_required 데코레이터로 로그인된 사용자만 접근하도록 하고, DB에 저장된 사용자 패스워드와 현재 패스워드의 일치 여부를 확인(재인증)한 후에만 패스워드를 수정한다."
+    }
+  ]
+}

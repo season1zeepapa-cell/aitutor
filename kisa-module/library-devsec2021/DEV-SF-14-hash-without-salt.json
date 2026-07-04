@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-SF-14",
+  "title": "솔트 없이 일방향 해쉬함수 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-759",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 14. 솔트 없이 일방향 해쉬함수 사용",
+    "pages": "264-267"
+  },
+  "overview": "패스워드를 저장 시 일방향 해쉬함수의 성질을 이용하여 패스워드의 해쉬값을 저장한다. 만약 패스워드를 솔트(Salt) 없이 해쉬하여 저장한다면 보안약점이 발생한다.",
+  "impact": "패스워드만을 해쉬함수의 입력으로 사용하면 공격자는 레인보우 테이블과 같이 해쉬값을 미리 계산하여 패스워드를 찾을 수 있게 되며, 사전 공격이 가능해진다.",
+  "countermeasure": "패스워드를 저장 시 패스워드와 솔트를 해쉬함수의 입력으로 하여 얻은 해쉬값을 저장한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "public String getPasswordHash(String password) throws Exception {\n    MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n// 해쉬에 솔트를 적용하지 않아 안전하지 않다.\n    md.update(password.getBytes());\n    byte byteData[] = md.digest();\n    StringBuffer hexString = new StringBuffer();\n    for (int i=0; i<byteData.length i++) {\n        String hex=Integer.toHexString(0xff & byteData[i]);\n        if (hex.length() == 1) {\n           hexString.append('0');\n          }\n          hexString.append(hex);\n    }\n    return hexString.toString();\n}",
+      "safe": "public String getPasswordHash(String password, byte[] salt) throws Exception {\n    MessageDigest md = MessageDigest.getInstance(\"SHA-256\");\n    md.update(password.getBytes());\n// 해쉬 사용 시에는 원문을 찾을 수 없도록 솔트를 사용하여야 한다.\n     md.update(salt);\n     byte byteData[] = md.digest();\n     StringBuffer hexString = new StringBuffer();\n     for (int i=0; i<byteData.length i++) {\n         String hex=Integer.toHexString(0xff & byteData[i]);\n         if (hex.length() == 1) {\n            hexString.append('0');\n         }\n         hexString.append(hex);\n    }\n    return hexString.toString()\n}",
+      "note": "패스워드 저장 시 솔트 없이 SHA-256 해쉬값만 얻는 과정이라 레인보우 테이블을 이용한 사전 공격이 가능하다. 안전한 코드는 salt 파라미터를 추가로 받아 md.update(salt)로 패스워드와 솔트를 함께 해쉬한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "static void HashWithoutSalt()\n{\n    // 해쉬에 솔트를 적용하지 않아 안전하지 않다.\n    var bytes = new byte[100];\n    (new Random()).NextBytes(bytes);\n    var source = bytes;\n    var sha256 = new SHA256CryptoServiceProvider();\n    sha256.ComputeHash(source);\n}",
+      "safe": "static void HashWithSalt(int saltLength)\n{\n      // 해쉬에 솔트를 적용하여 원문을 찾을 수 없게 한다.\n      var bytes = new byte[100];\n      (new Random()).NextBytes(bytes);\n      var source = bytes;\n      var sha256 = new SHA256CryptoServiceProvider();\n      byte[] saltBytes = GenerateRandomCryptographicBytes(saltLength);\n      List<byte> sourceWithSaltBytes = new List<byte>();\n      sourceWithSaltBytes.AddRange(source);\n      sourceWithSaltBytes.AddRange(sourceWithSaltBytes);\n      sha256.ComputeHash(sourceWithSaltBytes.ToArray());\n}",
+      "note": "솔트 없이 SHA-256 해쉬값을 계산하는 C# 예제. 안전한 코드는 GenerateRandomCryptographicBytes로 솔트를 생성하고 원본 데이터와 솔트를 합쳐 해쉬함수에 적용한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void GenerateHash(char* data)\n{\n    char[512] hashedData = {0 };\n//솔트 값 부분이 NULL 로 되어있어 들어가지 않는다.\n  MD5HashAlgorithm( data, hashedData, NULL );\n...",
+      "safe": "void GenerateHash(char* data, char* salt)\n{\n    char hashedData[512] = {0 };\n    MD5HashAlgorithm( data, hashedData, salt );\n    ...\n}",
+      "note": "솔트 값 인자를 NULL로 두어 솔트 없이 해쉬를 생성하는 C 코드 예제. 안전한 코드는 솔트 값을 함수 인자로 넘겨준다."
+    }
+  ]
+}

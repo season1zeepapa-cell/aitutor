@@ -1,0 +1,32 @@
+{
+  "chapter_code": "PY-EH-01",
+  "title": "오류 메시지 정보노출",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-209",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제4절 에러처리 / 1. 오류 메시지 정보노출",
+    "pages": "125-128"
+  },
+  "overview": "응용 프로그램이 실행환경, 사용자 등 관련 데이터에 대한 민감한 정보를 포함하는 오류 메시지를 생성해 외부에 제공하는 경우 공격자의 악성 행위로 이어질 수 있다. 예외발생 시 예외 이름이나 추적 메시지(traceback)를 출력하는 경우 프로그램 내부 구조를 쉽게 파악할 수 있기 때문이다. Django 프레임워크와 Flask 프레임워크는 HTTP 오류 코드가 있는 요청을 처리하기 위한 사용자 에러 페이지 핸들러를 제공한다.",
+  "impact": "사용자 요청을 정상적으로 처리할 수 없는 경우 에러 페이지에 디버그 정보 또는 서버의 정보가 노출될 수 있으며, 공격자가 예외 이름이나 traceback을 통해 프로그램 내부 구조를 쉽게 파악하여 악성 행위에 활용할 수 있다.",
+  "countermeasure": "오류 메시지는 정해진 사용자에게 유용한 최소한의 정보만 포함하도록 한다. 소스코드에서 예외 상황은 내부적으로 처리하고 사용자에게 시스템 내부 정보 등 민감한 정보를 포함하는 오류를 출력하지 않고 미리 정의된 메시지를 제공하도록 설정한다. Django 프레임워크에서는 urls.py에 사용자 정의 에러 페이지 핸들러를 정의할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "# config/urls.py\n# 별도의 에러 페이지를 선언하지 않아 django의 기본 에러 페이지를 출력한다",
+      "safe": "# config/urls.py\nfrom django.conf.urls import handler400, handler403, handler404, handler500\n\n# 사용자 정의 에러 페이지를 지정하고\n# views.py에 사용자 정의 에러 페이지에 대한 코드를 구현하여 사용한다\nhandler400 = \"blog.views.error400\"\nhandler403 = \"blog.views.error403\"\nhandler404 = \"blog.views.error404\"\nhandler500 = \"blog.views.error500\"",
+      "note": "어플리케이션 배포 시 DEBUG 모드를 True로 설정하고 배포하면 시스템의 주요 정보가 노출될 수 있고, DEBUG를 False로 배포해도 사용자 에러 페이지를 설정하지 않으면 Django 기본 에러 페이지가 출력된다. 안전한 코드는 Django가 제공하는 에러 페이지 핸들러(handler400/403/404/500)를 이용해 별도의 에러 페이지를 생성하여 사용자에게 표현하고 서버의 정보노출을 최소화한다."
+    },
+    {
+      "lang": "Python (traceback/logging)",
+      "vulnerable": "import traceback\n\ndef fetch_url(url, useragent, referer=None, retries=1, dimension=False):\n  ......\n  try:\n     response = requests.get(\n           url,\n           stream=True,\n           timeout=5,\n           headers={ 'User-Agent': useragent, 'Referer': referer },\n     )\n     ......\n  except IOError:\n     # 에러메시지를 통해 스택 정보가 노출.\n     traceback.print_exc()",
+      "safe": "import logging\n\ndef fetch_url(url, useragent, referer=None, retries=1, dimension=False):\n  ......\n  try:\n     response = requests.get(url, stream=True, timeout=5, headers={\n           'User-Agent': useragent,\n           'Referer': referer,\n     })\n     ......\n  except IOError:\n     # 에러 코드와 정보를 별도로 정의하고 최소 정보만 로깅\n     logger.error('ERROR-01:통신에러')",
+      "note": "취약 코드는 traceback.print_exc()를 사용하여 에러 스택을 표준 출력으로 표시해 정보가 노출된다. 안전한 코드는 오류 처리 시 에러 이름이나 에러 추적 정보가 노출되지 않도록 에러 코드와 정보를 별도로 정의하고(logging 모듈 사용) 최소 정보만 로깅한다."
+    }
+  ]
+}

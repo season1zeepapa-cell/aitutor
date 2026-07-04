@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-IV-13",
+  "title": "HTTP 응답분할",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-113",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 13. HTTP 응답분할",
+    "pages": "58-60"
+  },
+  "overview": "HTTP 요청 내의 파라미터(Parameter)가 HTTP 응답 헤더에 포함되어 사용자에게 다시 전달될 때 입력값에 CR(Carriage Return)이나 LF(Line Feed)와 같은 개행문자가 존재하면 HTTP 응답이 2개 이상으로 분리될 수 있다. 파이썬 3.9.5+ 버전에서의 URLValidator에서 HTTP 응답분할 취약점이 보고되기도 했고 해당 라이브러리를 사용하는 Django버전에도 영향이 있다. HTTP 응답분할 공격으로부터 어플리케이션을 안전하게 지키려면 최신 버전의 라이브러리, 프레임워크를 사용하고 외부 입력값에 대해서는 철저한 검증 작업을 수행해야 한다.",
+  "impact": "공격자는 개행문자를 이용해 첫 번째 응답을 종료 시키고 두 번째 응답에 악의적인 코드를 주입해 XSS 및 캐시훼손(Cache Poisoning) 공격 등을 수행할 수 있다.",
+  "countermeasure": "요청 파라미터의 값을 HTTP 응답 헤더(예를 들어, Set-Cookie 등)에 포함시킬 경우 CR(\\r), LF(\\n)와 같은 개행문자를 제거해야 한다. 외부 입력값이 헤더, 쿠키, 로그 등에 사용될 경우에는 항상 개행문자를 검증하고 가능하다면 헤더에 사용되는 예약어 등을 화이트리스트로 제한해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.http import HttpResponse\n\ndef route(request):\n  content_type = request.POST.get('content-type')\n  # 외부 입력값을 검증 또는 필터링 하지 않고\n  # 응답 헤더의 값으로 포함시켜 회신한다\n  ......\n  res = HttpResponse()\n  res['Content-Type'] = content_type\n  return res",
+      "safe": "from django.http import HttpResponse\n\ndef route(request):\n  content_type = request.POST.get('content-type')\n\n  # 응답헤더에 포함될 수 있는 외부 입력값 내의 개행 문자를 제거한다\n  content_type = content_type.replace('\\r', '')\n  content_type = content_type.replace('\\n', '')\n  ......\n  res = HttpResponse()\n  res['Content-Type'] = content_type\n  return res",
+      "note": "취약 코드는 사용자 요청에 포함된 값(content-type)을 필터링 및 검증 없이 응답 헤더에 사용해, 개행문자로 인해 응답이 여러 개로 분할되어 사용자에게 전달될 수 있다. 안전 코드는 응답헤더에 포함될 외부 입력값의 \\r, \\n 개행문자를 replace()로 치환·제거해 응답분할이 발생하지 않도록 예방한다."
+    }
+  ]
+}

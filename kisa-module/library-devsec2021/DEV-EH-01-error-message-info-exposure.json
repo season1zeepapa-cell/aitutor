@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-EH-01",
+  "title": "오류 메시지 정보노출",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-209",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제4절 에러처리 / 1. 오류 메시지 정보노출",
+    "pages": "286-288"
+  },
+  "overview": "응용프로그램이 실행환경, 사용자 등 관련 데이터 또는 시스템의 내부데이터 등 민감한 정보를 포함하는 오류 메시지를 생성하여 외부에 제공하는 경우 발생하는 보안약점이다.",
+  "impact": "민감한 정보를 포함한 오류 메시지는 공격자의 악성 행위를 도울 수 있다. 예외 발생 시 예외 이름이나 스택 트레이스를 출력하는 경우, 공격자가 프로그램 내부구조를 쉽게 파악할 수 있기 때문이다.",
+  "countermeasure": "오류 메시지는 정해진 사용자에게 유용한 최소한의 정보만 포함하도록 한다. 소스코드에서 예외 상황은 내부적으로 처리하고 사용자에게 시스템 내부 정보 등 민감한 정보를 포함하는 오류를 출력하지 않도록 미리 정의된 메시지를 제공하도록 설정한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "try {\n    rd = new BufferedReader(new FileReader(new File(filename)));\n} catch(IOException e) {\n    // 에러 메시지로 스택 정보가 노출됨\n    e.printStackTrace();\n}",
+      "safe": "try {\n    rd = new BufferedReader(new FileReader(new File(filename)));\n} catch(IOException e) {\n    // 에러 코드와 정보를 별도로 정의하고 최소 정보만 로깅\n    logger.error(\"ERROR-01: 파일 열기 에러\");\n}",
+      "note": "안전하지 않은 코드는 오류 메시지에 예외 이름이나 오류추적 정보(스택 트레이스)를 e.printStackTrace()로 출력하여 프로그램 내부 정보가 유출된다. 안전한 코드는 예외 이름이나 오류추적 정보를 출력하지 않고, 에러 코드와 정보를 별도로 정의하여 최소 정보만 로깅한다."
+    },
+    {
+      "lang": "Java",
+      "vulnerable": "catch(IOException e) {\n    // 오류발생시 화면에 출력된 시스템 정보로 다른 공격의 빌미를 제공한다.\n    System.err.print(e.getMessage());\n}",
+      "safe": "",
+      "note": "같은 약점의 두 번째 안전하지 않은 예시. System.err.print(e.getMessage())로 오류 발생 시 화면에 출력된 시스템 정보가 다른 공격의 빌미를 제공한다. 안전한 처리는 첫 번째 예시의 안전한 코드와 같이 미리 정의된 최소한의 메시지만 로깅하는 것이다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "try\n{\n    //do something\n}\ncatch (CustomException e)\n{\n    Console.WriteLine(e);\n}",
+      "safe": "try\n{\n    //do something\n}\ncatch (CustomException e)\n{\n    _log.Debug(\"ERROR-01 : error information\");\n}",
+      "note": "오류 메시지에 예외 이름이나 오류추적 정보를 Console.WriteLine(e)로 출력하여 프로그램 내부 정보가 유출되는 C# 코드다. 안전한 코드는 예외 관련한 최소한의 정보만 출력하도록 한다."
+    }
+  ]
+}

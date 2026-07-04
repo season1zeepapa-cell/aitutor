@@ -1,0 +1,30 @@
+{
+  "chapter_code": "PY-SF-08",
+  "title": "적절하지 않은 난수 값 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-330",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 8. 적절하지 않은 난수 값 사용",
+    "pages": "91-93"
+  },
+  "overview": "예측 불가능한 숫자가 필요한 상황에서 예측 가능한 난수를 사용하는 보안약점이다. python에서 random 모듈은 주로 보안 목적이 아닌 게임, 퀴즈 및 시뮬레이션을 위해 설계되었으므로 보안 기능에 사용하면 안전하지 않다.",
+  "impact": "공격자가 생성되는 다음 숫자를 예상해 시스템을 공격할 수 있다.",
+  "countermeasure": "난수 발생기에서 시드(Seed)를 사용하는 경우에는 고정된 값을 사용하지 않고 예측하기 어려운 방법으로 생성된 값을 사용한다. 세션 ID, 암호화키 등 주요 보안 기능을 위한 값을 생성하고 주요 보안 기능을 수행하는 경우에는 random 모듈보다 암호화 목적으로 설계된 secrets 모듈을 사용해야 한다. secrets 모듈은 python 3.6 이상에서만 사용 가능하며 암호, 계정 인증, 보안 토큰과 같은 데이터를 관리하는 데 적합한 강력한 난수 생성에 사용할 수 있다. python 3.6 이하에서는 os.urandom(), random.SystemRandom 클래스를 사용하는 것이 안전하다.",
+  "code_examples": [
+    {
+      "lang": "Python (OTP 번호 생성)",
+      "vulnerable": "import random\n\ndef get_otp_number():\n  random_str = ''\n  # 시스템 현재 시간 값을 시드로 사용하고 있으며, 주요 보안 기능을 위한\n  # 난수로 안전하지 않다\n  for i in range(6):\n    random_str += str(random.randrange(10))\n\n  return random_str",
+      "safe": "import secrets\n\ndef get_otp_number():\n  random_str = ''\n\n  # 보안기능에 적합한 난수 생성용 secrets 라이브러리 사용\n  for i in range(6):\n     random_str += str(secrets.randbelow(10))\n\n  return random_str",
+      "note": "random 라이브러리 사용 시에는 반드시 유추하기 어려운 seed 값을 이용해 난수를 생성해야 하며, 이렇게 생성된 난수라 하더라도 강도가 낮기 때문에 주요 보안 기능을 위한 난수 이용 시에는 안전하지 않다. 취약 예시는 고정된 seed(시스템 현재 시간) 기반 random 라이브러리로 OTP 번호를 만드는 사례이고, 안전 예시는 secrets 라이브러리로 6자리 난수 값을 생성한다."
+    },
+    {
+      "lang": "Python (세션 토큰 생성)",
+      "vulnerable": "import random\nimport string\n\ndef generate_session_key():\n  RANDOM_STRING_CHARS = string.ascii_letters + string.digits\n  # random 라이브러리를 보안 기능에 사용하면 위험하다\n  return \"\".join(random.choice(RANDOM_STRING_CHARS) for i in range(32))",
+      "safe": "import secrets\nimport string\n\ndef generate_session_key():\n  RANDOM_STRING_CHARS = string.ascii_letters+string.digits\n  # 보안 기능과 관련된 난수는 secrets 라이브러리를 사용해야 안전하다\n  return \"\".join(secrets.choice(RANDOM_STRING_CHARS) for i in range(32))",
+      "note": "세션 토큰값을 생성할 때 random 라이브러리를 사용하면 안전하지 않다. 패스워드나 인증정보 및 보안토큰 생성에 사용하는 경우 안전한 secrets 라이브러리로 생성한 난수를 이용해야 한다."
+    }
+  ]
+}

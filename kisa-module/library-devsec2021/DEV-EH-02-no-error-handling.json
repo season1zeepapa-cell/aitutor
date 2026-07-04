@@ -1,0 +1,32 @@
+{
+  "chapter_code": "DEV-EH-02",
+  "title": "오류 상황 대응 부재",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-390",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제4절 에러처리 / 2. 오류 상황 대응 부재",
+    "pages": "288-291"
+  },
+  "overview": "오류가 발생할 수 있는 부분을 확인하였으나, 이러한 오류에 대하여 예외 처리를 하지 않는 경우 발생하는 보안약점이다.",
+  "impact": "공격자는 오류 상황을 악용하여 개발자가 의도하지 않은 방향으로 프로그램이 동작하도록 할 수 있다.",
+  "countermeasure": "오류가 발생할 수 있는 부분에 대하여 제어문을 사용하여 적절하게 예외 처리(C/C++에서 if와 switch, Java에서 try-catch 등)를 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "protected Element createContent(WebSession s) {\n    ……\n    try {\n        username = s.getParser().getRawParameter(USERNAME);\n        password = s.getParser().getRawParameter(PASSWORD);\n        if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n            s.setMessage(\"Invalid username and password entered.\");\n            return (makeLogin(s));\n        }\n    } catch (NullPointerException e) {\n    // 요청 파라미터에 PASSWORD가 존재하지 않을 경우 Null Pointer Exception이 발생하고\n    // 해당 오류에 대한 대응이 존재하지 않아 인증이 된 것으로 처리\n    }",
+      "safe": "protected Element createContent(WebSession s) {\n    ……\n    try {\n        username = s.getParser().getRawParameter(USERNAME);\n        password = s.getParser().getRawParameter(PASSWORD);\n        if (!\"webgoat\".equals(username) || !password.equals(\"webgoat\")) {\n            s.setMessage(\"Invalid username and password entered.\");\n            return (makeLogin(s));\n        }\n    } catch (NullPointerException e) {\n    // 예외 사항에 대해 적절한 조치를 수행하여야 한다.\n        s.setMessage(e.getMessage());\n        return (makeLogin(s));\n    }",
+      "note": "안전하지 않은 코드는 try 블록에서 발생하는 오류를 포착(catch)하고 있지만 그 오류에 대해서 아무 조치를 하지 않는다. 아무 조치가 없으므로 프로그램이 계속 실행되어 프로그램에서 어떤 일이 일어났는지 전혀 알 수 없게 되며, 요청 파라미터에 PASSWORD가 존재하지 않으면 NullPointerException이 발생해도 대응이 없어 인증이 된 것으로 처리된다. 안전한 코드는 예외를 포착한 후 각각의 예외 사항(Exception)에 대하여 적절하게 처리(메시지 설정 후 로그인 화면 반환)한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "try {\n    InvokeMtd();\n} catch (CustomException e) {\n    // 예외 상황에 대한 대응 부재\n}",
+      "safe": "try {\n    InvokeMtd();\n} catch (CustomException e) {\n// 예외 상황에 대해 적절한 조치를 수행하여야 한다.\n    logger.Debug(\"log message\");\n}",
+      "note": "예외상황에 대한 조치가 없는 C# 코드다. 각각의 예외 상황에 대해 로깅 등 적절한 조치를 수행해야 한다."
+    }
+  ]
+}

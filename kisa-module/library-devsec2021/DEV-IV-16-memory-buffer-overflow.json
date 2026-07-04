@@ -1,0 +1,30 @@
+{
+  "chapter_code": "DEV-IV-16",
+  "title": "메모리 버퍼 오버플로우",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-119",
+  "applies_to": ["C/C++"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 16. 메모리 버퍼 오버플로우",
+    "pages": "204-206"
+  },
+  "overview": "메모리 버퍼 오버플로우 보안약점은 연속된 메모리 공간을 사용하는 프로그램에서 할당된 메모리의 범위를 넘어선 위치에 자료를 읽거나 쓰려고 할 때 발생한다. 메모리 버퍼 오버플로우에는 스택 메모리 버퍼 오버플로우와 힙 메모리 버퍼 오버플로우가 있다. gets()와 같은 함수는 문자열을 크기와 상관없이 연속된 기억공간에 저장시키는 함수이므로, 공격자가 정상적인 문자열 대신 공격코드를 입력하고 스택의 시작주소를 반복 입력하면 프로그램은 정상 주소로 복귀하는 대신 공격코드의 시작주소로 복귀하여 공격코드를 수행하게 된다.",
+  "impact": "메모리 버퍼 오버플로우는 프로그램의 오동작을 유발시키거나, 악의적인 코드를 실행시킴으로써 공격자가 프로그램을 통제할 수 있는 권한을 획득하게 한다.",
+  "countermeasure": "프로그램 상에서 메모리 버퍼를 사용할 경우 적절한 버퍼의 크기를 설정하고, 설정된 범위의 메모리 내에서 올바르게 읽거나 쓸 수 있게 통제하여야 한다. 특히, 문자열 저장 시 널(Null) 문자로 종료하지 않으면 의도하지 않은 결과를 가져오게 되므로 널(Null) 문자를 버퍼 범위 내에 삽입하여 널(Null) 문자로 종료되도록 해야 한다.",
+  "code_examples": [
+    {
+      "lang": "C",
+      "vulnerable": "void foo() {\n    int num = 10;\n    char message[40];\n    gets(message);\n}",
+      "safe": "",
+      "note": "개요의 스택 메모리 버퍼 오버플로우 예시. 함수 foo()의 스택 공간 끝에는 복귀 주소가 보관되는데, gets()는 문자열을 크기와 상관없이 연속된 기억공간에 저장하므로 공격자가 공격코드와 스택 시작주소를 반복 입력하면 복귀 주소가 덮어써져 공격코드가 실행된다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "typedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid;\n\nvoid badCode() {\n    charvoid cv_struct;\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n\n    /* sizeof(cv_struct)의 사용으로 포인터 y에 덮어쓰기 발생 */\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct));\n    printLine((char *) cv_struct.x);\n    printLine((char *) cv_struct.y);\n}",
+      "safe": "typedef struct _charvoid {\n    char x[16];\n    void * y;\n    void * z;\n} charvoid;\n\nstatic void goodCode() {\n    charvoid cv_struct;\n    cv_struct.y = (void *) SRC_STR;\n    printLine((char *) cv_struct.y);\n\n    /* sizeof(cv_struct.x)로 변경하여 포인터 y의 덮어쓰기를 방지함 */\n    memcpy(cv_struct.x, SRC_STR, sizeof(cv_struct.x));\n\n    /* 문자열 종료를 위해 널 문자를 삽입함 */\n    cv_struct.x[(sizeof(cv_struct.x)/sizeof(char))-1] = '\\0';\n    printLine((char *) cv_struct.x);\n    printLine((char *) cv_struct.y);\n}",
+      "note": "포인터 구조체의 개별 필드에 특정 문자열을 복사하는 프로그램이다. 잘못 계산된 데이터 크기 sizeof(cv_struct)로 인해 연속된 메모리 공간인 포인터 y를 덮어쓰는 버퍼 오버플로우가 발생하고, 복사된 문자열에 종료 문자를 첨가하지 않아 문자열 참조 시 잘못된 결과를 가져올 수 있다. 안전한 코드는 첫째, 문자열 복사가 구조체 내 필드 x에 한정되도록 정확한 크기 계산인 sizeof(cv_struct.x)로 허용된 범위의 인덱스만 사용하고, 둘째, cv_struct.x 배열의 가장 마지막 인덱스를 계산하여 널(Null) 문자를 패딩한다."
+    }
+  ]
+}

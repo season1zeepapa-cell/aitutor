@@ -1,0 +1,36 @@
+{
+  "chapter_code": "DEV-IV-02",
+  "title": "코드삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-94, CWE-95",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 제1절 입력데이터 검증 및 표현 / 2. 코드삽입",
+    "pages": "142-145"
+  },
+  "overview": "공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입하여 소프트웨어가 비정상적으로 동작하도록 하는 보안약점을 말한다. 코드 삽입은 프로그래밍 언어 자체의 기능에 의해서만 제한된다는 점에서 운영체제 명령어 삽입과 다르다.",
+  "impact": "취약한 프로그램에서 사용자의 입력 값에 코드가 포함되는 것을 허용할 경우, 공격자는 개발자가 의도하지 않은 코드를 실행하여 권한을 탈취하거나 인증 우회, 시스템 명령어 실행 등을 할 수 있다. 예를 들어 조작된 인수를 입력한 공격코드를 이용하여 새로운 파일을 만들거나 덮어씌울 수 있다.",
+  "countermeasure": "동적코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시, 실행 가능한 동적코드를 입력 값으로 받지 않도록 외부 입력 값에 대하여 화이트리스트 방식으로 구현한다. 또는 유효한 문자만 포함하도록 동적 코드에 사용되는 사용자 입력 값을 필터링 한다.",
+  "code_examples": [
+    {
+      "lang": "Java (ScriptEngine)",
+      "vulnerable": "public class CodeInjectionController {\n  @RequestMapping(value = \"/execute\", method = RequestMethod.GET)\n  public String execute(@RequestParam(\"src\") String src)\n  throws ScriptException {\n    ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n    ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(\"javascript\");\n    // 외부 입력값인 src를 javascript eval 함수로 실행하고 있어 안전하지 않다.\n    String retValue = (String)scriptEngine.eval(src);\n    return retValue;\n  }\n}",
+      "safe": "@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\npublic String execute(@RequestParam(\"src\") String src) throws ScriptException {\n  // 정규식을 이용하여 특수문자 입력시 예외를 발생시킨다.\n  if (src.matches(\"[ \\\\w]*\") == false) {\n    throw new IllegalArgumentException();\n  }\n  ScriptEngineManager scriptEngineManager = new ScriptEngineManager();\n  ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(\"javascript\");\n  String retValue = (String)scriptEngine.eval(src);\n  return retValue;\n}",
+      "note": "취약 코드는 javax.script.ScriptEngineManager를 사용하여 사용자 입력을 javascript eval 함수로 실행하므로, 공격자가 조작된 인수로 새로운 파일을 만들거나 덮어씌울 수 있다. 안전 코드는 실행 가능한 코드가 포함될 수 있는 입력값을 정규 표현식으로 필터링하여 특수문자 입력 시 예외를 발생시킨다. 입력 값의 형태에 따라 정규 표현식을 변형하여 적용해야 한다."
+    },
+    {
+      "lang": "Java (JSP)",
+      "vulnerable": "<body>\n<%\nString name = request.getparameter(\"name\");\n%>\n...\n<script>\n// 외부 입력값인 name을 javascript new Function()을 이용하여 문자열을 함수로 실행하고 있다.\n(new Function(<%=name%>))();\n</script>\n</body>",
+      "safe": "",
+      "note": "외부 입력 값을 javascript의 new Function()으로 전달하여 동적으로 코드를 실행할 수 있는 취약 예시이다. 문서에는 이 예시에 대응하는 별도의 안전 코드가 없으며, 동일 항목의 정규식 필터링·화이트리스트 방식 안전 코드가 완화 방법으로 제시된다."
+    },
+    {
+      "lang": "Java (화이트리스트)",
+      "vulnerable": "",
+      "safe": "@RequestMapping(value = \"/execute\", method = RequestMethod.GET)\npublic String execute(@RequestParam(\"src\") String src) throws ScriptException {\n  // 유효한 문자 \"_\" 일 경우 실행할 메소드 호출한다.\n  if (src.matches(\"UNDER_BAR\") == true) {\n    ...\n  // 유효한 문자 \"$\" 일 경우 실행할 메소드 호출한다.\n  } else if (src.matches(\"DOLLAR\") == true) {\n    ...\n  // 유효하지 않은 특수문자 입력시 예외를 발생시킨다.\n  } else {\n    throw new IllegalArgumentException();\n  }\n  ...\n}",
+      "note": "스크립트 실행이 필요한 경우 화이트리스트 방식을 적용하여 유효한 문자인 경우에만 실행되도록 하고, 그 외의 경우는 모두 예외 처리하는 안전 코드이다."
+    }
+  ]
+}

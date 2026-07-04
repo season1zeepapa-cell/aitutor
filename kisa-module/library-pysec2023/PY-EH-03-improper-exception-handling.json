@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-EH-03",
+  "title": "부적절한 예외 처리",
+  "stage": "implementation",
+  "category": "error_handling",
+  "cwe": "CWE-754",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제4절 에러처리 / 3. 부적절한 예외 처리",
+    "pages": "132-133"
+  },
+  "overview": "프로그램 수행 중에 함수의 결과 값에 대한 적절한 처리 또는 예외 상황에 대한 조건을 적절하게 검사하지 않을 경우 예기치 않은 문제를 야기할 수 있다.",
+  "impact": "다양한 예외가 발생할 수 있음에도 광범위한 예외 처리로 일괄 처리하면 예외상황에 따른 적절한 조치가 이루어지지 않아 예기치 않은 문제가 발생할 수 있다.",
+  "countermeasure": "값을 반환하는 모든 함수의 결과값을 검사해야 한다. 결과값이 개발자가 의도했던 값인지 검사하고, 예외 처리를 사용하는 경우에 광범위한 예외 처리 대신 구체적인 예외 처리를 수행한다.",
+  "code_examples": [
+    {
+      "lang": "Python",
+      "vulnerable": "import sys\n\ndef get_content():\n  try:\n    f = open('myfile.txt')\n    s = f.readline()\n    i = int(s.strip())\n  # 예외처리를 세분화 할 수 있음에도 광범위하게 사용하여 예기치 않은\n  # 문제가 발생할 수 있다\n  except:\n    print(\"Unexpected error \")",
+      "safe": "def get_content():\n  try:\n    f = open('myfile.txt')\n    s = f.readline()\n    i = int(s.strip())\n\n  # 발생할 수 있는 오류의 종류와 순서에 맞춰서 예외 처리 한다.\n  except FileNotFoundError:\n    print(\"file is not found\")\n  except OSError:\n    print(\"cannot open file\")\n  except ValueError:\n    print(\"Could not convert data to an integer.\")",
+      "note": "취약 코드는 파일 열기·읽기·정수 변환 등 다양한 예외가 발생할 수 있음에도 불구하고 bare except 하나로 광범위하게 예외 처리하여 예외상황에 따른 적절한 조치가 이루어지지 않는다. 안전한 코드는 발생 가능한 예외를 FileNotFoundError, OSError, ValueError로 세분화한 후 오류의 종류와 순서에 맞춰 예외상황에 따라 적합하게 처리한다."
+    }
+  ]
+}

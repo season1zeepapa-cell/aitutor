@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-IV-09",
+  "title": "XML 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-643",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 9. XML 삽입",
+    "pages": "42-43"
+  },
+  "overview": "검증되지 않은 외부 입력값이 XQuery 또는 XPath 쿼리문을 생성하는 문자열로 사용되어 공격자가 쿼리문의 구조를 임의로 변경하고 임의의 쿼리를 실행할 수 있는 보안약점이다.",
+  "impact": "공격자가 임의의 쿼리를 실행해 허가되지 않은 데이터를 열람하거나 인증절차를 우회할 수 있다.",
+  "countermeasure": "XQuery 또는 XPath 쿼리에 사용되는 외부 입력 데이터에 대하여 특수문자 및 쿼리 예약어를 필터링 하고 인자화된 쿼리문을 지원하는 XQuery를 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, lxml)",
+      "vulnerable": "from django.shortcuts import render\nfrom lxml import etree\n\ndef parse_xml(request):\n  user_name = request.POST.get('user_name', '')\n\n  parser = etree.XMLParser(resolve_entities=False)\n  tree = etree.parse('user.xml', parser)\n  root = tree.getroot()\n\n  # 검증되지 않은 외부 입력값 user_name을 사용한 안전하지 않은\n  # 질의문이 query 변수에 저장\n  query = \"/collection/users/user[@name='\" + user_name + \"']/home/text()\"\n  elmts = root.xpath(query)\n  return render(request, 'parse_xml.html', {'xml_element':elmts})",
+      "safe": "from django.shortcuts import render\nfrom lxml import etree\n\ndef parse_xml(request):\n  user_name = request.POST.get('user_name', '')\n\n  parser = etree.XMLParser(resolve_entities=False)\n  tree = etree.parse('user.xml', parser)\n  root = tree.getroot()\n\n  # 외부 입력값을 paramname으로 인자화 해서 사용\n  query = '/collection/users/user[@name = $paramname]/home/text()'\n  elmts = root.xpath(query, paramname=user_name)\n  return render(request, 'parse_xml.html', {'xml_element':elmts})",
+      "note": "파이썬에서 XML 데이터를 처리하기 위한 기본 모듈인 xml.etree.ElementTree를 이용하여 사용자 정보를 가져오는 예제다. xml.etree.ElementTree 모듈은 제한적인 XPath 기능을 제공하며 XPath 표현식을 인자화해서 사용하는 방법을 제공하지 않는다. 안전하지 않은 코드는 검증되지 않은 외부 입력값(user_name)을 문자열 연결로 XPath 질의문에 사용한다. 안전한 코드는 xml.etree.ElementTree 모듈 대신 lxml 라이브러리를 사용하고 외부 입력값을 인자화($paramname)해서 사용한다."
+    }
+  ]
+}

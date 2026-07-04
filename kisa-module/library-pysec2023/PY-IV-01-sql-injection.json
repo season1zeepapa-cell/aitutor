@@ -1,0 +1,30 @@
+{
+  "chapter_code": "PY-IV-01",
+  "title": "SQL 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-89",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 1. SQL 삽입",
+    "pages": "8-13"
+  },
+  "overview": "데이터베이스(DB)와 연동된 웹 응용프로그램에서 입력된 데이터에 대한 유효성 검증을 하지 않을 경우 공격자가 입력 폼 및 URL 입력란에 SQL 문을 삽입하여 DB로부터 정보를 열람하거나 조작할 수 있는 보안약점을 말한다. 취약한 웹 응용프로그램에서는 사용자로부터 입력된 값을 검증 없이 넘겨받아 동적쿼리(Dynamic Query)를 생성하기 때문에 개발자가 의도하지 않은 쿼리가 실행될 수 있다. 파이썬에서는 데이터베이스 액세스에 사용되는 다양한 파이썬 모듈 간의 일관성을 장려하기 위해 DB-API를 정의하고 있고 각 데이터베이스마다 별도의 DB 모듈을 이용해 데이터베이스에 액세스하며, DB-API 외에도 Django, SQLAlchemy, Storm 등의 ORM(Object Relational Mapping)을 사용할 수 있다. 다양한 ORM을 이용하면 보다 안전하게 DB를 사용할 수 있지만 일부 복잡한 조건의 쿼리문 생성 어려움, 성능저하 등의 이유로 직접 원시 SQL 실행이 필요한 경우가 있으며, ORM 대신 원시 쿼리를 사용하는 경우 검증되지 않은 외부 입력값으로 인해 SQL 삽입 공격이 발생할 수 있다.",
+  "impact": "개발자가 의도하지 않은 쿼리가 실행되어 DB로부터 정보를 열람·조작당하거나 정보유출에 악용될 수 있다. 예를 들어 조건절에 'a' or 'a' = 'a 와 같은 공격 문자열이 삽입되면 테이블 전체 레코드가 공격자가 전달한 값으로 변경될 수 있다.",
+  "countermeasure": "DB API 사용 시 인자화된 쿼리(사용자가 전달한 입력값을 그대로 쿼리 문자열로 만들지 않고, DB API에서 제공하는 기능을 사용해 쿼리 내에 사용자 입력값을 구성하는 방법)를 통해 외부 입력값을 바인딩해서 사용하면 SQL 삽입 공격으로부터 안전하게 보호할 수 있다. 파이썬에서 많이 사용되는 ORM 프레임워크로는 Django의 querySets, SQLAlchemy, Storm 등이 있으며, ORM 프레임워크는 기본적으로 모든 쿼리문에 인자화된 쿼리문을 사용하므로 SQL 삽입 공격으로부터 안전하다. ORM 프레임워크 내에서 원시 SQL을 사용할 경우에도 외부 입력값을 인자화된 쿼리문의 바인딩 변수로 사용하면 안전한 코드를 작성할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, DB API)",
+      "vulnerable": "from django.shortcuts import render\nfrom django.db import connection\n\ndef update_board(request):\n  ......\n  dbconn = connection\n\n  with dbconn.cursor() as curs:\n     # 외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다\n     name = request.POST.get('name', '')\n     content_id = request.POST.get('content_id', '')\n\n     # 사용자의 검증되지 않은 입력값을 사용해 동적 쿼리문 생성\n     sql_query = \"update board set name='\" + name + \"' where content_id='\" + content_id + \"'\"\n\n     # 외부 입력값이 검증 없이 쿼리로 포함되어 안전하지 않다\n     curs.execute(sql_query)\n     dbconn.commit()\n\n     return render(request, '/success.html')",
+      "safe": "from django.shortcuts import render\nfrom django.db import connection\n\ndef update_board(request):\n   ......\n  dbconn = connection\n\n  with dbconn.cursor() as curs:\n    name = request.POST.get('name', '')\n    content_id = request.POST.get('content_id', '')\n\n    # 외부 입력값 조작으로부터 안전한 인자화된 쿼리를 생성한다.\n    sql_query = 'update board set name=%s where content_id=%s'\n\n    # 사용자의 입력값이 인자화된 쿼리에 바인딩 후 실행되므로 안전하다.\n    curs.execute(sql_query, (name, content_id))\n    dbconn.commit()\n\n    return render(request, '/success.html')",
+      "note": "MySQL·PostgreSQL DB API 사용 예제. 취약 코드는 외부 입력값 name, content_id를 검증 없이 단순 문자열 결합으로 쿼리에 넣어(line 12-15) content_id에 'a' or 'a' = 'a 같은 공격 문자열이 들어오면 board 테이블 전체 레코드의 name 컬럼이 변경된다. 안전 코드는 인자화된 쿼리를 생성한 뒤 execute()의 두 번째 인자로 값을 바인딩해 실행하므로 공격 문자열이 들어와도 바인딩된 매개변수의 값으로만 사용된다. SQLite DB API 사용 시에도 동일하게 정적인 쿼리문을 사전에 생성하고 사용자 입력을 바인딩해야 하며, SQLite에서는 \"?\"를 Placeholder로 사용하거나 \":name\"처럼 Named Placeholder를 사용하는 2가지 방법을 적용할 수 있다."
+    },
+    {
+      "lang": "Python (Django ORM, 원시 SQL)",
+      "vulnerable": "from django.shortcuts import render\nfrom app.models import Member\n\ndef member_search(request):\n    name = request.POST.get('name', '')\n\n    # 입력값을 검증 없이 쿼리문 생성에 사용해 안전하지 않다\n    query=\"select * from member where name='\" + name + \"'\"\n\n    # 외부 입력값을 검증 없이 사용한 쿼리문을 raw()함수로 실행하면 안전하지 않다\n    data = Member.objects.raw(query)\n    return render(request, '/member_list.html', {'member_list':data})",
+      "safe": "from django.shortcuts import render\nfrom app.models import Member\n\ndef member_search(request):\n  name = request.POST.get('name', '')\n\n  # 외부 입력값을 raw() 함수 실행 시 바인딩 변수로 사용하여 쿼리 구조가\n  # 변경되지 않도록 한다.(list 형은 %s, dictionary 형은 %(key)s를 사용)\n  query='select * from member where name=%s'\n\n  # 인자화된 쿼리문을 사용하여 raw() 함수를 호출해 안전하다\n  data = Member.objects.raw(query, [name])\n    return render(request, '/member_list.html', {'member_list':data})",
+      "note": "ORM 사용 예제. Django의 querysets는 쿼리 인자화를 사용해 쿼리를 구성하기 때문에 SQL 삽입 공격으로부터 안전하지만, 부득이하게 원시 SQL(Manager.raw())을 사용할 경우가 문제다. 취약 코드는 외부 입력값(line 5)을 문자열 조합으로 쿼리문 구성에 사용해 raw()로 실행한다(line 11). 안전 코드는 쿼리문 생성 자체를 인자화된 쿼리 형식으로 하고(line 9) raw() 메소드의 두 번째 인자(params)의 바인딩 변수로 외부 입력값을 사용한다."
+    }
+  ]
+}

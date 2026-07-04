@@ -1,0 +1,30 @@
+{
+  "chapter_code": "DEV-IV-12",
+  "title": "서버사이드 요청 위조",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-918",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 12. 서버사이드 요청 위조",
+    "pages": "191-192"
+  },
+  "overview": "적절한 검증절차를 거치지 않은 사용자 입력 값을 서버간의 요청에 사용하여 악의적인 행위가 발생할 수 있는 보안약점이다.",
+  "impact": "외부에 노출된 웹 서버에 취약한 애플리케이션이 존재하는 경우 공격자는 URL 또는 요청문을 위조하여 접근통제를 우회하는 방식으로 비정상적인 동작을 유도하거나 신뢰된 네트워크에 있는 데이터를 획득할 수 있다.",
+  "countermeasure": "식별할 수 있는 범위 내에서 사용자의 입력 값을 다른 시스템의 서비스 호출에 사용하는 경우, 사용자의 입력 값을 화이트리스트 방식으로 필터링한다. 사용자가 지정하는 무작위의 URL을 받아들여야 한다면 내부의 URL을 블랙리스트로 지정하여 필터링한다. 또한 동일한 내부 네트워크에 있더라도 기기 인증, 접근권한을 확인하여 요청이 이루어질 수 있도록 한다.",
+  "code_examples": [
+    {
+      "lang": "URL (SSRF 삽입 코드의 예)",
+      "vulnerable": "// 내부망 중요 정보 획득\nhttp://site_example.com/connect?url=http://192.168.0.45/member/list.json\n// 외부 접근 차단된 admin 페이지 접근\nhttp://site_example.com/connect?url=http://192.168.0.45/admin\n// 도메인 체크를 우회하여 중요 정보 획득\nhttp://site_example.com/connect?url=http://site_example.com:x@192.168.0.45/member/list.json\n// 단축 URL을 이용한 Filter 우회\nhttp://site_example.com/connect?url=http://bit.ly/sdjk3kjhkl3\n// 도메인을 사설IP로 설정해 중요정보 획득\nhttp://site_example.com/connect?url=http://internal.site.com/member/list.json\n// 서버내 파일 열람\nhttp://site_example.com/connect?url=http://attack/fileview.html",
+      "safe": "",
+      "note": "원문의 '참고: 삽입 코드의 예' 표를 옮긴 것으로, 공격자가 url 파라미터를 조작해 내부 서버에 질의하게 하여 데이터를 획득하는 대표적인 SSRF 공격 URL 유형(내부망 정보 획득, 차단된 admin 페이지 접근, 도메인 체크 우회, 단축 URL 필터 우회, 사설 IP 도메인, 서버 내 파일 열람)을 보여준다."
+    },
+    {
+      "lang": "Java",
+      "vulnerable": "protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n    // 사용자 입력값(url)을 검증없이 사용하여 안전하지 않다.\n    URL url = new URL(req.getParameter(\"url\"));\n    HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n}",
+      "safe": "public class Connect {\n    // key, value 형식으로 URL의 리스트를 작성한다.\n    private Map<String, URL> urlMap;\n    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {\n        // 사용자에게 urlMap의 key를 입력받아 urlMap에서 URL값을 참조한다.\n        URL url = urlMap.get(req.getParameter(\"url\"));\n        // urlMap에서 참조한 값으로 Connection을 만들어 접속한다.\n        HttpURLConnection conn = (HttpURLConnection) url.openConnection();\n    }\n}",
+      "note": "취약 코드는 사용자로부터 입력받은 값의 검증 없이 웹페이지를 접속하도록 구현되어 있어, 공격자가 URL을 조작하여 내부 서버에 질의하게 하여 데이터를 획득할 수 있다. 안전 코드는 사전에 정의된 URL 목록을 맵(Map) 객체에 정의하고 키 값으로 입력받아 키에 매칭되는 URL만 사용할 수 있으므로(화이트리스트 방식) URL 값을 임의로 조작할 수 없다."
+    }
+  ]
+}

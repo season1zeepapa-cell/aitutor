@@ -1,0 +1,32 @@
+{
+  "chapter_code": "PY-EN-02",
+  "title": "제거되지 않고 남은 디버그 코드",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-489",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제6절 캡슐화 / 2. 제거되지 않고 남은 디버그 코드",
+    "pages": "146-149"
+  },
+  "overview": "디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다. 디버그 코드는 설정 등의 민감한 정보 또는 의도하지 않은 시스템 제어로 이어질 수 있는 정보를 담고 있을 수 있다. Django 프레임워크, Flask 프레임워크는 전역 수준에서 DEBUG 모드를 설정할 수 있다.",
+  "impact": "디버그 코드가 남겨진 채로 배포될 경우 공격자가 식별 과정을 우회하거나 의도하지 않은 정보 노출로 이어질 수 있다. DEBUG 모드를 사용하면 브라우저에서 임의의 파이썬 코드를 실행할 수도 있고 파이썬에서 발생한 모든 오류가 출력되어 정보 노출의 위험이 있다.",
+  "countermeasure": "소프트웨어 배포 전 반드시 디버그 코드를 확인 및 삭제한다. 어플리케이션을 배포 전에 반드시 DEBUG 모드를 비활성화해야 한다. Django 프레임워크의 경우 전역 수준에서 DEBUG 모드를 비활성화하려면 settings.py 파일에 설정을 하고, Flask 프레임워크는 app_run() 전에 debug = False로 설정하면 된다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.urls import reverse_lazy\nfrom django.utils.text import format_lazy\n\nDEBUG = True\n\nROOT_URLCONF = 'test.urls'\nSITE_ID = 1\n\nDATABASES = {\n  'default': {\n    'ENGINE': 'django.db.backends.sqlite3',\n    'NAME': ':memory:',\n  }\n}",
+      "safe": "from django.urls import reverse_lazy\nfrom django.utils.text import format_lazy\n\nDEBUG = False\n\nROOT_URLCONF = 'test.urls'\nSITE_ID = 1\n\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': ':memory:',\n    }\n}",
+      "note": "Django의 미들웨어 세팅 파일인 settings.py 예시로, 개발 시 사용된 DEBUG 옵션이 True로 설정되어 있어 정보 노출의 위험이 있다. 개발이 끝난 소스코드를 배포 및 운영할 경우에는 반드시 DEBUG 옵션을 False로 변경해야 한다."
+    },
+    {
+      "lang": "Python (Flask)",
+      "vulnerable": "from flask import Flask\n\napp = Flask(__name__)\n# 디버그 모드 설정 방법1\napp.debug = True\n\n@app.route('/')\ndef hello_world():\n  return 'Hello World!'\n\nif __name__ == '__main__':\n  app.run()\n  # 디버그 모드 설정 방법2\n  app.run(debug=True)",
+      "safe": "from flask import Flask\n\napp = Flask(__name__)\napp.debug = False\n\n@app.route('/')\ndef hello_world():\n    return 'Hello World!'\n\nif __name__ == '__main__':\n    app.run()\n\n  app.run(debug=False)",
+      "note": "Flask 예제로, debug 모드가 True로 설정되어(app.debug = True 또는 app.run(debug=True)) 정보 노출의 위험이 있다. 마찬가지로 개발이 끝난 소스코드를 배포 및 운영 시 반드시 debug 옵션을 False로 변경해야 한다."
+    }
+  ]
+}

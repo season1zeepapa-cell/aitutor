@@ -75,11 +75,15 @@ ${question.vulnerable_code || '(없음)'}
 const anthropic = require('../_llm/anthropic');
 const openaiChat = require('../_llm/openai-chat');
 const gemini = require('../_llm/gemini');
+// DB 기반 API 키 해석 (REBUILD67 — BYOK)
+const keys = require('../_llm/apikeys');
 
 // ----------------------------------------------------------------------------
 // Provider 1: Gemini
 // ----------------------------------------------------------------------------
-async function gradeWithGemini(question, attempt, { timeoutMs = 20000, userId } = {}) {
+async function gradeWithGemini(question, attempt, { timeoutMs = 20000, userId, user } = {}) {
+  const apiKey = await keys.resolveApiKey('gemini', user);
+  if (!apiKey) throw new Error(keys.missingKeyError('gemini').error);
   const userPrompt = buildUserPrompt(question, attempt);
   const { text } = await gemini.chat({
     model: 'gemini-2.5-flash',
@@ -90,6 +94,7 @@ async function gradeWithGemini(question, attempt, { timeoutMs = 20000, userId } 
     temperature: 0.3,
     maxTokens: 1024,
     timeout: timeoutMs,
+    apiKey,
     userId,
     action: 'kisa_grade',
     questionId: question?.id,
@@ -102,7 +107,9 @@ async function gradeWithGemini(question, attempt, { timeoutMs = 20000, userId } 
 // ----------------------------------------------------------------------------
 // Provider 2: OpenAI
 // ----------------------------------------------------------------------------
-async function gradeWithOpenAI(question, attempt, { timeoutMs = 20000, userId } = {}) {
+async function gradeWithOpenAI(question, attempt, { timeoutMs = 20000, userId, user } = {}) {
+  const apiKey = await keys.resolveApiKey('openai', user);
+  if (!apiKey) throw new Error(keys.missingKeyError('openai').error);
   const userPrompt = buildUserPrompt(question, attempt);
   const { text } = await openaiChat.chat({
     model: 'gpt-4o-mini',
@@ -113,6 +120,7 @@ async function gradeWithOpenAI(question, attempt, { timeoutMs = 20000, userId } 
     temperature: 0.3,
     maxTokens: 1024,
     timeout: timeoutMs,
+    apiKey,
     userId,
     action: 'kisa_grade',
     questionId: question?.id,
@@ -125,7 +133,9 @@ async function gradeWithOpenAI(question, attempt, { timeoutMs = 20000, userId } 
 // ----------------------------------------------------------------------------
 // Provider 3: Claude
 // ----------------------------------------------------------------------------
-async function gradeWithClaude(question, attempt, { timeoutMs = 20000, userId } = {}) {
+async function gradeWithClaude(question, attempt, { timeoutMs = 20000, userId, user } = {}) {
+  const apiKey = await keys.resolveApiKey('claude', user);
+  if (!apiKey) throw new Error(keys.missingKeyError('claude').error);
   const userPrompt = buildUserPrompt(question, attempt);
   const { text } = await anthropic.chat({
     model: 'claude-haiku-4-5-20251001',
@@ -134,6 +144,7 @@ async function gradeWithClaude(question, attempt, { timeoutMs = 20000, userId } 
     temperature: 0.3,
     maxTokens: 1024,
     timeout: timeoutMs,
+    apiKey,
     userId,
     action: 'kisa_grade',
     questionId: question?.id,
@@ -159,9 +170,10 @@ const GRADERS = {
  * @param {object} attempt
  * @returns {Promise<{score, strengths, weaknesses, missing_keywords}>}
  */
-async function gradeWithLlm(provider, question, attempt) {
+async function gradeWithLlm(provider, question, attempt, user) {
   const fn = GRADERS[provider] || GRADERS.gemini;
-  return await fn(question, attempt);
+  // user 를 전달 → 각 grader 가 DB 기반 키(공용/개인)를 해석 (REBUILD67)
+  return await fn(question, attempt, { user, userId: user?.uid });
 }
 
 module.exports = {

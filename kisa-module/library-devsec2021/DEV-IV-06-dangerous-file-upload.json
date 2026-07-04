@@ -1,0 +1,30 @@
+{
+  "chapter_code": "DEV-IV-06",
+  "title": "위험한 형식 파일 업로드",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-434",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 제1절 입력데이터 검증 및 표현 / 6. 위험한 형식 파일 업로드",
+    "pages": "162-165"
+  },
+  "overview": "서버 측에서 실행될 수 있는 스크립트 파일(asp, jsp, php 파일 등)이 업로드 가능하고, 이 파일을 공격자가 웹으로 직접 실행시킬 수 있는 경우 발생하는 보안약점이다.",
+  "impact": "공격자는 업로드한 스크립트 파일을 웹으로 직접 실행시켜 시스템 내부명령어를 실행하거나 외부와 연결하여 시스템을 제어할 수 있다.",
+  "countermeasure": "화이트리스트 방식으로 허용된 확장자만 업로드를 허용한다. 업로드되는 파일을 저장할 때에는 파일명과 확장자를 외부사용자가 추측할 수 없는 문자열로 변경하여 저장하며, 저장 경로는 'web document root' 밖에 위치시켜서 공격자의 웹으로 직접 접근을 차단한다. 또한 파일 실행 여부를 설정할 수 있는 경우, 실행 속성을 제거한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "MultipartRequest multi\n  = new MultipartRequest(request,savePath,sizeLimit,\"euc-kr\",new DefaultFileRenamePolicy());\n......\n//업로드 되는 파일명을 검증없이 사용하고 있어 안전하지 않다.\nString fileName = multi.getFilesystemName(\"filename\");\n......\nsql = \" INSERT INTO board(email,r_num,w_date,pwd,content,re_step,re_num,filename) \"\n    + \" values ( ?, 0, sysdate(), ?, ?, ?, ?, ? ) \";\npreparedStatement pstmt = con.prepareStatement(sql);\npstmt.setString(1, stemail);\npstmt.setString(2, stpwd);\npstmt.setString(3, stcontent);\npstmt.setString(4, stre_step);\npstmt.setString(5, stre_num);\npstmt.setString(6, fileName);\npstmt.executeUpdate();\nThumbnail.create(savePath+\"/\"+fileName, savePath+\"/\"+\"s_\"+fileName, 150);",
+      "safe": "MultipartRequest multi\n  = new MultipartRequest(request,savePath,sizeLimit,\"euc-kr\",new DefaultFileRenamePolicy());\n......\nString fileName = multi.getFilesystemName(\"filename\");\nif (fileName != null) {\n//1.업로드 파일의 마지막 \".\" 문자열의 기준으로 실제 확장자 여부를 확인하고, 대소문자 구별을 해야한다.\n    String fileExt =\n      FileName.substring(fileName.lastIndexOf(\".\")+1).toLowerCase();\n//2.되도록 화이트 리스트 방식으로 허용되는 확장자로 업로드를 제한해야 안전하다.\n    if (!\"gif\".equals(fileExt) && !\"jpg\".equals(fileExt) && !\"png\".equals(fileExt)) {\n        alertMessage(\"업로드 불가능한 파일입니다.\");\n        return;\n    }\n}\n......\nsql = \" INSERT INTO board(email,r_num,w_date,pwd,content,re_step,re_num,filename) \"\n    + \" values ( ?, 0, sysdate(), ?, ?, ?, ?, ? ) \";\nPreparedStatement pstmt = con.prepareStatement(sql);\n......\nThumbnail.create(savePath+\"/\"+fileName, savePath+\"/\"+\"s_\"+fileName, 150);",
+      "note": "업로드할 파일에 대한 유효성을 검사하지 않으면 위험한 유형의 파일을 공격자가 업로드하거나 전송할 수 있다. 안전 코드는 업로드 파일의 마지막 '.' 문자열 기준으로 실제 확장자 여부를 확인하고(대소문자 구별을 위해 소문자로 변환), 화이트리스트 방식으로 허용되는 확장자(gif, jpg, png)만 업로드를 허용하도록 제한한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "string fn = Path.GetFileName(FileUploadCtr.FileName);\n//업로드 하는 파일명을 검증없이 사용하고 있다.\nFileUploadCtr.SaveAs(fn);\nStatusLabel.Text = \"Upload status: File uploaed!\";",
+      "safe": "//파일 타입과 크기를 제한합니다.\nif (FileUploadCtr.PostedFile.ContentType == \"image/jpeg\")\n{\n    if (FileUploadCtr.PostedFile.ContentLength < 102400)\n    {\n        string fn = Path.GetFileName(FileUploadCtr.FileName);\n        FileUploadCtr.SaveAs(Server.MapPath(\"~/\") + fn);\n        StatusLabel.Text = \"Upload status: File uploaed!\";\n    }\n    else\n        StatusLabel.Text = \"Upload Status: The File has to be less than 100 kb!\";\n}\nelse\nStatusLabel.Text = \"Upload Status: Only JPEG files are accepted!\";",
+      "note": "업로드하는 파일명을 검증 없이 사용하면 위험한 유형의 파일을 공격자가 업로드하거나 전송할 수 있다. 안전 코드는 파일 타입(ContentType이 image/jpeg인지)과 크기(102400 바이트 미만)를 검사하여 제한한다."
+    }
+  ]
+}

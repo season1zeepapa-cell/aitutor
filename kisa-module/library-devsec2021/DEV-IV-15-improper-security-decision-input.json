@@ -1,0 +1,36 @@
+{
+  "chapter_code": "DEV-IV-15",
+  "title": "보안기능 결정에 사용되는 부적절한 입력값",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-807",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 15. 보안기능 결정에 사용되는 부적절한 입력값",
+    "pages": "200-203"
+  },
+  "overview": "응용프로그램이 외부 입력값에 대한 신뢰를 전제로 보호메커니즘을 사용하는 경우 공격자가 입력값을 조작할 수 있다면 보호메커니즘을 우회할 수 있게 된다. 개발자들이 흔히 쿠키, 환경변수 또는 히든필드와 같은 입력값이 조작될 수 없다고 가정하지만, 공격자는 다양한 방법으로 이러한 입력값들을 변경할 수 있고 조작된 내용은 탐지되지 않을 수 있다.",
+  "impact": "인증이나 인가와 같은 보안결정이 이런 입력값(쿠키, 환경변수, 히든필드 등)에 기반해 수행되는 경우 공격자는 이런 입력값을 조작하여 응용프로그램의 보안을 우회할 수 있다. 따라서 충분한 암호화, 무결성 체크를 수행하고 이와 같은 메커니즘이 없는 경우엔 외부사용자에 의한 입력값을 신뢰해서는 안 된다.",
+  "countermeasure": "상태정보나 민감한 데이터, 특히 사용자 세션정보와 같은 중요한 정보는 서버에 저장하고 보안확인 절차도 서버에서 실행한다. 보안설계 관점에서 신뢰할 수 없는 입력값이 응용프로그램 내부로 들어올 수 있는 지점과 보안결정에 사용되는 입력값을 식별하고, 제공되는 입력값에 의존할 필요가 없는 구조로 변경할 수 있는지 검토한다.",
+  "code_examples": [
+    {
+      "lang": "Java (JSP)",
+      "vulnerable": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    // 서버가 보유하고 있는 가격(단가) 정보를 사용자 화면에서 받아서 처리\n    price = request.getParameter(\"price\");\n    quantity = request.getParameter(\"quantity\");\n    total = Integer.parseInt(quantity) * Float.parseFloat(price);\n} catch (Exception e) {\n......",
+      "safe": "<input type=\"hidden\" name=\"price\" value=\"1000\"/>\n<br/>품목 : HDTV\n<br/>수량 : <input type=\"hidden\" name=\"quantity\" />개\n<br/><input type=\"submit\" value=\"구입\" />\n......\ntry {\n    item = request.getParameter(\"item\");\n    // 가격이 아니라 item 항목을 가져와서 서버가 보유하고 있는 가격정보를 이용하여 전체 가격을 계산\n    price = productService.getPrice(item);\n    quantity = request.getParameter(\"quantity\");\n    total = Integer.parseInt(quantity) * price;\n} catch (Exception e) {\n    ......\n}\n......",
+      "note": "구입품목의 가격을 히든필드로 사용자 웹브라우저에서 처리하고 있어 이 값이 사용자에 의해 변경되는 경우 가격(단가) 정보가 의도하지 않은 값으로 할당될 수 있다. 안전한 코드는 가격이 아니라 item 항목만 받아 서버가 보유하고 있는 가격정보를 이용하여 전체 가격을 계산한다. 사용자 권한, 인증 여부 등 보안결정에 사용하는 값은 사용자 입력값이 아닌 서버 내부의 값을 활용하고, 사용자 입력에 의존해야 하는 값을 제외하고는 반드시 서버가 보유하고 있는 정보를 이용해 처리한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "HttpCookie cookie = new HttpCookie(\"Authentificated\", \"1\");\n//평문으로 사용자의 인증정보를 쿠키에 저장한다.\nResponse.Cookies.Add(cookie);",
+      "safe": "// 사용자의 인증정보를 세션에 저장한다.\nSession[\"Authentificated\"] = \"1\";",
+      "note": "평문으로 사용자의 인증정보를 쿠키에 저장하고 있어 공격자가 이를 조작해 인증을 우회할 수 있다. 중요한 정보를 쿠키에 저장할 때는 암호화해서 사용하고, 되도록이면 해당 정보는 서버의 세션에 저장한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void SecurityDecision() {\n    int sockfd = socket(PF_INET, SOCK_STREAM, 0);\n    char* server_info = getenv(\"server_addr\");\n    // 외부에서 가져온 서버 정보를 그대로 사용한다.\n    if( connect( sockfd, (struct sockaddr *)server_addr, sizeof(struct socketaddr) ) < 0 ) {\n        return;\n    }\n    /* 라이선스 검증 코드 */\n}",
+      "safe": "void SecurityDecision() {\n    int sockfd = socket(PF_INET, SOCK_STREAM, 0);\n    struct sockaddr_in server_addr;\n    memset( &server_info, 0, sizeof(server_info));\n    server_info.sin_family = AF_INET;\n    server_info.sin_port = htons(5555);\n    server_info.sin_addr.s_addr = inet_addr(\"127.0.0.1\");\n    // 고정된 서버 주소를 사용하여 연결을 진행한다.\n    if( connect( sockfd, (struct sockaddr *)server_addr, sizeof(struct socketaddr) ) < 0 ) {\n        return;\n    }\n    /* 라이선스 검증 코드 */\n}",
+      "note": "외부에서 가져온 환경변수(server_addr)의 서버 정보를 기반으로 연결을 진행하고 있어, 사용자가 환경변수를 조작하면 의도하지 않은 곳으로 연결될 수 있다. 예를 들어 온라인으로 제품 라이선스를 검증하는 경우 인증 서버의 주소를 사용자가 변경하여 임의로 라이선스 검증을 통과할 수 있다. 안전한 코드는 인증 서버 정보를 환경변수가 아닌 고정된 정보를 이용하여 연결을 진행한다. 원문의 안전한 코드 헤더는 'C#'으로 표기되어 있으나 실제 내용은 C 코드다."
+    }
+  ]
+}

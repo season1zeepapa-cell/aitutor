@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-EN-01",
+  "title": "잘못된 세션에 의한 데이터 정보 노출",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-488",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제6절 캡슐화 / 1. 잘못된 세션에 의한 데이터 정보 노출",
+    "pages": "143-145"
+  },
+  "overview": "다중 스레드 환경에서는 싱글톤(Singleton) 객체 필드에 경쟁조건(Race Condition)이 발생할 수 있다. 다중 스레드 환경에서 파이썬의 클래스 변수는 스레드 간 서로 공유하게 되며, 클래스 변수에 값을 할당할 경우 서로 다른 세션 간에 데이터가 공유되어 의도하지 않은 데이터가 전달될 수 있다.",
+  "impact": "멀티스레드 환경에서 공유되지 않아야 할 자원을 클래스 변수로 사용하는 경우 다른 스레드 세션에 의해 데이터가 노출될 수 있으며, 서로 다른 세션 간에 의도하지 않은 데이터가 전달될 수 있다.",
+  "countermeasure": "다중 스레드 환경에서는 정보를 저장하는 전역 변수가 포함되지 않도록 코드를 작성해 서로 다른 세션에서 데이터를 공유하지 않도록 해야 한다. 싱글톤 패턴을 사용하는 경우 변수 범위(Scope)에 주의를 기울여야 한다. 특히 다중 스레드 환경에서 클래스 변수의 값은 하위 메소드와 공유되므로 필요한 경우 인스턴스 변수로 선언하여 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\n\nclass UserDescription:\n  user_name = ''\n\n  def get_user_profile(self):\n    result = self.get_user_discription(UserDescription.user_name)\n    ......\n    return result\n\n  def show_user_profile(self, request):\n    # 클래스변수는 다른 세션과 공유되는 값이기 때문에 멀티스레드\n    # 환경에서 공유되지 않아야 할 자원을 사용하는 경우\n    # 다른 스레드 세션에 의해 데이터가 노출될 수 있다\n    UserDescription.user_name = request.POST.get('name', '')\n    self.user_profile = self.get_user_profile()\n\n    return render(request, 'profile.html', {'profile':self.user_profile})",
+      "safe": "from django.shortcuts import render\n\nclass UserDescription:\n  def get_user_profile(self):\n    result = self.get_user_discription(self.user_name)\n    ......\n    return result\n\n  def show_user_profile(self, name):\n    # 인스턴스 변수로 사용해 스레드 간 공유되지 않도록 한다\n    self.user_name = request.POST.get('name', '')\n    self.user_profile = self.get_user_profile()\n\n    return render(request, 'profile.html', {'profile':self.user_profile})",
+      "note": "취약 코드는 사용자 이름을 클래스 변수(UserDescription.user_name)에 할당하여 멀티스레드 환경에서 다른 세션과 값이 공유되므로 다른 스레드 세션에 의해 데이터가 노출될 수 있다. 안전 코드는 공유가 금지된 변수를 인스턴스 변수(self.user_name)로 선언하여 세션 간에 공유되지 않도록 한다."
+    }
+  ]
+}

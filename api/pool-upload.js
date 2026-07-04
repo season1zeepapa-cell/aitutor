@@ -41,8 +41,12 @@ module.exports = withAdmin(async (req, res) => {
         return res.status(400).json({ error: '파일 크기가 20MB를 초과합니다.' });
       }
 
+      // DB 기반 키 해석 (REBUILD67) — 관리자 컨텍스트 → 공용/본인 키
+      const apiKey = await require('./_llm/apikeys').resolveApiKey('gemini', req.user);
+      if (!apiKey) return res.status(400).json(require('./_llm/apikeys').missingKeyError('gemini'));
+
       const file_data = buffer.toString('base64');
-      const questions = await extractQuestionsVision(file_data, mime_type, file_name || s3_key);
+      const questions = await extractQuestionsVision(file_data, mime_type, file_name || s3_key, apiKey);
       return res.json({
         success: true,
         s3_key,
@@ -138,7 +142,7 @@ module.exports = withAdmin(async (req, res) => {
 });
 
 // ── Gemini Vision으로 문제 추출 ──
-async function extractQuestionsVision(base64Data, mimeType, fileName) {
+async function extractQuestionsVision(base64Data, mimeType, fileName, apiKey) {
   const prompt = `이 시험 문서에서 객관식 문제를 모두 추출해주세요.
 
 중요 — 표와 그림 처리:
@@ -172,6 +176,7 @@ async function extractQuestionsVision(base64Data, mimeType, fileName) {
   // 헬퍼는 OpenAI 형식 messages 를 받아 내부에서 Gemini contents/inlineData 로 변환
   const { text: responseText } = await gemini.chat({
     model: 'gemini-2.5-flash',
+    apiKey,
     messages: [{
       role: 'user',
       content: [

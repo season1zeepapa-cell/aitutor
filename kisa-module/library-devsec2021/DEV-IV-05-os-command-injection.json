@@ -1,0 +1,42 @@
+{
+  "chapter_code": "DEV-IV-05",
+  "title": "운영체제 명령어 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-78",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 제1절 입력데이터 검증 및 표현 / 5. 운영체제 명령어 삽입",
+    "pages": "157-161"
+  },
+  "overview": "적절한 검증절차를 거치지 않은 사용자 입력값이 운영체제 명령어의 일부 또는 전부로 구성되어 실행되는 경우 발생하는 보안약점이다. 일반적으로 명령어 라인의 파라미터나 스트림 입력 등 외부 입력을 사용하여 시스템 명령어를 생성하는 프로그램이 많이 있는데, 이러한 경우 외부 입력 문자열은 신뢰할 수 없기 때문에 적절한 처리를 해주지 않으면 공격자가 원하는 명령어 실행이 가능하게 된다.",
+  "impact": "의도하지 않은 시스템 명령어가 실행되어 부적절하게 권한이 변경되거나 시스템 동작 및 운영에 악영향을 미칠 수 있다.",
+  "countermeasure": "웹 인터페이스로 서버 내부로 시스템 명령어를 전달시키지 않도록 응용프로그램을 구성하고, 외부에서 전달되는 값을 검증 없이 시스템 내부 명령어로 사용하지 않는다. 외부 입력에 따라 명령어를 생성하거나 선택이 필요한 경우에는 명령어 생성에 필요한 값들을 미리 지정해 놓고 외부 입력에 따라 선택하여 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java (명령어 화이트리스트)",
+      "vulnerable": "public static void main(String args[]) throws IOException {\n// 해당 프로그램에서 실행할 프로그램을 제한하고 있지 않아 파라미터로 전달되는 모든 프로그램이 실행될 수 있다.\n   String cmd = args[0];\n   Process ps = null;\n   try {\n       ps = Runtime.getRuntime().exec(cmd);\n        ...",
+      "safe": "public static void main(String args[]) throws IOException {\n// 해당 어플리케이션에서 실행할 수 있는 프로그램을 노트패드와 계산기로 제한하고 있다.\n  List<String> allowedCommands = new ArrayList<String>();\n  allowedCommands.add(\"notepad\"); allowedCommands.add(\"calc\");\n  String cmd = args[0];\n  if (!allowedCommands.contains(cmd)) {\n       System.err.println(\"허용되지 않은 명령어입니다.\");\n       return;\n  }\n  Process ps = null; try {\n      ps = Runtime.getRuntime().exec(cmd);\n      ......",
+      "note": "취약 코드는 Runtime.getRuntime().exec() 명령어로 프로그램을 실행하며 외부에서 전달되는 인자값이 명령어의 생성에 사용되는데, 실행할 프로그램을 제한하지 않고 있기 때문에 외부의 공격자는 가능한 모든 프로그램을 실행시킬 수 있다. 안전 코드는 미리 정의된 파라미터의 배열(notepad, calc)을 만들어 놓고 외부의 입력에 따라 적절한 파라미터를 선택하도록 하여, 외부의 부적절한 입력이 명령어로 사용될 가능성을 배제한다."
+    },
+    {
+      "lang": "Java (특수문자 필터링)",
+      "vulnerable": "//외부로부터 입력받은 값을 검증 없이 사용할 경우 안전하지 않다.\nString date = request.getParameter(\"date\");\nString command = new String(\"cmd.exe /c backuplog.bat\");\nRuntime.getRuntime().exec(command + date);",
+      "safe": "String date = request.getParameter(\"date\");\nString command = new String(\"cmd.exe /c backuplog.bat\");\n//외부로부터 입력 받은 값을 필터링으로 우회문자를 제거하여 사용한다.\ndate = date.replaceAll(\"|\",\"\");\ndate = date.replaceAll(\";\",\"\");\ndate = date.replaceAll(\"&\",\"\");\ndate = date.replaceAll(\":\",\"\");\ndate = date.replaceAll(\">\",\"\");\nRuntime.getRuntime().exec(command + date);",
+      "note": "외부 입력값을 검증하지 않고 그대로 명령어로 실행하기 때문에 공격자의 입력에 따라 의도하지 않은 명령어가 실행될 수 있다. 운영체제 명령어 실행 시에는 외부에서 들어오는 값에 의하여 멀티라인을 지원하는 특수문자(| ; & :)나 파일 리다이렉트 특수문자(> >>) 등을 제거하여 원하지 않은 운영체제 명령어가 실행될 수 없도록 필터링을 수행한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "//외부 입력값이 프로세스가 실행할 파일 이름을 지정하고 있다.\nstring fileName = PgmTextBox.Text;\nProcessStartInfo proStartInfo = new ProcessStartInfo();\nproStartInfo.FileName = fileName;\nProcess.Start(proStartInfo);",
+      "safe": "string fileName = PgmTextBox.Text;\n//외부 입력값에 대해 정규식 등을 이용하여 검증해야 한다.\nif (Regex.IsMatch(fileName, \"properRegexHere\"))\n{\nProcessStartInfo proStartInfo = new ProcessStartInfo();\nproStartInfo.FileName = fileName;\nProcess.Start(proStartInfo);\n}",
+      "note": "외부 입력값을 프로세스가 실행할 파일 이름에 직접 사용하고 있어 공격자의 입력에 따라 의도하지 않은 명령어가 실행될 수 있다. 안전 코드는 적절한 정규식이나 화이트리스트(white list) 등을 이용하여 검증을 한 후 사용한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "int main(int argc, char* argv[]) {\n  char cmd[CMD_LENGTH];\n\n  if (argc < 1 ) {\n     // error\n  }\n  // 외부 입력값으로 커맨드를 직접 수행\n  cmd_data = argv[1];\n  snprintf(cmd, CMD_LENGTH, \"cat %s\", cmd_data);\n  system(cmd);\n  ……\n}",
+      "safe": "int main(int argc, char* argv[]) {\n  char cmd[CMD_LENGTH]; int len = 0;\n\n  if (argc < 1 ) {\n    // error\n  }\n  // 외부 입력값으로 커맨드를 직접 수행 cmd_data = argv[1];\n  len = strlen(cmd_data);\n  for (int i = 0; I < len; i++) {\n      if (cmd_data[i] == '|' || cmd_data[i] == '&' ||\n          cmd_data[i] == ';' || cmd_data[i] == ':' || cmd_data[i] == '>') {\n          // 멀티라인을 지원하는 특수문자나 파일 리다이렉트 특수문자가 존재하여\n          // 안전하지 않음\n          return -1;\n      }\n  }\n  snprintf(cmd, CMD_LENGTH, \"cat %s\", cmd_data);\n  system(cmd);\n  ……\n}",
+      "note": "외부 입력값(argv[1])을 검증 없이 system() 커맨드로 직접 수행하여 공격자의 입력에 따라 의도하지 않은 명령어가 실행될 수 있다. 안전 코드는 멀티라인을 지원하는 특수문자(| ; & :)나 파일 리다이렉트 특수문자(>)가 존재하면 오류로 처리한 후 명령어를 실행한다. (안전 코드의 'I < len' 대문자 표기는 원문 그대로다.)"
+    }
+  ]
+}

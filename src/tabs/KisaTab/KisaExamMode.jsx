@@ -21,7 +21,7 @@ const MODES = [
   {
     key: 'theory60',
     title: '이론 60분',
-    desc: 'MCQ 30문항',
+    desc: '객관식 20 + 단답형 10',
     emoji: '📚',
     timeMin: 60,
     count: 30,
@@ -29,18 +29,18 @@ const MODES = [
   {
     key: 'practical100',
     title: '실기 100분',
-    desc: '진단형 15문항',
+    desc: '진단 13 + 복합 2 + 코드식별 5',
     emoji: '🔍',
     timeMin: 100,
-    count: 15,
+    count: 20,
   },
   {
     key: 'full3h',
     title: '전체 3시간',
-    desc: '이론 30 + 실기 15',
+    desc: '이론 30 + 실기 20',
     emoji: '🎯',
     timeMin: 180,
-    count: 45,
+    count: 50,
   },
 ];
 

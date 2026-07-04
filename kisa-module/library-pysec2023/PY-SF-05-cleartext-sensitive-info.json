@@ -1,0 +1,30 @@
+{
+  "chapter_code": "PY-SF-05",
+  "title": "암호화되지 않은 중요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-312, CWE-319",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 5. 암호화되지 않은 중요정보",
+    "pages": "81-84"
+  },
+  "overview": "많은 응용 프로그램은 메모리나 디스크 상에서 중요한 정보(개인정보, 인증정보, 금융정보 등)를 처리한다. 이러한 중요 정보가 제대로 보호되지 않을 경우 보안 문제가 발생하거나 데이터의 무결성이 깨질 수 있다.",
+  "impact": "사용자 또는 시스템의 중요 정보가 포함된 데이터를 평문으로 송·수신 또는 저장 시 인가되지 않은 사용자에게 민감한 정보가 노출될 수 있다. 특히 암호화되지 않은 패스워드가 네트워크로 전송되는 경우 패킷 스니핑을 통해 패스워드가 노출될 수 있다.",
+  "countermeasure": "개인정보(주민등록번호, 여권번호 등), 금융정보(카드번호, 계좌번호 등), 패스워드 등 중요정보를 저장하거나 통신채널로 전송할 때는 반드시 암호화 과정을 거쳐야 하며, 중요정보를 읽거나 쓸 경우에 권한인증 등을 통해 적합한 사용자만 중요정보에 접근하도록 해야 한다. 가능하다면 SSL 또는 HTTPS 등과 같은 보안 채널을 사용해야 하며, 보안 채널을 사용하지 않고 브라우저 쿠키에 중요 데이터를 저장하는 경우 쿠키 객체에 보안속성을 설정해(예: secure = True) 중요 정보의 노출을 방지할 수 있다.",
+  "code_examples": [
+    {
+      "lang": "Python (중요정보 평문저장)",
+      "vulnerable": "def update_pass(dbconn, password, user_id):\n  curs = dbconn.cursor()\n  # 암호화되지 않은 패스워드를 DB에 저장\n  curs.execute(\n      'UPDATE USERS SET PASSWORD=%s WHERE USER_ID=%s',\n      password,\n      user_id\n  )\n  dbconn.commit()",
+      "safe": "from Crypto.Hash import SHA256\n\ndef update_pass(dbconn, password, user_id, salt):\n  # 단방향 암호화를 이용하여 패스워드를 암호화\n  hash_obj = SHA256.new()\n  hash_obj.update(bytes(password + salt, 'utf-8'))\n  hash_pwd = hash_obj.hexdigest()\n  curs = dbconn.cursor()\n  curs.execute(\n      'UPDATE USERS SET PASSWORD=%s WHERE USER_ID=%s',\n      (hash_pwd, user_id)\n  )\n  dbconn.commit()",
+      "note": "취약 코드는 사용자로부터 전달받은 패스워드의 암호화를 누락하고 평문 그대로 DB에 저장한다. 안전한 코드는 해시 알고리즘을 이용해 단방향 암호화(salt 적용) 후 패스워드를 저장하며, 이때 해시함수 또한 SHA256과 같이 안정성이 검증된 알고리즘을 사용해야 한다."
+    },
+    {
+      "lang": "Python (중요정보 평문전송)",
+      "vulnerable": "import socket\n\nHOST = '127.0.0.1'\nPORT = 65434\n\ndef send_password(password):\n  ......\n  with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:\n     s.connect((HOST, PORT))\n     # 패스워드를 암호화 하지 않고 전송하여 안전하지 않다.\n     s.sendall(password.encode('utf-8'))\n     data = s.recv(1024)\n     .......",
+      "safe": "import socket\nimport os\nfrom Crypto.Cipher import AES\n\nHOST = '127.0.0.1'\nPORT = 65434\n\ndef send_password(password):\n  # 문자열로 저장되어 있는 블록키를 로드\n  block_key = os.environ.get('BLOCK_KEY')\n\n  aes = AEScipher(block_key)\n  # 패스워드 등 중요 정보는 암호화하여 전송하는 것이 안전하다\n  enc_passowrd = aes.encrypt(passowrd)\n\n  with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:\n    s.connect((HOST, PORT))\n    s.sendall(enc_passowrd.encode('utf-8'))\n    data = s.recv(1024)\n    .......\n\nclass AEScipher:\n  BS = AES.block_size\n\n  def __init__(self, s_key):\n    self.s_key = hashlib.sha256(s_key.encode(\"utf-8\")).digest()\n\n  def pad(self, m):\n    return m + bytes([self.BS - len(m) % self.BS] * (self.BS - len(m) % self.BS))\n\n  def encrypt(self, plain):\n    plain = self.pad(plain.encode())\n    iv = Random.new().read(AES.block_size)\n    cipher = AES.new(self.s_key, AES.MODE_CBC, iv)\n    return base64.b64encode(iv + cipher.encrypt(plain)).decode(\"utf-8\")\n    ......",
+      "note": "취약 코드는 인자값으로 전달 받은 패스워드를 검증 없이 네트워크를 통해 평문으로 전송해 패킷 스니핑으로 패스워드가 노출될 수 있다. 안전한 코드는 환경변수에서 로드한 블록키로 AES(CBC 모드, 랜덤 IV) 암호화를 수행한 뒤 전송해 네트워크상에서 패스워드가 노출되지 않도록 한다."
+    }
+  ]
+}

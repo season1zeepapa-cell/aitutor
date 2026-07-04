@@ -2,6 +2,7 @@
 // docstore의 exam_questions → error의 questions 테이블로 이동
 const { query } = require('./db');
 const { withAdmin } = require('./middleware');
+const keys = require('./_llm/apikeys');   // REBUILD67 — DB 기반 API 키 해석
 
 // 원형 숫자 매핑
 const CIRCLE_NUMS = ['①', '②', '③', '④', '⑤'];
@@ -161,7 +162,9 @@ ${choicesText}
         if (provider === 'openai') {
           // OpenAI API 호출
           const OpenAI = require('openai');
-          const openai = new OpenAI({ apiKey: (process.env.OPENAI_API_KEY || '').trim() });
+          const oaKey = await keys.resolveApiKey('openai', req.user);
+          if (!oaKey) return res.status(400).json(keys.missingKeyError('openai'));
+          const openai = new OpenAI({ apiKey: oaKey });
           const selectedModel = requestedModel || 'gpt-4o-mini';
           const completion = await openai.chat.completions.create({
             model: selectedModel,
@@ -173,8 +176,8 @@ ${choicesText}
         } else if (provider === 'claude') {
           // Claude API 호출 (HTTPS 직접)
           const https = require('https');
-          const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim();
-          if (!apiKey) return res.status(500).json({ error: 'AI 서비스를 사용할 수 없습니다. 관리자에게 문의하세요.' });
+          const apiKey = await keys.resolveApiKey('claude', req.user);
+          if (!apiKey) return res.status(400).json(keys.missingKeyError('claude'));
           const selectedModel = requestedModel || 'claude-sonnet-4-20250514';
           const body = JSON.stringify({
             model: selectedModel,
@@ -209,7 +212,9 @@ ${choicesText}
         } else {
           // Gemini API 호출 (기본)
           const { GoogleGenerativeAI } = require('@google/generative-ai');
-          const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+          const gmKey = await keys.resolveApiKey('gemini', req.user);
+          if (!gmKey) return res.status(400).json(keys.missingKeyError('gemini'));
+          const genAI = new GoogleGenerativeAI(gmKey);
           const selectedModel = requestedModel || 'gemini-2.5-flash';
           const genModel = genAI.getGenerativeModel({ model: selectedModel });
           const result = await genModel.generateContent([{ text: prompt }]);

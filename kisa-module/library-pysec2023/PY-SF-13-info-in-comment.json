@@ -1,0 +1,26 @@
+{
+  "chapter_code": "PY-SF-13",
+  "title": "주석문 안에 포함된 시스템 주요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-615",
+  "applies_to": [
+    "Python"
+  ],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 13. 주석문 안에 포함된 시스템 주요정보",
+    "pages": "109-110"
+  },
+  "overview": "소프트웨어 개발자가 편의를 위해서 주석문에 패스워드를 적어둔 경우 소프트웨어가 완성된 후에는 그것을 제거하는 것이 매우 어렵게 된다.",
+  "impact": "만약 공격자가 소스코드에 접근할 수 있다면 주석문에 남은 인증 정보를 이용해 시스템에 손쉽게 침입할 수 있다.",
+  "countermeasure": "주석에는 아이디, 패스워드 등 보안과 관련된 내용을 기입하지 않는다. 프로그램 개발 시에 주석문 등에 남겨놓은 사용자 계정이나 패스워드 등의 정보는 개발 완료 후 확실하게 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python",
+      "vulnerable": "def user_login(id, passwd):\n    # 주석문에 포함된 중요 시스템의 인증 정보\n    # id = admin\n    # passwd = passw0rd\n    result = login(id, passwd)\n\n    return result",
+      "safe": "def user_login(id, passwd):\n  # 주석문에 포함된 민감한 정보는 삭제\n  result = login(id, passwd)\n  return result",
+      "note": "편리성을 위해 아이디, 패스워드 등 중요정보를 주석문 안에 작성 후 지우지 않으면 정보 노출 보안약점이 발생한다. 안전한 코드는 주석문에 포함된 민감한 정보를 삭제했다."
+    }
+  ]
+}

@@ -20,16 +20,25 @@ function normalizeText(text) {
     .trim();
 }
 
-/** 키워드 하나가 텍스트에 포함되는지 (원형 또는 synonyms 지원) */
+/** 키워드 하나가 텍스트에 포함되는지 (원형 또는 synonyms 지원)
+ *  ① 정확 부분매칭(연속 문구 포함) — 우선.
+ *  ② 다어절 키워드 완화매칭 — 키워드가 2개 이상 어절이면, 그 핵심 토큰(2글자+)이
+ *     답안에 순서·인접 무관하게 "모두" 등장하면 인정. (예: "DNS lookup 모듈 존재 확인"
+ *     ↔ "DNS lookup을 수행하는 모듈이 존재하는지 확인한다" 매칭)
+ *     서술형 문항에서 모범답안이 rubric 키워드를 풀어 쓰는 경우를 정상 채점하기 위함.
+ */
 function keywordHit(text, keyword) {
   const normText = normalizeText(text);
-  // keyword는 문자열이거나 { base, synonyms: [...] } 객체
   const candidates = typeof keyword === 'string'
     ? [keyword]
     : [keyword.base, ...(keyword.synonyms || [])];
   return candidates.some(kw => {
     if (!kw) return false;
-    return normText.includes(normalizeText(kw));
+    const nk = normalizeText(kw);
+    if (!nk) return false;
+    if (normText.includes(nk)) return true;                 // ① 정확 부분매칭
+    const toks = nk.split(/\s+/).filter(t => t.length >= 2); // ② 완화매칭
+    return toks.length >= 2 && toks.every(t => normText.includes(t));
   });
 }
 
@@ -98,7 +107,7 @@ function scoreDiagnosis4(question, attempt) {
 }
 
 /**
- * mcq 문항 채점 — 정답과 일치하면 100, 아니면 0
+ * 객관식(mcq_selected) 채점 — 정답과 일치하면 100, 아니면 0. objective 유형이 사용.
  */
 function scoreMcq(question, attempt) {
   const correct = typeof attempt.mcq_selected === 'number'
@@ -215,12 +224,34 @@ function scoreComposite(question, attempt) {
   };
 }
 
+/**
+ * codeid 문항 채점 — 코드식별 퀴즈(REBUILD69)
+ *   ① 약점(50): mcq_selected(선택 보기 index) === answer_index
+ *   ② 안전여부(50): attempt.verdict_yn(true=사용자가 "취약"이라 판단) === 코드가 취약함(!is_safe)
+ *   둘 다 맞으면 100.
+ */
+function scoreCodeid(question, attempt) {
+  const weaknessOk = typeof attempt.mcq_selected === 'number'
+    && attempt.mcq_selected === question.answer_index;
+  const isSafe = !!(question.model_answer && question.model_answer.is_safe);
+  const safeOk = typeof attempt.verdict_yn === 'boolean'
+    && attempt.verdict_yn === !isSafe;   // 취약(verdict true) ↔ !isSafe
+  return {
+    autoScore: (weaknessOk ? 50 : 0) + (safeOk ? 50 : 0),
+    breakdown: { weaknessOk, safeOk },
+    keywordHits: null,
+  };
+}
+
 /** 통합 채점 함수 — question_type에 따라 위임 */
 function scoreAttempt(question, attempt) {
-  if (question.question_type === 'mcq') return scoreMcq(question, attempt);
   if (question.question_type === 'diagnosis4') return scoreDiagnosis4(question, attempt);
   if (question.question_type === 'blank') return scoreBlank(question, attempt);
   if (question.question_type === 'composite') return scoreComposite(question, attempt);
+  if (question.question_type === 'codeid') return scoreCodeid(question, attempt);
+  // REBUILD81 신규: objective=이론 객관식(정답 매칭), shortessay=단순서술형(rubric 키워드)
+  if (question.question_type === 'objective') return scoreMcq(question, attempt);
+  if (question.question_type === 'shortessay') return scoreComposite(question, attempt);
   throw new Error(`Unknown question_type: ${question.question_type}`);
 }
 
@@ -230,6 +261,7 @@ module.exports = {
   scoreMcq,
   scoreBlank,
   scoreComposite,
+  scoreCodeid,
   // 내부 유틸 (테스트용)
   normalizeText,
   keywordHit,

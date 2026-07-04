@@ -98,7 +98,7 @@ export default function StudyDetail() {
     );
   }
 
-  const { chapter, code_examples, mcq_count, blank_count = 0, diagnosis_count, related_forward = [], related_reverse = [] } = data;
+  const { chapter, code_examples, objective_count = 0, blank_count = 0, diagnosis_count, related_forward = [], related_reverse = [] } = data;
 
   return (
     <div className="space-y-3">
@@ -386,21 +386,21 @@ export default function StudyDetail() {
       </Section>
 
       {/* 7. 드릴 시작 버튼 — 이 챕터의 문제 유형별 전부 노출 */}
-      {(diagnosis_count > 0 || mcq_count > 0 || blank_count > 0) && (
+      {(diagnosis_count > 0 || objective_count > 0 || blank_count > 0) && (
         <div className="rounded-xl bg-primary-light/50 border border-primary/30 p-3">
           <h3 className="text-sm font-bold mb-2">🎯 문제로 학습 확인</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {mcq_count > 0 && (
+            {objective_count > 0 && (
               <button
-                onClick={() => navigate(`/kisa/drill?type=mcq&chapter_code=${chapter.chapter_code}`)}
+                onClick={() => navigate(`/kisa/drill?type=objective&chapter_code=${chapter.chapter_code}`)}
                 className="py-3 px-2 rounded-xl bg-card-bg border border-primary/40 text-primary font-bold text-sm hover:bg-primary-light active:scale-[0.98] transition-all"
               >
                 <div className="flex items-center justify-center gap-1.5">
-                  <span>📖</span>
-                  <span>이론(MCQ)</span>
+                  <span>📝</span>
+                  <span>이론 객관식</span>
                 </div>
                 <div className="text-[10px] font-normal opacity-80 mt-0.5">
-                  객관식 {mcq_count}문제
+                  객관식 {objective_count}문제
                 </div>
               </button>
             )}
@@ -439,7 +439,7 @@ export default function StudyDetail() {
         </div>
       )}
 
-      {code_examples.length === 0 && kisec2026Ex.length === 0 && mcq_count === 0 && blank_count === 0 && (
+      {code_examples.length === 0 && kisec2026Ex.length === 0 && objective_count === 0 && blank_count === 0 && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-700 dark:text-amber-300">
           ℹ️ 이 챕터는 아직 문항이 등록되지 않았습니다. 학습 자료만 참고하세요.
         </div>

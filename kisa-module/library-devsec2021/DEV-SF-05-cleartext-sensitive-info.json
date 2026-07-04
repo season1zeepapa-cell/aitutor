@@ -1,0 +1,50 @@
+{
+  "chapter_code": "DEV-SF-05",
+  "title": "암호화되지 않은 중요정보",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-312, CWE-319",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 5. 암호화되지 않은 중요정보",
+    "pages": "226-234"
+  },
+  "overview": "사용자 또는 시스템의 중요정보가 포함된 데이터를 평문으로 송·수신 또는 저장할 때 인가되지 않은 사용자에게 민감한 정보가 노출될 수 있는 보안약점이다.",
+  "impact": "패킷 스니핑 등을 통해 평문으로 송·수신되거나 평문으로 저장된 패스워드 등 민감한 정보가 인가되지 않은 사용자에게 노출될 수 있다.",
+  "countermeasure": "개인정보(주민등록번호, 여권번호 등), 금융정보(카드번호, 계좌번호 등), 패스워드 등 중요정보를 통신채널로 전송하거나 저장할 때는 반드시 암호화 과정을 거쳐야 한다. 필요한 경우 SSL 또는 HTTPS 등과 같은 암호채널을 사용해야 하며, HTTPS와 같은 보안 채널을 사용하여 브라우저 쿠키에 중요 데이터를 저장하는 경우, 쿠키객체에 보안속성을 반드시 설정하여 중요정보의 노출을 방지한다. 중요정보를 읽거나 쓸 경우에 권한인증 등으로 적합한 사용자가 중요정보에 접근하도록 해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Java (중요정보 평문저장)",
+      "vulnerable": "String id = request.getParameter(\"id\");\n// 외부값에 의해 패스워드 정보를 얻고 있다.\nString pwd = request.getParameter(\"pwd\");\n......\nString sql = \" insert into customer(id, pwd, name, ssn, zipcode, addr)\"\n            + \" values (?, ?, ?, ?, ?, ?)\";\nPreparedStatement stmt = con.prepareStatement(sql);\nstmt.setString(1, id);\nstmt.setString(2, pwd);\n......\n// 입력받은 패스워드가 평문으로 DB에 저장되어 안전하지 않다.\nstmt.executeUpdate();",
+      "safe": "String id = request.getParameter(\"id\");\n// 외부값에 의해 패스워드 정보를 얻고 있다.\nString pwd = request.getParameter(\"pwd\");\n// 패스워드를 솔트값을 포함하여 SHA-256 해쉬로 변경하여 안전하게 저장한다.\nMessageDigest md = MessageDigest.getInstance(\"SHA-256\");\nmd.reset();\nmd.update(salt);\nbyte[] hashInBytes = md.digest(pwd.getBytes());\nStringBuilder sb = new StringBuilder();\n        for (byte b : hashInBytes) {\n           sb.append(String.format(\"%02x\", b));\n        }\npwd = sb.toString();\n......\nString sql = \" insert into customer(id, pwd, name, ssn, zipcode, addr)\"\n             + \" values (?, ?, ?, ?, ?, ?)\";\nPreparedStatement stmt = con.prepareStatement(sql);\nstmt.setString(1, id);\nstmt.setString(2, pwd);\n......\nstmt.executeUpdate();",
+      "note": "인증을 통과한 사용자의 패스워드 정보가 평문으로 DB에 저장된다. 안전한 코드는 패스워드 등 중요 데이터를 솔트값을 포함한 SHA-256 해쉬값으로 변환하여 저장한다."
+    },
+    {
+      "lang": "C# (중요정보 평문저장)",
+      "vulnerable": "namespace Security\n{\n  public class FindPassword : System.Web.UI.Page\n  {\n    protected void Page_Load(object sender, EventArgs e)\n    {\n       var userId = \"tmp\";\n       MembershipUser user = Membership.GetUser(userId);\n       if (user != null)\n       {\n           var password = user.GetPassword();\n           Response.Write(password);\n       }\n       else\n       {\n           Response.Write(\"the given userId is not valid\");\n       }\n    }\n  }\n}",
+      "safe": "namespace Security\n{\n  public class FindPassword : System.Web.UI.Page\n  {\n    protected void Page_Load(object sender, EventArgs e)\n    {\n       var userId = \"tmp\";\n       MembershipUser user = Membership.GetUser(userId);\n       if (user != null)\n       {\n           var encrypetedPassword = user.GetPassword();\n           SecureFindPasswordFunction();\n       }\n       else\n       {\n           Response.Write(\"the given userId is not valid\");\n       }\n    }\n  }\n}",
+      "note": "사용자의 패스워드를 평문으로 저장해 놓고 출력하는 코드다. 패스워드는 암호화하여 저장해야 하며, 출력하지 않도록 한다."
+    },
+    {
+      "lang": "Java (중요정보 평문전송)",
+      "vulnerable": "try {\n    Socket s = new Socket(\"taranis\", 4444);\n    PrintWriter o = new PrintWriter(s.getOutputStream(), true);\n// 패스워드를 평문으로 전송하여 안전하지 않다.\n    String password = getPassword();\n    o.write(password);\n} catch (FileNotFoundException e) {\n    ……",
+      "safe": "// 패스워드를 암호화 하여 전송\ntry {\n    Socket s = new Socket(\"taranis\", 4444);\n    PrintStream o = new PrintStream(s.getOutputStream(), true);\n// 패스워드를 강력한 AES암호화 알고리즘으로 전송하여 사용한다.\n    Cipher c = Cipher.getInstance(\"AES/CBC/PKCS5Padding\");\n\n    String password = getPassword();\n    byte[] encPassword = c.update(password.getBytes());\n    o.write(encPassword, 0, encPassword.length);\n} catch (FileNotFoundException e) {\n    ……",
+      "note": "패스워드를 암호화하지 않고 네트워크로 전송하고 있어 패킷 스니핑으로 패스워드가 노출될 수 있다. 안전한 코드는 패스워드를 네트워크로 서버로 전송하기 전에 AES 등의 안전한 암호알고리즘으로 암호화한다."
+    },
+    {
+      "lang": "C# (중요정보 평문전송)",
+      "vulnerable": "public void EmailPassword_OnClick(object sender, EventArgs args)\n{\n    MembershipUser u = Membership.GetUser(UsernameTextBox.Text, false);\n    String password;\n\n    if (u != null)\n    {\n        try\n        {\n            password = u.GetPassword(); // sensitive data created\n        }\n        catch (Exception e)\n        {\n            Msg.Text = \"An exception occurred retrieving your password: \" +\n        Server.HtmlEncode(e.Message);\n            return;\n        }\n        MailMessage Message = new MailMessage();\n        Message.Body = \"Your password is: \" + Server.HtmlEncode(password);\n//패스워드가 포함된 메시지를 네트워크로 전송하고 있다.\n        SmtpMail.Send(Message);\n        Msg.Text = \"Password sent via e-mail.\";\n    }\n    else\n    {\n        Msg.Text = \"User name is not valid. Please check the value and try again.\";\n    }\n}",
+      "safe": "public void EmailPassword_OnClick(object sender, EventArgs args)\n{\n    MembershipUser u = Membership.GetUser(UsernameTextBox.Text, false);\n    String password;\n\n    if (u != null)\n    {\n        try\n        {\n            password = u.GetPassword();\n            byte[] data = System.Text.Encoding.ASCII.GetBytes(password);\n            data = new\n            System.Security.Cryptography.SHA256Managed().ComputeHash(data);\n            String hashedPassword = System.Text.Encoding.ASCII.GetString(data);\n        }\n        catch (Exception e)\n        {\n            Msg.Text = \"An exception occurred retrieving your password: \" +\n        Server.HtmlEncode(e.Message);\n            return;\n        }\n        MailMessage Message = new MailMessage();\n        Message.Body = \"Your password is: \" + Server.HtmlEncode(hasedPassword);\n        SmtpMail.Send(Message);\n        Msg.Text = \"Password sent via e-mail.\";\n    }\n    else\n    {\n        Msg.Text = \"User name is not valid. Please check the value and try again.\";\n    }\n}",
+      "note": "패스워드를 암호화하지 않고 네트워크(이메일)로 전송하고 있어 패킷 스니핑으로 패스워드가 노출될 수 있다. 패스워드를 네트워크로 전송할 때에는 SHA256 해쉬 등으로 암호화하는 것이 바람직하다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "int dbaccess() {\n  FILE *fp; char *server = \"DBserver\";\n  char passwd[20];\n  char user[20];\n  SQLHENV henv;\n  SQLHDBC hdbc;\n  fp = fopen(\"config\", \"r\");\n  fgets(user, sizeof(user), fp);\n// 패스워드를 파일에서 읽어온다.\n  fgets(passwd, sizeof(passwd), fp);\n  fclose(fp);\n  SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\n  SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\n  SQLConnect(hdbc,\n             (SQLCHAR*) server,\n             (SQLSMALLINT) strlen(server),\n             (SQLCHAR*) user,\n             (SQLSMALLINT) strlen(user),\n             // 패스워드 암호화 없이 직접 연결한다.\n             (SQLCHAR*) passwd,\n             (SQLSMALLINT) strlen(passwd) );\n  return 0;",
+      "safe": "int dbaccess() {\n    FILE *fp; char *server = \"DBserver\";\n    char passwd[20];\n    char user[20];\n    char *encPasswd;\n    char *key;\n    SQLHENV henv;\n    SQLHDBC hdbc;\n    // AES-CBC로 암호화 모드를 설정한다.\n    HCkCrypt2 crypt = CkCrypt2_putCryptAlgorithm(crypt,\"aes\");\n    CkCrypt2_putCipherMode(crypt,\"cbc\");\n    // 외부에서 암호화 키를 불러와 설정한다.\n    key = getenv(\"encrypt_key\");\n    CkCrypt2_SetEncodedKey(crypt,key,\"hex\");\n    fp = fopen(\"config\", \"r\");\n    fgets(user, sizeof(user), fp);\n    // 패스워드를 파일에서 읽어온다.\n    fgets(passwd, sizeof(passwd), fp);\n    fclose(fp);\n    // 패스워드 암호화를 진행한다.\n    encPasswd = CkCrypt2_encryptStringENC(crypt, passwd);\n    SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);\n    SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);\n    SQLConnect(hdbc,\n               (SQLCHAR*) server,\n               (SQLSMALLINT) strlen(server),\n               (SQLCHAR*) user,\n               (SQLSMALLINT) strlen(user),\n               // 암호화된 패스워드를 사용한다.\n               (SQLCHAR*) encPasswd,\n               (SQLSMALLINT) strlen(verifiedPwd) );\n    return 0;\n}",
+      "note": "파일에서 읽어온 패스워드를 암호화 없이 바로 사용해 DB에 연결하는 코드다. 안전한 코드는 외부에서 암호화 키를 불러와 AES-CBC로 패스워드를 암호화한 뒤 암호화된 패스워드로 연결한다."
+    }
+  ]
+}

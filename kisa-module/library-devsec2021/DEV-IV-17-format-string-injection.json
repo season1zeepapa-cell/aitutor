@@ -1,0 +1,30 @@
+{
+  "chapter_code": "DEV-IV-17",
+  "title": "포맷 스트링 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-134",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 17. 포맷 스트링 삽입",
+    "pages": "207-210"
+  },
+  "overview": "외부로부터 입력된 값을 검증하지 않고 입·출력 함수의 포맷 문자열로 그대로 사용하는 경우 발생할 수 있는 보안약점이다. 포맷 스트링 보안약점은 C 언어에 국한된 것이 아니며, 입력 자료의 유효성을 검증하지 않은 Java 프로그램에서도 발생할 수 있다.",
+  "impact": "공격자는 포맷 문자열을 이용하여 취약한 프로세스를 공격하거나 메모리 내용을 읽거나 쓸 수 있다. 그 결과, 공격자는 취약한 프로세스의 권한을 취득하여 임의의 코드를 실행할 수 있다.",
+  "countermeasure": "printf(), snprintf() 등 포맷 문자열을 사용하는 함수를 사용할 때는 사용자 입력값을 직접적으로 포맷 문자열로 사용하거나 포맷 문자열 생성에 포함시키지 않는다. 포맷 문자열을 사용하는 함수에 사용자 입력값을 사용할 때는 사용자가 포맷 스트링을 변경할 수 있는 구조로 쓰지 않는다. 특히, %n, %hn은 공격자가 이를 이용해 특정 메모리 위치에 특정값을 변경할 수 있으므로 포맷 스트링 매개변수로 사용하지 않는다. 사용자 입력값을 포맷 문자열을 사용하는 함수에 사용할 때는 가능하면 %s 포맷 문자열을 지정하고, 사용자 입력값은 2번째 이후의 파라미터로 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "// 외부 입력값에 포맷 문자열 포함 여부를 확인하지 않고 포맷 문자열 출력에 값으로 사용\n// args[0]의 값으로 \"%1$tY-%1$tm-%1$te\"를 전달하면 시스템에서 가지고 있는 날짜(2014-10-14) 정보가 노출\nimport java.util.Calendar;\n......\npublic static void main(String[] args) {\n    Calendar validDate = Calendar.getInstance();\n    validDate.set(2014, Calendar.OCTOBER, 14);\n\n    System.out.printf( args[0] + \" did not match! HINT: It was issued on %1$terd of some month\", validate);\n}",
+      "safe": "// 외부 입력값이 포맷 문자열 출력에 사용되지 않도록 수정\nimport java.util.Calendar;\n        :\npublic static void main(String[] args) {\n    Calendar validDate = Calendar.getInstance();\n    validDate.set(2014, Calendar.OCTOBER, 14);\n    System.out.printf(\"%s did not match! HINT: It was issued on %2$terd of some month\", args[0], validate);\n}",
+      "note": "입력 자료의 유효성을 검증하지 않은 Java 프로그램의 예. 공격자는 %1$tm, %1$te, 또는 %1$tY과 같은 문자열을 입력하여 포맷 문자열에 포함시킴으로써, 실제 유효기간 validDate가 출력되도록 할 수 있다. 안전한 코드는 사용자로부터 입력 받은 문자열을 포맷 문자열에 직접 포함시키지 않고 %s 포맷 문자열을 사용하며, 사용자 입력값(args[0])을 2번째 이후의 파라미터로 전달하여 정보유출을 방지한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void incorrect_password(const char *user) {\n    static const char msg_format[] = \"%s cannot be authenticated.\\n\";\n    size_t len = strlen(user) + sizeof(msg_format);\n    char *msg = (char *)malloc(len);\n    if (msg == NULL) {\n        /* 오류 처리 */\n    }\n    int ret = snprintf(msg, len, msg_format, user);\n    if (ret < 0 || ret >= len) {\n        /* 오류 처리 */\n    }\n    fprintf(stderr, msg);\n    free(msg);\n    msg = NULL;\n}",
+      "safe": "void incorrect_password(const char *user) {\n    static const char msg_format[] = \"%s cannot be authenticated.\\n\";\n    size_t len = strlen(user) + sizeof(msg_format);\n    char *msg = (char *)malloc(len);\n    if (msg == NULL) {\n        /* 오류 처리 */\n    }\n    int ret = snprintf(msg, len, msg_format, user);\n    if (ret < 0 || ret >= len) {\n        /* 오류 처리 */\n    }\n    if (fputs(msg, stderr) == EOF) {\n        /* 오류 처리 */\n    }\n    free(msg);\n    msg = NULL;\n}",
+      "note": "이 예제의 msg는 신뢰할 수 없는 사용자 입력을 포함하고 있고 fprintf() 호출에서 포맷 문자열 인자로 전달되기 때문에 포맷 스트링 삽입에 취약하다. 안전한 코드는 fprintf() 대신 fputs()를 사용하여, msg를 포맷 문자열처럼 취급하지 않고 그대로 stderr로 출력한다."
+    }
+  ]
+}

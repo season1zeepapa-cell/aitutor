@@ -12,9 +12,14 @@ const Study = lazy(() => import('./Study'));
 const StudyDetail = lazy(() => import('./StudyDetail'));
 const PracticeDetail = lazy(() => import('./PracticeDetail'));
 const DiagramQuiz = lazy(() => import('./DiagramQuiz'));
+const CodeQuiz = lazy(() => import('./CodeQuiz'));
+const CodeDrillHome = lazy(() => import('./CodeDrillHome'));
+const CodeLibrary = lazy(() => import('./CodeLibrary'));
 const TheoryList = lazy(() => import('./TheoryList'));
 const TheoryDetail = lazy(() => import('./TheoryDetail'));
 const WrongNotes = lazy(() => import('./WrongNotes'));
+const ReviewHome = lazy(() => import('./ReviewHome'));
+const DrillConfig = lazy(() => import('./DrillConfig'));
 // 진단보고서는 v2로 이연 (kisa_reports 테이블은 유지)
 // const ReportBuilder = lazy(() => import('./ReportBuilder'));
 // const ReportList = lazy(() => import('./ReportList'));
@@ -39,9 +44,14 @@ export default function KisaTab() {
         <Route path="study/:chapterCode" element={<StudyDetail />} />
         <Route path="practice/:id" element={<PracticeDetail />} />
         <Route path="diagram-quiz" element={<DiagramQuiz />} />
+        <Route path="code-quiz" element={<CodeQuiz />} />
+        <Route path="code-drill" element={<CodeDrillHome />} />
+        <Route path="code-library" element={<CodeLibrary />} />
         <Route path="theory" element={<TheoryList />} />
         <Route path="theory/:code" element={<TheoryDetail />} />
         <Route path="wrong-notes" element={<WrongNotes />} />
+        <Route path="review" element={<ReviewHome />} />
+        <Route path="drill-config" element={<DrillConfig />} />
         {/* 진단보고서는 v2로 이연 */}
         {/* <Route path="report/new" element={<ReportBuilder />} /> */}
         {/* <Route path="report/list" element={<ReportList />} /> */}

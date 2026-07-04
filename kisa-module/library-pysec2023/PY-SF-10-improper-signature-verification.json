@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-10",
+  "title": "부적절한 전자서명 확인",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-347",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 10. 부적절한 전자서명 확인",
+    "pages": "98-101"
+  },
+  "overview": "프로그램, 라이브러리, 코드의 전자서명에 대한 유효성 검증이 적절하지 않아 공격자의 악의적인 코드가 실행 가능한 보안약점으로, 클라이언트와 서버 사이의 주요 데이터 전송, 파일 다운로드 시 발생할 수 있다. 데이터 전송 또는 다운로드 시 함께 전달되는 전자서명은 원문 데이터의 암호화된 해시 값으로, 수신측에서 이 서명을 검증해 데이터 변조 여부를 확인할 수 있다. 단순히 해시 기반 검증만 사용할 경우 해시 자체를 변조해 악성코드를 전달할 수 있지만 전자서명을 사용하게 되면 원문 데이터에 대한 해시 자체도 안전하게 보호할 수 있다.",
+  "impact": "전자서명 유효성 검증이 적절하지 않으면 공격자가 전송 데이터를 변조해 악의적인 코드를 수신측에서 실행시킬 수 있다.",
+  "countermeasure": "주요 데이터 전송 또는 다운로드 시 데이터에 대한 전자서명을 함께 전송하고 수신측에서는 전달 받은 전자서명을 검증해 파일의 변조 여부를 확인해야 한다. 만약 송수신 측 언어가 다른 경우 사용한 암호 라이브러리에 따라 데이터 인코딩 방식에 차이가 있으니 반드시 코드 배포 전 서명 검증에 필요한 복호화 과정이 정상적으로 잘 처리되는지 검증해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (PyCryptodome)",
+      "vulnerable": "import base64\nfrom Crypto.PublicKey import RSA\nfrom Crypto.Hash import SHA256\nfrom Crypto.Signature import PKCS1_v1_5 as SIGNATURE_PKCS1_v1_5\nfrom Crypto.Cipher import PKCS1_v1_5, AES\nfrom Crypto.Util.Padding import unpad\n...\n\ndef verify_data(request):\n      # 클라이언트로부터 전달받은 데이터(전자서명을 수신 처리 하지 않음)\n      encrypted_code = request.POST.get(\"encrypted_msg\", \"\")   # 암호화된 파이썬 코드\n\n      # 서버의 대칭키 로드 (송수신측이 대칭키를 이미 공유했다고 가정)\n      with open(f\"{PATH}/keys/secret_key.out\", \"rb\") as f:\n          secret_key = f.read()\n\n      # 대칭키로 클라이언트가 전달한 파이썬 코드 복호화\n      # (decrypt_with_symmetric_key 함수는 임의의 함수명으로 세부적인 복호화 과정은 생략함)\n      origin_python_code = decrypt_with_symmetric_key(secret_key, encrypted_code)\n\n      # 클라이언트로부터 전달 받은 파이썬 코드 실행\n      eval(origin_python_code)\n\n      return render(\n          request,\n          \"/verify_success.html\",\n          {\"result\": \"파이썬 코드를 실행했습니다.\"},\n      )",
+      "safe": "# 전자서명 검증에 사용한 코드는 의존한 파이썬 패키지 및 송신측 언어에 따라\n# 달라질 수 있으며, 사전에 공유한 공개키로 복호화한 전자서명과 원본 데이터 해시값의\n# 일치 여부를 검사하는 코드를 포함\ndef verify_digit_signature (\n  origin_data: bytes, origin_signature: bytes, client_pub_key: str ) -> bool:\n    hashed_data = SHA256.new(origin_data)\n    signer = SIGNATURE_PKCS1_v1_5.new(RSA.importKey(client_pub_key))\n\n    return signer.verify(hashed_data, base64.b64decode(origin_signature))\n\ndef verify_data(request):\n    # 클라이언트로부터 전달받은 데이터\n    encrypted_code = request.POST.get(\"encrypted_msg\", \"\")      # 암호화된 파이썬 코드\n    encrypted_sig = request.POST.get(\"encrypted_sig\", \"\") # 암호화된 전자서명\n\n    # 서버의 대칭(비밀)키 및 공개키 로드\n    with open(f\"/keys/secret_key.out\", \"rb\") as f:\n         secret_key = f.read()\n\n    with open(f\"/keys/public_key.out\", \"rb\") as f:\n         public_key = f.read()\n\n    # 대칭키로 파이썬 코드 및 전자서명 복호화\n    origin_python_code = decrypt_with_symmetric_key(symmetric_key, encrypted_code)\n    origin_signature = decrypt_with_symmetric_key(symmetric_key, encrypted_sig)\n\n    # 클라이언트의 공개키를 통해 파이썬 코드(원문)와 전자서명을 검증\n    verify_result = verify_digit_signature(origin_python_code, origin_signature, client_pub_key)\n\n    # 전자서명 검증을 통과했다면 파이썬 코드 실행\n    if verify_result:\n         eval(origin_python_code)\n         return render(request, \"/verify_success.html\",\n             {\"result\": \"전자서명 검증 통과 및 파이썬 코드를 실행했습니다.\"},\n         )\n    else:\n         return render(request, \"/verify_failed.html\",\n             {\"result\": \"전자서명 또는 파이썬 코드가 위/변조되었습니다.\"},\n         )",
+      "note": "취약 예시는 송신측이 데이터와 함께 전달한 전자서명을 수신측에서 별도로 처리하지 않고 데이터를 그대로 신뢰해 데이터 내부에 포함된 파이썬 코드가 eval()로 실행되는 사례다. 안전 예시는 사전에 공유한 클라이언트 공개키로 전자서명을 검증(verify_digit_signature)해 원문 데이터의 무결성을 확인한 뒤에만 코드를 실행한다. 중요한 정보 또는 기능 실행으로 연결되는 데이터를 전달하는 경우 반드시 전자서명을 함께 전송하고 수신측에서 무결성을 검증해야 한다."
+    }
+  ]
+}

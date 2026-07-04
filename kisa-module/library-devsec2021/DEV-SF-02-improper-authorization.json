@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-SF-02",
+  "title": "부적절한 인가",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-285",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 2. 부적절한 인가",
+    "pages": "214-217"
+  },
+  "overview": "프로그램이 모든 가능한 실행경로에 대해서 접근제어를 검사하지 않거나 불완전하게 검사하는 경우에 발생하는 보안약점이다.",
+  "impact": "접근제어 검사가 누락되거나 불완전한 실행경로를 통해 공격자가 권한 없이 기능을 수행하거나 정보를 유출할 수 있다.",
+  "countermeasure": "응용프로그램이 제공하는 정보와 기능을 역할에 따라 배분함으로써 공격자에게 노출되는 공격 노출면(Attack Surface)을 최소화하고 사용자의 권한에 따른 ACL(Access Control List)을 관리한다. 프레임워크를 사용해서 취약점을 피할 수도 있는데 예를 들면, JAAS Authorization Framework나 OWASP ESAPI Access Control 등을 인증 프레임워크로 사용 가능하다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n// 요청을 하는 사용자의 delete 작원 권한 확인 없이 수행하고 있어 안전하지 않다.\nif (action != null && action.equals(\"delete\")) {\n   boardDao.delete(contentId);\n}",
+      "safe": "private BoardDao boardDao;\nString action = request.getParameter(\"action\");\nString contentId = request.getParameter(\"contentId\");\n// 세션에 저장된 사용자 정보를 얻어온다.\nUser user= (User)session.getAttribute(\"user\");\n// 사용자정보에서 해당 사용자가 delete작업의 권한이 있는지 확인한 뒤 삭제 작업을 수행한다.\nif (action != null && action.equals(\"delete\") &&\ncheckAccessControlList(user,action)) {\n    boardDao.delete(contenId);\n}",
+      "note": "사용자 입력값에 따라 삭제작업을 수행하면서 사용자의 권한 확인을 위한 별도의 통제가 적용되지 않고 있다. 안전한 코드는 세션에 저장된 사용자 정보로 해당 사용자가 삭제작업을 수행할 권한이 있는지 확인한 뒤 권한이 있는 경우에만 수행한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 운영자 권한 검사 없이 컨트롤러와 내부의 개별 액션에 접근 가능\npublic class AdministrationController : Controller\n{\n…\n}",
+      "safe": "// 운영자 권한 검사 후 개별 액션에 접근\n[Authorize(Roles = \"Administrator\")]\npublic class AdministrationController : Controller\n{\n…\n}",
+      "note": "운영자 권한 검사 없이 컨트롤러와 내부의 개별 액션에 접근이 가능한 코드다. 안전한 코드는 [Authorize(Roles = \"Administrator\")] 특성으로 운영자 권한 검사 후에 개별 액션에 접근하도록 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "#define FIND_DN \"uid=han,ou=staff,dc=example,dc=com\"\nint searchData2LDAP(LDAP *ld, char *username) {\n    unsigned long rc;\n    char filter[20];\n    LDAPMessage *result;\n    snprintf(filter, sizeof(filter),\"(name=%s)\",username);\n    // 사용자의 인증 없이 LDAP 검색을 시도한다.\n    rc = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter, NULL, 0,\n      NULL, NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n    return rc;\n}",
+      "safe": "#define FIND_DN \"uid=han,ou=staff,dc=example,dc=com\"\nint searchData2LDAP(LDAP *ld, char *username, char *password) {\n    unsigned long rc;\n    char filter[20];\n    LDAPMessage *result\n    // username 을 인증한다.\n    if ( ldap_simple_bind_s(ld, username, password) != LDAP_SUCCESS ) {\n      printf(\"authorization error\");\n      return(FAIL);\n    }\n    // username 이 로그인 정보와 일치하는지 검사한다.\n    if ( strcmp(username,getLoginName()) != 0 ) {\n      printf(\"Login error\");\n      return(FAIL);\n    }\n    snprintf(filter, sizeof(filter), \"(name=%s)\", username);\n    rc = ldap_search_ext_s(ld, FIND_DN, LDAP_SCOPE_BASE, filter, NULL, 0,\n      NULL, NULL, LDAP_NO_LIMIT, LDAP_NO_LIMIT, &result);\n    return rc;\n}",
+      "note": "사용자 자격인증 없이 LDAP 검색을 시도하는 코드다. 안전한 코드는 ldap_simple_bind_s로 사용자를 인증하고 로그인 정보와 일치하는지 검사한 후 LDAP 검색을 진행한다."
+    }
+  ]
+}

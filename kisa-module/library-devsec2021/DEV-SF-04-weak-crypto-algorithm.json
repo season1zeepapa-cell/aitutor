@@ -1,0 +1,44 @@
+{
+  "chapter_code": "DEV-SF-04",
+  "title": "취약한 암호화 알고리즘 사용",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-327",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 4. 취약한 암호화 알고리즘 사용",
+    "pages": "222-225"
+  },
+  "overview": "SW 개발자들은 환경설정 파일에 저장된 패스워드를 보호하기 위하여 간단한 인코딩 함수를 이용하여 패스워드를 감추는 방법을 사용하기도 한다. 그렇지만 base64와 같은 지나치게 간단한 인코딩 함수로는 패스워드를 제대로 보호할 수 없다. 정보보호 측면에서 취약하거나 위험한 암호화 알고리즘을 사용해서는 안 된다.",
+  "impact": "표준화되지 않은 암호화 알고리즘을 사용하는 것은 공격자가 알고리즘을 분석하여 무력화시킬 수 있는 가능성을 높일 수 있다. 몇몇 오래된 암호화 알고리즘의 경우는 컴퓨터의 성능이 향상됨에 따라 취약해지기도 해서, 예전에는 해독하는 데 몇 십 억년이 걸릴 것이라고 예상되던 알고리즘이 며칠이나 몇 시간 내에 해독되기도 한다. RC2, RC4, RC5, RC6, MD4, MD5, SHA1, DES 알고리즘이 여기에 해당된다.",
+  "countermeasure": "자신만의 암호화 알고리즘을 개발하는 것은 위험하며, 학계 및 업계에서 이미 검증된 표준화된 알고리즘을 사용한다. 기존에 취약하다고 알려진 DES, RC5 등의 암호알고리즘을 대신하여, 3DES, AES, SEED 등의 안전한 암호알고리즘으로 대체하여 사용한다. 또한, 업무관련 내용, 개인정보 등에 대한 암호 알고리즘 적용 시, IT보안인증 사무국이 안전성을 확인한 검증필 암호모듈을 사용해야 한다.",
+  "code_examples": [
+    {
+      "lang": "참고표 (안전한 암호알고리즘 및 키 길이)",
+      "vulnerable": "",
+      "safe": "[분류 → 보호함수 목록]\n최소 안전성 수준: 112비트\n블록암호: ARIA(키 길이: 128/192/256), SEED(키 길이: 128)\n블록암호 운영모드 - 기밀성: ECD, CBC, CFB, OFB, CTR / 기밀성/인증: CCM, GCM\n해쉬함수: SHA-224/256/384/512\n메시지 인증코드 - 해쉬함수기반: HMAC / 블록기반: CMAC, GMAC\n난수발생기 - 해쉬함수/HMAC 기반: HASH_DRBG, HMAC_DRBG / 블록기반: CTR_DRBG\n공개키 암호: RSAES - (공개키 길이) 2048, 3072 - RSA-OAEP에서 사용되는 해쉬함수: SHA-224/256\n전자서명: RSA-PSS, KCDSA, ECDSA, EC-KCDSA\n키 설정 방식: DH, ECDH\n\n[보호함수 → 시스템 파라미터]\nRSA-PSS: (공개키 길이) 2048, 3072\nKCDSA, DH: (공개키 길이, 개인키 길이) (2048, 224), (2048, 256)\nECDSA, EC-KCDSA, ECDH: (FIPS) B-233, B-283 / K-233, K-283 / P-224, P-256",
+      "note": "보안대책에 첨부된 '안전한 암호알고리즘 및 키 길이' 참고표를 옮긴 것이다. 코드가 아닌 표 형태의 원문을 항목별로 정리했다."
+    },
+    {
+      "lang": "Java",
+      "vulnerable": "import java.security.*;\nimport javax.crypto.Cipher;\nimport javax.crypto.NoSuchPaddingException;\npublic class CryptoUtils {\n    public byte[] encrypt(byte[] msg, Key k) {\n        byte[] rslt = null;\n        try {\n// 키 길이가 짧아 취약함 암호와 알고리즘인 DES를 사용하여 안전하지 않다.\n            Cipher c = Cipher.getInstance(\"DES\");\n            c.init(Cipher.ENCRYPT_MODE, k);\n            rslt = c.update(msg);\n        }",
+      "safe": "import java.security.*;\nimport javax.crypto.Cipher;\nimport javax.crypto.NoSuchPaddingException;\n\npublic class CryptoUtils {\n   public byte[] encrypt(byte[] msg, Key k) {\n        byte[] rslt = null;\n        try {\n// 키 길이가 길어 강력한 알고리즘인 AES를 사용하여 안전하다.\n             Cipher c = Cipher.getInstance(\"AES/CBC/PKCS5Padding\");\n             c.init(Cipher.ENCRYPT_MODE, k);\n             rslt = c.update(msg);\n        }",
+      "note": "취약한 DES 알고리즘으로 암호화하고 있다. 안전한 코드는 안전하다고 알려진 AES 알고리즘(AES/CBC/PKCS5Padding)을 적용한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "static string Enc(string input) {\n// 키 길이가 짧아 취약함 암호와 알고리즘인 DES를 사용하여 안전하지 않다.\nvar des = new DESCryptoServiceProvider();\n...\n}",
+      "safe": "static string Enc(string input) {\n// 키 길이가 길어 강력한 알고리즘인 AES를 사용하여 안전하다.\n   var des = new AesCryptoServiceProvider();\n   ...\n}",
+      "note": "취약한 DES 알고리즘(DESCryptoServiceProvider)을 사용하고 있다. 안전한 코드는 AES 알고리즘(AesCryptoServiceProvider)을 적용한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "EVP_CIPHER_CTX ctx;\nEVP_CIPHER_CTX_init(&ctx);\n// 취약한 DES 알고리즘을 사용한다.\nEVP_EncryptInit(&ctx, EVP_des_ecb(), NULL, NULL);",
+      "safe": "EVP_CIPHER_CTX ctx;\nEVP_CIPHER_CTX_init(&ctx);\n// 안전한 AES 알고리즘을 사용한다.\nEVP_EncryptInit(&ctx, EVP_aes_128_cbc(), key, iv);",
+      "note": "취약한 DES 알고리즘(EVP_des_ecb)을 사용하고 있다. 안전한 코드는 안전하다고 알려진 AES 알고리즘(EVP_aes_128_cbc)을 사용한다."
+    }
+  ]
+}

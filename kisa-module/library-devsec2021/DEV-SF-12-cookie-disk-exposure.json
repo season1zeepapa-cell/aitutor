@@ -1,0 +1,32 @@
+{
+  "chapter_code": "DEV-SF-12",
+  "title": "사용자 하드디스크에 저장되는 쿠키를 통한 정보노출",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-539",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 12. 사용자 하드디스크에 저장되는 쿠키를 통한 정보노출",
+    "pages": "258-260"
+  },
+  "overview": "대부분의 웹 응용프로그램에서 쿠키는 메모리에 상주하며, 브라우저의 실행이 종료되면 사라진다. 프로그래머가 원하는 경우, 브라우저 세션에 관계없이 지속적으로 저장되도록 설정할 수 있으며, 이것은 디스크에 기록되고, 다음 브라우저 세션이 시작되었을 때 메모리에 로드된다.",
+  "impact": "개인정보, 인증 정보 등이 영속적인 쿠키(Persistent Cookie)에 저장된다면, 공격자는 쿠키에 접근할 수 있는 보다 많은 기회를 가지게 되며, 이는 시스템을 취약하게 만든다. 쿠키의 유효기간이 긴 경우 사용자 하드디스크에 쿠키가 저장되며 저장된 쿠키는 쉽게 도용될 수 있다.",
+  "countermeasure": "쿠키의 만료시간은 세션이 지속되는 시간을 고려하여 최소한으로 설정하고 영속적인 쿠키에는 사용자 권한 등급, 세션ID 등 중요정보가 포함되지 않도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다.\nloginCookie.setMaxAge(60*60*24*365);\nresponse.addCookie(loginCookie);",
+      "safe": "Cookie loginCookie = new Cookie(\"rememberme\", \"YES\");\n// 쿠키의 만료시간은 해당 기능에 맞춰 최소로 사용한다.\nloginCookie.setMaxAge(60*60*24);\nresponse.addCookie(loginCookie);",
+      "note": "쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어, 쿠키가 사용자 하드디스크에 저장되고 쉽게 도용될 수 있으므로 취약하다. 안전한 코드는 setMaxAge를 해당 기능에 맞춰 최소(하루)로 설정한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "HttpCookie cookie = Request.Cookies.Get(\"ExampleCookie\");\n// 쿠키의 만료시간을 1년으로 과도하게 길게 설정하고 있어 안전하지 않다.\ncookie.Expires = DateTime.Now.AddMinutes(60.0*24.0*365.0);\nResponse.Cookies.Add(cookie);",
+      "safe": "HttpCookie cookie = Request.Cookies.Get(\"ExampleCookie\");\n// 쿠키의 만료시간은 해당 기능에 맞춰 최소로 사용한다.\ncookie.Expires = DateTime.Now.AddMinutes(10d);\nResponse.Cookies.Add(cookie);",
+      "note": "쿠키의 만료시간을 1년으로 과도하게 길게 설정한 C# 예제. 유효기간이 긴 쿠키는 하드디스크에 저장되어 도용될 수 있으므로, 안전한 코드는 만료시간을 10분으로 최소화한다."
+    }
+  ]
+}

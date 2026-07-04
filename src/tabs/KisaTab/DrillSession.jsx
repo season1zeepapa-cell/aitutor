@@ -1,5 +1,5 @@
 // KISA 드릴 세션 — /kisa/drill
-// URL 쿼리: ?type=mcq|diagnosis4&category=&language=&difficulty=&srs=true
+// URL 쿼리: ?type=objective|diagnosis4&category=&language=&difficulty=&srs=true
 //
 // 화면 구성 (FEATURE_SPEC §5.1):
 //   상단: 진행률 + 약점 배지 + 언어/난이도 배지
@@ -30,13 +30,20 @@ export default function DrillSession() {
   const navigate = useNavigate();
 
   // 세션 설정 (쿼리 파라미터)
-  const type = searchParams.get('type') || 'diagnosis4';
+  // SRS 복습 모드는 유형을 강제하지 않는다 — 복습 큐에는 codeid 등 모든 유형이 섞여 있어
+  // 기본값 diagnosis4 를 적용하면 "조건에 맞는 문항이 없습니다"가 된다 (복습 배지 진입 버그).
+  const type = searchParams.get('type') || (searchParams.get('srs') === 'true' ? '' : 'diagnosis4');
   const stage = searchParams.get('stage') || '';
   const category = searchParams.get('category') || '';
+  const categories = searchParams.get('categories') || ''; // 카테고리 다중선택 (이론·단답형 설정)
   const language = searchParams.get('language') || '';
   const difficulty = searchParams.get('difficulty') || '';
   const chapterCode = searchParams.get('chapter_code') || '';
+  const sources = searchParams.get('sources') || ''; // 출처 다중선택 (쉼표 구분, 랜딩에서 전달)
+  const dedup = searchParams.get('dedup') === 'true'; // 출처 간 동일코드 중복제거
   const srsOnly = searchParams.get('srs') === 'true';
+  // full=1: 전수 풀이 모드 — 10개 제한 해제 + 이미 푼 문항수를 baseline 으로(이어하기)
+  const fullMode = searchParams.get('full') === '1';
 
   // 세션 상태
   const [question, setQuestion] = useState(null);
@@ -47,7 +54,7 @@ export default function DrillSession() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [seenIds, setSeenIds] = useState([]);                       // 중복 방지
   const [startedAt, setStartedAt] = useState(Date.now());
-  const [guideOrder, setGuideOrder] = useState(false); // 가이드순 출제 모드
+  const [guideOrder, setGuideOrder] = useState(searchParams.get('order') === 'guide'); // 가이드순(순서대로) 출제 — DrillConfig 에서 전달
   const didOrderMount = useRef(false);
 
   // 제출 결과 (오버레이 표시용)
@@ -71,10 +78,13 @@ export default function DrillSession() {
       const params = new URLSearchParams({ action: 'next' });
       if (type) params.set('type', type);
       if (stage) params.set('stage', stage);
-      if (category) params.set('category', category);
+      if (categories) params.set('categories', categories);
+      else if (category) params.set('category', category);
       if (language) params.set('language', language);
       if (difficulty) params.set('difficulty', difficulty);
       if (chapterCode) params.set('chapter_code', chapterCode);
+      if (sources) params.set('sources', sources);
+      if (dedup) params.set('dedup', 'true');
       if (srsOnly) params.set('srs', 'true');
       if (guideOrder) params.set('order', 'guide');
       if (seenIds.length > 0) params.set('exclude_ids', seenIds.join(','));
@@ -87,7 +97,7 @@ export default function DrillSession() {
     } finally {
       setLoading(false);
     }
-  }, [type, stage, category, language, difficulty, chapterCode, srsOnly, guideOrder, seenIds]);
+  }, [type, stage, category, categories, language, difficulty, chapterCode, sources, dedup, srsOnly, guideOrder, seenIds]);
 
   // 최초 진입 시 total 수 조회 + 첫 문항 로드
   useEffect(() => {
@@ -97,18 +107,27 @@ export default function DrillSession() {
         const countParams = new URLSearchParams({ action: 'count' });
         if (type) countParams.set('type', type);
         if (stage) countParams.set('stage', stage);
-        if (category) countParams.set('category', category);
+        if (categories) countParams.set('categories', categories);
+        else if (category) countParams.set('category', category);
         if (language) countParams.set('language', language);
         if (difficulty) countParams.set('difficulty', difficulty);
         if (chapterCode) countParams.set('chapter_code', chapterCode);
+        if (sources) countParams.set('sources', sources);
+        if (dedup) countParams.set('dedup', 'true');
         if (srsOnly) countParams.set('srs', 'true');
 
         const countData = await apiGet(`/api/kisa-drill?${countParams}`);
         const available = countData.total || 0;
+        const attempted = countData.attempted || 0;
 
-        // 챕터 지정이 있으면 그 수 그대로, 없으면 min(전체, 10)
-        const sessionTotal = chapterCode ? available : Math.min(available, 10);
-        setProgress({ done: 0, total: sessionTotal });
+        // full/챕터: 범위 전체를 total 로(전수). 아니면 min(전체, 10).
+        const sessionTotal = (fullMode || chapterCode) ? available : Math.min(available, 10);
+        // full 모드는 이미 푼 문항수를 진행도 baseline 으로 → 중단 지점부터 이어하기.
+        // 단, 이미 완주(attempted>=total)했다면 새 복습 패스이므로 0부터.
+        const baselineDone = fullMode
+          ? (attempted >= sessionTotal ? 0 : attempted)
+          : 0;
+        setProgress({ done: baselineDone, total: sessionTotal });
 
         if (sessionTotal === 0) {
           setError('조건에 맞는 문항이 없습니다.');
@@ -165,10 +184,16 @@ export default function DrillSession() {
         mode: 'drill',
         self_grade: selfGrade,
         // 이미 저장된 답안을 그대로 다시 전송 (attempt row는 2개 생기지만 마지막이 의미 있음)
-        ...(question.question_type === 'mcq' ? {} : {
-          verdict_yn: result.user_verdict_yn,
-          cited_lines: result.user_cited_lines,
-        }),
+        ...(question.question_type === 'objective' ? {}
+          : question.question_type === 'codeid' ? {
+            // codeid: 약점·안전여부 둘 다 재전송해야 재채점 점수 보존
+            mcq_selected: result.user_selected,
+            verdict_yn: result.user_verdict_yn,
+          }
+          : {
+            verdict_yn: result.user_verdict_yn,
+            cited_lines: result.user_cited_lines,
+          }),
       });
     } catch (e) {
       // SRS 갱신 실패는 치명적이지 않음 - 로그만 남기고 진행
@@ -179,9 +204,14 @@ export default function DrillSession() {
     setSeenIds(prev => [...prev, question.id]);
     setProgress(prev => ({ ...prev, done: prev.done + 1 }));
     if (progress.done + 1 >= progress.total) {
-      // 세션 완료 → 대시보드로
-      alert(`세션 완료! ${progress.total}문항 학습하셨습니다.`);
-      navigate('/kisa');
+      // 세션 완료
+      if (fullMode) {
+        alert(`🎉 전수 완료! 이 범위 ${progress.total}문항을 모두 풀었습니다.`);
+        navigate('/kisa/code-drill');   // 진도 랜딩으로 복귀
+      } else {
+        alert(`세션 완료! ${progress.total}문항 학습하셨습니다.`);
+        navigate('/kisa');
+      }
     } else {
       fetchNextQuestion();
     }

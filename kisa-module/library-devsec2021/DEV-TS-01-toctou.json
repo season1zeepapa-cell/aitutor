@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-TS-01",
+  "title": "경쟁조건: 검사시점과 사용시점(TOCTOU)",
+  "stage": "implementation",
+  "category": "time_state",
+  "cwe": "CWE-367",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제3절 시간 및 상태 / 1. 경쟁조건: 검사시점과 사용시점(TOCTOU)",
+    "pages": "278-283"
+  },
+  "overview": "병렬시스템(멀티프로세스로 구현한 응용프로그램)에서는 자원(파일, 소켓 등)을 사용하기에 앞서 자원의 상태를 검사한다. 하지만 자원을 사용하는 시점과 검사하는 시점이 다르기 때문에, 검사하는 시점(Time Of Check)에 존재하던 자원이 사용하는 시점(Time Of Use)에 사라지는 등 자원의 상태가 변하는 경우가 발생한다. 예를 들어 프로세스 A는 파일 읽기에 앞서 파일의 존재 여부를 검사(TOC)하고 존재한다고 판단하지만, 프로세스 B가 그 사이 파일을 삭제하면 프로세스 A가 파일 읽기를 시도하는 시점(TOU)에는 자원이 사용 불가능 상태가 되어 오류 등이 발생할 수 있다.",
+  "impact": "하나의 자원에 대하여 검사시점과 사용시점이 달라 생기는 이 보안약점으로 인해 동기화 오류뿐만 아니라 교착상태 등과 같은 문제점이 발생할 수 있다.",
+  "countermeasure": "공유자원(예: 파일)을 여러 프로세스가 접근하여 사용할 경우, 동기화 구문을 사용하여 한 번에 하나의 프로세스만 접근 가능하도록(synchronized, mutex 등) 하는 한편, 성능에 미치는 영향을 최소화하기 위해 임계코드 주변만 동기화 구문을 사용한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "class FileMgmtThread extends Thread {\n    private String manageType = \"\";\n    public FileMgmtThread (String type) {\n        manageType = type;\n    }\n    // 멀티쓰레드 환경에서 공유자원에 여러프로세스가 사용하여 동시에 접근할 가능성이 있어 안전하지 않다.\n    public void run() {\n        try {\n            if (manageType.equals(\"READ\")) {\n                File f = new File(\"Test_367.txt\");\n                if (f.exists()) {\n                    BufferedReader br = new BufferedReader(new FileReader(f));\n                    br.close();\n                }\n            } else if (manageType.equals(\"DELETE\")) {\n                File f = new File(\"Test_367.txt\");\n                if (f.exists()) {\n                    f.delete();\n                } else { … }\n            }\n        } catch (IOException e) { … }\n    }\n}\npublic class CWE367 {\n    public static void main (String[] args) {\n        FileMgmtThread fileAccessThread = new FileMgmtThread(\"READ\");\n        FileMgmtThread fileDeleteThread = new FileMgmtThread(\"DELETE\");\n        // 파일의 읽기와 삭제가 동시에 수행되어 안전하지 않다.\n        fileAccessThread.start();\n        fileDeleteThread.start();\n    }\n}",
+      "safe": "class FileMgmtThread extends Thread {\n    private static final String SYNC = \"SYNC\";\n    private String manageType = \"\";\n    public FileMgmtThread (String type) {\n        manageType = type;\n    }\n    public void run() {\n        // 멀티쓰레드 환경에서 synchronized를 사용하여 동시에 접근할 수 없도록 사용해야한다.\n        synchronized(SYNC) {\n            try {\n                if (manageType.equals(\"READ\")) {\n                    File f = new File(\"Test_367.txt\");\n                    if (f.exists()) {\n                        BufferedReader br = new BufferedReader(new FileReader(f));\n                        br.close();\n                    }\n                } else if (manageType.equals(\"DELETE\")) {\n                    File f = new File(\"Test_367.txt\");\n                    if (f.exists()) {\n                        f.delete();\n                    } else { … }\n                }\n            } catch (IOException e) { … }\n        }\n    }\n}\npublic class CWE367 {\n    public static void main (String[] args) {\n        FileMgmtThread fileAccessThread = new FileMgmtThread(\"READ\");\n        FileMgmtThread fileDeleteThread = new FileMgmtThread(\"DELETE\");\n        fileAccessThread.start();\n        fileDeleteThread.start();\n    }\n}",
+      "note": "파일에 대한 읽기와 삭제가 두 개의 스레드에서 동작하므로 이미 삭제된 파일을 읽으려고 하는 레이스컨디션(Race Condition: 두 개 이상의 프로세스가 공용 자원을 병행적으로 읽거나 쓸 때 접근 순서에 따라 실행 결과가 달라지는 상황)이 발생할 수 있다. 안전한 코드는 동기화 구문 synchronized(SYNC)를 사용하여 공유자원(Test_367.txt)에 대한 읽기/삭제가 한 번에 하나의 스레드만 수행되도록 한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "// 멀티쓰레드 환경에서 동시에 접근할 수 없도록 사용해야한다.\npublic void ReadFile(String f)\n{\n    if(File.Exists(f))\n    {\n        File.ReadAllLines(f);\n    }\n}",
+      "safe": "// 멀티쓰레드 환경에서 동시에 접근할 수 없도록 사용해야한다.\n[MethodImpl(MethodImplOptions.Synchronized)]\npublic void ReadFile(String f)\n{\n    if(File.Exists(f))\n    {\n        File.ReadAllLines(f);\n    }\n}",
+      "note": "파일에 동시에 접근하는 레이스 컨디션이 발생할 수 있는 C# 코드다. [MethodImpl(MethodImplOptions.Synchronized)] 특성을 추가하여 멀티쓰레드 환경에서 메서드에 동시에 접근할 수 없도록 하여 레이스 컨디션을 방지한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "static volatile double account;\nvoid deposit(int amount) {\n    // lock 없이 공유 자원에 접근\n    account += amount;\n}\nvoid withdraw(int amount) {\n    account -= amount;\n}",
+      "safe": "static volatile double account;\nstatic mtx_t account_lock;\n\nvoid deposit(int amount) {\n    // mutex_lock, mutex_unlock을 이용해 공유 자원 접근을 제한한다.\n    mutex_lock(&account_lock);\n    account += amount;\n    mutex_unlock(&account_lock);\n}\n\nvoid withdraw(int amount) {\n    mutex_lock(&account_lock);\n    account -= amount;\n    mutex_unlock(&account_lock);\n}",
+      "note": "공유 자원 account에 대해 lock을 설정하지 않아 경쟁 조건이 발생할 수 있다. 입금과 출금이 빈번하게 발생하는 상황에서 경쟁 조건이 발생하면 account의 값이 달라진다. 예컨대 deposit(100)→withdraw(100)이 순차 수행되면 최종 account가 0이지만, deposit(100) 호출 중에 withdraw(100)이 끼어들면(경쟁 조건) 최종 account가 -100이 될 수 있다. 안전한 코드는 mutex_lock()/mutex_unlock()으로 공유 자원에 대한 동시 접근을 제한한다."
+    }
+  ]
+}

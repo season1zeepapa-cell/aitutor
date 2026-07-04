@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-IV-16",
+  "title": "포맷 스트링 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-134",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 16. 포맷 스트링 삽입",
+    "pages": "67-68"
+  },
+  "overview": "외부로부터 입력된 값을 검증하지 않고 입·출력 함수의 포맷 문자열로 그대로 사용하는 경우 발생할 수 있는 보안약점이다. 파이썬에서는 문자열의 포맷팅 방법으로 \"% formatting\", \"str.format\", \"f-string\" 과 같이 세 가지 문자열 포맷팅 방식을 제공하고 있다(f-string 은 파이썬 3.6 버전부터 사용 가능하다).",
+  "impact": "공격자는 포맷 문자열을 이용해 취약한 프로세스를 공격하거나 메모리 내용을 읽고 쓸 수 있다. 이를 통해 취약한 프로세스의 권한을 취득해 임의의 코드를 실행 할 수 있다. 또한 공격자는 포맷 문자열을 이용해 내부 정보를 문자열로 만들 수 있으며, 이를 그대로 사용하는 경우 중요 정보 유출로 이어질 수 있다.",
+  "countermeasure": "포맷 문자열을 처리하는 함수 사용 시 사용자 입력값을 직접적으로 포맷 문자열로 사용하거나 포맷 문자열 생성에 포함시키지 않아야 한다. 사용자로부터 입력 받은 데이터를 포맷 문자열로 사용하고자 하는 경우에는 서식 지정자를 포함하지 않거나 파이썬의 내장함수 또는 내장변수 등이 포함되지 않도록 해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\nAUTHENTICATE_KEY = 'Passw0rd'\n\ndef make_user_message(request):\n  user_info = get_user_info(request.POST.get('user_id', ''))\n\n  format_string = request.POST.get('msg_format', '')\n  # 내부의 민감한 정보가 외부로 노출될 수 있다.\n  # 사용자가 입력한 문자열을 포맷 문자열로 사용하고 있어 안전하지 않다\n  message = format_string.format(user=user_info)\n\n  return render(request, '/user_page.html', {'message':message})",
+      "safe": "from django.shortcuts import render\nAUTHENTICATE_KEY = 'Passw0rd'\n\ndef make_user_message(request):\n  user_info = get_user_info(request.POST.get('user_id', ''))\n\n  # 사용자가 입력한 문자열을 포맷 문자열로 사용하지 않아 안전하다\n  message = 'user name is {}'.format(user_info.name)\n\n    return render(request, '/user_page.html', {'message':message})",
+      "note": "취약 코드는 외부에서 입력받은 문자열(msg_format)을 바로 포맷 스트링으로 사용해 내부 정보가 외부로 노출될 수 있다. 공격자가 # {user.__init__.__globals__[AUTHENTICATE_KEY]} 형식의 문자열 입력 시 전역 변수에 접근하여 AUTHENTICATE_KEY의 값을 탈취할 수 있다. 안전 코드는 외부 입력 문자열을 포맷 문자열로 직접 사용하지 않고, 고정된 포맷 문자열의 포맷 지정자에 값을 바인딩해 사용한다."
+    }
+  ]
+}

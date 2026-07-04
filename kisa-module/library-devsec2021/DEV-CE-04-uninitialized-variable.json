@@ -1,0 +1,26 @@
+{
+  "chapter_code": "DEV-CE-04",
+  "title": "초기화되지 않은 변수 사용",
+  "stage": "implementation",
+  "category": "code_error",
+  "cwe": "CWE-457",
+  "applies_to": [
+    "C/C++"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제5절 코드오류 / 4. 초기화되지 않은 변수 사용",
+    "pages": "308-309"
+  },
+  "overview": "C 언어의 경우 스택 메모리에 저장되는 지역변수는 생성될 때 자동으로 초기화되지 않는다.",
+  "impact": "초기화되지 않은 변수를 사용하게 될 경우 임의값을 사용하게 되어 의도하지 않은 결과를 출력하거나 예상치 못한 동작을 수행할 수 있다. 초기화되지 않은 스택 메모리 영역의 변수는 이전 함수에서 사용되었던 내용을 포함하고 있으므로, 공격자는 이러한 약점을 사용하여 메모리에 저장되어 있는 값을 읽거나 특정 코드를 실행할 수 있다.",
+  "countermeasure": "초기화되지 않은 스택 메모리 영역의 변수는 임의값이라 생각해서 대수롭지 않게 생각할 수 있으나 사실은 이전 함수에서 사용되었던 내용을 포함하고 있다. 공격자는 이러한 약점을 사용하여 메모리에 저장되어 있는 값을 읽거나 특정 코드를 실행할 수 있다. 모든 변수를 사용 전에 반드시 올바른 초기값을 할당함으로써 이러한 문제를 예방한다.",
+  "code_examples": [
+    {
+      "lang": "C",
+      "vulnerable": "// 변수의 초기값을 지정하지 않을 경우 공격에 사용 될 수 있어 안전하지 않다.\nint x, y;\nswitch(position) {\n    case 0: x = base_position; y = base_position beak;\n    case 1: x = base_position + i; y = base_position - i break;\n    default: x=1; break;\n}\nsetCursorPosition(x,y);",
+      "safe": "// 변수의 초기값은 항상 지정하여야 한다.\nint x=1, y=1;\nswitch(position) {\n    case 0: x = base_position; y = base_position beak;\n    case 1: x = base_position + i; y = base_position - i break;\n    default: x=1; break;\n}\nsetCursorPosition(x,y);",
+      "note": "커서의 위치를 정하는 프로그램으로, switch문 안에서 초기화를 수행하도록 구현되어 있으나 default 부분에서 변수 x만 초기화하고 변수 y는 초기화되지 않았다. 이 함수가 수행되기 전에 공격자가 y 변수에 원하는 값을 저장해 놓는다면 서비스 거부 공격도 가능하다. 안전한 코드는 초기화 구문을 switch문 밖으로 꺼내어(int x=1, y=1) 변수를 올바르게 초기화한다. (원문 코드의 'beak', 세미콜론 누락 등 오탈자는 원문 그대로임)"
+    }
+  ]
+}

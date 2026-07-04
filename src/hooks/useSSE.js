@@ -61,6 +61,11 @@ export default function useSSE() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        // 키 미설정(no_api_key) → 폴백 재요청 없이 즉시 안내 (재요청해도 동일 결과)
+        if (data.code === 'no_api_key') {
+          setError(data.error);
+          return '';
+        }
         throw new Error(data.error || `API 에러 (${res.status})`);
       }
 

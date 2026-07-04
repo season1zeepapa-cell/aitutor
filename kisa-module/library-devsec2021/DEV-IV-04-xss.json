@@ -1,0 +1,36 @@
+{
+  "chapter_code": "DEV-IV-04",
+  "title": "크로스사이트 스크립트",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-79",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 제1절 입력데이터 검증 및 표현 / 4. 크로스사이트 스크립트",
+    "pages": "152-156"
+  },
+  "overview": "웹 페이지에 악의적인 스크립트를 포함시켜 사용자 측에서 실행되게 유도할 수 있는 보안약점이다. 예를 들어, 검증되지 않은 외부 입력이 동적 웹페이지 생성에 사용될 경우 발생한다. 크로스사이트 스크립트(XSS)에는 크게 3가지 공격 방법이 존재한다. Reflected XSS 공격은 검색 결과, 에러 메시지 등으로 서버가 외부에서 입력받은 악성 스크립트가 포함된 URL 파라미터 값을 사용자 브라우저에서 응답할 때 발생하며, 공격 스크립트가 삽입된 URL을 사용자가 쉽게 확인할 수 없도록 변형하여 이메일·메신저·파일 등으로 실행을 유도한다. Stored XSS 공격은 게시판, 코멘트 필드, 사용자 프로필 등의 입력 form으로 악성 스크립트를 삽입하여 DB에 저장되면, 사용자가 저장되어 있는 페이지에 정보를 요청할 때 서버가 악성 스크립트를 전달하여 사용자 브라우저에서 실행되면서 공격한다. DOM 기반 XSS 공격은 악성 스크립트가 포함된 URL 파라미터 값이 서버를 거치지 않고 DOM 생성의 일부로 실행되면서 공격하는 것으로, 서버와 관계없이 발생한다는 점이 차이점이다.",
+  "impact": "전송된 동적 웹페이지를 열람하는 접속자의 권한으로 부적절한 스크립트가 수행되어 정보유출 등의 공격을 유발할 수 있다.",
+  "countermeasure": "외부 입력값 또는 출력값에 스크립트가 삽입되지 못하도록 문자열 치환 함수를 사용하여 & < > \" ' / ( ) 등을 &amp; &lt; &gt; &quot; &#x27; &#x2F; &#x28; &#x29;로 치환하거나, JSTL 또는 잘 알려진 크로스사이트 스크립트 방지 라이브러리를 활용한다. HTML 태그를 허용하는 게시판에서는 허용되는 HTML 태그들을 화이트리스트로 만들어 해당 태그만 지원하도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java (JSP)",
+      "vulnerable": "<% String keyword = request.getParameter(\"keyword\"); %>\n//외부 입력값에 대하여 검증 없이 화면에 출력될 경우 공격스크립트가 포함된 URL을 생성 할 수 있어 안전하지 않다.(Reflected XSS)\n검색어 : <%=keyword%>\n\n//게시판 등의 입력form으로 외부값이 DB에 저장되고, 이를 검증 없이 화면에 출력될 경우 공격스크립트가 실행되어 안전하지 않다.(Stored XSS)\n검색결과 : ${m.content}\n\n<script type=\"text/javascript\">\n//외부 입력값에 대하여 검증 없이 브라우저에서 실행되는 경우 서버를 거치지 않는 공격스크립트가 포함된 URL을 생성 할 수 있어 안전하지 않다. (DOM 기반 XSS)\ndocument.write(\"keyword:\" + <%=keyword%>);\n</script>",
+      "safe": "<% String keyword = request.getParameter(\"keyword\"); %>\n// 방법1. 입력값에 대하여 스크립트 공격가능성이 있는 문자열을 치환한다.\nkeyword = keyword.replaceAll(\"&\", \"&amp;\");\nkeyword = keyword.replaceAll(\"<\", \"&lt;\");\nkeyword = keyword.replaceAll(\">\", \"&gt;\");\nkeyword = keyword.replaceAll(\"￦\"\", \"&quot;\");\nkeyword = keyword.replaceAll(\"'\", \"&#x27;\");\nkeyword = keyword.replaceAll(\"/\"\", \"&#x2F;\");\nkeyword = keyword.replaceAll(\"(\", \"&#x28;\");\nkeyword = keyword.replaceAll(\")\", \"&#x29;\");\n검색어 : <%=keyword%>\n//방법2. JSP에서 출력값에 JSTL c:out 을 사용하여 처리한다.\n<%@ taglib prefix=\"c\" uri=\"http://java.sun.com/jsp/jstl/core\"%>\n<%@ taglib uri=\"http://java.sun.com/jsp/jstl/functions\" prefix=\"fn\" %>\n검색결과 : <c:out value=\"${m.content}\"/>\n\n<script type=\"text/javascript\">\n//방법3. 잘 만들어진 외부 라이브러리를 활용(NAVER Lucy-XSS-Filter, OWASP ESAPI, OWASP Java-Encoder-Project)\ndocument.write(\"keyword:\"+\n  <%=Encoder.encodeForJS(Encoder.encodeForHTML(keyword))%>);\n</script>",
+      "note": "취약 코드는 외부 입력값을 검증 없이 화면 출력(Reflected XSS), DB 저장값 출력(Stored XSS), 브라우저 스크립트 실행(DOM 기반 XSS)에 사용한다. 안전 코드는 ①문자열 치환 함수로 스크립트 공격 가능성이 있는 문자열 치환, ②JSTL c:out을 이용한 출력, ③잘 만들어진 외부 XSS 방지 라이브러리(NAVER Lucy-XSS-Filter, OWASP ESAPI, OWASP Java-Encoder-Project) 활용의 3가지 방법을 보여준다. 크로스사이트 스크립트는 동작 상황에 따라 동일한 조치방법을 사용하면 XSS 방지는 되더라도 원하는 동작이 정상적으로 되지 않을 수 있기 때문에, 잘 만들어진 외부 XSS 방지 라이브러리를 각 동작 상황에 따라 적절하게 사용하는 것을 권장한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "string usrInput = Request.QueryString[\"ID\"];\n// 외부 입력 값이 검증 없이 화면에 출력 됩니다.\nstring str = \"ID : \" + usrinput;\nRequest.Write(str);",
+      "safe": "string usrInput = Request.QueryString[\"ID\"];\nstring str = \"ID : \" + usrinput;\n//AntiXss 패키지 등을 이용하여 외부 입력값을 필터링 합니다.\nvar sanitizedStr = Sanitizer.GetSafeHtmlFragment(str);\nquest.Write(sanitizedStr);",
+      "note": "외부 입력값을 출력에 바로 사용하면 XSS 공격을 유발할 수 있다. 안전 코드는 AntiXss 패키지 등의 Sanitizer.GetSafeHtmlFragment를 사용하여 외부 입력값을 필터링한 후 출력한다. (usrinput, quest.Write 등의 표기는 원문 그대로다.)"
+    },
+    {
+      "lang": "C",
+      "vulnerable": "int XSS(int argc, char* argv[]) {\n    unsigned int i = 0;\n    char data[1024];\n    …\n    // cgiFromString으로 받아온 사용자 입력값이 검증 없이 화면에 출력됩니다.\n    giFromString(\"user input\", data, sizeof(data));\n    printf(cgiOut, \"Print user input = %s<br/>\", data);\n    fprintf(cgiOut, \"</body></html>￦n\");\n    return 0;\n}",
+      "safe": "cgiFromString(\"user input\", data, sizeof(data));\n// data에 위험한 문자열을 검사하는 코드를 추가한다.\nif(strchr(p, '<')) return;\nif(strchr(p, '>')) return;\n…\nfprintf(cgiOut, \"Print user input = %s<br/>\", data);\nfprintf(cgiOut, \"</body></html>￦n\");",
+      "note": "사용자로부터 받은 입력값을 검증 없이 바로 cgi에 출력하는 취약 코드이며, cgi에 출력하기 전에 사용자 입력값을 검증하여야 한다. 안전 코드는 data에 위험한 문자(< >)가 포함되어 있는지 검사한 후 출력한다. (취약 코드의 giFromString 표기는 원문 그대로이며, ￦n은 개행 문자 \\n을 뜻한다.)"
+    }
+  ]
+}

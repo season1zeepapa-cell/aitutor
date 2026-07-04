@@ -1,0 +1,30 @@
+{
+  "chapter_code": "PY-IV-02",
+  "title": "코드 삽입",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-94, CWE-95",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 2. 코드 삽입",
+    "pages": "14-17"
+  },
+  "overview": "공격자가 소프트웨어의 의도된 동작을 변경하도록 임의 코드를 삽입해 소프트웨어가 비정상적으로 동작하도록 하는 보안약점을 말한다. 코드 삽입은 프로그래밍 언어 자체의 기능에 한해 이뤄진다는 점에서 운영체제 명령어 삽입과 다르다. 프로그램에서 사용자의 입력값 내에 코드가 포함되는 것을 허용할 경우 공격자는 개발자가 의도하지 않은 코드를 실행할 수 있다. 파이썬에서 코드 삽입 공격을 유발할 수 있는 함수로는 eval(), exec() 등이 있으며, 해당 함수의 인자를 면밀히 검증하지 않는 경우 공격자가 전달한 코드가 그대로 실행될 수 있다.",
+  "impact": "공격자가 개발자가 의도하지 않은 코드를 실행해 권한을 탈취하거나 인증 우회, 시스템 명령어 실행 등을 할 수 있다. 외부 입력값을 검증 없이 사용할 경우 공격자는 파이썬 코드를 통해 악성 기능 실행을 위한 라이브러리 로드 및 원격 대화형 쉘 등을 실행할 수도 있으며, 예를 들어 \"compile('for x in range(1):\\n import time\\n time.sleep(20)','a','single')\" 같은 코드를 입력하면 20초 동안 응용 프로그램이 sleep 상태에 빠질 수 있다. exec()의 경우 중요 데이터 탈취 및 서버의 권한 탈취, 액세스 거부, 심지어 완전한 호스트 탈취로도 이어질 수 있다.",
+  "countermeasure": "동적코드를 실행할 수 있는 함수를 사용하지 않는다. 필요 시, 실행 가능한 동적 코드를 입력값으로 받지 않도록 외부 입력값에 대해 화이트리스트 기반 검증을 수행해야 한다. 유효한 문자만 포함하도록 동적 코드에 사용되는 사용자 입력값을 필터링 하는 방법도 있다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, eval)",
+      "vulnerable": "from django.shortcuts import render\n\ndef route(request):\n  # 외부에서 입력받은 값을 검증 없이 사용하면 안전하지 않다\n  message = request.POST.get('message', '')\n\n  # 외부 입력값을 검증 없이 eval 함수에 전달할 경우 의도하지 않은 코드가\n  # 실행될 수 있어 위험하다\n  ret = eval(message)\n\n  return render(request, '/success.html', {'data':ret})",
+      "safe": "from django.shortcuts import render\n\ndef route(request):\n  message = request.POST.get('message', '')\n\n  # 사용자 입력을 영문, 숫자로 제한하며, 만약 입력값 내에 특수문자가 포함되어\n  # 있을 경우 에러 메시지를 반환 한다\n  if message.isalnum():\n    ret = eval(message)\n    return render(request, '/success.html', {'data':ret})\n\n  return render(request, '/error.html')",
+      "note": "eval() 함수 사용 예제. 취약 코드는 외부 입력값을 아무런 검증 없이 eval()의 인자로 사용한다(line 9). 안전 코드는 eval() 인자로 사용하기 전에 isalnum()으로 입력값이 영문과 숫자만으로 이뤄졌는지 검증 후 사용해 특수문자를 통한 코드 삽입을 차단한다. 파이썬이 제공하는 입력값 검증용 String 메소드로는 str.isalpha()(모든 문자가 알파벳이고 적어도 하나의 문자가 존재하면 True), str.isdecimal()(모든 문자가 십진수 문자면 True), str.isdigit()(모든 문자가 숫자면 True, 위 첨자 숫자 등 포함) 등이 있다. 입력값이 특정 형식을 따라야 하는 경우 re 라이브러리로 정규식 기반 검증이 가능하다. 예: 이메일 형식만 허용 시 prog = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\\.[A-Z|a-z]{2,})+')"
+    },
+    {
+      "lang": "Python (Django, exec)",
+      "vulnerable": "from django.shortcuts import render\n\ndef request_rest_api(request):\n  function_name = request.POST.get('function_name', '')\n\n  # 사용자에게 전달받은 함수명을 검증하지 않고 실행\n  # 입력값으로 \"__import__('platform').system()\" 등을 입력 시\n  # 시스템 정보 노출 위험이 있다\n  exec('{}()'.format(function_name))\n\n  return render(request, '/success.html')",
+      "safe": "from django.shortcuts import render\n\nWHITE_LIST = ['get_friends_list', 'get_address', 'get_phone_number']\n\ndef request_rest_api(request):\n  function_name = request.POST.get('function_name', '')\n\n  # 사용 가능한 함수를 화이트리스트 목록 내의 함수로 제한\n  if function_name in WHITE_LIST:\n    exec('{}()'.format(function_name))\n    return render(request, '/success.html')\n\n  return render(request, '/error.html', {'error':'허용되지 않은 함수입니다.'})",
+      "note": "exec() 함수 사용 예제. 취약 코드는 외부 입력값을 검증 없이 exec의 인자로 사용해(line 9) 중요 데이터 탈취, 서버 권한 탈취, 액세스 거부, 완전한 호스트 탈취로 이어질 수 있다. 안전 코드는 입력받은 함수명이 사전에 정의한 화이트리스트(WHITE_LIST)에 포함되는지 확인하고 리스트에 없는 경우 에러 페이지를 반환한다."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "chapter_code": "DEV-IV-08",
+  "title": "부적절한 XML 외부개체 참조",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-611",
+  "applies_to": ["Java"],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 제1절 입력데이터 검증 및 표현 / 8. 부적절한 XML 외부개체 참조",
+    "pages": "169-173"
+  },
+  "overview": "XML 문서에는 DTD(Document Type Definition)를 포함할 수 있으며, DTD는 XML 엔티티(entity, 반복적인 문장이나 문자열을 저장해놓고 쉽게 참조할 수 있도록 함)를 정의한다. 부적절한 XML 외부개체 참조 보안약점은 서버에서 XML 외부 엔티티를 처리할 수 있도록 설정된 경우에 발생할 수 있다.",
+  "impact": "취약한 XML parser가 외부 값을 참조하는 XML 값을 처리할 때, 공격자가 삽입한 공격 구문이 동작되어 서버 파일 접근, 불필요한 자원 사용, 인증 우회, 정보 노출 등이 발생할 수 있다.",
+  "countermeasure": "로컬 정적 DTD를 사용하도록 설정하고, 외부에서 전송된 XML문서에 포함된 DTD를 완전하게 비활성화해야 한다. 비활성화를 할 수 없는 경우에는 외부 엔티티 및 외부 문서 유형 선언을 각 파서에 맞는 고유한 방식으로 비활성화 한다.",
+  "code_examples": [
+    {
+      "lang": "Java (JAXP DocumentBuilder + JAXB)",
+      "vulnerable": "public void unmarshal(File receivedXml)\nthrows JAXBException, ParserConfigurationException, SAXException, IOException {\n    JAXBContext jaxbContext = JAXBContext.newInstance( Student.class );\n    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();\n    // 입력받은 receivedXml 을 이용하여 Document를 생성한다.\n    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();\n    dbf.setNamespaceAware(true);\n    DocumentBuilder db = dbf.newDocumentBuilder();\n    Document document = db.parse(receivedXml);\n    // 외부 엔티티로 만들어진 document를 이용하여 마샬링을 수행하여 안전하지 않다.\n    Student employee = (Student) jaxbUnmarshaller.unmarshal( document );\n}",
+      "safe": "DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();\n// XML 파서가 doctype을 정의하지 못하도록 설정한다.\ndbf.setFeature(\"http://apache.org/xml/featuresdisallow-doctype-decl\", true);\n// 외부 일반 엔티티를 포함하지 않도록 설정한다.\ndbf.setFeature(\"http://xml.org/sax/features/external-general-entities\", false);\n// 외부 파라미터도 포함하지 않도록 설정한다.\ndbf.setFeature(\"http://xml.org/sax/features/external-parameter-entities\", false);\n// 외부 DTD 비활성화한다.\ndbf.setFeature(\"http://apache.org/xml/features/nonvalidating/load-external-dtd\", false);\n// XIncude를 사용하지 않는다.\ndbf.setXIncludeAware(false);\n// 생성된 파서가 엔티티 참조 노드를 확장하지 않도록 한다.\ndbf.setExpandEntityReferences(false);\nDocumentBuilder db = dbf.newDocumentBuilder();\nDocument document = db.parse(receivedXml);\nModel model = (Model) u.unmarshal(document);",
+      "note": "취약 코드는 XML 소스를 읽어 분석하면서 외부개체 참조 제한 설정이 없다. 공격자가 receivedXML로 <?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM \"file:///etc/passwd\" >]><foo>&xxe;</foo> 와 같이 XML 외부 엔티티를 참조하는 데이터를 전송하면, 파싱 시 /etc/passwd 파일을 참조할 수 있다. 안전 코드는 JAXP DocumentBuilderFactory에 doctype 정의 금지, 외부 일반/파라미터 엔티티 포함 금지, 외부 DTD 비활성화, XInclude 미사용, 엔티티 참조 노드 확장 금지 설정을 추가한다. (첫 번째 setFeature URL은 원문 그대로이며, 정상 표기는 http://apache.org/xml/features/disallow-doctype-decl 이다.)"
+    },
+    {
+      "lang": "Java (SAX)",
+      "vulnerable": "import javax.xml.parsers.SAXParsers;\nimport javax.xml.parsers.SAXParserFactory;\n\nclass XXE {\n    public static void main(String[] args)\n    throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {\n        SAXParserFactory factory = SAXParserFactory.newInstance();\n        SAXParser saxParser = factory.newSAXParser();\n        // 외부개체 참조 제한 설정 없이 secure.xml 파일을 읽어서 파싱하여 안전하지 않다.\n        saxParser.parse(new FileInputStream(\"secure.xml\"), new DefaultHandler());\n    }\n}",
+      "safe": "",
+      "note": "class XXE는 외부개체 참조 제한 설정 없이 secure.xml을 참조한다. secure.xml이 <?xml version=\"1.0\"?><!DOCTYPE foo SYSTEM \"file:/dev/tty\"><foo>bar</foo> 와 같을 때 /dev/tty 콘솔이 실행되어 입력 요청을 대기하는 서비스 거부 공격이 발생할 수 있다. (짝을 이루는 안전 코드는 별도로 제시되지 않으며, 앞의 DocumentBuilderFactory 제한 설정 방식이 대책으로 제시된다.)"
+    },
+    {
+      "lang": "PHP",
+      "vulnerable": "",
+      "safe": "value = libxml_disable_entity_loader(true);\n$dom = new DOMDocument();\n$dom -> loadXML($xml);\nlibxml_disable_entity_loader($value);",
+      "note": "PHP에서는 libxml_disable_entity_loader 함수를 이용하여 외부 엔티티 사용을 비활성화할 수 있다. (원문에는 이 블록이 '안전한 코드의 예 JAVA'로 표기되어 있으나 실제 코드는 PHP이다.)"
+    }
+  ]
+}

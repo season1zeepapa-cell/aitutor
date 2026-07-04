@@ -2,6 +2,7 @@
 // REBUILD16 §8 — _llm/anthropic.js 공통 fetch 헬퍼 사용으로 단순화.
 const { withAuth } = require('./middleware');
 const anthropic = require('./_llm/anthropic');
+const keys = require('./_llm/apikeys');
 
 const SYSTEM_PROMPT =
   '당신은 자격증 시험 전문 강사입니다. 주어진 문제를 분석하고 다음 형식으로 답변해주세요:\n\n' +
@@ -43,6 +44,10 @@ module.exports = withAuth(async (req, res) => {
     const tokens = (maxTokens && parseInt(maxTokens) > 0) ? parseInt(maxTokens) : 2048;
     const temp = (temperature !== undefined && temperature !== null) ? parseFloat(temperature) : 0.3;
 
+    // DB 기반 키 해석 (모드/사용자에 따라 공용키 또는 개인키). 없으면 안내 메시지.
+    const apiKey = await keys.resolveApiKey('claude', req.user);
+    if (!apiKey) return res.status(400).json(keys.missingKeyError('claude'));
+
     if (useStream) {
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
@@ -55,6 +60,7 @@ module.exports = withAuth(async (req, res) => {
         messages,
         maxTokens: tokens,
         temperature: temp,
+        apiKey,
         userId: req.user?.uid,
         action: 'card_explain',
         onText: (t) => res.write(`data: ${JSON.stringify({ text: t })}\n\n`),
@@ -75,6 +81,7 @@ module.exports = withAuth(async (req, res) => {
       messages,
       maxTokens: tokens,
       temperature: temp,
+      apiKey,
       userId: req.user?.uid,
       action: 'card_explain',
     });

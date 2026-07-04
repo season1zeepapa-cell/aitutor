@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-IV-15",
+  "title": "보안기능 결정에 사용되는 부적절한 입력값",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-807",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 15. 보안기능 결정에 사용되는 부적절한 입력값",
+    "pages": "64-66"
+  },
+  "overview": "응용 프로그램이 외부 입력값에 대한 신뢰를 전제로 보호 메커니즘을 사용하는 경우 공격자가 입력값을 조작할 수 있다면 보호 메커니즘을 우회할 수 있게 된다. 개발자들이 흔히 쿠키, 환경변수 또는 히든필드와 같은 입력값이 조작될 수 없다고 가정하지만 공격자는 다양한 방법을 통해 이러한 입력값들을 변경할 수 있고 조작된 내용은 탐지되지 않을 수 있다. 파이썬의 Django 프레임워크에서 세션을 관리하는 기능을 제공하고 있으며, 해당 기능 사용 시에는 세션쿠키의 만료 시점을 설정해 사용할 수 있으며 DRF(Django Rest Framework)에서 제공하는 토큰 및 세션 기능을 사용해 안전하게 구성할 수 있다.",
+  "impact": "인증이나 인가와 같은 보안 결정이 이런 입력값(쿠키, 환경변수, 히든필드 등)에 기반을 두어 수행되는 경우 공격자는 입력값을 조작해 응용프로그램의 보안을 우회할 수 있다. 따라서 충분한 암호화, 무결성 체크를 수행하고 이와 같은 메커니즘이 없는 경우엔 외부 사용자에 의한 입력값을 신뢰해서는 안 된다.",
+  "countermeasure": "상태 정보나 민감한 데이터 특히 사용자 세션 정보와 같은 중요 정보는 서버에 저장하고 보안확인 절차도 서버에서 실행한다. 보안설계 관점에서 신뢰할 수 없는 입력값이 응용 프로그램 내부로 들어올 수 있는 지점을 검토하고 민감한 보안 기능 실행에 사용되는 입력값을 식별해 입력값에 대한 의존성을 없애는 구조로 변경 가능한지 분석한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django)",
+      "vulnerable": "from django.shortcuts import render\n\ndef init_password(request):\n  # 쿠키에서 권한 정보를 가져 온다\n  role = request.COOKIE['role']\n  request_id = request.POST.get('user_id', '')\n  request_mail = request.POST.get('user_email','')\n  # 쿠키에서 가져온 권한이 관리자인지 비교\n  if role == 'admin':\n    # 사용자의 패스워드 초기화 및 메일 발송 처리\n    password_init_and_sendmail(request_id, request_mail)\n    return render(request, '/success.html')\n  else:\n    return render(request, '/failed.html')",
+      "safe": "from django.shortcuts import render\n\ndef init_password(request):\n  # 세션에서 권한 정보를 가져옴\n  role = request.session['role']\n  request_id = request.POST.get('user_id', '')\n  request_mail = request.POST.get('user_email','')\n  # 세션에서 가져온 권한이 관리자인지 비교\n  if role == 'admin':\n    # 사용자의 패스워드 초기화 및 메일 발송 처리\n    password_init_and_sendmail(request_id, request_mail)\n    return render(request, '/sucess.html')\n  else:\n    return render(request, '/failed.html')",
+      "note": "취약 코드는 위변조가 쉬운 쿠키에 저장된 권한 등급(role)을 가져와 관리자인지 확인한 후 사용자 패스워드 초기화·메일 발송을 수행한다. 공격자가 쿠키의 role 값을 admin으로 조작하면 보안 결정을 우회할 수 있다. 안전 코드는 중요 기능 수행을 위한 데이터를 위변조 가능성이 높은 쿠키보다 서버 측 세션(request.session)에 저장해 가져오도록 변경했다."
+    }
+  ]
+}

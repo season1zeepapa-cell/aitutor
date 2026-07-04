@@ -1,0 +1,36 @@
+{
+  "chapter_code": "PY-IV-04",
+  "title": "크로스사이트 스크립트(XSS)",
+  "stage": "implementation",
+  "category": "input_validation",
+  "cwe": "CWE-79",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제1절 입력데이터 검증 및 표현 / 4. 크로스사이트 스크립트(XSS)",
+    "pages": "22-28"
+  },
+  "overview": "크로스사이트 스크립트 공격(Cross-site scripting Attacks)은 웹사이트에 악성 코드를 삽입하는 공격 방법이다. 공격자는 대상 웹 응용프로그램의 결함을 이용해 악성코드(일반적으로 클라이언트 측 JavaScript 사용)를 사용자에게 보내며, 일반적으로 애플리케이션 호스트 자체보다 사용자를 목표로 삼는다. 사용자가 폼 양식에 입력한 데이터 또는 서버에서 클라이언트 단말(브라우저)로 전달된 데이터가 적절한 검증 없이 사용자에게 표시되도록 허용되는 경우 발생한다. 공격방법은 크게 세 가지 유형이 있다. 유형 1은 Reflective XSS(Non-persistent XSS)로, 공격 코드를 사용자의 HTTP 요청에 삽입한 후 해당 공격 코드를 서버 응답 내용에 그대로 반사(Reflected)시켜 브라우저에서 실행하는 기법이며 보통 악의적으로 제작된 링크(공개 게시판, 피싱 이메일, 단축 URL 등)를 사용자가 클릭하도록 유도한다. 유형 2는 Persistent XSS(Stored XSS)로, 신뢰할 수 없는 사용자 입력(코드)이 서버에 저장되고 이 데이터가 다른 사용자들에게 전달될 때 발생하며 게시글·댓글·방문자 로그·공개 프로필 페이지 등이 대표적인 공격 대상이다. 유형 3은 DOM XSS(Client-Side XSS)로, 웹 페이지에 있는 사용자 입력값을 처리하는 JavaScript 검증 로직 무효화를 목표로 하며, 악성 URL로 전달된다는 점은 Reflective XSS와 유사하지만 HTTP 응답에 페이로드를 포함하는 대신 DOM(문서 개체 모델)을 수정해 브라우저와 독립적인 공격을 실행한다는 차이가 있다.",
+  "impact": "공격자는 세션 및 개인 정보를 포함한 쿠키 데이터를 피해자의 컴퓨터에서 공격자 시스템으로 전송할 수 있고, 이 정보로 특정 웹사이트에 악의적인 요청을 보낼 수 있다. 피해자가 해당 사이트의 관리자 권한이 있는 경우 심각한 위협을 초래할 수 있으며, 신뢰할 수 있는 웹 사이트를 모방해 피해자가 암호를 입력하도록 속여 계정을 손상시키는 피싱(Phishing) 공격으로도 이어질 수 있다.",
+  "countermeasure": "외부 입력값 또는 출력값에 스크립트가 삽입되지 못하도록 문자열 치환 함수를 사용하여 &<>\"'/() 등을 &amp; &lt; &gt; &quot; &#x27; &#x2F; &#x28; &#x29;로 치환하거나, html 라이브러리의 escape()를 사용해 문자열을 변환해야 한다. HTML 태그를 허용해야 하는 게시판에서는 허용할 HTML 태그들을 화이트리스트로 만들어 해당 태그만 지원하도록 한다. 파이썬에서 가장 많이 사용하는 Django, Flask 프레임워크는 각각 Django 템플릿과 Jinja2 템플릿에서 XSS 공격에 악용될 수 있는 위험한 HTML 문자들을 HTML 특수문자(HTML Entities)로 치환하는 기능을 제공하므로 프레임워크 템플릿을 사용하면 위협을 최소화할 수 있다. 다만 프레임워크의 보호 기능이 완전하지 않은 경우도 있고 개발자의 실수로 보호기능이 무효화되는 경우가 있으므로 주의를 기울여야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (Django, mark_safe)",
+      "vulnerable": "from django.shortcuts import render\nfrom django.utils.safestring import mark_safe\n\ndef profile_link(request):\n    # 외부 입력값을 검증 없이 HTML 태그 생성의 인자로 사용\n    profile_url = request.POST.get('profile_url')\n    profile_name = requst.POST.get('profile_name')\n\n    object_link = '<a href=\"{}\">{}</a>'.format(profile_url, profile_name)\n    # mark_safe함수는 Django의 XSS escape 정책을 따르지 않는다\n    object_link = mark_safe(object_link)\n\n    return render(request, 'my_profile.html',{'object_link':object_link})",
+      "safe": "from django.shortcuts import render\n\ndef profile_link(request):\n    # 외부 입력값을 검증 없이 HTML 태그 생성의 인자로 사용\n    profile_url = request.POST.get('profile_url')\n    profile_name = requst.POST.get('profile_name')\n\n    object_link = '<a href=\"{}\">{}</a>'.format(profile_url, profile_name)\n    # 신뢰할 수 없는 데이터에 대해서는 mark_safe 함수를 사용해선 안 된다\n\n    return render(request, 'my_profile.html',{'object_link':object_link})",
+      "note": "Django safestring(django.utils.safestring) 오용 예제. Django 프레임워크는 템플릿 생성 시 HTML에서 위험한 것으로 간주되는 특수 문자(\"<\", \">\", \"'\", '\"', \"&\")를 모두 HTML 엔티티로 치환하지만, mark_safe를 사용할 경우 이 escape 정책을 따르지 않아 XSS 보호가 무력화된다. 신뢰할 수 없는 데이터에 대해서는 mark_safe 함수를 사용하지 않아야 한다."
+    },
+    {
+      "lang": "Python (Django 템플릿, autoescape/safe 필터)",
+      "vulnerable": "<!doctype html>\n<html>\n  <body>\n    <div class=\"content\">\n         {% autoescape off %}\n           <!-- autoescape off로 설정하면 해당 블록내의 데이터는 XSS 공격에\n           노출될 수 있다 -->\n           {{ content }}\n         {% endautoescape %}\n    </div>\n    <div class=\"content2\">\n         <!-- safe 필터 사용으로 XSS 공격에 노출될 수 있다 -->\n         {{ content | safe }}\n    </div>\n  </body>\n</html>",
+      "safe": "<!doctype html>\n<html>\n  <body>\n    <div class=\"content\">\n         {% autoescape on %}\n          <!--autoescape on으로 해당 블록내의 데이터는 XSS 공격에 노출되지 않음. -->\n          {{ content }}\n         {% endautoescape %}\n   </div>\n   <div class=\"content2\">\n     <!-- 검증되지 않은 데이터에는 safe 필터를 사용하지 않는다. -->\n     {{ content }}\n   </div>\n  </body>\n</html>",
+      "note": "Django 템플릿 예제. autoescape 블록의 설정값을 off로 하거나 개별 변수에 safe 필터를 사용하면 XSS 공격에 노출될 수 있다. 신뢰할 수 없는 입력값 또는 동적 데이터에 대해서는 autoescape 옵션 값을 on으로 설정해야 하며, safe 필터를 부득이하게 사용할 경우 추가적인 보안대책이 필요하다. 특히 autoescape off로 설정한 템플릿 페이지를 include 또는 extends하는 템플릿까지 영향이 확장되므로, 공통적으로 사용하는 템플릿 페이지에 off로 설정할 경우 위험이 커진다."
+    },
+    {
+      "lang": "Python (Flask)",
+      "vulnerable": "from flask import Flask, request, render_template\n\n@app.route('/search', methods=['POST'])\ndef search():\n    search_keyword = request.form.get('search_keyword')\n    # 사용자의 입력을 아무런 검증 또는 치환 없이 동적 웹페이지에 사용하고 있어\n    # XSS 공격이 발생할 수 있다\n    return render_template('search.html', search_keyword=search_keyword)",
+      "safe": "import html\nfrom flask import Flask, request, render_template\n\n@app.route('/search', methods=['POST'])\ndef search():\n  search_keyword = request.form.get('search_keyword')\n\n    # 동적 웹페이지 생성에 사용되는 데이터는\n    # HTML 엔티티코드로 치환하여 표현해야 한다\n    escape_keyword = html.escape(search_keyword)\n    return render_template('search.html', search_keyword=escape_keyword)",
+      "note": "Flask 예제. 사용자의 요청에 포함된 값, DB에 저장된 값 또는 내부 연산으로 생성된 값을 검증·치환 없이 동적 웹페이지 생성에 사용하면 XSS 공격이 발생할 수 있다. 안전 코드는 html.escape 메소드로 문자열의 &, <, > 특수문자를 HTML에서 안전한 값(엔티티 코드)으로 변환한 뒤 사용한다. quote 옵션 값이 True이면 문자(\")와 (')도 변환되므로 <a href=\"…\">처럼 따옴표로 구분된 HTML 속성(attribute) 값이 들어간 문자열에도 사용할 수 있다."
+    }
+  ]
+}

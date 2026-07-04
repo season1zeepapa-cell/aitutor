@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-EN-02",
+  "title": "제거되지 않고 남은 디버그 코드",
+  "stage": "implementation",
+  "category": "encapsulation",
+  "cwe": "CWE-489",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제6절 캡슐화 / 2. 제거되지 않고 남은 디버그 코드",
+    "pages": "320-322"
+  },
+  "overview": "디버깅 목적으로 삽입된 코드는 개발이 완료되면 제거해야 한다. 디버그 코드는 설정 등의 민감한 정보를 담거나 시스템을 제어하게 허용하는 부분을 담고 있을 수 있다.",
+  "impact": "디버그 코드가 남겨진 채로 배포될 경우, 공격자가 식별 과정을 우회하거나 의도하지 않은 정보와 제어 정보가 노출될 수 있다. 예를 들어 콜 스택을 출력하는 디버그 코드가 남아 있으면 공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있다.",
+  "countermeasure": "소프트웨어 배포 전, 반드시 디버그 코드를 확인 및 삭제한다. 일반적으로 Java 개발자의 경우 웹응용프로그램을 제작할 때 디버그 용도의 코드를 main()에 개발한 후 이를 삭제하지 않는 경우가 많다. 디버깅이 끝나면 main() 메소드를 삭제해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "class Base64 {\n    public static void main(String[] args) {\n        if (debug) {\n            byte[] a = { (byte) 0xfc, (byte) 0x0f, (byte) 0xc0 };\n            byte[] b = { (byte) 0x03, (byte) 0xf0, (byte) 0x3f };\n            ……\n        }\n    }\n    public void otherMethod() { … }\n}",
+      "safe": "class Base64 {\n    public void otherMethod() { … }\n}",
+      "note": "main() 메소드 내에 화면에 출력하는 디버깅 코드를 포함하고 있다. J2EE의 경우 main() 메소드 사용이 필요 없으며, J2EE의 main() 메소드는 디버깅 코드인 경우가 일반적이므로 main() 메소드를 삭제한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "class Example {\n    public void Log() {\n        // Console.WriteLine 등의 메소드를 사용한 디버그용 코드가 남아있다.\n        Console.WriteLine(\"sensitive info\");\n    }\n}",
+      "safe": "class Example {\n    public void Log() {\n        // 디버그용 코드를 삭제해야한다.\n        //Console.WriteLine(\"sensitive info\");\n    }\n}",
+      "note": "Console.WriteLine 등의 메소드를 사용한 디버그용 코드가 남아 있는 예제로, 민감한 정보가 출력될 수 있으므로 디버그용 코드를 삭제하여야 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "void LeftoverDebugCode() {\n      int i, ntprs;\n      char **strings;\n      nptrs = backtrace(buffer, 100);\n      strings = backtrace_symbols(buffer, nptrs);\n      …\n      // 디버그 모드일 시 콜스택을 출력한다.\n      if(debug) {\n      for(i=0; i < nptr; i++) printf(\"%s\\n\", strings[j]);\n      }\n}",
+      "safe": "void LeftoverDebugCode() {\n      … // 디버그 코드를 삭제하고 동작 코드만 남긴다.\n}",
+      "note": "디버그 모드에서 콜 스택을 출력하는 코드가 남아 있어 공격자가 출력되는 콜 스택으로 프로그램 구조를 유추할 수 있다. 릴리즈 시에는 디버그용 코드를 삭제하여야 한다."
+    }
+  ]
+}

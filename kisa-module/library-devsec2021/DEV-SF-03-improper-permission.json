@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-SF-03",
+  "title": "중요한 자원에 대한 잘못된 권한 설정",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-732",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제2절 보안기능 / 3. 중요한 자원에 대한 잘못된 권한 설정",
+    "pages": "218-221"
+  },
+  "overview": "SW가 중요한 보안관련 자원에 대하여 읽기 또는 수정하기 권한을 의도하지 않게 허가할 경우 발생하는 보안약점이다.",
+  "impact": "권한을 갖지 않은 사용자가 설정파일, 실행파일, 라이브러리 등 중요한 보안관련 자원을 읽거나 수정·실행하는 등 해당 자원을 사용하게 된다.",
+  "countermeasure": "설정파일, 실행파일, 라이브러리 등은 SW 관리자에 의해서만 읽고 쓰기가 가능하도록 설정하고 설정파일과 같이 중요한 자원을 사용하는 경우, 허가 받지 않은 사용자가 중요한 자원에 접근 가능한지 검사한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "File file = new File(\"/home/setup/system.ini\");\n// 모든 사용자에게 실행 권한을 허용하여 안전하지 않다.\nfile.setExecutable(true, false);\n// 모든 사용자에게 읽기 권한을 허용하여 안전하지 않다.\nfile.setReadable(true, false);\n// 모든 사용자에게 쓰기 권한을 허용하여 안전하지 않다.\nfile.setWritable(true, false);",
+      "safe": "File file = new File(\"/home/setup/system.ini\");\n// 소유자에게 실행 권한을 금지하였다.\nfile.setExecutable(false);\n// 소유자에게 읽기 권한을 허용하였다.\nfile.setReadable(true);\n// 소유자에게 쓰기 권한을 금지하였다.\nfile.setWritable(false);",
+      "note": "setExecutable/setReadable/setWritable(p1, p2)는 첫 번째 파라미터의 true/false 값에 따라 실행·읽기·쓰기 가능 여부를 결정하며, 두 번째 파라미터가 true일 경우 소유자만, false일 경우 모든 사용자가 해당 권한을 가진다. 취약 코드는 \"/home/setup/system.ini\" 파일에 대해 모든 사용자가 읽고, 쓰고, 실행할 수 있도록 권한을 부여한다. 안전한 코드는 파라미터 1개 형태(소유자 권한만 결정)를 사용해 파일에 최소권한을 할당하여 소유자에게만 읽기 권한을 부여한다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "public static void AddDirectorySecurity(string FileName)\n{\n     // 디렉토리 정보 객체 생성\n    DirectoryInfo dInfo = new DirectoryInfo(FileName);\n    DirectorySecurity dSecurity = dInfo.GetAccessControl();\n\n    // 모든 사용자에게 권한 부여.\n    dSecurity.AddAccessRule(new FileSystemAccessRule(\"everyone\",\n    FileSystemRights.FullControl,\n    InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,\n    PropagationFlags.NoPropagateInherit, AccessControlType.Allow));\n    dInfo.SetAccessControl(dSecurity);\n}",
+      "safe": "public static void AddDirectorySecurity(string FileName, string Account,\n     FileSystemRights Rights, AccessControlType ControlType)\n{\n     // 디렉토리 정보 객체 생성\n     DirectoryInfo dInfo = new DirectoryInfo(FileName);\n     DirectorySecurity dSecurity = dInfo.GetAccessControl();\n\n     // FileSystemAccessRule 에 권한 설정\n    dSecurity.AddAccessRule(new FileSystemAccessRule(Account,\n                                                     Rights,\n                                                     ControlType));\n    dInfo.SetAccessControl(dSecurity);\n}",
+      "note": "취약 코드는 \"everyone\"에게 FullControl 권한을 부여하여 모든 사용자에게 파일의 권한을 부여하고 있다. 안전한 코드는 계정·권한·제어유형을 파라미터로 받아 적절한 권한을 파일에 설정한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "// 모든 사용자가 읽기/쓰기 권한을 갖게 된다.\numask(0);\nFILE *out = fopen(\"file_name\", \"w\");\nif(out) {\n  fprintf(out, \"secure code\\n\");\n  fclose(out);",
+      "safe": "// 유저 외에는 아무런 권한을 주지 않는다.\numask(077);\nFILE *out = fopen(\"file_name\", \"w\");\nif(out) {\n  fprintf(out, \"secure code\\n\");\n  fclose(out);",
+      "note": "umask(0)으로 파일을 생성하면 모든 사용자가 읽기/쓰기 권한을 갖게 된다. umask()를 사용하여 권한을 설정할 때는 올바른 권한을 설정해야 하며, 안전한 코드는 umask(077)로 유저 외에는 아무런 권한을 주지 않는다."
+    }
+  ]
+}

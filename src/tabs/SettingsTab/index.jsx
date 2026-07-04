@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import LlmSettingsPanel from './LlmSettingsPanel';
 import LlmUsagePanel from './LlmUsagePanel';
 import LlmProviderToggleCard from './LlmProviderToggleCard';
+import ApiKeyCard from './ApiKeyCard';
 
 export default function SettingsTab() {
   const user = getAuthUser();
@@ -46,6 +47,8 @@ export default function SettingsTab() {
       {activeSection === 'categories' && <CategorySection />}
       {activeSection === 'ai' && (
         <div className="space-y-4">
+          {/* REBUILD67 — AI API 키 관리 (전체/개인 토글 + 키 입력) */}
+          <ApiKeyCard />
           {/* REBUILD18 §11 후속 — 프로바이더별 글로벌 활성화 토글 (관리자 전용) */}
           <LlmProviderToggleCard />
           <Card><LlmSettingsPanel /></Card>
@@ -96,8 +99,13 @@ function AccountSection() {
     }
   };
 
+  const isAdmin = user?.admin;
+
   return (
     <div className="space-y-4">
+      {/* AI API 키 — 회원은 여기서 본인 키를 관리 (관리자는 'AI 설정' 탭에서 관리하므로 중복 방지) */}
+      {!isAdmin && <ApiKeyCard />}
+
       {/* 계정 정보 */}
       <Card className="p-4">
         <h3 className="text-sm font-bold text-text mb-3">내 계정</h3>

@@ -1,0 +1,38 @@
+{
+  "chapter_code": "DEV-AA-01",
+  "title": "DNS lookup에 의존한 보안결정",
+  "stage": "implementation",
+  "category": "api_abuse",
+  "cwe": "CWE-247",
+  "applies_to": [
+    "Java"
+  ],
+  "source": {
+    "doc": "소프트웨어 개발보안 가이드(2021.12.29)",
+    "section": "제4장 구현단계 시큐어코딩 가이드 / 제7절 API 오용 / 1. DNS lookup에 의존한 보안결정",
+    "pages": "331-334"
+  },
+  "overview": "공격자가 DNS 엔트리를 속일 수 있으므로 도메인명에 의존해서 보안결정(인증 및 접근 통제 등)을 하지 않아야 한다. API 오용은 의도된 사용에 반하는 방법으로 API를 사용하거나, 보안에 취약한 API를 사용하여 발생할 수 있는 보안약점이다.",
+  "impact": "로컬 DNS 서버의 캐시가 공격자에 의해 오염된 상황이라면, 사용자와 특정 서버 간의 네트워크 트래픽이 공격자를 경유하도록 할 수도 있다. 또한 공격자가 마치 동일 도메인에 속한 서버인 것처럼 위장할 수도 있다.",
+  "countermeasure": "보안결정에서 도메인명을 이용한 DNS lookup을 하지 않도록 한다. DNS lookup에 의한 호스트 이름 비교를 하지 않고, 이용하려는 실제 서버의 IP 주소를 직접 비교하도록 한다.",
+  "code_examples": [
+    {
+      "lang": "Java",
+      "vulnerable": "public void doGet(HttpServletRequest req, HttpServletResponse res)\n    throws ServletException, IOException {\n    boolean trusted = false;\n    String ip = req.getRemoteAddr();\n    InetAddress addr = InetAddress.getByName(ip);\n    // 도메인은 공격자에 의해 실행되는 서버의 DNS가 변경될 수 있으므로 안전하지 않다.\n    if (addr.getCanonicalHostName().endsWith(\"trustme.com\")) {\n        do_something_for_Trust_System();\n    }",
+      "safe": "public void doGet(HttpServletRequest req, HttpServletResponse res)\n    throws ServletException, IOException {\n    String ip = req.getRemoteAddr();\n    if (ip == null || \"\".equals(ip)) return ;\n    // 이용하려는 실제 서버의 IP 주소를 사용하여 DNS변조에 방어한다.\n    String trustedAddr = \"127.0.0.1\";\n    if (ip.equals(trustedAddr)) {\n        do_something_for_Trust_System();\n    }",
+      "note": "취약한 코드는 도메인명(getCanonicalHostName)으로 해당 요청을 신뢰할 수 있는지를 검사하지만, 공격자는 DNS 캐시 등을 조작해서 쉽게 이러한 보안 설정을 우회할 수 있다. 안전한 코드는 DNS lookup에 의한 호스트 이름 비교를 하지 않고 IP 주소를 직접 비교하도록 수정하였다."
+    },
+    {
+      "lang": "C#",
+      "vulnerable": "bool trusted;\nstring remoteIpAddress = Request.ServerVariables[\"REMOTE_HOST\"];\nIPAddress hostIPAddress = IPAddress.Parse(remoteIpAddress);\nIPHostEntry hostInfo = Dns.GetHostByAddress(hostIPAddress);\nstring hostName = hostInfo.HostName;\nif (hostName.EndsWith(\"trust.com\"))\n{\n    trusted = true;\n}",
+      "safe": "bool trusted;\nstring remoteIpAddress = Request.ServerVariables[\"REMOTE_HOST\"];\n\nif ( remoteIpAddress.Equals(trustedAddr))\n{\n    trusted = true;\n    Do_something_for_Trust_System();\n}",
+      "note": "취약한 코드는 도메인명(HostName)으로 해당 요청을 신뢰할 수 있는지를 검사하여 공격자가 DNS 캐시 조작으로 우회할 수 있다. 안전한 코드는 IP주소를 직접 비교하도록 한다."
+    },
+    {
+      "lang": "C",
+      "vulnerable": "struct hostent *hp;struct in_addr myaddr;\nchar* tHost = \"trustme.example.com\";\nmyaddr.s_addr=inet_addr(ip_addr_string);\n\nhp = gethostbyaddr((char *) &myaddr, sizeof(struct in_addr), AF_INET);\n// 요청의 신뢰성을 호스트의 이름으로 판별하고 있다.\nif (hp && !strncmp(hp->h_name, tHost, sizeof(tHost))) {\n    trusted = true;\n} else {\n    trusted = false;\n}",
+      "safe": "struct hostent *hp;struct in_addr myaddr;\nchar* tHost = \"127.0.0.1\";\nmyaddr.s_addr=inet_addr(ip_addr_string);\n\nhp = gethostbyaddr((char *) &myaddr, sizeof(struct in_addr), AF_INET);\n// 호스트의 이름이 아니라 IP로 직접 비교한다.\nif (hp && !strncmp(hp->h_name, tHost, sizeof(tHost))) {\n    trusted = true;\n} else {\n    trusted = false;\n}",
+      "note": "취약한 C 코드는 요청의 신뢰성을 호스트의 이름으로 판별하고 있어 공격자가 DNS 캐시를 조작하여 보안 정책을 우회할 수 있다. 안전한 코드는 IP 주소(127.0.0.1)를 직접 비교하여 DNS 캐시 조작에 대해 안전하다."
+    }
+  ]
+}

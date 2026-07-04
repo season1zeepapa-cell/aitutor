@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-11",
+  "title": "부적절한 인증서 유효성 검증",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-295",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 11. 부적절한 인증서 유효성 검증",
+    "pages": "102-105"
+  },
+  "overview": "인증서가 유효하지 않거나 악성인 경우 공격자가 호스트와 클라이언트 사이의 통신 구간을 가로채 신뢰하는 엔티티인 것처럼 속일 수 있는 보안약점이다.",
+  "impact": "대상 호스트가 신뢰 가능한 것으로 믿고 악성 호스트에 연결하거나, 신뢰된 호스트로부터 전달받은 것처럼 보이는 스푸핑 된(또는 변조된) 데이터를 아무런 의심 없이 수신하는 상황이 발생할 수 있다.",
+  "countermeasure": "데이터 통신에 인증서를 사용하는 경우 송신측에서 전달한 인증서가 유효한지 검증한 후 데이터를 송수신해야 한다. 언어에서 기본으로 제공되는 검증 함수가 존재하지 않거나 일반적이지 않은 방식으로 인증서를 생성한 경우 암호화 패키지를 사용해 별도의 검증 코드를 작성해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python (ssl 소켓)",
+      "vulnerable": "import os\nimport socket\nimport ssl\n\nHOST, PORT = \"127.0.0.1\", 7917\n\ndef connect_with_server():\n\n    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:\n        # 보안 정책 수동 설정\n        context = ssl.SSLContext()\n\n        # SSLContext 생성자를 직접 호출할 때, CERT_NONE이 기본값\n        # 상대방을 인증하지 않기 때문에 통신하고자하는 서버의 신뢰성을 보장할 수 없음\n        context.verify_mode = ssl.CERT_NONE\n\n        with context.wrap_socket(sock) as ssock:\n             try:\n                    ssock.connect((HOST, PORT))\n                    ssock.send(\"Hello I'm a vulnerable client :)\".encode(\"utf-8\"))\n                    data = ssock.recv(1024).decode(\"utf-8\")\n                    print(f\">> server from ({HOST}, {PORT}): {data}\\n\")\n             finally:\n                    ssock.close()",
+      "safe": "import os\nimport socket\nimport ssl\n\nCURRENT_PATH = os.getcwd()\nHOST_NAME = \"test-server\"\nHOST, PORT = \"127.0.0.1\", 7917\nSERVER_CA_PEM = f\"{CURRENT_PATH}/rsa_server/CA.pem\"               # 서버로부터 전달받은 CA 인증서\n\ndef connect_with_server():\n\n    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:\n        # PROTOCOL_TLS_CLIENT 프로토콜을 추가하여 인증서 유효성 검사와 호스트 이름 확인을 위한\n        # context를 구성. verify_mode가 CERT_REQUIRED로 설정됨\n        # check_hostname이 True로 설정됨\n        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)\n\n        # 서버로부터 전달받은 CA 인증서를 context에 로드\n        # CERT_REQUIRED로 인해 필수\n        context.load_verify_locations(SERVER_CA_PEM)\n\n        # 호스트 이름(HOST_NAME)이 일치하지 않으면 통신 불가\n        # 생성된 소켓과 context wrapping 시 server_hostname이 실제 서버에서\n        # 등록(server.csr)한 호스트 명과 일치해야 함\n        with context.wrap_socket(sock, server_hostname=HOST_NAME) as ssock:\n             try:\n                    ssock.connect((HOST, PORT))\n\n                    ssock.send(\"Hello I'm a patched client :)\".encode(\"utf-8\"))\n\n                    data = ssock.recv(1024).decode(\"utf-8\")\n\n                    print(f\">> server from ({HOST}, {PORT}): {data}\\n\")\n             finally:\n                    ssock.close()",
+      "note": "취약 예시는 SSL 기반 소켓 연결에서 클라이언트가 통신 대상 서버를 인증하지 않고 접속하는 상황이다. SSLContext 생성자를 직접 호출하면 CERT_NONE이 기본값이라 서버의 신뢰성을 보장할 수 없고, 클라이언트 시스템에 영향을 주는 악성 데이터를 수신할 수 있다. 안전 예시는 SSL 연결 시 PROTOCOL_TLS_CLIENT 프로토콜을 추가해 인증서 유효성 검사와 호스트 이름 확인을 위한 context를 구성한다. 이 경우 verify_mode가 CERT_REQUIRED로 설정되어 서버의 인증서 유효성을 검증할 수 있고, CA 인증서 로드(load_verify_locations)와 server_hostname 일치 확인이 수행된다."
+    }
+  ]
+}

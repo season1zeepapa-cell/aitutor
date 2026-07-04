@@ -36,6 +36,25 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
   const [savedProviders, setSavedProviders] = useState({});  // { gemini: {id, preview, created_at}, ... }
   const abortRef = useRef(null);
 
+  // 프롬프트 인스펙터 — API 로 전송되는 프롬프트·파라미터를 조회하고 항목별로 수정
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [promptInfo, setPromptInfo] = useState(null);       // 서버가 조립한 기본값 (explain-prompt 응답)
+  const [promptOverrides, setPromptOverrides] = useState({}); // 사용자가 수정한 항목만 담김
+  const promptEdited = Object.keys(promptOverrides).length > 0;
+
+  // 인스펙터 열 때(또는 프로바이더 변경 시) 기본 프롬프트 조회
+  const loadPromptInfo = async (provider = llmExplProvider || 'gemini') => {
+    if (!question?.id) return;
+    try {
+      const info = await apiGet(
+        `/api/kisa-attempt?action=explain-prompt&question_id=${question.id}&provider=${provider}`
+      );
+      setPromptInfo(info);
+    } catch (e) {
+      setPromptInfo({ error: e.message });
+    }
+  };
+
   // 마운트 시 저장된 해설 목록 조회 (영상정보관리사와 동일 패턴)
   useEffect(() => {
     if (!question?.id) return;
@@ -62,12 +81,30 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
     setLlmExplFromCache(false);
     setLlmExplId(null);
 
+    // 프로바이더가 바뀌면 인스펙터 기본값 재조회 + 모델 override 초기화 (타 프로바이더 모델명 오전송 방지)
+    if (promptInfo && promptInfo.provider !== provider) {
+      setPromptOverrides(prev => {
+        const next = { ...prev };
+        delete next.model;
+        return next;
+      });
+      if (inspectorOpen) loadPromptInfo(provider);
+      else setPromptInfo(null);
+    }
+
     try {
       const resp = await fetch('/api/kisa-attempt?action=llm-explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ question_id: question.id, provider, force_new: forceNew }),
+        body: JSON.stringify({
+          question_id: question.id,
+          provider,
+          // 프롬프트를 수정한 상태로 생성하면 캐시 대신 새로 생성 (수정 내용 반영 보장)
+          force_new: forceNew || promptEdited,
+          // 인스펙터에서 수정한 항목만 전달 — 나머지는 서버 기본값 사용
+          overrides: promptEdited ? promptOverrides : undefined,
+        }),
         signal: ac.signal,
       });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -216,7 +253,7 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
           )}
 
           {/* 📖 기본 정답 해설 — 모든 문항 필수 노출
-              우선순위: 1) DB explanation (MCQ 전용 사전작성)
+              우선순위: 1) DB explanation (객관식 등 사전작성)
                        2) model_answer.rationale + fix_description (diagnosis4 폴백) */}
           {(result.explanation || result.model_answer?.rationale) && (
             <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3">
@@ -310,6 +347,7 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
                   mcq: 'AI가 각 선택지별 상세 해설 · 실무 사례 · 관련 용어를 생성합니다',
                   blank: 'AI가 빈칸 정답 개념 · 관련 용어 · 실무 활용 예를 심화 설명합니다',
                   diagnosis4: 'AI가 취약 부분의 원리 · 공격 시나리오 · 수정 방안 심화를 설명합니다',
+                  codeid: 'AI가 이 코드의 판정 근거(라인·API) · 약점 원리 · 공격 시나리오 · 안전한 구현을 설명합니다',
                   composite: 'AI가 산출물별 분석 · 진단보고서 작성 포인트 · 정탐/오탐 판정 근거를 설명합니다',
                 }[question.question_type] || 'AI가 추가 해설을 생성합니다'}
               </p>
@@ -359,12 +397,50 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
                 ⚠️ {llmExplError}
               </p>
             )}
+
+            {/* ⚙️ 프롬프트 인스펙터 — API 로 전송되는 프롬프트·상태를 접기/펼치기로 확인, 항목별 수정 */}
+            <div className="mt-2 pt-2 border-t border-primary/10">
+              <button
+                onClick={() => {
+                  const next = !inspectorOpen;
+                  setInspectorOpen(next);
+                  if (next && !promptInfo) loadPromptInfo();
+                }}
+                className="w-full flex items-center justify-between text-[11px] text-primary/70 hover:text-primary"
+              >
+                <span>
+                  ⚙️ 전송 프롬프트 확인·수정
+                  {promptEdited && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[9px] font-bold">
+                      수정됨 {Object.keys(promptOverrides).length}
+                    </span>
+                  )}
+                </span>
+                <span>{inspectorOpen ? '▲' : '▼'}</span>
+              </button>
+              {inspectorOpen && (
+                <PromptInspector
+                  info={promptInfo}
+                  overrides={promptOverrides}
+                  onChange={setPromptOverrides}
+                  onReload={loadPromptInfo}
+                  status={{
+                    provider: llmExplProvider,
+                    loading: llmExplLoading,
+                    fromCache: llmExplFromCache,
+                    error: llmExplError,
+                  }}
+                  onGenerate={(provider) => requestLlmExplain(provider || llmExplProvider || 'gemini', { forceNew: true })}
+                />
+              )}
+            </div>
           </div>
 
           {/* REBUILD16 R3 — diagnosis4 4단계 + LLM 보조 채점 영역은 components/QuestionTypes/results/DiagnosisResult.jsx 에서 렌더링됨 */}
 
-          {/* 모범답안 토글 */}
-          {result.model_answer && (
+          {/* 모범답안 토글 — 표시할 실제 내용(근거·수정방안·취약라인)이 있을 때만.
+              codeid 는 model_answer 가 {is_safe, weakness_id} 뿐이라 빈 껍데기가 되므로 숨긴다(정답 해설 박스로 대체). */}
+          {result.model_answer && (result.model_answer.rationale || result.model_answer.fix_description || result.vulnerable_lines?.length > 0) && (
             <Collapse
               title="💡 모범답안 보기"
               open={showModel}
@@ -426,6 +502,138 @@ export default function ResultOverlay({ result: initialResult, question, onSelfG
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ⚙️ 프롬프트 인스펙터 — 전송 프롬프트/파라미터를 항목별 접기·펼치기 + 수정
+// overrides 에는 사용자가 실제로 바꾼 항목만 저장한다 (서버는 없는 항목을 기본값으로 처리)
+function PromptInspector({ info, overrides, onChange, onReload, status, onGenerate }) {
+  const [openItems, setOpenItems] = useState(new Set(['status']));
+  const toggle = (key) =>
+    setOpenItems(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+
+  if (!info) return <p className="text-[11px] text-text-secondary py-2">프롬프트 불러오는 중…</p>;
+  if (info.error) return <p className="text-[11px] text-red-500 py-2">조회 실패: {info.error}</p>;
+
+  // 항목 값 = 수정값 우선, 없으면 서버 기본값
+  const val = (key, def) => (overrides[key] !== undefined ? overrides[key] : def);
+  const setVal = (key, v, def) => {
+    const next = { ...overrides };
+    // 기본값과 같아지면 override 해제 (수정됨 배지 정확성)
+    if (v === def || v === '' || v === undefined) delete next[key];
+    else next[key] = v;
+    onChange(next);
+  };
+
+  // 접기/펼치기 한 줄 항목 (수정 가능 필드 포함)
+  const Item = ({ id, title, edited, children }) => (
+    <div className="border border-border/60 rounded-lg overflow-hidden">
+      <button
+        onClick={() => toggle(id)}
+        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-left text-[11px] font-semibold hover:bg-primary/5"
+      >
+        <span className="text-primary/50">{openItems.has(id) ? '▾' : '▸'}</span>
+        <span className="flex-1">{title}</span>
+        {edited && <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-bold">수정됨</span>}
+      </button>
+      {openItems.has(id) && <div className="px-2 pb-2">{children}</div>}
+    </div>
+  );
+
+  return (
+    <div className="mt-2 space-y-1.5 text-[11px]">
+      {/* 요청 상태 */}
+      <Item id="status" title="📡 요청 상태">
+        <div className="grid grid-cols-2 gap-1 text-[10px] font-mono">
+          <span className="text-text-secondary">provider</span><span>{status.provider || info.provider}</span>
+          <span className="text-text-secondary">상태</span>
+          <span>{status.loading ? '⏳ 생성 중' : status.error ? '❌ 오류' : status.fromCache ? '💾 저장본 표시' : '대기'}</span>
+          <span className="text-text-secondary">전송 구조</span><span className="break-all">{info.transport}</span>
+        </div>
+        {status.error && <p className="mt-1 text-red-500 break-all">{status.error}</p>}
+      </Item>
+
+      {/* 모델 / 생성 파라미터 */}
+      <Item id="params" title="🎛️ 모델·생성 파라미터" edited={['model', 'temperature', 'max_output_tokens'].some(k => overrides[k] !== undefined)}>
+        <div className="space-y-1.5">
+          <label className="block">
+            <span className="text-text-secondary">모델</span>
+            <input
+              type="text"
+              value={val('model', info.model)}
+              onChange={(e) => setVal('model', e.target.value, info.model)}
+              className="mt-0.5 w-full px-2 py-1 rounded border border-border bg-bg font-mono text-[10px] focus:outline-none focus:border-primary/50"
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            <label className="block">
+              <span className="text-text-secondary">temperature (0~2)</span>
+              <input
+                type="number" step="0.1" min="0" max="2"
+                value={val('temperature', info.temperature)}
+                onChange={(e) => setVal('temperature', e.target.value === '' ? undefined : Number(e.target.value), info.temperature)}
+                className="mt-0.5 w-full px-2 py-1 rounded border border-border bg-bg font-mono text-[10px] focus:outline-none focus:border-primary/50"
+              />
+            </label>
+            <label className="block">
+              <span className="text-text-secondary">최대 출력 토큰</span>
+              <input
+                type="number" step="256" min="256" max="8192"
+                value={val('max_output_tokens', info.max_output_tokens)}
+                onChange={(e) => setVal('max_output_tokens', e.target.value === '' ? undefined : Number(e.target.value), info.max_output_tokens)}
+                className="mt-0.5 w-full px-2 py-1 rounded border border-border bg-bg font-mono text-[10px] focus:outline-none focus:border-primary/50"
+              />
+            </label>
+          </div>
+        </div>
+      </Item>
+
+      {/* 시스템 프롬프트 */}
+      <Item id="system" title="🧭 시스템 프롬프트" edited={overrides.system_prompt !== undefined}>
+        <textarea
+          value={val('system_prompt', info.system_prompt)}
+          onChange={(e) => setVal('system_prompt', e.target.value, info.system_prompt)}
+          rows={8}
+          className="w-full px-2 py-1.5 rounded border border-border bg-bg font-mono text-[10px] leading-relaxed focus:outline-none focus:border-primary/50 resize-y"
+        />
+      </Item>
+
+      {/* 사용자 프롬프트 (문제·선택지·정답 등) */}
+      <Item id="user" title="📝 사용자 프롬프트 (문제 데이터)" edited={overrides.user_prompt !== undefined}>
+        <textarea
+          value={val('user_prompt', info.user_prompt)}
+          onChange={(e) => setVal('user_prompt', e.target.value, info.user_prompt)}
+          rows={10}
+          className="w-full px-2 py-1.5 rounded border border-border bg-bg font-mono text-[10px] leading-relaxed focus:outline-none focus:border-primary/50 resize-y"
+        />
+      </Item>
+
+      {/* 액션: 수정 반영 생성 / 기본값 복원 */}
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          onClick={() => onGenerate()}
+          disabled={status.loading}
+          className="flex-1 py-1.5 rounded-lg bg-primary text-white text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+        >
+          {Object.keys(overrides).length > 0 ? '✏️ 수정한 프롬프트로 생성' : '🔄 이 프롬프트로 새로 생성'}
+        </button>
+        {Object.keys(overrides).length > 0 && (
+          <button
+            onClick={() => { onChange({}); onReload(); }}
+            className="px-2 py-1.5 rounded-lg border border-border text-[11px] text-text-secondary hover:bg-neutral-50 dark:hover:bg-neutral-800"
+          >
+            ↩️ 기본값 복원
+          </button>
+        )}
+      </div>
+      <p className="text-[9px] text-text-secondary leading-relaxed">
+        수정한 항목만 서버로 전송되며, 수정 상태로 생성하면 저장본 대신 항상 새로 생성됩니다.
+      </p>
     </div>
   );
 }

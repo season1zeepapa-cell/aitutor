@@ -47,8 +47,20 @@
         "code": "// projectDetail.jsp\nString pid = request.getParameter(\"projectid\");\nArrayList commentList = commentDao.getProjectCommentTblByWhere(\"where projectid=\" + pid + \" order by writedate desc\");\n\n// ProjectCommentDAO.java\npublic ArrayList getProjectCommentTblByWhere(String where) {\n  String sql_ = ...;\n  sql_ += \" \" + where;          // 문자열 결합\n  List tmp = template_.query(sql_, new ProjectCommentRowMapper());  // 실행\n}"
       },
       {
+        "desc": "[JDO] 외부 입력값(name)을 검증 없이 JDO(Java Data Objects) API 의 JDOQL 쿼리 생성 문자열로 사용. name 에 foo'; DELETE FROM MYTABLE; -- 입력 시 SELECT col1 FROM MYTABLE WHERE name = 'foo'; DELETE FROM MYTABLE; --' 쿼리가 실행되어 테이블이 삭제될 수 있음 → 취약 판정",
+        "code": "public class U9102 implements ContactDAO {\npublic List<Contact> listContacts() {\n    PersistenceManager pm = getPersistenceManagerFactory().getPersistenceManager();\n    String query = \"select from \" + Contact.class.getName();\n    try {\n     Properties props = new Properties();\n     String fileName = \"contacts.txt\";\n     FileInputStream in = new FileInputStream(fileName);\n\n     if (in != null) {\n     props.load(in);\n     in.close();\n     }\n     // 외부로부터 입력을 받는다\n     String name = props.getProperty(\"name\");\n     if (name != null) {\n       query += \" where name = '\" + name + \"'\";\n     }\n    } catch (IOException e) {\n      ...\n    }\n// 외부입력 값이 JDO 객체의 인자로 사용된다.\nreturn (List<Contact>) pm.newQuery(query).execute();\n}\n}"
+      },
+      {
+        "desc": "[Persistence] J2EE Persistence API 응용프로그램에서 외부 입력값(id)을 검증 없이 createNativeQuery 쿼리에 그대로 사용. id 에 foo'; DELETE FROM MYTABLE; -- 입력 시 테이블이 삭제될 수 있음 → 취약 판정",
+        "code": "public class U9103 implements ServletContextListener {\n   public List<?> getAllItemsInWildcardCollection() {\n     EntityManager em = getEntityManager();\n     List<U9103> r_type = null;\n      try {\n      Properties props = new Properties();\n      String fileName = \"conditions.txt\";\n      FileInputStream in = new FileInputStream(fileName);\n      props.load(in);\n      // 외부로부터 입력을 받는다.\n      String id = props.getProperty(\"id\");\n      // 외부 입력 값이 query의 인자로 사용이 된다.\n      Query query = em.createNativeQuery(\"SELECT OBJECT(i) FROM Item i WHERE i.itemID > \" + id);\n      List<U9103> items = query.getResultList();\n      ...\n      return r_type;\n}\n..."
+      },
+      {
         "desc": "mybatis Data Map 에서 $name$ 으로 외부값이 쿼리 명령어에 그대로 연결됨. NAME 에 ' OR 'x'='x 전달 시 전체 삭제 → 취약 판정",
         "code": "<delete id=\"delStudent\" parameterClass=\"Student\">\n  DELETE STUDENTS\n  WHERE NUM = #num# AND NAME = '$name$'\n</delete>"
+      },
+      {
+        "desc": "[Hibernate] 외부 입력(name)을 아무 검증과정 없이 Hibernate API 쿼리 생성 문자열에 그대로 사용. n' or '1'='1 입력 시 from Student where studentName='n' or '1'='1' 쿼리가 실행되어 테이블 내 모든 레코드가 반환될 수 있음 → 취약 판정",
+        "code": "import org.hibernate.Query\nimport org.hibernate.Session\n......\nString name = request.getParameter(\"name\");\nQuery query = session.createQuery(\"from Student where studentName = '\" + name + \"' \");"
       }
     ],
     "false_positive": [

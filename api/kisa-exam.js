@@ -24,25 +24,26 @@ const { withAuth } = require('./middleware');
 const { scoreAttempt } = require('./_kisa/scorer');
 
 // 시험 모드별 구성
-// theory60 30문항은 mcq 20 + blank 10 으로 혼합 출제 (실제 이수시험 이론 30문항 대비)
+// theory60 30문항은 objective 20 + blank 10 으로 혼합 출제 (실제 이수시험 이론 30문항 대비)
 // composite(복합서술형)은 실기 영역에 포함 — practical100/full3h 에 일부 출제
+// codeid(코드식별)는 코드 기반 → 실기(practical) 영역에 편입. 채점 합산도 else→practical 로 자동.
 const EXAM_CONFIG = {
-  theory60:     { timeLimit: 60 * 60,   mcq: 20, blank: 10, practical: 0,  composite: 0 },
-  practical100: { timeLimit: 100 * 60,  mcq: 0,  blank: 0,  practical: 13, composite: 2 },
-  full3h:       { timeLimit: 180 * 60,  mcq: 20, blank: 10, practical: 13, composite: 2 },
+  theory60:     { timeLimit: 60 * 60,   objective: 20, blank: 10, practical: 0,  composite: 0, codeid: 0 },
+  practical100: { timeLimit: 100 * 60,  objective: 0,  blank: 0,  practical: 13, composite: 2, codeid: 5 },
+  full3h:       { timeLimit: 180 * 60,  objective: 20, blank: 10, practical: 13, composite: 2, codeid: 5 },
 };
 
-/** 시험용 문항 랜덤 샘플링 — 이론(mcq) + 단답형(blank) + 실기(diagnosis4 + composite) */
+/** 시험용 문항 랜덤 샘플링 — 이론(objective) + 단답형(blank) + 실기(diagnosis4 + composite + codeid) */
 async function sampleQuestions(cfg) {
   const ids = [];
 
-  if (cfg.mcq > 0) {
-    const mcq = await query(`
+  if (cfg.objective > 0) {
+    const objective = await query(`
       SELECT id FROM kisa_questions
-      WHERE question_type = 'mcq' AND is_active = TRUE
+      WHERE question_type = 'objective' AND is_active = TRUE
       ORDER BY RANDOM() LIMIT $1
-    `, [cfg.mcq]);
-    ids.push(...mcq.rows.map(r => r.id));
+    `, [cfg.objective]);
+    ids.push(...objective.rows.map(r => r.id));
   }
 
   if (cfg.blank > 0) {
@@ -70,6 +71,15 @@ async function sampleQuestions(cfg) {
       ORDER BY RANDOM() LIMIT $1
     `, [cfg.composite]);
     ids.push(...composite.rows.map(r => r.id));
+  }
+
+  if (cfg.codeid > 0) {
+    const codeid = await query(`
+      SELECT id FROM kisa_questions
+      WHERE question_type = 'codeid' AND is_active = TRUE
+      ORDER BY RANDOM() LIMIT $1
+    `, [cfg.codeid]);
+    ids.push(...codeid.rows.map(r => r.id));
   }
 
   return ids;
@@ -109,7 +119,7 @@ module.exports = withAuth(async (req, res) => {
       [userId]
     );
 
-    const requested = (cfg.mcq || 0) + (cfg.blank || 0) + (cfg.practical || 0) + (cfg.composite || 0);
+    const requested = (cfg.objective || 0) + (cfg.blank || 0) + (cfg.practical || 0) + (cfg.composite || 0) + (cfg.codeid || 0);
     const questionIds = await sampleQuestions(cfg);
     if (questionIds.length < requested) {
       return res.status(503).json({
@@ -255,9 +265,9 @@ module.exports = withAuth(async (req, res) => {
       });
 
       totalScore += scored.autoScore;
-      // mcq, blank 모두 이론(theory) 점수에 합산 (실제 이수시험 이론 영역 기준)
+      // objective, blank 모두 이론(theory) 점수에 합산 (실제 이수시험 이론 영역 기준)
       // diagnosis4 + composite 는 실기(practical) 영역에 합산
-      if (q.question_type === 'mcq' || q.question_type === 'blank') {
+      if (q.question_type === 'objective' || q.question_type === 'blank') {
         theoryScore += scored.autoScore;
         theoryCount++;
       } else {

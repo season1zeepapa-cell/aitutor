@@ -1,0 +1,24 @@
+{
+  "chapter_code": "PY-SF-03",
+  "title": "중요한 자원에 대한 잘못된 권한 설정",
+  "stage": "implementation",
+  "category": "security_feature",
+  "cwe": "CWE-732",
+  "applies_to": ["Python"],
+  "source": {
+    "doc": "Python 시큐어코딩 가이드(2023년 개정본)",
+    "section": "제2장 제2절 보안기능 / 3. 중요한 자원에 대한 잘못된 권한 설정",
+    "pages": "75-76"
+  },
+  "overview": "응용프로그램이 중요한 보안관련 자원에 대해 읽기 또는 수정하기 권한을 의도하지 않게 허가할 경우 권한을 갖지 않은 사용자가 해당 자원을 사용하게 된다. 파이썬에서는 os.fchmod, os.chmod 등의 함수를 통해 파일 생성, 수정 및 읽기 권한을 설정할 수 있다.",
+  "impact": "권한을 갖지 않은 사용자가 설정 파일, 실행 파일, 라이브러리 등 중요한 자원을 읽거나 수정할 수 있게 되어 시스템 설정 변조 등 보안 문제가 발생할 수 있다.",
+  "countermeasure": "설정 파일, 실행 파일, 라이브러리 등은 관리자에 의해서만 읽고 쓰기가 가능하도록 설정하고, 설정 파일과 같이 중요한 자원을 사용하는 경우 허가 받지 않은 사용자가 중요한 자원에 접근 가능한지 검사한다. 주요 파일에 대해서는 최소 권한만 할당해야 하며, 파일의 소유자라고 하더라도 기본적으로 읽기 권한만 부여하고 부득이하게 쓰기 권한이 필요한 경우에만 제한적으로 쓰기 권한을 부여해야 한다.",
+  "code_examples": [
+    {
+      "lang": "Python",
+      "vulnerable": "import os\n\ndef write_file():\n  # 모든 사용자가 읽기, 쓰기, 실행 권한을 가지게 된다.\n  os.chmod('/root/system_config', 0o777)\n\n  with open(\"/root/system_config\", 'w') as f:\n    f.write(\"your config is broken\")",
+      "safe": "import os\n\ndef write_file():\n  # 소유자 외에는 아무런 권한을 주지 않음.\n  os.chmod('/root/system_config', 0o700)\n\n  with open(\"/root/system_config\", 'w') as f:\n    f.write(\"your config is broken\")",
+      "note": "취약 코드는 /root/system_config 파일에 os.chmod(0o777)을 적용해 모든 사용자가 읽기·쓰기·실행 권한을 가지게 된다. 안전한 코드는 0o700으로 설정해 소유자 외에는 아무런 권한을 주지 않는 최소 권한 원칙을 적용한다."
+    }
+  ]
+}
